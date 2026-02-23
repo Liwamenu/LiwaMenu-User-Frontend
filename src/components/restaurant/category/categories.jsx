@@ -17,6 +17,7 @@ import EditCategory from "./editCategory";
 import DeleteCategory from "./deleteCategory";
 import CategoryProducts from "./categoryProducts";
 import fallbackImg from "../../../assets/img/No_Img.svg";
+import { usePopup } from "../../../context/PopupContext";
 
 //REDUX
 import {
@@ -27,7 +28,6 @@ import {
   editCategories,
   resetEditCategories,
 } from "../../../redux/categories/editCategoriesSlice";
-import { usePopup } from "../../../context/PopupContext";
 
 const Categories = ({ data: restaurant }) => {
   const params = useParams();
@@ -142,10 +142,8 @@ const Categories = ({ data: restaurant }) => {
 
   //SET CATEGORIES WHEN FETCHED
   useEffect(() => {
-    if (categories?.data) {
-      const sorted = [...categories.data].sort(
-        (a, b) => a.sortOrder - b.sortOrder,
-      );
+    if (categories) {
+      const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
       setCategoriesData(sorted);
       setCategoriesDataBefore(sorted);
       dispatch(resetGetCategories());
@@ -222,6 +220,7 @@ const Categories = ({ data: restaurant }) => {
 
         <div className="flex justify-between items-center">
           <CategoriesHeader
+            id={params?.id}
             restaurant={restaurant}
             onSuccess={handleAddCategory}
           />
@@ -336,6 +335,11 @@ const Categories = ({ data: restaurant }) => {
                                     setPopupContent(
                                       <EditCategory
                                         category={cat}
+                                        id={params?.id}
+                                        setCategoriesData={setCategoriesData}
+                                        setCategoriesDataBefore={
+                                          setCategoriesDataBefore
+                                        }
                                         onSuccess={handleEditCategory}
                                       />,
                                     )

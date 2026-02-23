@@ -4,14 +4,12 @@ import { useTranslation } from "react-i18next";
 
 //COMP
 import AddCategory from "./addCategory";
-import { CancelI, EditI } from "../../../assets/icon";
+import { CancelI } from "../../../assets/icon";
 import { usePopup } from "../../../context/PopupContext";
 
-const CategoriesHeader = ({ restaurant, onSuccess }) => {
+const CategoriesHeader = ({ id, restaurant, onSuccess }) => {
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
-
-  // const params = useParams();
 
   const headers = [
     { label: "Categories", path: "list" },
@@ -25,7 +23,7 @@ const CategoriesHeader = ({ restaurant, onSuccess }) => {
           className="whitespace-nowrap flex gap-2 items-center bg-[--primary-1] text-white px-3 py-2 rounded-md"
           onClick={() => {
             setPopupContent(
-              <AddCategory data={restaurant} onSuccess={onSuccess} />
+              <AddCategory id={id} data={restaurant} onSuccess={onSuccess} />,
             );
           }}
         >

@@ -17,9 +17,8 @@ import {
   addSubCategory,
   resetAddSubCategory,
 } from "../../../redux/subCategories/addSubCategorySlice";
-
-//JSON
-import categoriesJSON from "../../../assets/js/Categories.json";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import { useParams } from "react-router-dom";
 
 const initialSubCategory = () => ({
   name: "",
@@ -28,24 +27,29 @@ const initialSubCategory = () => ({
   isActive: true,
 });
 
-const AddSubCategory = ({ data: restaurant, onSuccess }) => {
+const AddSubCategory = ({ restaurant, onSuccess }) => {
+  const params = useParams();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
 
   const { success, error } = useSelector((s) => s.subCategories.add);
+  const { categories: data } = useSelector((state) => state.categories.get);
 
+  const [categories, setCategories] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategory, setSubCategory] = useState(initialSubCategory());
   const [preview, setPreview] = useState(null);
 
-  const categories = useMemo(() => categoriesJSON.categories || [], []);
-
-  const categoryOptions = useMemo(() => {
-    return categories.map((cat) => ({
+  function assignCategoriesOptions(categories) {
+    console.log(categories);
+    if (!categories) return;
+    const options = categories.map((cat) => ({
       value: cat.id,
       label: cat.name,
     }));
-  }, [categories]);
+    setCategoryOptions(options);
+  }
 
   const handleField = (key, value) => {
     setSubCategory((prev) => ({ ...prev, [key]: value }));
@@ -114,6 +118,22 @@ const AddSubCategory = ({ data: restaurant, onSuccess }) => {
     }
     if (error) dispatch(resetAddSubCategory());
   }, [success, error]);
+
+  //GET CATEGORIES
+  useEffect(() => {
+    if (!categories) {
+      dispatch(getCategories({ restaurantId: restaurant?.id }));
+    }
+  }, [categories]);
+
+  //SET CATEGORIES
+  useEffect(() => {
+    if (data) {
+      console.log(data);
+      setCategories(data);
+      assignCategoriesOptions(data);
+    }
+  }, [data]);
 
   return (
     <div className="w-full flex justify-center pb-5- mt-1-  text-[--black-2]">

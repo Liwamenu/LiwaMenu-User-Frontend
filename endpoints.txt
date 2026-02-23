@@ -3,8 +3,8 @@ Restaurants/UpdateRestaurant
 
 Restaurants/SetRestaurantSettings
 
-Restaurants/GetRestaurantReservationSettingsSlice
-Restaurants/SetRestaurantReservationSettingsSlice
+Restaurants/GetRestaurantReservationSettings
+Restaurants/SetRestaurantReservationSettings
 
 Restaurants/GetAnnouncementSettingsSlice
 Restaurants/SetAnnouncementSettingsSlice

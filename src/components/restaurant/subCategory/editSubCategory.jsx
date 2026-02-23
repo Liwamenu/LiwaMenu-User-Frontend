@@ -19,10 +19,7 @@ import {
   resetEditSubCategory,
 } from "../../../redux/subCategories/editSubCategorySlice";
 
-//JSON
-import categoriesJSON from "../../../assets/js/Categories.json";
-
-const EditSubCategory = ({ subCategory, onSuccess }) => {
+const EditSubCategory = ({ subCategory, categories, onSuccess }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
@@ -36,8 +33,6 @@ const EditSubCategory = ({ subCategory, onSuccess }) => {
       ? URL.createObjectURL(subCategory.image)
       : subCategory?.imageAbsoluteUrl || null,
   );
-
-  const categories = useMemo(() => categoriesJSON.categories || [], []);
 
   const categoryOptions = useMemo(() => {
     return categories.map((cat) => ({
@@ -66,9 +61,7 @@ const EditSubCategory = ({ subCategory, onSuccess }) => {
     }));
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-
+  const handleSave = () => {
     if (isEqual(subCategoryData, subCategory)) {
       toast.error(t("editSubCategory.not_changed"), { id: "subCategories" });
       return;
@@ -140,10 +133,7 @@ const EditSubCategory = ({ subCategory, onSuccess }) => {
             </button>
           </div>
 
-          <form
-            className="space-y-6 overflow-y-auto max-h-[80dvh] pb-14"
-            onSubmit={handleSave}
-          >
+          <form className="space-y-6 overflow-y-auto max-h-[80dvh] pb-14">
             {/* Alt Kategori Adı */}
             <CustomInput
               required
@@ -172,7 +162,10 @@ const EditSubCategory = ({ subCategory, onSuccess }) => {
                 }
                 style={{ backgroundColor: "var(--light-1)" }}
                 options={categoryOptions}
-                onChange={(opt) => handleField("categoryId", opt?.value || "")}
+                onChange={(opt) => {
+                  handleField("categoryId", opt?.value || "");
+                  handleField("parentCategoryName", opt?.label || "");
+                }}
                 isSearchable={true}
                 className="text-sm"
               />
@@ -251,7 +244,11 @@ const EditSubCategory = ({ subCategory, onSuccess }) => {
             >
               {t("addSubCategory.cancel")}
             </button>
-            <button className="px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg shadow-[--light-1] hover:bg-[--primary-2] transform hover:-translate-y-0.5 transition-all">
+            <button
+              type="submit"
+              onClick={handleSave}
+              className="px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg shadow-[--light-1] hover:bg-[--primary-2] transform hover:-translate-y-0.5 transition-all"
+            >
               {t("editSubCategory.update")}
             </button>
           </div>

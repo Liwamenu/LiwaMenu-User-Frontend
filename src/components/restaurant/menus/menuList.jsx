@@ -28,9 +28,9 @@ const DAY_KEYS = [
   "sunday",
 ];
 
-const MenuList = ({}) => {
+const MenuList = () => {
   const params = useParams();
-  const restaurantId = params.id;
+  const restaurantId = params["*"].split("/")[1];
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
   const { t } = useTranslation();
@@ -53,7 +53,7 @@ const MenuList = ({}) => {
 
   const handleEditMenu = (editedMenu) => {
     setMenusData((prev) =>
-      prev.map((menu) => (menu.id === editedMenu.id ? editedMenu : menu))
+      prev.map((menu) => (menu.id === editedMenu.id ? editedMenu : menu)),
     );
   };
 
@@ -63,7 +63,11 @@ const MenuList = ({}) => {
 
   function onAddMenu() {
     setPopupContent(
-      <AddMenu onClose={() => setPopupContent(false)} onSave={handleAddMenu} />
+      <AddMenu
+        onClose={() => setPopupContent(false)}
+        onSave={handleAddMenu}
+        restaurantId={restaurantId}
+      />,
     );
   }
   function onEditMenu(menu) {
@@ -72,7 +76,8 @@ const MenuList = ({}) => {
         menu={menu}
         onClose={() => setPopupContent(false)}
         onSave={handleEditMenu}
-      />
+        restaurantId={restaurantId}
+      />,
     );
   }
   function onDeleteMenu(menu) {
@@ -81,14 +86,14 @@ const MenuList = ({}) => {
         menu={menu}
         onClose={() => setPopupContent(false)}
         onDelete={handleDeleteMenu}
-      />
+      />,
     );
   }
 
   //get menus from redux
   useEffect(() => {
     if (!menusData) {
-      dispatch(getMenus(restaurantId));
+      dispatch(getMenus({ restaurantId }));
     }
   }, [dispatch, restaurantId]);
 
@@ -103,6 +108,7 @@ const MenuList = ({}) => {
       setMenusData(menusJSON.menus);
     }
   }, [menus, error]);
+  console.log(menusData);
 
   return (
     <div className="space-y-6 mt-1">
@@ -169,8 +175,8 @@ const MenuList = ({}) => {
                                 .map((d) =>
                                   t(`workingHours.${DAY_KEYS[d]}`)?.substring(
                                     0,
-                                    3
-                                  )
+                                    3,
+                                  ),
                                 )
                                 .join(", ");
                         return (
@@ -181,7 +187,8 @@ const MenuList = ({}) => {
                             <WaitI className="size-[1rem] mr-1" />
                             <span className="flex-1">
                               <span className="font-medium text-[--black-2]">
-                                {plan.startTime} - {plan.endTime}
+                                {plan.startTime.replace(":00", "")} -{" "}
+                                {plan.endTime.replace(":00", "")}
                               </span>
                               <span className="block text-[--gr-1] text-[10px]">
                                 {dayBadges}

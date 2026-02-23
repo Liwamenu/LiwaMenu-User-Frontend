@@ -10,38 +10,32 @@ const initialState = {
   error: null,
   data: null,
 };
-
-const updateRestaurantSlice = createSlice({
-  name: "updateRestaurant",
+const setSurveySettingsSlice = createSlice({
+  name: "setSurveySettings",
   initialState: initialState,
   reducers: {
-    resetUpdateRestaurant: (state) => {
+    resetSetSurveySettings: (state) => {
       state.loading = false;
       state.success = false;
       state.error = null;
       state.data = null;
     },
-    resetUpdateRestaurantState: (state) => {
-      state.loading = false;
-      state.success = false;
-      state.error = null;
-    },
   },
   extraReducers: (build) => {
     build
-      .addCase(updateRestaurant.pending, (state) => {
+      .addCase(setSurveySettings.pending, (state) => {
         state.loading = true;
         state.success = false;
         state.error = null;
         state.data = null;
       })
-      .addCase(updateRestaurant.fulfilled, (state, action) => {
+      .addCase(setSurveySettings.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = null;
         state.data = action.payload;
       })
-      .addCase(updateRestaurant.rejected, (state, action) => {
+      .addCase(setSurveySettings.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
@@ -50,21 +44,16 @@ const updateRestaurantSlice = createSlice({
   },
 });
 
-export const updateRestaurant = createAsyncThunk(
-  "Restaurants/UpdateRestaurant",
-  async (formData, { rejectWithValue }) => {
+export const setSurveySettings = createAsyncThunk(
+  "Restaurants/SetSurveySettings",
+  async (data, { rejectWithValue }) => {
     try {
       const res = await api.put(
-        `${baseURL}Restaurants/UpdateRestaurant`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
+        `${baseURL}Restaurants/SetSurveySettings`,
+        data,
       );
 
-      console.log(res);
+      // console.log(res);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -76,6 +65,5 @@ export const updateRestaurant = createAsyncThunk(
   },
 );
 
-export const { resetUpdateRestaurant, resetUpdateRestaurantState } =
-  updateRestaurantSlice.actions;
-export default updateRestaurantSlice.reducer;
+export const { resetSetSurveySettings } = setSurveySettingsSlice.actions;
+export default setSurveySettingsSlice.reducer;

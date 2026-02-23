@@ -44,7 +44,7 @@ import OrderTags from "../components/restaurant/orderTags/orderTags";
 
 //QR
 import QRPage from "../components/qr/qrPage";
-import SurveySettings from "../components/restaurant/surveySettings";
+import SurveySettings from "../components/restaurant/survey/surveySettings";
 
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();

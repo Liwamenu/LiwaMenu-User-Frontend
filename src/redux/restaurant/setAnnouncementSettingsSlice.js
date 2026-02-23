@@ -46,11 +46,11 @@ const setAnnouncementSettingsSlice = createSlice({
 });
 
 export const setAnnouncementSettings = createAsyncThunk(
-  "Restaurants/SetAnnouncementSettingsSlice",
+  "Restaurants/SetAnnouncementSettings",
   async (data, { rejectWithValue }) => {
     try {
       const res = await api.put(
-        `${baseURL}Restaurants/SetAnnouncementSettingsSlice`,
+        `${baseURL}Restaurants/SetAnnouncementSettings`,
         data,
       );
 

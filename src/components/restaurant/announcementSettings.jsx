@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { restaurantData } from "../../../../client/generate/liwamenu";
 
 // COMPONENTS
 import CustomInput from "../common/customInput";
@@ -20,9 +19,9 @@ import {
   resetGetAnnouncementSettingsSlice,
 } from "../../redux/restaurant/getAnnouncementSettingsSlice";
 import {
-  setRestaurantReservationSettings,
-  resetSetRestaurantReservationSettings,
-} from "../../redux/restaurant/setRestaurantReservationSettingsSlice";
+  resetSetAnnouncementSettingsSlice,
+  setAnnouncementSettings,
+} from "../../redux/restaurant/setAnnouncementSettingsSlice";
 
 const AnnouncementSettings = ({ data }) => {
   const { t } = useTranslation();
@@ -37,14 +36,12 @@ const AnnouncementSettings = ({ data }) => {
     (s) => s.restaurant.setAnnouncementSettings,
   );
 
-  const [settings, setSettings] = useState(
-    announcementData || restaurantData.restaurantData.announcementSettings,
-  );
+  const [settings, setSettings] = useState(null);
   const [openPreview, setOpenPreview] = useState(false);
 
   const handleSubmit = () => {
     dispatch(
-      setRestaurantReservationSettings({
+      setAnnouncementSettings({
         restaurantId: id,
         ...settings,
       }),
@@ -53,10 +50,10 @@ const AnnouncementSettings = ({ data }) => {
 
   //GET ANNOUNCEMENT SETTINGS
   useEffect(() => {
-    if (!announcementData) {
+    if (!settings) {
       dispatch(getAnnouncementSettings({ restaurantId: id }));
     }
-  }, [announcementData]);
+  }, [settings]);
 
   // SET ANNOUNCEMENT SETTINGS
   useEffect(() => {
@@ -71,10 +68,10 @@ const AnnouncementSettings = ({ data }) => {
   useEffect(() => {
     if (success) {
       toast.success(t("announcementSettings.success"));
-      dispatch(resetSetRestaurantReservationSettings());
+      dispatch(resetSetAnnouncementSettingsSlice());
     }
     if (err) {
-      dispatch(resetSetRestaurantReservationSettings());
+      dispatch(resetSetAnnouncementSettingsSlice());
     }
   }, [success, err]);
 
@@ -124,9 +121,12 @@ const AnnouncementSettings = ({ data }) => {
               </div>
               <div>
                 <CustomToogle
-                  checked={settings.enabled}
+                  checked={settings?.enabled}
                   onChange={() =>
-                    setSettings((prev) => ({ ...prev, enabled: !prev.enabled }))
+                    setSettings((prev) => ({
+                      ...prev,
+                      enabled: !prev?.enabled,
+                    }))
                   }
                 />
               </div>
@@ -141,7 +141,7 @@ const AnnouncementSettings = ({ data }) => {
                 <CustomInput
                   type="number"
                   className="bg-[--white-1]"
-                  value={settings.delayMs}
+                  value={settings?.delayMs}
                   onChange={(e) =>
                     setSettings((prev) => ({
                       ...prev,
@@ -166,13 +166,13 @@ const AnnouncementSettings = ({ data }) => {
                 <button
                   onClick={() => setPopupContent(<PropmtInputPopup />)}
                   // disabled={isGenerating}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 px-2 py-1 bg-indigo-50 rounded-md transition-colors disabled:opacity-50"
+                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 px-2 py-1 bg-[--gr-4] rounded-md transition-colors disabled:opacity-50"
                 >
                   {t("announcementSettings.magic_generate")}
                 </button>
               </div>
               <CustomTextarea
-                value={settings.htmlContent}
+                value={settings?.htmlContent}
                 onChange={(e) =>
                   setSettings((prev) => ({
                     ...prev,
@@ -188,17 +188,17 @@ const AnnouncementSettings = ({ data }) => {
 
           {/* Preview Section */}
           <div className="flex flex-col h-full">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-4">
+            <h3 className="text-sm font-semibold text-[--gr-1] flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               <span>{t("announcementSettings.live_preview")}</span>
             </h3>
 
-            <div className="flex-grow border-2 border-dashed border-gray-200 rounded-2xl bg-white p-8 overflow-y-auto relative min-h-[500px] shadow-inner flex flex-col justify-center items-center">
-              {!settings.enabled && (
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10 rounded-2xl">
-                  <div className="bg-white px-6 py-3 rounded-full shadow-xl border border-gray-100 flex items-center gap-3">
+            <div className="flex-grow border-2 border-dashed border-[--gr-3] rounded-2xl bg-[--white-1] p-8 overflow-y-auto relative min-h-[500px] shadow-inner flex flex-col justify-center items-center">
+              {!settings?.enabled && (
+                <div className="absolute inset-0 backdrop-blur-[1px] flex items-center justify-center z-10 rounded-2xl">
+                  <div className="bg-[--white-1] px-6 py-3 rounded-full shadow-xl border border-[--gr-1] flex items-center gap-3">
                     <span className="text-red-500 font-bold">●</span>
-                    <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+                    <span className="text-sm font-medium text-[--gr-2] uppercase tracking-wide">
                       {t("announcementSettings.preview_disabled")}
                     </span>
                   </div>
@@ -206,14 +206,14 @@ const AnnouncementSettings = ({ data }) => {
               )}
               <div
                 className="w-full max-w-md mx-auto"
-                dangerouslySetInnerHTML={{ __html: settings.htmlContent }}
+                dangerouslySetInnerHTML={{ __html: settings?.htmlContent }}
               />
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={handleSubmit}
-                className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md shadow-[--light-2] transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
                 {t("announcementSettings.save_changes")}
               </button>
@@ -222,8 +222,8 @@ const AnnouncementSettings = ({ data }) => {
         </div>
 
         {/* Informational Footer */}
-        <div className="bg-indigo-50/50 p-6 sm:px-14 border-t border-indigo-50 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+        <div className="bg-[--light-1] p-6 sm:px-14 border-t border-[--light-2] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-[--white-1] flex items-center justify-center text-indigo-600 shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"

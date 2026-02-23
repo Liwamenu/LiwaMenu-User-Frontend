@@ -46,11 +46,11 @@ const getRestaurantReservationSettingsSlice = createSlice({
 });
 
 export const getRestaurantReservationSettings = createAsyncThunk(
-  "Restaurants/GetRestaurantReservationSettingsSlice",
+  "Restaurants/GetRestaurantReservationSettings",
   async ({ restaurantId }, { rejectWithValue }) => {
     try {
       const res = await api.get(
-        `${baseURL}Restaurants/GetRestaurantReservationSettingsSlice`,
+        `${baseURL}Restaurants/GetRestaurantReservationSettings`,
         {
           params: {
             restaurantId,

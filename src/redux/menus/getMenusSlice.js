@@ -49,14 +49,14 @@ const getMenusSlice = createSlice({
 
 export const getMenus = createAsyncThunk(
   "Menus/GetMenusByRestaurantId",
-  async (restaurantId, { rejectWithValue }) => {
+  async ({ restaurantId }, { rejectWithValue }) => {
     try {
       const res = await api.get(`${baseURL}Menus/GetMenusByRestaurantId`, {
         params: { restaurantId },
       });
 
       // console.log(res.data);
-      return res.data;
+      return res.data.data;
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

@@ -11,11 +11,11 @@ const initialState = {
   data: null,
 };
 
-const getAnnouncementSettingsSlice = createSlice({
-  name: "getAnnouncementSettings",
+const getSurveySettingsSlice = createSlice({
+  name: "getSurveySettings",
   initialState: initialState,
   reducers: {
-    resetGetAnnouncementSettingsSlice: (state) => {
+    resetGetSurveySettings: (state) => {
       state.loading = false;
       state.success = false;
       state.error = null;
@@ -24,19 +24,19 @@ const getAnnouncementSettingsSlice = createSlice({
   },
   extraReducers: (build) => {
     build
-      .addCase(getAnnouncementSettings.pending, (state) => {
+      .addCase(getSurveySettings.pending, (state) => {
         state.loading = true;
         state.success = false;
         state.error = false;
         state.data = null;
       })
-      .addCase(getAnnouncementSettings.fulfilled, (state, action) => {
+      .addCase(getSurveySettings.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
         state.data = action.payload;
       })
-      .addCase(getAnnouncementSettings.rejected, (state, action) => {
+      .addCase(getSurveySettings.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
@@ -45,18 +45,15 @@ const getAnnouncementSettingsSlice = createSlice({
   },
 });
 
-export const getAnnouncementSettings = createAsyncThunk(
-  "Restaurants/GetAnnouncementSettings",
+export const getSurveySettings = createAsyncThunk(
+  "Restaurants/GetSurveySettings",
   async ({ restaurantId }, { rejectWithValue }) => {
     try {
-      const res = await api.get(
-        `${baseURL}Restaurants/GetAnnouncementSettings`,
-        {
-          params: {
-            restaurantId,
-          },
+      const res = await api.get(`${baseURL}Restaurants/GetSurveySettings`, {
+        params: {
+          restaurantId,
         },
-      );
+      });
 
       // console.log(res.data.data);
       return res.data.data;
@@ -70,6 +67,5 @@ export const getAnnouncementSettings = createAsyncThunk(
   },
 );
 
-export const { resetGetAnnouncementSettingsSlice } =
-  getAnnouncementSettingsSlice.actions;
-export default getAnnouncementSettingsSlice.reducer;
+export const { resetGetSurveySettings } = getSurveySettingsSlice.actions;
+export default getSurveySettingsSlice.reducer;

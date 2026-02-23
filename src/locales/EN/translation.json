@@ -19,7 +19,8 @@
     "products": "Products",
     "themes": "Themes",
     "qr_code": "QR Code",
-    "announcement_settings": "Announcement Settings"
+    "announcement_settings": "Announcement Settings",
+    "survey_settings": "Survey Settings"
   },
   "userProfile": {
     "admin": "Admin",

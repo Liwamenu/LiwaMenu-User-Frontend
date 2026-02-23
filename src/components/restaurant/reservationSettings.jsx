@@ -32,22 +32,14 @@ const RestaurantReservationSettings = ({ data }) => {
     (s) => s.restaurant.getRestaurantReservationSettings,
   );
 
-  const [reservationData, setReservationData] = useState(
-    reservationSettings || {
-      startTime: "08:00",
-      endTime: "23:00",
-      intervalMinutes: 30,
-      maxGuests: 50,
-      isActive: true,
-    },
-  );
+  const [reservationData, setReservationData] = useState(null);
 
   //GET RESERVATION SETTINGS
   useEffect(() => {
-    if (!reservationSettings) {
+    if (!reservationData) {
       dispatch(getRestaurantReservationSettings({ restaurantId: id }));
     }
-  }, [reservationSettings]);
+  }, [reservationData]);
 
   // HANDLE SUBMIT
   const handleSubmit = (e) => {
@@ -89,10 +81,10 @@ const RestaurantReservationSettings = ({ data }) => {
         <form onSubmit={handleSubmit} className="mt-16 space-y-5">
           <main className="flex flex-col gap-4">
             {/*  Interval Minutes && Max Guests */}
-            <div className="max-w-md">
+            <div className="max-w-md mb-4">
               <CustomToggle
                 label={t("restaurantReservationSettings.is_active_label")}
-                checked={reservationData.isActive}
+                checked={reservationData?.isActive}
                 onChange={(e) =>
                   setReservationData((prev) => ({
                     ...prev,
@@ -112,7 +104,7 @@ const RestaurantReservationSettings = ({ data }) => {
                   "restaurantReservationSettings.interval_minutes_label",
                 )}
                 className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                value={reservationData.intervalMinutes}
+                value={reservationData?.intervalMinutes}
                 onChange={(e) =>
                   setReservationData((prev) => ({
                     ...prev,
@@ -129,7 +121,7 @@ const RestaurantReservationSettings = ({ data }) => {
                 )}
                 label={t("restaurantReservationSettings.max_guests_label")}
                 className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                value={reservationData.maxGuests}
+                value={reservationData?.maxGuests}
                 onChange={(e) =>
                   setReservationData((prev) => ({
                     ...prev,
@@ -150,7 +142,7 @@ const RestaurantReservationSettings = ({ data }) => {
                   <input
                     type="time"
                     className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                    value={reservationData.startTime}
+                    value={reservationData?.startTime}
                     onChange={(e) =>
                       setReservationData((prev) => ({
                         ...prev,
@@ -170,7 +162,7 @@ const RestaurantReservationSettings = ({ data }) => {
                   <input
                     type="time"
                     className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                    value={reservationData.endTime}
+                    value={reservationData?.endTime}
                     onChange={(e) =>
                       setReservationData((prev) => ({
                         ...prev,

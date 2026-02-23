@@ -5,12 +5,20 @@ import { CancelI } from "../../../assets/icon";
 import CheckI from "../../../assets/icon/check";
 import { useTranslation } from "react-i18next";
 
-const SubCategoriesHeader = ({ onSuccess, before, after, saveNewOrder }) => {
+const SubCategoriesHeader = ({
+  onSuccess,
+  before,
+  after,
+  saveNewOrder,
+  restaurant,
+}) => {
   const { setPopupContent } = usePopup();
   const { t } = useTranslation();
 
   const handleAddSubCategory = () => {
-    setPopupContent(<AddSubCategory onSuccess={onSuccess} />);
+    setPopupContent(
+      <AddSubCategory onSuccess={onSuccess} restaurant={restaurant} />,
+    );
   };
 
   return (

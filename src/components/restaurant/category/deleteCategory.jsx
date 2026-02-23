@@ -41,11 +41,11 @@ const DeleteCategory = ({ category, onSuccess }) => {
     if (success) {
       toast.success(t("deleteCategory.deleteSuccess"));
       dispatch(resetDeleteCategory());
-
+      setPopupContent(false);
       onSuccess(category.id);
     }
     if (error) dispatch(resetDeleteCategory());
-  }, [success.error]);
+  }, [success, error]);
 
   return (
     <main className="flex justify-center">

@@ -18,15 +18,13 @@ import DeleteSubCategory from "./deleteSubCategory";
 import { usePopup } from "../../../context/PopupContext";
 import fallbackImg from "../../../assets/img/No_Img.svg";
 
-//JSON
-import subCategoriesJSON from "../../../assets/js/SubCategories.json";
-import categoriesJSON from "../../../assets/js/Categories.json";
-
 //REDUX
 import {
   updateSubOrders,
   resetUpdateSubOrders,
 } from "../../../redux/subCategories/updateSubOrdersSlice";
+import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 
 const SubCategories = ({ data: restaurant }) => {
   const params = useParams();
@@ -34,26 +32,31 @@ const SubCategories = ({ data: restaurant }) => {
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
 
-  // Mock selectors - replace with your actual Redux selectors
-  const { subCategories } = useSelector((s) => s.subCategories.get);
-  const { success, error } = useSelector(
+  const { categories } = useSelector((state) => state.categories.get);
+
+  const { subCategories, error: getError } = useSelector(
+    (s) => s.subCategories.get,
+  );
+  const { success: updateSuccess, error: updateError } = useSelector(
     (s) => s.subCategories.updateSubOrders,
   );
 
   // Store grouped data directly (array of category groups)
+  const [categoriesData, setCategoriesData] = useState(null);
   const [subCategoriesData, setSubCategoriesData] = useState(null);
   const [subCategoriesDataBefore, setSubCategoriesDataBefore] = useState(null);
 
   // Helper: Convert flat array to grouped structure
+  // Uses `categoriesData` if available, otherwise falls back to `categories` from redux
   const groupSubCategories = (flatArray) => {
     const groups = {};
+    const cats = categoriesData || categories;
+    if (!cats) return [];
 
     flatArray.forEach((subCat) => {
       const categoryId = subCat.categoryId;
       if (!groups[categoryId]) {
-        const category = categoriesJSON.categories.find(
-          (c) => c.id === categoryId,
-        );
+        const category = cats.find((c) => c.id === categoryId);
         groups[categoryId] = {
           category: category || {
             id: categoryId,
@@ -122,17 +125,108 @@ const SubCategories = ({ data: restaurant }) => {
   };
 
   const handleEditSubCategory = (updatedSubCategory) => {
-    const updatedGroups = subCategoriesData.map((group) => ({
+    console.log(updatedSubCategory);
+    console.log(subCategoriesData);
+    if (!subCategoriesData) return;
+
+    // Find which group currently contains the subcategory (if any)
+    let originGroupIndex = -1;
+    subCategoriesData.forEach((group, gi) => {
+      if (group.subCategories.some((sc) => sc.id === updatedSubCategory.id)) {
+        originGroupIndex = gi;
+      }
+    });
+
+    // If not found, treat as an add to the target category
+    if (originGroupIndex === -1) {
+      const targetIndex = subCategoriesData.findIndex(
+        (g) => g.category.id === updatedSubCategory.categoryId,
+      );
+
+      const updatedGroups = subCategoriesData.map((g) => ({ ...g }));
+      if (targetIndex !== -1) {
+        updatedGroups[targetIndex] = {
+          ...updatedGroups[targetIndex],
+          subCategories: [
+            ...updatedGroups[targetIndex].subCategories,
+            {
+              ...updatedSubCategory,
+              sortOrder: updatedGroups[targetIndex].subCategories.length,
+            },
+          ],
+        };
+      } else {
+        const category = categoriesData?.find(
+          (c) => c.id === updatedSubCategory.categoryId,
+        ) || {
+          id: updatedSubCategory.categoryId,
+          name: t("editSubCategories.unknown_category"),
+        };
+        updatedGroups.push({
+          category,
+          subCategories: [{ ...updatedSubCategory, sortOrder: 0 }],
+        });
+      }
+
+      setSubCategoriesData(updatedGroups);
+      setSubCategoriesDataBefore(updatedGroups);
+      return;
+    }
+
+    const originCategoryId = subCategoriesData[originGroupIndex].category.id;
+
+    // If category didn't change, update in-place preserving sortOrder
+    if (originCategoryId === updatedSubCategory.categoryId) {
+      const updatedGroups = subCategoriesData.map((group) => ({
+        ...group,
+        subCategories: group.subCategories.map((subCat) =>
+          subCat.id === updatedSubCategory.id
+            ? { ...subCat, ...updatedSubCategory }
+            : subCat,
+        ),
+      }));
+
+      setSubCategoriesData(updatedGroups);
+      setSubCategoriesDataBefore(updatedGroups);
+      return;
+    }
+
+    // Category changed: remove from origin and reassign sortOrder in origin
+    const removed = subCategoriesData.map((group) => ({
       ...group,
-      subCategories: group.subCategories.map((subCat) =>
-        subCat.id === updatedSubCategory.id
-          ? { ...subCat, ...updatedSubCategory }
-          : subCat,
-      ),
+      subCategories: group.subCategories
+        .filter((sc) => sc.id !== updatedSubCategory.id)
+        .map((sc, idx) => ({ ...sc, sortOrder: idx })),
     }));
 
-    setSubCategoriesData(updatedGroups);
-    setSubCategoriesDataBefore(updatedGroups);
+    // Insert into target group (append to end) or create new group if missing
+    const targetIdx = removed.findIndex(
+      (g) => g.category.id === updatedSubCategory.categoryId,
+    );
+    if (targetIdx !== -1) {
+      const target = removed[targetIdx];
+      removed[targetIdx] = {
+        ...target,
+        subCategories: [
+          ...target.subCategories,
+          { ...updatedSubCategory, sortOrder: target.subCategories.length },
+        ],
+      };
+    } else {
+      const category = categoriesData?.find(
+        (c) => c.id === updatedSubCategory.categoryId,
+      ) || {
+        id: updatedSubCategory.categoryId,
+        name: t("editSubCategories.unknown_category"),
+      };
+      removed.push({
+        category,
+        subCategories: [{ ...updatedSubCategory, sortOrder: 0 }],
+      });
+    }
+
+    setSubCategoriesData(removed);
+    setSubCategoriesDataBefore(removed);
   };
 
   const handleDelete = (deletedSubCategoryId) => {
@@ -175,59 +269,76 @@ const SubCategories = ({ data: restaurant }) => {
   };
 
   const handleAddSubCategory = (subCategory) => {
-    const updatedGroups = subCategoriesData.map((group) => {
-      // Only add to the matching category group
-      if (group.category.id !== subCategory.categoryId) {
-        return group;
-      }
+    const updatedGroups =
+      subCategoriesData?.length > 0 &&
+      subCategoriesData.map((group) => {
+        // Only add to the matching category group
+        if (group.category.id !== subCategory.categoryId) {
+          return group;
+        }
 
-      const maxSortOrder =
-        group.subCategories.length > 0
-          ? Math.max(...group.subCategories.map((sc) => sc.sortOrder))
-          : -1;
+        const maxSortOrder =
+          group.subCategories.length > 0
+            ? Math.max(...group.subCategories.map((sc) => sc.sortOrder))
+            : -1;
 
-      return {
-        ...group,
-        subCategories: [
-          ...group.subCategories,
-          {
-            ...subCategory,
-            sortOrder: maxSortOrder + 1,
-          },
-        ],
-      };
-    });
+        return {
+          ...group,
+          subCategories: [
+            ...group.subCategories,
+            {
+              ...subCategory,
+              sortOrder: maxSortOrder + 1,
+            },
+          ],
+        };
+      });
 
     setSubCategoriesData(updatedGroups);
     setSubCategoriesDataBefore(updatedGroups);
   };
 
-  //GET SUBCATEGORIES - Replace with actual API call
+  //GET SUBCATEGORIES & CATEGORIES
   useEffect(() => {
     if (!subCategoriesData) {
-      // dispatch(getSubCategories({ restaurantId: restaurant?.id }));
-      // Mock data from JSON - convert to grouped structure
-      const flatData = [...subCategoriesJSON.subCategories];
+      dispatch(getSubCategories({ restaurantId: restaurant?.id }));
+    }
+    if (!categoriesData) {
+      dispatch(getCategories({ restaurantId: restaurant?.id }));
+    }
+  }, [subCategoriesData, categoriesData, restaurant]);
+
+  //SET SUBCATEGORIES
+  useEffect(() => {
+    if (subCategories && categories) {
+      const flatData = [...subCategories];
       const grouped = groupSubCategories(flatData);
 
       setSubCategoriesData(grouped);
       setSubCategoriesDataBefore(grouped);
     }
-  }, [subCategoriesData, restaurant]);
+  }, [subCategories, categories]);
+
+  //SET CATEGORIES
+  useEffect(() => {
+    if (categories) {
+      setCategoriesData(categories);
+    }
+  }, [categories]);
 
   // TOAST
   useEffect(() => {
-    if (success) {
+    if (updateSuccess) {
       toast.success(t("editSubCategories.success"), {
         id: "subCategories",
       });
       setSubCategoriesDataBefore(subCategoriesData);
       dispatch(resetUpdateSubOrders());
     }
-    if (error) {
+    if (updateError) {
       dispatch(resetUpdateSubOrders());
     }
-  }, [success, error]);
+  }, [updateSuccess, updateError]);
 
   //SAVE NEW ORDER
   const saveNewOrder = (e) => {
@@ -277,10 +388,11 @@ const SubCategories = ({ data: restaurant }) => {
         </h1>
 
         <SubCategoriesHeader
-          onSuccess={handleAddSubCategory}
-          before={subCategoriesDataBefore}
+          restaurant={restaurant}
           after={subCategoriesData}
           saveNewOrder={saveNewOrder}
+          before={subCategoriesDataBefore}
+          onSuccess={handleAddSubCategory}
         />
 
         <div className="space-y-4 overflow-x-auto">
@@ -390,6 +502,7 @@ const SubCategories = ({ data: restaurant }) => {
                                         setPopupContent(
                                           <EditSubCategory
                                             subCategory={subCat}
+                                            categories={categoriesData}
                                             onSuccess={handleEditSubCategory}
                                           />,
                                         )

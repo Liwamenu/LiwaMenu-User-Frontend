@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 //COMP
 import CustomInput from "../../common/customInput";
+import CustomDatePicker from "../../common/customdatePicker";
 import { CancelI, WaitI } from "../../../assets/icon";
 
 //REDUX
@@ -22,9 +23,8 @@ const DAY_KEYS = [
   "sunday",
 ];
 
-const AddMenu = ({ onClose, onSave }) => {
+const AddMenu = ({ onClose, onSave, restaurantId }) => {
   const params = useParams();
-  const restaurantId = params.id;
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
@@ -71,16 +71,33 @@ const AddMenu = ({ onClose, onSave }) => {
           return { ...sch, days };
         }
         return sch;
-      })
+      }),
     );
   };
 
   const updateScheduleTime = (rowId, field, value) => {
     setSchedules(
       schedules.map((sch) =>
-        sch.id === rowId ? { ...sch, [field]: value } : sch
-      )
+        sch.id === rowId ? { ...sch, [field]: value } : sch,
+      ),
     );
+  };
+
+  // Helpers to convert between "HH:mm" strings and Date objects for CustomDatePicker
+  const parseTimeToDate = (timeStr) => {
+    if (!timeStr) return null;
+    const [hh, mm] = timeStr.split(":").map((v) => parseInt(v, 10));
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+    const d = new Date();
+    d.setHours(hh, mm, 0, 0);
+    return d;
+  };
+
+  const formatDateToTimeString = (date) => {
+    if (!date) return "";
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
   };
 
   const handleSave = () => {
@@ -129,7 +146,7 @@ const AddMenu = ({ onClose, onSave }) => {
           </button>
         </div>
 
-        <div className="space-y-5 overflow-y-auto pr-2 custom-scrollbar flex-1">
+        <div className="space-y-5 overflow-y-auto pr-2 custom-scrollbar flex-1 pt-4">
           <div>
             <label className="block text-[--black-2] text-sm font-medium mb-2">
               {t("addMenu.name_label")}{" "}
@@ -186,27 +203,41 @@ const AddMenu = ({ onClose, onSave }) => {
                   {/* Times */}
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1">
-                      <WaitI className="size-[1rem] absolute left-2 top-1/2 -translate-y-1/2 text-[--gr-1] text-xs" />
-                      <input
-                        type="time"
-                        className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                        value={sch.start}
-                        onChange={(e) =>
-                          updateScheduleTime(sch.id, "start", e.target.value)
+                      <WaitI className="size-[1rem] absolute right-2 top-8 -translate-y-1/2 text-[--gr-1] text-xs" />
+                      <CustomDatePicker
+                        value={parseTimeToDate(sch.start)}
+                        onChange={(date) =>
+                          updateScheduleTime(
+                            sch.id,
+                            "start",
+                            formatDateToTimeString(date),
+                          )
                         }
+                        placeholder="--:--"
+                        calendarClassName
+                        timeOnly
+                        className="w-full py-1"
                       />
                     </div>
-                    <span className="text-[--gr-1] text-sm">-</span>
+                    <span className="text-[--gr-1] text-sm mt-3">-</span>
                     <div className="relative flex-1">
-                      <WaitI className="size-[1rem] absolute left-2 top-1/2 -translate-y-1/2 text-[--gr-1] text-xs" />
-                      <input
-                        type="time"
-                        className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                        value={sch.end}
-                        onChange={(e) =>
-                          updateScheduleTime(sch.id, "end", e.target.value)
-                        }
-                      />
+                      <WaitI className="size-[1rem] absolute right-2 top-8 -translate-y-1/2 text-[--gr-1] text-xs" />
+                      <div>
+                        <CustomDatePicker
+                          value={parseTimeToDate(sch.end)}
+                          onChange={(date) =>
+                            updateScheduleTime(
+                              sch.id,
+                              "end",
+                              formatDateToTimeString(date),
+                            )
+                          }
+                          placeholder="--:--"
+                          calendarClassName
+                          timeOnly
+                          className="w-full py-1"
+                        />
+                      </div>
                     </div>
                   </div>
 

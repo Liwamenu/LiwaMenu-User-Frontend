@@ -19,7 +19,8 @@
     "products": "Ürünler",
     "themes": "Temalar",
     "qr_code": "QR Kod",
-    "announcement_settings": "Duyuru Ayarları"
+    "announcement_settings": "Duyuru Ayarları",
+    "survey_settings": "Anket Ayarları"
   },
   "userProfile": {
     "admin": "Yetkili",
@@ -130,7 +131,7 @@
     "display_delay_help": "Mesajın gösterilmeden önce sayfa yüklemesinden sonra bekleme süresi. 1000ms = 1s.",
     "html_content_label": "HTML İçeriği",
     "html_content_placeholder": "Tailwind destekli HTML içeriği giriniz...",
-    "magic_generate": "✨ Sihirli Oluştur",
+    "magic_generate": "✨ Oluştur",
     "live_preview": "Canlı Önizleme",
     "preview_disabled": "Önizleme Devre Dışı",
     "save_changes": "Değişiklikleri Kaydet",

@@ -1,7 +1,7 @@
 //MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 //COMP
@@ -17,9 +17,7 @@ import {
   addCategory,
   resetAddCategory,
 } from "../../../redux/categories/addCategorySlice";
-
-//JSON
-import menusJSON from "../../../assets/js/Menus.json";
+import { getMenus, resetGetMenus } from "../../../redux/menus/getMenusSlice";
 
 const initialCategory = () => ({
   name: "",
@@ -30,18 +28,19 @@ const initialCategory = () => ({
   menuIds: [],
 });
 
-const AddCategory = ({ data: restaurant, onSuccess }) => {
+const AddCategory = ({ id, onSuccess, data: restaurant }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
 
-  const { success, error } = useSelector((state) => state.categories.add);
+  const { success, error } = useSelector((s) => s.categories.addCatergory);
+  const { menus, error: menusError } = useSelector((s) => s.menus.get);
+
+  const [menusData, setMenusData] = useState(null);
 
   const [category, setCategory] = useState(initialCategory());
   const [preview, setPreview] = useState(null);
   const [showCampaignWarning, setShowCampaignWarning] = useState(false);
-
-  const menus = useMemo(() => menusJSON.menus || [], []);
 
   const handleField = (key, value) => {
     setCategory((prev) => ({ ...prev, [key]: value }));
@@ -103,16 +102,32 @@ const AddCategory = ({ data: restaurant, onSuccess }) => {
     }
   };
 
-  // TOAST
+  // TOAST & RESET
   useEffect(() => {
     if (success) {
       setPopupContent(null);
       toast.success(t("addCatergory.success"), { id: "categories" });
       dispatch(resetAddCategory());
-      onSuccess && onSuccess(category);
+      onSuccess && onSuccess({ ...category, imageAbsoluteUrl: preview });
     }
     if (error) dispatch(resetAddCategory());
   }, [success, error]);
+
+  //GET MENUS
+  useEffect(() => {
+    if (!menusData) {
+      dispatch(getMenus({ restaurantId: id }));
+    }
+  }, [menusData]);
+
+  //SET MENUS
+  useEffect(() => {
+    if (menus) {
+      setMenusData(menus);
+      dispatch(resetGetMenus());
+    }
+    if (menusError) dispatch(resetGetMenus());
+  }, [menus, menusError]);
 
   return (
     <div className="w-full flex justify-center pb-5- mt-1-  text-[--black-2] max-h-[95dvh] overflow-hidden">
@@ -193,8 +208,9 @@ const AddCategory = ({ data: restaurant, onSuccess }) => {
                 {t("addCategory.menus_optional")}
               </label>
               <div className="bg-[--light-1] p-4 rounded-xl border border-[--border-1] space-y-3 max-h-44 overflow-y-auto">
-                {menus.length > 0 ? (
-                  menus.map((menu) => (
+                {menusData && menusData.length > 0 ? (
+                  menusData &&
+                  menusData.map((menu) => (
                     <div key={menu.id}>
                       <CustomCheckbox
                         id={`menu-${menu.id}`}

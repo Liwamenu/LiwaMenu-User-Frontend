@@ -54,6 +54,7 @@ import LangI from "./language";
 import StackI from "./stack";
 import TurnLeftI from "./turnLeft";
 import DragI from "./drag";
+import StarI from "./star";
 
 export {
   DashboardI,
@@ -110,4 +111,5 @@ export {
   StackI,
   TurnLeftI,
   DragI,
+  StarI,
 };

@@ -48,7 +48,6 @@ const RestaurantSettings = ({ data: inData }) => {
       moneySign: inData?.moneySign,
       maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
-      isReservationActive: inData?.isReservationActive,
       minOrderAmount: inData?.minOrderAmount,
     }),
     [inData],
@@ -455,7 +454,7 @@ const RestaurantSettings = ({ data: inData }) => {
             </div>
 
             {/* IS RESERVATION LICENSE ACTIVE */}
-            <div className="w-full border border-[--border-1] rounded-md p-2.5 mt-3">
+            {/* <div className="w-full border border-[--border-1] rounded-md p-2.5 mt-3">
               <CustomToggle
                 label={t("restaurantSettings.is_reservation_active")}
                 checked={restaurantData?.isReservationActive}
@@ -466,7 +465,7 @@ const RestaurantSettings = ({ data: inData }) => {
                   }))
                 }
               />
-            </div>
+            </div> */}
           </main>
 
           {/* SPECIAL PRICE NAME */}

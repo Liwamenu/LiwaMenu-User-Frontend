@@ -55,6 +55,7 @@ const EditRestaurant = ({ data: restaurant }) => {
       address,
       isActive,
       imageAbsoluteUrl,
+      logoImageUrl,
     } = restaurant;
 
     return {
@@ -73,6 +74,7 @@ const EditRestaurant = ({ data: restaurant }) => {
       address,
       isActive,
       imageAbsoluteUrl,
+      logoImageUrl,
     };
   };
 
@@ -118,7 +120,7 @@ const EditRestaurant = ({ data: restaurant }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const equalData = isEqual(restaurantDataBefore, restaurantData);
-    if (equalData && !document) {
+    if (equalData && !document && !document2) {
       toast("Hiç bir değişiklik yapmadınız.");
       return;
     }
@@ -137,8 +139,8 @@ const EditRestaurant = ({ data: restaurant }) => {
     formData.append("Neighbourhood", restaurantData.neighbourhood.value);
     formData.append("Address", restaurantData.address);
     formData.append("IsActive", restaurantData.isActive);
-    document && formData.append("Image0", document);
-    document2 && formData.append("Image1", document2);
+    document && formData.append("Image", document);
+    document2 && formData.append("LogoImage", document2);
 
     dispatch(updateRestaurant(formData));
     // console.log(restaurantData);

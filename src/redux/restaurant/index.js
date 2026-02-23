@@ -12,6 +12,8 @@ import setRestaurantReservationSettingsSlice from "./setRestaurantReservationSet
 import getRestaurantReservationSettingsSlice from "./getRestaurantReservationSettingsSlice";
 import getAnnouncementSettingsSlice from "./getAnnouncementSettingsSlice";
 import setAnnouncementSettingsSlice from "./setAnnouncementSettingsSlice";
+import getSurveySettingsSlice from "./getSurveySettingsSlice";
+import setSurveySettingsSlice from "./setSurveySettingsSlice";
 
 const restaurantSlice = combineReducers({
   getWorkingHours: getWorkingHoursSlice,
@@ -25,6 +27,8 @@ const restaurantSlice = combineReducers({
   getRestaurantReservationSettings: getRestaurantReservationSettingsSlice,
   getAnnouncementSettings: getAnnouncementSettingsSlice,
   setAnnouncementSettings: setAnnouncementSettingsSlice,
+  getSurveySettings: getSurveySettingsSlice,
+  setSurveySettings: setSurveySettingsSlice,
 });
 
 export default restaurantSlice;

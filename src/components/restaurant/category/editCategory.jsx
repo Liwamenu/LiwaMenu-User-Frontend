@@ -2,7 +2,7 @@
 import { isEqual } from "lodash";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 //COMP
@@ -19,13 +19,21 @@ import {
   editCategory,
   resetEditCategory,
 } from "../../../redux/categories/editCategorySlice";
+import { getMenus, resetGetMenus } from "../../../redux/menus/getMenusSlice";
 
-const EditCategory = ({ category, onSuccess }) => {
+const EditCategory = ({
+  id,
+  category,
+  onSuccess,
+  setCategoriesData,
+  setCategoriesDataBefore,
+}) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
 
-  const { success, error } = useSelector((state) => state.categories.edit);
+  const { success, error } = useSelector((s) => s.categories.editCategory);
+  const { menus, error: menusError } = useSelector((s) => s.menus.get);
 
   const [categoryData, setCategoryData] = useState(category);
   const [preview, setPreview] = useState(
@@ -34,8 +42,7 @@ const EditCategory = ({ category, onSuccess }) => {
       : category?.imageAbsoluteUrl || null,
   );
   const [showCampaignWarning, setShowCampaignWarning] = useState(false);
-
-  const menus = useMemo(() => menusJSON.menus || [], []);
+  const [menusData, setMenusData] = useState(null);
 
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
@@ -109,12 +116,42 @@ const EditCategory = ({ category, onSuccess }) => {
   useEffect(() => {
     if (success) {
       onSuccess(categoryData);
+      setCategoriesData((prev) =>
+        prev.map((cat) =>
+          cat.id === categoryData.id
+            ? { ...categoryData, imageAbsoluteUrl: preview }
+            : cat,
+        ),
+      );
+      setCategoriesDataBefore((prev) =>
+        prev.map((cat) =>
+          cat.id === categoryData.id
+            ? { ...categoryData, imageAbsoluteUrl: preview }
+            : cat,
+        ),
+      );
       setPopupContent(null);
       toast.success(t("editCategories.success"), { id: "categories" });
       dispatch(resetEditCategory());
     }
     if (error) dispatch(resetEditCategory());
   }, [success, error]);
+
+  //GET MENUS
+  useEffect(() => {
+    if (!menusData) {
+      dispatch(getMenus({ restaurantId: id }));
+    }
+  }, [menusData]);
+
+  //SET MENUS
+  useEffect(() => {
+    if (menus) {
+      setMenusData(menus);
+      dispatch(resetGetMenus());
+    }
+    if (menusError) dispatch(resetGetMenus());
+  }, [menus, menusError]);
 
   return (
     <div className="w-full flex justify-center pb-5- mt-1- text-[--black-2] max-h-[95dvh] overflow-hidden ">
@@ -195,8 +232,8 @@ const EditCategory = ({ category, onSuccess }) => {
                 {t("addCategory.menus_optional")}
               </label>
               <div className="bg-[--light-1] p-4 rounded-xl border border-[--border-1] space-y-3 max-h-40 overflow-y-auto">
-                {menus.length > 0 ? (
-                  menus.map((menu) => (
+                {menusData?.length > 0 ? (
+                  menusData.map((menu) => (
                     <CustomCheckbox
                       key={menu.id}
                       id={`menu-${menu.id}`}
