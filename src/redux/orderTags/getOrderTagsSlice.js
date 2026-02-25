@@ -49,14 +49,17 @@ const getOrderTagsSlice = createSlice({
 
 export const getOrderTags = createAsyncThunk(
   "OrderTags/GetOrderTags",
-  async (restaurantId, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
       const res = await api.get(
-        `${baseURL}OrderTags/GetOrderTagsByRestaurantId/${restaurantId}`
+        `${baseURL}OrderTags/GetOrderTagsByRestaurantId/`,
+        {
+          params: data,
+        },
       );
 
       // console.log(res.data);
-      return res.data;
+      return res.data.data;
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {
@@ -64,7 +67,7 @@ export const getOrderTags = createAsyncThunk(
       }
       return rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetGetOrderTagsState, resetGetOrderTags } =

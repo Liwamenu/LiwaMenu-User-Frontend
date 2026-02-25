@@ -13,7 +13,7 @@ import {
   resetSetSurveySettings,
 } from "../../../redux/restaurant/setSurveySettingsSlice";
 
-const DeleteSurvey = ({ category, categories, setSettings }) => {
+const DeleteSurvey = ({ id, enabled, category, categories, setSettings }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
@@ -23,9 +23,9 @@ const DeleteSurvey = ({ category, categories, setSettings }) => {
   const handleSubmit = () => {
     //send all the survey categories except the current one to delete it.
     const data = {
-      surveyCategoryIds: categories
-        .filter((c) => c.id !== category.id)
-        .map((c) => c.id),
+      enabled,
+      restaurantId: id,
+      categories: categories.filter((c) => c.id !== category.id),
     };
     dispatch(setSurveySettings(data));
   };

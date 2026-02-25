@@ -5,11 +5,6 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-//DEMO
-import Products from "../../../assets/js/Products.json";
-import OrderTags_ from "../../../assets/js/OrderTags.json";
-import Categories from "../../../assets/js/Categories.json";
-
 //COMP
 import DeleteOrderTag from "./deleteOrderTag";
 import { CancelI } from "../../../assets/icon";
@@ -19,11 +14,11 @@ import OrderTagGroupCard from "./components/_orderTagGroupCard";
 
 //REDUX
 import { getProducts } from "../../../redux/products/getProductsSlice";
+import { addOrderTag } from "../../../redux/orderTags/addOrderTagSlice";
 import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
 import { editOrderTags } from "../../../redux/orderTags/editOrderTagsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { resetEditOrderTags } from "../../../redux/orderTags/editOrderTagsSlice";
-import { addOrderTag } from "../../../redux/orderTags/addOrderTagSlice";
 
 const OrderTags = () => {
   const params = useParams();
@@ -31,18 +26,18 @@ const OrderTags = () => {
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
 
-  const { categories } = useSelector((s) => s.categories.get);
   const { products } = useSelector((s) => s.products.get);
   const { orderTags } = useSelector((s) => s.orderTags.get);
+  const { categories } = useSelector((s) => s.categories.get);
   const { success, error } = useSelector((s) => s.orderTags.editAll);
 
   const [state, setState] = useState({
-    categories: Categories.categories,
-    products: Products.Products,
-    tagGroups: OrderTags_.OrderTags,
+    categories: [],
+    products: [],
+    tagGroups: [],
   });
 
-  const dirtyCount = state.tagGroups.filter((g) => g.isDirty).length;
+  const dirtyCount = state?.tagGroups?.filter((g) => g.isDirty).length;
 
   const handleUpdateGroup = (groupId, updates) => {
     setState((prev) => ({
@@ -129,7 +124,9 @@ const OrderTags = () => {
     const dataToBeAdded = state.tagGroups.filter((g) => g.isNew);
     const dataToBeEdited = state.tagGroups.filter((g) => !g.isNew && g.isDirty);
 
-    dispatch(editOrderTags({ data: dataToBeEdited, restaurantId }));
+    if (dataToBeEdited.length > 0) {
+      dispatch(editOrderTags({ data: dataToBeEdited, restaurantId }));
+    }
 
     if (dataToBeAdded.length > 0) {
       dispatch(addOrderTag({ data: dataToBeAdded, restaurantId }));
@@ -148,21 +145,24 @@ const OrderTags = () => {
 
   //SET CATEGORIES, PRODUCTS, TAGGROUPS TO STATE
   useEffect(() => {
-    if (categories)
+    if (categories) {
       setState((prev) => ({
         ...prev,
-        categories: categories.data,
+        categories: categories,
       }));
-    if (products)
+    }
+    if (products) {
       setState((prev) => ({
         ...prev,
-        products: products.data,
+        products: products,
       }));
-    if (orderTags)
+    }
+    if (orderTags) {
       setState((prev) => ({
         ...prev,
         tagGroups: orderTags,
       }));
+    }
   }, [categories, products, orderTags]);
 
   //TOAST ON EDITALL
@@ -206,7 +206,7 @@ const OrderTags = () => {
             <button
               type="button"
               onClick={handleAddGroup}
-              disabled={state.tagGroups.some((g) => g.isNew)}
+              disabled={state?.tagGroups?.some((g) => g.isNew)}
               className="px-6 py-2.5 rounded-md transition-all shadow-md flex items-center gap-2 text-sm bg-[--green-1] hover:bg-[--green-2] text-[--white-1] disabled:bg-[--gr-2]"
             >
               <CancelI className="size-[1rem] rotate-45" /> Etiket Gurubu Ekle
@@ -216,7 +216,7 @@ const OrderTags = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 pt-8">
-        {state.tagGroups.length === 0 ? (
+        {state.tagGroups?.length === 0 ? (
           <div className="text-center py-20 rounded-3xl border-2 border-dashed bg-[--white-1] border-[--border-1]">
             <h3 className="text-xl font-bold text-[--gr-2]">
               Henüz bir etiket grubu oluşturulmadı
@@ -234,7 +234,7 @@ const OrderTags = () => {
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                 >
-                  {state.tagGroups.map((group, index) => (
+                  {state.tagGroups?.map((group, index) => (
                     <Draggable
                       key={group.id}
                       draggableId={group.id}

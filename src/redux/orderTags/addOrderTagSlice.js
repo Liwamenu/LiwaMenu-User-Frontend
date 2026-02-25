@@ -49,7 +49,7 @@ export const addOrderTag = createAsyncThunk(
   "OrderTags/AddOrderTag",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.put(`${baseURL}OrderTags/AddOrderTag`, data);
+      const res = await api.post(`${baseURL}OrderTags/AddOrderTag`, data);
 
       console.log(data);
       console.log(res);
@@ -61,7 +61,7 @@ export const addOrderTag = createAsyncThunk(
       }
       return rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetAddOrderTag } = addOrderTagSlice.actions;

@@ -14,21 +14,19 @@ import CustomSelect from "../../common/customSelector";
 import CustomTextarea from "../../common/customTextarea";
 import CustomFileInput from "../../common/customFileInput";
 
-// DATA
-import categoriesJSON from "../../../assets/js/Categories.json";
-import subCategories from "../../../assets/js/SubCategories.json";
-
 // UTILS
 import { formatToPrice } from "../../../utils/utils";
 import { usePopup } from "../../../context/PopupContext";
 import { CancelI, CloudUI, DeleteI } from "../../../assets/icon";
+
+//REDUX
 import {
   editProduct,
   resetEditProduct,
 } from "../../../redux/products/editProductSlice";
 import { getProducts } from "../../../redux/products/getProductsSlice";
-
-//REDUX
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
 
 const emptyPortion = () => ({
   id: undefined,
@@ -46,26 +44,28 @@ const EditProduct = ({ product: prodToPopup }) => {
   const restaurantId = params.id;
   const { t } = useTranslation();
 
+  const { categories } = useSelector((s) => s.categories.get);
   const { success, error } = useSelector((s) => s.products.edit);
+  const { subCategories } = useSelector((s) => s.subCategories.get);
 
   const { setSecondPopupContent } = usePopup();
   const { product } = location?.state || {};
 
   const [preview, setPreview] = useState(null);
   const [productData, setProductData] = useState(prodToPopup || product);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
-  const categoryOptions = useMemo(
-    () =>
-      (categoriesJSON?.categories || []).map((c) => ({
-        value: c.id,
-        label: c.name,
-        ...c,
-      })),
-    [],
-  );
+  function setCategoryOptionsFunc() {
+    const options = (categories || []).map((c) => ({
+      value: c.id,
+      label: c.name,
+      ...c,
+    }));
+    setCategoryOptions(options);
+  }
 
   const getSubcatOptions = (categoryId) =>
-    (subCategories?.subCategories || [])
+    (subCategories || [])
       .filter((s) => s.categoryId === categoryId)
       .map((sc) => ({ value: sc.id, label: sc.name, ...sc }));
 
@@ -170,6 +170,25 @@ const EditProduct = ({ product: prodToPopup }) => {
     dispatch(editProduct(formData));
   };
 
+  //GET CATEGORIES IF NOT IN STORE
+  useEffect(() => {
+    if (!categories) {
+      dispatch(getCategories({ restaurantId }));
+    }
+  }, [categories]);
+
+  //SET CATEGORIES
+  useEffect(() => {
+    if (categories) setCategoryOptionsFunc();
+  }, [categories, dispatch]);
+
+  //GET SUBCATEGORIES IF NOT IN STORE
+  useEffect(() => {
+    if (!subCategories) {
+      dispatch(getSubCategories({ restaurantId }));
+    }
+  }, [subCategories]);
+
   useEffect(() => {
     if (success) {
       toast.success(t("editProduct.success"));
@@ -181,6 +200,7 @@ const EditProduct = ({ product: prodToPopup }) => {
     }
     if (error) dispatch(resetEditProduct());
   }, [success, error, dispatch, setSecondPopupContent]);
+  console.log(productData);
 
   return (
     <section
@@ -320,7 +340,7 @@ const EditProduct = ({ product: prodToPopup }) => {
                     value={productData.description}
                     onChange={(e) => handleField("description", e.target.value)}
                     placeholder={t("editProduct.description_placeholder")}
-                    className="w-full rounded-xl border-[--border-1] bg-[--light-1] focus:bg-[--white-1] p-3.5 text-[--black-1] border focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none resize-none text-sm"
+                    className="w-full rounded-xl border-[--border-1] bg-[--light-1] focus:bg-[--white-1] p-3.5 text-[--red-1] border focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none resize-none text-sm"
                   />
                 </div>
 
@@ -385,10 +405,10 @@ const EditProduct = ({ product: prodToPopup }) => {
                 </div>
 
                 <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-[--light-2] transition-all relative cursor-pointer h-48 flex flex-col justify-center items-center">
-                  {preview && productData.imageURL ? (
+                  {preview ? (
                     <div className="w-full h-full overflow-hidden flex justify-center items-center rounded-lg">
                       <img
-                        src={preview || productData.imageURL}
+                        src={preview}
                         className="max-h-full w-auto object-contain rounded-md"
                         alt={t("editProduct.image_label")}
                       />

@@ -55,11 +55,11 @@ export const getProducts = createAsyncThunk(
         `${baseURL}Products/getProductsByRestaurantId`,
         {
           params: data,
-        }
+        },
       );
 
       // console.log(res.data);
-      return res.data;
+      return res.data.data;
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {
@@ -67,7 +67,7 @@ export const getProducts = createAsyncThunk(
       }
       return rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetGetProductsState, resetGetProducts } =

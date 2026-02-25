@@ -22,7 +22,7 @@ const ProductCard = ({ product }) => {
         {/* Image / Placeholder */}
         <div className="flex-shrink-0">
           <div className="w-24 h-24 rounded-lg bg-[--gr-4] overflow-hidden flex items-center justify-center text-[--gr-1] font-bold">
-            {!product.image || imgError ? (
+            {!product.imageURL || imgError ? (
               <div
                 className={`w-full h-full flex items-center justify-center bg-[--gr-4] text-[--gr-2] font-bold text-lg `}
               >
@@ -30,7 +30,7 @@ const ProductCard = ({ product }) => {
               </div>
             ) : (
               <img
-                src={product.image}
+                src={product.imageURL}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 onError={() => setImgError(true)}

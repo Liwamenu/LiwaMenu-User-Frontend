@@ -56,8 +56,8 @@ const Products = ({ data: restaurant }) => {
     type === "status"
       ? setStatusFilter(opt)
       : type === "category"
-      ? setCategoryFilter(opt)
-      : type === "search" && setSearchVal(opt);
+        ? setCategoryFilter(opt)
+        : type === "search" && setSearchVal(opt);
 
     dispatch(
       getProducts({
@@ -67,7 +67,7 @@ const Products = ({ data: restaurant }) => {
         searchKey: type === "search" ? opt : searchVal,
         hide: type === "status" ? !opt.value : statusFilter.value,
         categoryId: type === "category" ? opt.id : categoryFilter.id || null,
-      })
+      }),
     );
     setPageNumber(1);
   }
@@ -83,25 +83,23 @@ const Products = ({ data: restaurant }) => {
         searchKey: searchVal,
         hide: statusFilter.value,
         categoryId: categoryFilter.id || null,
-      })
+      }),
     );
   }
 
   useEffect(() => {
     if (!productsData) {
       dispatch(
-        getProducts({ restaurantId, pageNumber: 1, pageSize: itemsPerPage })
+        getProducts({ restaurantId, pageNumber: 1, pageSize: itemsPerPage }),
       );
     }
   }, [productsData]);
 
   useEffect(() => {
     if (products) {
-      // setProductsData(products.data);
       setTotalItems(products.totalCount || 3);
-      setProductsData(
-        products.data.length ? products.data : DUMMY_DATA.Products
-      );
+      setProductsData(products);
+      console.log(products);
     }
     if (error) {
       setProductsData(DUMMY_DATA.Products);

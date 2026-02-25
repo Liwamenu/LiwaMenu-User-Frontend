@@ -7,6 +7,7 @@ import {
   setSurveySettings,
   resetSetSurveySettings,
 } from "../../../redux/restaurant/setSurveySettingsSlice";
+import toast from "react-hot-toast";
 
 const AddOrEditCategoryPopup = ({
   id,
@@ -52,6 +53,12 @@ const AddOrEditCategoryPopup = ({
   useEffect(() => {
     if (success) {
       setPopupContent(null);
+      toast.success(
+        editingCategory
+          ? "Category updated successfully!"
+          : "Category added successfully!",
+        { id: "addOrEditCategorySuccess" },
+      );
       setSettings((prev) =>
         editingCategory
           ? prev.map((c) =>
@@ -66,6 +73,7 @@ const AddOrEditCategoryPopup = ({
                 icon: formIcon,
                 averageRating: 0,
                 ratingCount: 0,
+                id: Date.now(),
               },
             ],
       );

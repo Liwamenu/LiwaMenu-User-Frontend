@@ -16,6 +16,8 @@ import {
   editOrderTag,
   resetEditOrderTag,
 } from "../../../../redux/orderTags/editOrderTagSlice";
+import { addOrderTag } from "../../../../redux/orderTags/addOrderTagSlice";
+import toast from "react-hot-toast";
 
 const OrderTagGroupCard = ({
   group,
@@ -30,7 +32,12 @@ const OrderTagGroupCard = ({
 }) => {
   const dispatch = useDispatch();
 
-  const { success, error } = useSelector((s) => s.orderTags.edit);
+  const { success: editSuccess, error: editError } = useSelector(
+    (s) => s.orderTags.edit,
+  );
+  const { success: addSuccess, error: addError } = useSelector(
+    (s) => s.orderTags.add,
+  );
 
   const [isCollapsed, setIsCollapsed] = useState(!group.isNew);
   const [activeTab, setActiveTab] = useState("options");
@@ -94,6 +101,10 @@ const OrderTagGroupCard = ({
 
   function handleUpdateItem(e) {
     e.preventDefault();
+    if (group.relations.length === 0) {
+      toast.error("Lütfen en az bir ilişki ekleyin");
+      return;
+    }
     console.log(group);
     group?.isNew
       ? dispatch(addOrderTag({ ...group, restaurantId }))
@@ -101,13 +112,22 @@ const OrderTagGroupCard = ({
   }
 
   useEffect(() => {
-    if (success) {
+    if (editSuccess) {
       toast.success("Etiket gurubu başarıyla güncellendi.");
       dispatch(resetEditOrderTag());
       onUpdate({ isDirty: false, isNew: false });
     }
-    if (error) dispatch(resetEditOrderTag());
-  }, [success, error]);
+    if (editError) dispatch(resetEditOrderTag());
+  }, [editSuccess, editError]);
+
+  useEffect(() => {
+    if (addSuccess) {
+      toast.success("Etiket gurubu başarıyla eklendi.");
+      dispatch(resetEditOrderTag());
+      onUpdate({ isDirty: false, isNew: false });
+    }
+    if (addError) dispatch(resetEditOrderTag());
+  }, [addSuccess, addError]);
 
   return (
     <form onSubmit={handleUpdateItem}>
@@ -365,8 +385,8 @@ const OrderTagGroupCard = ({
                       <RelationRow
                         key={rel.id}
                         relation={rel}
-                        categories={categories}
                         products={products}
+                        categories={categories}
                         onUpdate={(u) => updateRelation(rel.id, u)}
                         onDelete={() => deleteRelation(rel.id)}
                       />

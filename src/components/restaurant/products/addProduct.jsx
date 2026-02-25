@@ -27,6 +27,11 @@ import {
   resetAddProduct,
 } from "../../../redux/products/addProductSlice";
 import { resetGetProducts } from "../../../redux/products/getProductsSlice";
+import {
+  getCategories,
+  resetGetCategories,
+} from "../../../redux/categories/getCategoriesSlice";
+import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
 
 const emptyPortion = () => ({
   id: undefined,
@@ -59,23 +64,25 @@ const AddProduct = ({ data: restaurant }) => {
 
   const { t } = useTranslation();
 
+  const { categories } = useSelector((s) => s.categories.get);
   const { success, error } = useSelector((s) => s.products.add);
+  const { subCategories } = useSelector((s) => s.subCategories.get);
 
   const [preview, setPreview] = useState(null);
   const [productData, setProductData] = useState(defaultProduct);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
-  const categoryOptions = useMemo(
-    () =>
-      (categoriesJSON?.categories || []).map((c) => ({
-        value: c.id,
-        label: c.name,
-        ...c,
-      })),
-    [],
-  );
+  function setCategoryOptionsFunc() {
+    const options = (categories || []).map((c) => ({
+      value: c.id,
+      label: c.name,
+      ...c,
+    }));
+    setCategoryOptions(options);
+  }
 
   const getSubcatOptions = (categoryId) =>
-    (subCategories?.subCategories || [])
+    (subCategories || [])
       .filter((s) => s.categoryId === categoryId)
       .map((sc) => ({ value: sc.id, label: sc.name, ...sc }));
 
@@ -173,13 +180,32 @@ const AddProduct = ({ data: restaurant }) => {
     dispatch(addProduct(formData));
   };
 
+  //GET CATEGORIES IF NOT IN STORE
+  useEffect(() => {
+    if (!categories) {
+      dispatch(getCategories({ restaurantId }));
+    }
+  }, [categories]);
+
+  //SET CATEGORIES
+  useEffect(() => {
+    if (categories) setCategoryOptionsFunc();
+  }, [categories, dispatch]);
+
+  //GET SUBCATEGORIES IF NOT IN STORE
+  useEffect(() => {
+    if (!subCategories) {
+      dispatch(getSubCategories({ restaurantId }));
+    }
+  }, [subCategories]);
+
   useEffect(() => {
     if (success) {
       toast.success(t("addProduct.success"));
-      setProductData(null);
       setPreview(null);
-      dispatch(resetGetProducts());
+      setProductData(defaultProduct);
       dispatch(resetAddProduct());
+      dispatch(resetGetProducts());
     } else if (error) dispatch(resetAddProduct());
   }, [success, error, dispatch]);
 

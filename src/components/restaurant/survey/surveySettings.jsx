@@ -121,6 +121,8 @@ const SurveySettings = ({ data }) => {
                       onClick={() =>
                         setPopupContent(
                           <DeleteSurvey
+                            id={id}
+                            enabled={isActive}
                             category={category}
                             categories={settings}
                             setSettings={setSettings}
