@@ -530,6 +530,28 @@
     "loading_theme": "Loading Live Theme",
     "success_updated": "Theme updated successfully!"
   },
+  "pages": {
+    "ordersPage": {
+      "active_orders": "Active Orders",
+      "order_details": "Order Details",
+      "id_label": "ID:",
+      "change_status": "Change Status",
+      "customer_information": "Customer Information",
+      "order_items": "Order Items",
+      "note_label": "Note:",
+      "general_note": "General Note",
+      "subtotal": "Subtotal",
+      "online_discount": "Online Discount (10%)",
+      "total": "Total",
+      "select_order": "Select an order to view details",
+      "realtime_updates": "Real-time updates will appear here",
+      "status_accepted": "Accepted",
+      "status_preparing": "Preparing",
+      "status_on_the_way": "On The Way",
+      "status_delivered": "Delivered",
+      "status_cancelled": "Cancelled"
+    }
+  },
   "notFound": {
     "title": "Page not found",
     "description": "The page you are looking for does not exist.",

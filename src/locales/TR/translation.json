@@ -531,6 +531,28 @@
     "loading_theme": "Canlı Tema Yüklüyor",
     "success_updated": "Tema başarıyla güncellenmiştir!"
   },
+  "pages": {
+    "ordersPage": {
+      "active_orders": "Aktif Siparişler",
+      "order_details": "Sipariş Detayları",
+      "id_label": "ID:",
+      "change_status": "Durumu Değiştir",
+      "customer_information": "Müşteri Bilgileri",
+      "order_items": "Sipariş Ürünleri",
+      "note_label": "Not:",
+      "general_note": "Genel Not",
+      "subtotal": "Ara Toplam",
+      "online_discount": "Online İndirim (%10)",
+      "total": "Toplam",
+      "select_order": "Detayları görüntülemek için bir sipariş seçin",
+      "realtime_updates": "Gerçek zamanlı güncellemeler burada görünecek",
+      "status_accepted": "Onaylandı",
+      "status_preparing": "Hazırlanıyor",
+      "status_on_the_way": "Yolda",
+      "status_delivered": "Teslim Edildi",
+      "status_cancelled": "İptal Edildi"
+    }
+  },
   "notFound": {
     "title": "Sayfa bulunmadı",
     "description": "Aradığınız sayfa bulunmamaktadır.",
