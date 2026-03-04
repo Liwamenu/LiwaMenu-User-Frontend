@@ -106,32 +106,32 @@ const OrdersPage = () => {
     accept: {
       label: t("pages.ordersPage.status_accepted"),
       icon: CheckCircle2,
-      color: "--blue-1)",
-      bgColor: "--status-blue)",
+      color: "var(--green-1)",
+      bgColor: "var(--status-green)",
     },
     prepare: {
       label: t("pages.ordersPage.status_preparing"),
       icon: ChefHat,
-      color: "--orange-1)",
-      bgColor: "--status-orange)",
+      color: "var(--orange-1)",
+      bgColor: "var(--status-orange)",
     },
     ontheway: {
       label: t("pages.ordersPage.status_on_the_way"),
       icon: Truck,
-      color: "--purple-1)",
-      bgColor: "--status-purple)",
+      color: "var(--purple-1)",
+      bgColor: "var(--status-purple)",
     },
     deliver: {
       label: t("pages.ordersPage.status_delivered"),
       icon: ShoppingBag,
-      color: "--green-1)",
-      bgColor: "--status-green)",
+      color: "var(--green-1)",
+      bgColor: "var(--status-green)",
     },
     cancel: {
       label: t("pages.ordersPage.status_cancelled"),
       icon: Ban,
-      color: "--red-1)",
-      bgColor: "--status-red)",
+      color: "var(--red-1)",
+      bgColor: "var(--status-red)",
     },
   };
 

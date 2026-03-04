@@ -168,7 +168,9 @@ const OrderTags = () => {
   //TOAST ON EDITALL
   useEffect(() => {
     if (success) {
-      toast.success("Ürün Etiket Yönetimi kaydedildi");
+      toast.success("Ürün Etiket Yönetimi kaydedildi", {
+        id: "save-order-tags",
+      });
       dispatch(resetEditOrderTags());
       setState((prev) => ({
         ...prev,

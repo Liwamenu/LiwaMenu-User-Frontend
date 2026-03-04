@@ -48,9 +48,11 @@ const RelationRow = ({
   const selectedCategory =
     categoryOptions.find((opt) => opt.value === relation.categoryId) ||
     categoryOptions[0];
+
   const selectedProductOption =
     productOptions.find((opt) => opt.value == relation.productId) ||
     productOptions[0];
+
   const selectedPortion =
     portionOptions.find((opt) => opt.value == relation.portionId) ||
     portionOptions[0];
@@ -99,8 +101,7 @@ const RelationRow = ({
           options={productOptions}
           onChange={(selected) =>
             onUpdate({
-              productId:
-                selected.value === "*" ? "*" : parseInt(selected.value),
+              productId: selected.value === "*" ? "*" : selected.value,
               portionId: "*",
             })
           }
@@ -117,8 +118,7 @@ const RelationRow = ({
           options={portionOptions}
           onChange={(selected) =>
             onUpdate({
-              portionId:
-                selected.value === "*" ? "*" : parseInt(selected.value),
+              portionId: selected.value === "*" ? "*" : selected.value,
             })
           }
           isSearchable={false}

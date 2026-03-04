@@ -76,6 +76,7 @@ const OrderTagGroupCard = ({
     const newRels = group.relations.map((rel) =>
       rel.id === relId ? { ...rel, ...updates } : rel,
     );
+    console.log(relId, updates);
     onUpdate({ relations: newRels, isDirty: true });
   };
 
@@ -113,7 +114,9 @@ const OrderTagGroupCard = ({
 
   useEffect(() => {
     if (editSuccess) {
-      toast.success("Etiket gurubu başarıyla güncellendi.");
+      toast.success("Etiket gurubu başarıyla güncellendi.", {
+        id: "edit-order-tag",
+      });
       dispatch(resetEditOrderTag());
       onUpdate({ isDirty: false, isNew: false });
     }
@@ -122,7 +125,9 @@ const OrderTagGroupCard = ({
 
   useEffect(() => {
     if (addSuccess) {
-      toast.success("Etiket gurubu başarıyla eklendi.");
+      toast.success("Etiket gurubu başarıyla eklendi.", {
+        id: "add-order-tag",
+      });
       dispatch(resetEditOrderTag());
       onUpdate({ isDirty: false, isNew: false });
     }
@@ -385,7 +390,7 @@ const OrderTagGroupCard = ({
                       <RelationRow
                         key={rel.id}
                         relation={rel}
-                        products={products}
+                        products={products?.data}
                         categories={categories}
                         onUpdate={(u) => updateRelation(rel.id, u)}
                         onDelete={() => deleteRelation(rel.id)}
