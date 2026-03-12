@@ -7,17 +7,20 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store.js";
 import { PopupProvider } from "./context/PopupContext.jsx";
+import { FirebaseProvider } from "./context/fierebase.jsx";
 import "./config/i18n";
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>
     <BrowserRouter>
-      <PopupProvider>
-        <App />
-        <Toaster toastOptions={toastOptions} />
-      </PopupProvider>
+      <FirebaseProvider>
+        <PopupProvider>
+          <App />
+          <Toaster toastOptions={toastOptions} />
+        </PopupProvider>
+      </FirebaseProvider>
     </BrowserRouter>
-  </Provider>
+  </Provider>,
 );
 
 // INJECT GOOGLE MAPS

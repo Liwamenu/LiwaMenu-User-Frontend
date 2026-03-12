@@ -12,6 +12,9 @@ import TurnstileWidget from "../components/turnstileWidget";
 import { getAuth } from "../redux/api";
 import { login, resetLoginState } from "../redux/auth/loginSlice";
 
+// CONTEXT
+import { useFirebase } from "../context/fierebase";
+
 // COMP
 import GlassFrame from "../components/common/glassFrame";
 import CustomInput from "../components/common/customInput";
@@ -19,6 +22,7 @@ import CustomInput from "../components/common/customInput";
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { pushToken } = useFirebase();
 
   const token = getAuth()?.token;
   const { success, loading, error } = useSelector((state) => state.auth.login);
@@ -31,7 +35,7 @@ function Login() {
     e.preventDefault();
 
     if (!emailOrPhone || !password || loading) return;
-    dispatch(login({ emailOrPhone, password }));
+    dispatch(login({ emailOrPhone, password, pushToken }));
   };
 
   useEffect(() => {

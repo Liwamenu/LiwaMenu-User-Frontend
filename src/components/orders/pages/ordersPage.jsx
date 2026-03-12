@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Clock,
@@ -8,127 +7,54 @@ import {
   CreditCard,
   ShoppingBag,
   X,
-  CheckCircle2,
-  Truck,
-  ChefHat,
-  Ban,
   ArrowLeft,
+  CheckCircle2,
+  ChefHat,
+  Truck,
+  Ban,
 } from "lucide-react";
-
-const MOCK_ORDERS = [
-  {
-    id: "ord-1",
-    restaurantId: "538ba1a1-bf0d-47eb-9b88-054856703452",
-    orderType: "online",
-    status: "accept",
-    items: [
-      {
-        productId: "prd-001-mercimek",
-        productName: "Mercimek Çorbası",
-        portionId: "por-001-mercimek-normal",
-        portionName: "Normal",
-        unitPrice: 55,
-        quantity: 1,
-        selectedTags: [],
-        itemTotal: 55,
-        note: "This is Product note. Test",
-      },
-      {
-        productId: "prd-004-karniyarik",
-        productName: "Karnıyarık",
-        portionId: "por-004-karniyarik-standart",
-        portionName: "Standart",
-        unitPrice: 185,
-        quantity: 1,
-        selectedTags: [
-          {
-            tagId: "ot-002-yan",
-            tagName: "Yan Ürün Seçimi",
-            itemId: "oti-004-yogurt",
-            itemName: "Yoğurt",
-            price: 20,
-            quantity: 1,
-          },
-        ],
-        itemTotal: 205,
-        note: "Product with options.",
-      },
-    ],
-    totalAmount: 260,
-    orderNote: "This General Order Note",
-    createdAt: new Date().toISOString(),
-    customerInfo: {
-      name: "Ibrahim Ali Mohammed",
-      phone: "+905058433855",
-      address:
-        "Yörükler, Denizevler cad no:81-83, 55420 19 Mayıs/Samsun Ondokuz Mayıs KYK Öğrenci Yurdu",
-    },
-    paymentMethodId: "pm-001",
-    paymentMethodName: "Banka Kartı",
-  },
-  {
-    id: "ord-2",
-    restaurantId: "538ba1a1-bf0d-47eb-9b88-054856703452",
-    orderType: "online",
-    status: "prepare",
-    items: [
-      {
-        productId: "prd-015-firin-sutlac",
-        productName: "Fırın Sütlaç",
-        portionId: "por-017-sutlac-kase",
-        portionName: "Kase",
-        unitPrice: 79,
-        quantity: 3,
-        selectedTags: [],
-        itemTotal: 237,
-        note: "",
-      },
-    ],
-    totalAmount: 237,
-    orderNote: "",
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    customerInfo: {
-      name: "Ayşe Yılmaz",
-      phone: "+905551234567",
-      address: "Cumhuriyet Mah. 123. Sokak No:5 Samsun",
-    },
-    paymentMethodId: "pm-002",
-    paymentMethodName: "Nakit",
-  },
-];
+import { useFirebase } from "../../../context/fierebase";
+import { useOrderStatusActions } from "./actions";
 
 const OrdersPage = () => {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState(MOCK_ORDERS);
-  const [selectedOrder, setSelectedOrder] = useState(MOCK_ORDERS[0]);
+  const { ordersData, selectedOrder, setSelectedOrder } = useFirebase();
+  const { updateStatus } = useOrderStatusActions();
 
   const STATUS_CONFIG = {
-    accept: {
-      label: t("pages.ordersPage.status_accepted"),
+    Pending: {
+      label: "Pending",
+      icon: Clock,
+      color: "var(--orange-1)",
+      bgColor: "var(--status-orange)",
+    },
+    Accepted: {
+      label: "Accepted",
       icon: CheckCircle2,
       color: "var(--green-1)",
       bgColor: "var(--status-green)",
     },
-    prepare: {
-      label: t("pages.ordersPage.status_preparing"),
+
+    Preparing: {
+      label: "Preparing",
       icon: ChefHat,
       color: "var(--orange-1)",
       bgColor: "var(--status-orange)",
     },
-    ontheway: {
-      label: t("pages.ordersPage.status_on_the_way"),
+    OnTheWay: {
+      label: "On The Way",
       icon: Truck,
       color: "var(--purple-1)",
       bgColor: "var(--status-purple)",
     },
-    deliver: {
-      label: t("pages.ordersPage.status_delivered"),
+    Delivered: {
+      label: "Delivered",
       icon: ShoppingBag,
       color: "var(--green-1)",
       bgColor: "var(--status-green)",
     },
-    cancel: {
-      label: t("pages.ordersPage.status_cancelled"),
+    Cancelled: {
+      label: "Cancelled",
       icon: Ban,
       color: "var(--red-1)",
       bgColor: "var(--status-red)",
@@ -136,16 +62,7 @@ const OrdersPage = () => {
   };
 
   const handleStatusChange = (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order,
-      ),
-    );
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev) =>
-        prev ? { ...prev, status: newStatus } : null,
-      );
-    }
+    updateStatus(orderId, newStatus);
   };
 
   const formatDate = (dateString) => {
@@ -167,80 +84,81 @@ const OrdersPage = () => {
               <ShoppingBag className="w-5 h-5 text-[--primary-1]" />
               {t("pages.ordersPage.active_orders")}
               <span className="ml-2 px-2 py-0.5 bg-[--primary-1] text-white text-xs rounded-full">
-                {orders.length}
+                {ordersData?.length}
               </span>
             </h2>
           </div>
 
           <div className="space-y-3">
-            {orders.map((order) => {
-              const StatusIcon = STATUS_CONFIG[order.status].icon;
-              return (
-                <div
-                  key={order.id}
-                  layoutId={order.id}
-                  onClick={() => setSelectedOrder(order)}
-                  className={`group cursor-pointer p-4 rounded-2xl border transition-all duration-200 text-[--black-1] ${
-                    selectedOrder?.id === order.id
-                      ? "bg-[--primary-1] border-[--primary-1] text-white  shadow-xl shadow-indigo-500/20"
-                      : "bg-[--white-1] border-[--border-1] hover:border-[--primary-1] hover:shadow-lg"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg">
-                          {order.customerInfo.name}
-                        </span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${
+            {ordersData &&
+              ordersData.map((order) => {
+                const StatusIcon = STATUS_CONFIG[order.status]?.icon;
+                return (
+                  <div
+                    key={order.id}
+                    layoutId={order.id}
+                    onClick={() => setSelectedOrder(order)}
+                    className={`group cursor-pointer p-4 rounded-2xl border transition-all duration-200 text-[--black-1] ${
+                      selectedOrder?.id === order.id
+                        ? "bg-[--primary-1] border-[--primary-1] text-white  shadow-xl shadow-indigo-500/20"
+                        : "bg-[--white-1] border-[--border-1] hover:border-[--primary-1] hover:shadow-lg"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-lg">
+                            {order.customerName}
+                          </span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${
+                              selectedOrder?.id === order.id
+                                ? "bg-white/20"
+                                : "bg-[--gr-4] dark:bg-[--gr-5]"
+                            }`}
+                          >
+                            #{order.id.split("-")[1]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm opacity-70">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {formatDate(order.createdAt)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <CreditCard className="w-3.5 h-3.5" />
+                            {order.paymentMethodName}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold">
+                          ₺{order.totalAmount.toFixed(2)}
+                        </div>
+                        <div
+                          className={`mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                             selectedOrder?.id === order.id
-                              ? "bg-white/20"
-                              : "bg-[--gr-4] dark:bg-[--gr-5]"
+                              ? "bg-white/20 text-white"
+                              : ""
                           }`}
+                          style={
+                            selectedOrder?.id !== order.id
+                              ? {
+                                  backgroundColor:
+                                    STATUS_CONFIG[order.status].bgColor,
+                                  color: STATUS_CONFIG[order.status].color,
+                                }
+                              : {}
+                          }
                         >
-                          #{order.id.split("-")[1]}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm opacity-70">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {formatDate(order.createdAt)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <CreditCard className="w-3.5 h-3.5" />
-                          {order.paymentMethodName}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold">
-                        ₺{order.totalAmount.toFixed(2)}
-                      </div>
-                      <div
-                        className={`mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                          selectedOrder?.id === order.id
-                            ? "bg-white/20 text-white"
-                            : ""
-                        }`}
-                        style={
-                          selectedOrder?.id !== order.id
-                            ? {
-                                backgroundColor:
-                                  STATUS_CONFIG[order.status].bgColor,
-                                color: STATUS_CONFIG[order.status].color,
-                              }
-                            : {}
-                        }
-                      >
-                        <StatusIcon className="w-3.5 h-3.5" />
-                        {STATUS_CONFIG[order.status].label}
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {STATUS_CONFIG[order.status].label}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
 
@@ -327,18 +245,18 @@ const OrdersPage = () => {
                         <User className="w-4 h-4 mt-1 text-[--primary-1]" />
                         <div>
                           <p className="font-bold">
-                            {selectedOrder.customerInfo.name}
+                            {selectedOrder.customerName}
                           </p>
                           <p className="text-xs opacity-60 flex items-center gap-1">
                             <Phone className="w-3 h-3" />
-                            {selectedOrder.customerInfo.phone}
+                            {selectedOrder.customerTel}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3 border-t border-[--border-1] pt-3">
                         <MapPin className="w-4 h-4 mt-1 text-[--primary-1]" />
                         <p className="text-sm leading-relaxed">
-                          {selectedOrder.customerInfo.address}
+                          {selectedOrder.customerAddress}
                         </p>
                       </div>
                     </div>
@@ -379,7 +297,7 @@ const OrdersPage = () => {
                             )}
                           </div>
                           <span className="font-bold text-sm">
-                            ₺{item.itemTotal.toFixed(2)}
+                            ₺{item.lineTotal.toFixed(2)}
                           </span>
                         </div>
                       ))}

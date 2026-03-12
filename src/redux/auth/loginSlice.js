@@ -45,11 +45,13 @@ const loginSlice = createSlice({
 
 export const login = createAsyncThunk(
   "Auth/login",
-  async ({ emailOrPhone, password }, { rejectWithValue }) => {
+  async ({ emailOrPhone, password, pushToken }, { rejectWithValue }) => {
     try {
       const res = await api.post(`${baseURL}Auth/login`, {
         emailOrPhone,
         password,
+        pushToken: pushToken || null,
+        deviceType: "web",
       });
 
       // console.log(res);
@@ -66,7 +68,7 @@ export const login = createAsyncThunk(
         err?.status || err?.response?.status || err?.response?.data?.statusCode;
       return rejectWithValue({ message: errorMessage, statusCode });
     }
-  }
+  },
 );
 
 export const { resetLoginState } = loginSlice.actions;
