@@ -18,11 +18,7 @@ const firebaseConfig = {
 let app;
 let messaging;
 
-export async function initFirebaseMessaging() {
-  const supported = await isSupported();
-  console.log("[Firebase] isSupported:", supported);
-  if (!supported) return { supported: false, token: null };
-
+function ensureFirebaseMessaging() {
   if (!app) {
     app = initializeApp(firebaseConfig);
     console.log("[Firebase] App initialized");
@@ -33,13 +29,24 @@ export async function initFirebaseMessaging() {
     console.log("[Firebase] Messaging initialized");
   }
 
+  return messaging;
+}
+
+export async function initFirebaseMessaging() {
+  const supported = await isSupported();
+  console.log("[Firebase] isSupported:", supported);
+  if (!supported)
+    return { supported: false, token: null, permission: "unsupported" };
+
+  ensureFirebaseMessaging();
+
   await navigator.serviceWorker.register("/firebase-messaging-sw.js");
   console.log("[Firebase] Service worker registered");
 
   const permission = await Notification.requestPermission();
   console.log("[Firebase] Notification permission:", permission);
   if (permission !== "granted") {
-    return { supported: true, token: null };
+    return { supported: true, token: null, permission };
   }
 
   const token = await getToken(messaging, {
@@ -50,7 +57,29 @@ export async function initFirebaseMessaging() {
     "[Firebase] Push token:",
     token ? `${token.slice(0, 20)}...` : "null",
   );
-  return { supported: true, token };
+  return { supported: true, token, permission };
+}
+
+export async function requestPushPermissionToken() {
+  const supported = await isSupported();
+  if (!supported)
+    return { supported: false, token: null, permission: "unsupported" };
+
+  ensureFirebaseMessaging();
+  await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+
+  const permission = await Notification.requestPermission();
+  console.log("[Firebase] Permission request (manual):", permission);
+
+  if (permission !== "granted") {
+    return { supported: true, token: null, permission };
+  }
+
+  const token = await getToken(messaging, {
+    vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+  });
+
+  return { supported: true, token, permission };
 }
 
 export function subscribeForegroundMessages(onPayload) {

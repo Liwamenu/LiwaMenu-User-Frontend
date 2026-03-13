@@ -22,7 +22,8 @@ import CustomInput from "../components/common/customInput";
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { pushToken } = useFirebase();
+  const { pushToken, notificationPermission, requestNotificationAccess } =
+    useFirebase();
 
   const token = getAuth()?.token;
   const { success, loading, error } = useSelector((state) => state.auth.login);
@@ -31,18 +32,28 @@ function Login() {
   const [password, setPassword] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
 
+  const handleEnableNotifications = async () => {
+    const { permission, token } = await requestNotificationAccess();
+
+    if (permission === "granted" && token) {
+      toast.success("Bildirim izni verildi");
+      return;
+    }
+
+    if (permission === "denied") {
+      window.alert(
+        "Bildirimler engellendi. Lütfen adres çubuğundaki kilit ikonundan veya Site Settings > Notifications bölümünden 'Allow' seçin ve sayfayı yenileyin.",
+      );
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
 
     if (!emailOrPhone || !password || loading) return;
 
-    if (!pushToken) {
-      toast.error("Push token hazır değil, birkaç saniye sonra tekrar deneyin");
-      return;
-    }
-
     console.log("[Login] Sending login with push token");
-    dispatch(login({ emailOrPhone, password, pushToken }));
+    dispatch(login({ emailOrPhone, password, pushToken: pushToken || null }));
   };
 
   useEffect(() => {
@@ -77,6 +88,22 @@ function Login() {
       component={
         <form onSubmit={handleLogin} className="text-white light customInput">
           <h1 className="text-4xl font-bold text-center mb-8">Login</h1>
+
+          {notificationPermission !== "granted" && (
+            <div className="mb-4 text-xs rounded-md border border-[--link-1]/40 bg-[--gr-5] p-3">
+              <p className="mb-2">
+                Sipariş güncellemelerini anlık almak için bildirim iznini açın.
+              </p>
+              <button
+                type="button"
+                onClick={handleEnableNotifications}
+                className="px-3 py-1 rounded bg-[--primary-1] text-white"
+              >
+                Bildirimleri Etkinleştir
+              </button>
+            </div>
+          )}
+
           <CustomInput
             label="E-posta/Telefon"
             type="text"
