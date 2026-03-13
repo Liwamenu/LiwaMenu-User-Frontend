@@ -36,6 +36,10 @@ export const useFirebase = () => useContext(FirebaseContext);
 export const FirebaseProvider = ({ children }) => {
   const dispatch = useDispatch();
 
+  const canSetSelectedOrder = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(min-width: 1024px)").matches;
+
   const localItemsPerPage = JSON.parse(
     localStorage.getItem("ITEMS_PER_PAGE"),
   ) || { label: "8", value: 8 };
@@ -144,12 +148,15 @@ export const FirebaseProvider = ({ children }) => {
           return updated;
         });
 
-        setSelectedOrder((prev) => {
-          const prevId = prev?.id || prev?.Id || prev?.orderId || prev?.OrderId;
-          return prevId === incomingOrderId
-            ? { ...prev, ...incomingOrder }
-            : prev;
-        });
+        if (canSetSelectedOrder()) {
+          setSelectedOrder((prev) => {
+            const prevId =
+              prev?.id || prev?.Id || prev?.orderId || prev?.OrderId;
+            return prevId === incomingOrderId
+              ? { ...prev, ...incomingOrder }
+              : prev;
+          });
+        }
 
         if (isNewOrderPush) {
           console.log("[Firebase] 🔊 Playing new order sound");
@@ -162,9 +169,11 @@ export const FirebaseProvider = ({ children }) => {
         setOrdersData((prev) =>
           prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
         );
-        setSelectedOrder((prev) =>
-          prev?.id === orderId ? { ...prev, status: newStatus } : prev,
-        );
+        if (canSetSelectedOrder()) {
+          setSelectedOrder((prev) =>
+            prev?.id === orderId ? { ...prev, status: newStatus } : prev,
+          );
+        }
       } else {
         if (isNewOrderPush) {
           console.log("[Firebase] 🔊 Playing new order sound");
@@ -230,10 +239,12 @@ export const FirebaseProvider = ({ children }) => {
     if (orders) {
       setOrdersData(orders.data);
       setTotalCount(orders.totalCount);
-      setSelectedOrder((prev) => {
-        if (!prev) return orders.data.length > 0 ? orders.data[0] : null;
-        return orders.data.find((o) => o.id === prev.id) ?? null;
-      });
+      if (canSetSelectedOrder()) {
+        setSelectedOrder((prev) => {
+          if (!prev) return orders.data.length > 0 ? orders.data[0] : null;
+          return orders.data.find((o) => o.id === prev.id) ?? null;
+        });
+      }
       dispatch(resetGetOrders());
     }
     if (error) dispatch(resetGetOrders());
@@ -289,6 +300,8 @@ export const FirebaseProvider = ({ children }) => {
         handleItemsPerPage,
         setPageNumber,
         pageNumber,
+        filter,
+        setFilter,
       }}
     >
       {children}

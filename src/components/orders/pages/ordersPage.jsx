@@ -22,6 +22,8 @@ import { useFirebase } from "../../../context/firebase";
 //COMP
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
+import FilterOrders from "../components/filterOrders";
+import { formatDateString } from "../../../utils/utils";
 
 const OrdersPage = () => {
   const { t } = useTranslation();
@@ -82,13 +84,6 @@ const OrdersPage = () => {
     updateStatus(orderId, newStatus);
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const pageNumbers = () => {
     const numbersColl = [];
     for (let i = 5; i < 51; i += 5) {
@@ -112,6 +107,8 @@ const OrdersPage = () => {
                 {ordersData?.length}
               </span>
             </h2>
+
+            <FilterOrders />
           </div>
 
           <div className="space-y-3">
@@ -147,7 +144,14 @@ const OrdersPage = () => {
                         <div className="flex items-center gap-3 text-sm opacity-70">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            {formatDate(order.createdAt)}
+                            {formatDateString(
+                              order.createdAt,
+                              false,
+                              false,
+                              false,
+                              true,
+                              true,
+                            )}
                           </span>
                           <span className="flex items-center gap-1">
                             <CreditCard className="w-3.5 h-3.5" />
