@@ -17,11 +17,18 @@ export const useFirebase = () => useContext(FirebaseContext);
 export const FirebaseProvider = ({ children }) => {
   const dispatch = useDispatch();
 
+  const localItemsPerPage = JSON.parse(
+    localStorage.getItem("ITEMS_PER_PAGE"),
+  ) || { label: "8", value: 8 };
+
   const [pushToken, setPushToken] = useState(null);
   const [notificationPermission, setNotificationPermission] =
     useState("default");
   const [ordersData, setOrdersData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(localItemsPerPage);
+  const [totalCount, setTotalCount] = useState(null);
 
   const { orders, error } = useSelector((s) => s.orders.get);
 
@@ -189,21 +196,61 @@ export const FirebaseProvider = ({ children }) => {
   // ── 2. Initial orders fetch ─────────────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated) return;
-    dispatch(getOrders());
+    dispatch(
+      getOrders({
+        pageNumber,
+        pageSize: pageSize.value,
+      }),
+    );
   }, [dispatch, isAuthenticated]);
 
   // ── 3. Sync redux response into local state ─────────────────────────────────
   useEffect(() => {
     if (orders) {
-      setOrdersData(orders);
+      setOrdersData(orders.data);
+      setTotalCount(orders.totalCount);
       setSelectedOrder((prev) => {
-        if (!prev) return orders.length > 0 ? orders[0] : null;
-        return orders.find((o) => o.id === prev.id) ?? null;
+        if (!prev) return orders.data.length > 0 ? orders.data[0] : null;
+        return orders.data.find((o) => o.id === prev.id) ?? null;
       });
       dispatch(resetGetOrders());
     }
     if (error) dispatch(resetGetOrders());
   }, [orders, error, dispatch]);
+
+  function handlePageChange(number) {
+    dispatch(
+      getOrders({
+        pageNumber: number,
+        pageSize: pageSize.value,
+        // dateRange: filter.dateRange,
+        // startDateTime: filter.endDateTime
+        //   ? formatDate(filter.startDateTime)
+        //   : null,
+        // endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
+        // status: filter.statusId,
+      }),
+    );
+  }
+
+  function handleItemsPerPage(number) {
+    dispatch(
+      getOrders({
+        pageNumber,
+        pageSize: number,
+        // dateRange: filter.dateRange,
+        // startDateTime: filter.endDateTime
+        //   ? formatDate(filter.startDateTime)
+        //   : null,
+        // endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
+        // status: filter.statusId,
+      }),
+    );
+    const localData = { label: `${number}`, value: number };
+    localStorage.removeItem("ITEMS_PER_PAGE");
+    localStorage.setItem("ITEMS_PER_PAGE", JSON.stringify(localData));
+    setPageSize({ label: `${number}`, value: number });
+  }
 
   return (
     <FirebaseContext.Provider
@@ -215,6 +262,10 @@ export const FirebaseProvider = ({ children }) => {
         setOrdersData,
         selectedOrder,
         setSelectedOrder,
+        totalCount,
+        pageSize,
+        handlePageChange,
+        handleItemsPerPage,
       }}
     >
       {children}

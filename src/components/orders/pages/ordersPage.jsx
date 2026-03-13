@@ -18,11 +18,23 @@ import { useOrderStatusActions } from "./actions";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { getOrders } from "../../../redux/orders/getOrdersSlice";
+import CustomSelect from "../../common/customSelector";
+import CustomPagination from "../../common/pagination";
 
 const OrdersPage = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { ordersData, selectedOrder, setSelectedOrder } = useFirebase();
+  const {
+    pageNumber,
+    pageSize,
+    setPageNumber,
+    ordersData,
+    selectedOrder,
+    setSelectedOrder,
+    totalCount,
+    handlePageChange,
+    handleItemsPerPage,
+  } = useFirebase();
   const { updateStatus } = useOrderStatusActions();
 
   const STATUS_CONFIG = {
@@ -76,15 +88,17 @@ const OrdersPage = () => {
     });
   };
 
-  useEffect(() => {
-    if (!ordersData.length) {
-      dispatch(getOrders());
+  const pageNumbers = () => {
+    const numbersColl = [];
+    for (let i = 5; i < 51; i += 5) {
+      numbersColl.push({ label: `${i}`, value: i });
     }
-  }, [dispatch, ordersData]);
+    return numbersColl;
+  };
 
   return (
-    <div className="min-h-screen bg-[--white-2] transition-colors duration-300 lg:ml-[280px] pt-16">
-      <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="min-h-screen bg-[--white-2] transition-colors duration-300 lg:ml-[280px] pt-16 flex flex-col">
+      <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow w-full">
         {/* Orders List */}
         <div
           className={`lg:col-span-7 space-y-4 ${selectedOrder ? "hidden lg:block" : "block"}`}
@@ -366,6 +380,30 @@ const OrdersPage = () => {
           </div>
         </div>
       </main>
+      {/* PAGINATION */}
+      {ordersData && typeof totalCount === "number" && (
+        <div className="w-full self-end flex justify-center py-4 text-[--black-2]">
+          <div className="scale-[.8] min-w-20">
+            <CustomSelect
+              className="mt-[0] sm:mt-[0]"
+              className2="mt-[0] sm:mt-[0]"
+              menuPlacement="top"
+              value={pageSize}
+              options={pageNumbers()}
+              onChange={(option) => {
+                handleItemsPerPage(option.value);
+              }}
+            />
+          </div>
+          <CustomPagination
+            pageNumber={pageNumber}
+            setPageNumber={setPageNumber}
+            itemsPerPage={pageSize.value}
+            totalItems={totalCount}
+            handlePageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };
