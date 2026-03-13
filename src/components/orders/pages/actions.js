@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { useFirebase } from "../../../context/fierebase";
+import { useFirebase } from "../../../context/firebase";
 import {
   updateOrderStatus,
   resetUpdateOrderStatus,

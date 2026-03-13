@@ -13,7 +13,7 @@ import { getAuth } from "../redux/api";
 import { login, resetLoginState } from "../redux/auth/loginSlice";
 
 // CONTEXT
-import { useFirebase } from "../context/fierebase";
+import { useFirebase } from "../context/firebase";
 
 // COMP
 import GlassFrame from "../components/common/glassFrame";

@@ -1,15 +1,34 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+//FIREBASE
 import {
   initFirebaseMessaging,
-  subscribeForegroundMessages,
   requestPushPermissionToken,
+  subscribeForegroundMessages,
 } from "../firebase";
-import { getOrders, resetGetOrders } from "../redux/orders/getOrdersSlice";
-import { getAuth } from "../redux/api";
+
+//UTILS
+import { formatDate } from "../utils/utils";
+
+//MODULES
 import i18n from "../config/i18n";
+import { getAuth } from "../redux/api";
+import { useDispatch, useSelector } from "react-redux";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+
+//SOUNDS
 import newOrderEnSound from "../assets/sounds/newOrder-EN.mp3";
 import newOrderTrSound from "../assets/sounds/newOrder-TR.mp3";
+
+//REDUX
+import { getOrders, resetGetOrders } from "../redux/orders/getOrdersSlice";
+
+const filterInitialState = {
+  dateRange: 0,
+  startDateTime: "",
+  endDateTime: "",
+  statusId: null,
+  status: { label: "Hepsi", value: null },
+  restaurant: { label: "Tümü", value: null },
+};
 
 const FirebaseContext = createContext();
 export const useFirebase = () => useContext(FirebaseContext);
@@ -24,11 +43,13 @@ export const FirebaseProvider = ({ children }) => {
   const [pushToken, setPushToken] = useState(null);
   const [notificationPermission, setNotificationPermission] =
     useState("default");
-  const [ordersData, setOrdersData] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(localItemsPerPage);
+  const [ordersData, setOrdersData] = useState([]);
   const [totalCount, setTotalCount] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [filter, setFilter] = useState(filterInitialState);
+  const [pageSize, setPageSize] = useState(localItemsPerPage);
 
   const { orders, error } = useSelector((s) => s.orders.get);
 
@@ -223,12 +244,12 @@ export const FirebaseProvider = ({ children }) => {
       getOrders({
         pageNumber: number,
         pageSize: pageSize.value,
-        // dateRange: filter.dateRange,
-        // startDateTime: filter.endDateTime
-        //   ? formatDate(filter.startDateTime)
-        //   : null,
-        // endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
-        // status: filter.statusId,
+        dateRange: filter.dateRange,
+        startDateTime: filter.endDateTime
+          ? formatDate(filter.startDateTime)
+          : null,
+        endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
+        status: filter.statusId,
       }),
     );
   }
@@ -238,12 +259,12 @@ export const FirebaseProvider = ({ children }) => {
       getOrders({
         pageNumber,
         pageSize: number,
-        // dateRange: filter.dateRange,
-        // startDateTime: filter.endDateTime
-        //   ? formatDate(filter.startDateTime)
-        //   : null,
-        // endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
-        // status: filter.statusId,
+        dateRange: filter.dateRange,
+        startDateTime: filter.endDateTime
+          ? formatDate(filter.startDateTime)
+          : null,
+        endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
+        status: filter.statusId,
       }),
     );
     const localData = { label: `${number}`, value: number };
@@ -266,6 +287,8 @@ export const FirebaseProvider = ({ children }) => {
         pageSize,
         handlePageChange,
         handleItemsPerPage,
+        setPageNumber,
+        pageNumber,
       }}
     >
       {children}

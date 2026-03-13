@@ -1,3 +1,4 @@
+//MODULES
 import { useTranslation } from "react-i18next";
 import {
   Clock,
@@ -13,16 +14,16 @@ import {
   Truck,
   Ban,
 } from "lucide-react";
-import { useFirebase } from "../../../context/fierebase";
+
+//UTILS
 import { useOrderStatusActions } from "./actions";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { getOrders } from "../../../redux/orders/getOrdersSlice";
+import { useFirebase } from "../../../context/firebase";
+
+//COMP
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 
 const OrdersPage = () => {
-  const dispatch = useDispatch();
   const { t } = useTranslation();
   const {
     pageNumber,

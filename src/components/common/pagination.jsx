@@ -81,7 +81,7 @@ const CustomPagination = ({
               >
                 {page}
               </button>
-            )
+            ),
           )}
         </div>
         <button
