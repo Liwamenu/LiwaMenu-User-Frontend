@@ -2,26 +2,38 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { usePopup } from "../../../context/PopupContext";
 import { useFirebase } from "../../../context/firebase";
-import { formatDate } from "../../../utils/utils";
+import { formatDateString } from "../../../utils/utils";
 import { getOrders } from "../../../redux/orders/getOrdersSlice";
 import { isEqual } from "lodash";
+import { useTranslation } from "react-i18next";
 import CustomDatePicker from "../../common/customdatePicker";
 import CustomSelect from "../../common/customSelector";
 
 const FilterOrders = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const filterOrdersRef = useRef();
   const { contentRef, setContentRef } = usePopup();
 
   const orderFilterDates = [
-    { label: "Bugün", value: "0", id: 0, show: true },
-    { label: "Dün", value: "1", id: 1, show: true },
-    { label: "Bu Hafta", value: "2", id: 2, show: true },
-    { label: "Bu Ay", value: "3", id: 3, show: false },
-    { label: "Geçen Hafta", value: "4", id: 4, show: true },
-    { label: "Son Üç Ay", value: "5", id: 5, show: false },
-    { label: "Son Altı Ay", value: "6", id: 6, show: false },
-    { label: "Bu Yıl", value: "7", id: 7, show: false },
+    { label: t("orders.filter_today"), value: "0", id: 0, show: true },
+    { label: t("orders.filter_yesterday"), value: "1", id: 1, show: true },
+    { label: t("orders.filter_this_week"), value: "2", id: 2, show: true },
+    { label: t("orders.filter_this_month"), value: "3", id: 3, show: false },
+    { label: t("orders.filter_last_week"), value: "4", id: 4, show: true },
+    {
+      label: t("orders.filter_last_three_months"),
+      value: "5",
+      id: 5,
+      show: false,
+    },
+    {
+      label: t("orders.filter_last_six_months"),
+      value: "6",
+      id: 6,
+      show: false,
+    },
+    { label: t("orders.filter_this_year"), value: "7", id: 7, show: false },
   ];
 
   const {
@@ -34,6 +46,10 @@ const FilterOrders = () => {
   } = useFirebase();
 
   const [openFilter, setOpenFilter] = useState(false);
+
+  const formatDate = (date) => {
+    return formatDateString(date, true, true, true, true, true);
+  };
 
   function handleFilter(bool) {
     if (bool) {
@@ -84,7 +100,7 @@ const FilterOrders = () => {
             className="w-full h-11 flex items-center justify-center text-[--primary-1] px-3 rounded-md text-sm font-normal border-[1.5px] border-solid border-[--primary-1]"
             onClick={() => setOpenFilter(!openFilter)}
           >
-            Filtre
+            {t("orders.filter_button")}
           </button>
 
           <div
@@ -122,7 +138,7 @@ const FilterOrders = () => {
             <div className="flex gap-6">
               <div>
                 <CustomDatePicker
-                  label="Başlangıç Tarihi"
+                  label={t("orders.start_date")}
                   className="text-sm sm:mt-1 w-36 py-2 sm:py-[0.5rem]"
                   style={{ padding: "0 !important" }}
                   popperClassName="react-datepicker-popper-filter-order-1"
@@ -148,7 +164,7 @@ const FilterOrders = () => {
 
               <div>
                 <CustomDatePicker
-                  label="Bitiş Tarihi"
+                  label={t("orders.end_date")}
                   className="text-sm sm:mt-1 w-36 py-2 sm:py-[0.5rem]"
                   style={{ padding: "0 !important" }}
                   popperClassName="react-datepicker-popper-filter-order-2"
@@ -175,17 +191,17 @@ const FilterOrders = () => {
 
             <div className="flex gap-6">
               <CustomSelect
-                label="Durum"
+                label={t("orders.status_label")}
                 className="text-sm sm:mt-1"
                 className2="sm:mt-3"
                 style={{ padding: "0 !important" }}
                 options={[
-                  { label: "Hepsi", value: null },
-                  { label: "Bekliyor", value: 0 },
-                  { label: "Onaylandı", value: 1 },
-                  { label: "Yola Çıktı", value: 2 },
-                  { label: "Teslim Edildi", value: 3 },
-                  { label: "İptal Edildi", value: 4 },
+                  { label: t("orders.status_all"), value: null },
+                  { label: t("orders.status_pending"), value: 0 },
+                  { label: t("orders.status_accepted"), value: 1 },
+                  { label: t("orders.status_on_the_way"), value: 2 },
+                  { label: t("orders.status_delivered"), value: 3 },
+                  { label: t("orders.status_cancelled"), value: 4 },
                 ]}
                 value={filter.status}
                 onChange={(selectedOption) => {
@@ -225,13 +241,13 @@ const FilterOrders = () => {
                 className="text-white bg-[--red-1] py-2 px-12 rounded-lg hover:opacity-90"
                 onClick={() => handleFilter(false)}
               >
-                Temizle
+                {t("orders.clear")}
               </button>
               <button
                 className="text-white bg-[--primary-1] py-2 px-12 rounded-lg hover:opacity-90"
                 onClick={() => handleFilter(true)}
               >
-                Uygula
+                {t("orders.apply")}
               </button>
             </div>
           </div>

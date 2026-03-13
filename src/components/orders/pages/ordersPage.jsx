@@ -42,38 +42,38 @@ const OrdersPage = () => {
 
   const STATUS_CONFIG = {
     Pending: {
-      label: "Pending",
+      label: t("orders.status_pending"),
       icon: Clock,
       color: "var(--orange-1)",
       bgColor: "var(--status-orange)",
     },
     Accepted: {
-      label: "Accepted",
+      label: t("orders.status_accepted"),
       icon: CheckCircle2,
       color: "var(--green-1)",
       bgColor: "var(--status-green)",
     },
 
     Preparing: {
-      label: "Preparing",
+      label: t("orders.status_preparing"),
       icon: ChefHat,
       color: "var(--orange-1)",
       bgColor: "var(--status-orange)",
     },
     OnTheWay: {
-      label: "On The Way",
+      label: t("orders.status_on_the_way"),
       icon: Truck,
       color: "var(--purple-1)",
       bgColor: "var(--status-purple)",
     },
     Delivered: {
-      label: "Delivered",
+      label: t("orders.status_delivered"),
       icon: ShoppingBag,
       color: "var(--green-1)",
       bgColor: "var(--status-green)",
     },
     Cancelled: {
-      label: "Cancelled",
+      label: t("orders.status_cancelled"),
       icon: Ban,
       color: "var(--red-1)",
       bgColor: "var(--status-red)",
@@ -102,7 +102,7 @@ const OrdersPage = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold flex items-center gap-2 text-[--black-1]">
               <ShoppingBag className="w-5 h-5 text-[--primary-1]" />
-              {t("pages.ordersPage.active_orders")}
+              {t("orders.active_orders")}
               <span className="ml-2 px-2 py-0.5 bg-[--primary-1] text-white text-xs rounded-full">
                 {ordersData?.length}
               </span>
@@ -208,10 +208,10 @@ const OrdersPage = () => {
                     </button>
                     <div>
                       <h3 className="font-bold text-lg">
-                        {t("pages.ordersPage.order_details")}
+                        {t("orders.order_details")}
                       </h3>
                       <p className="text-xs opacity-60">
-                        {t("pages.ordersPage.id_label")} {selectedOrder.id}
+                        {t("orders.id_label")} {selectedOrder.id}
                       </p>
                     </div>
                   </div>
@@ -227,7 +227,7 @@ const OrdersPage = () => {
                   {/* Status Actions */}
                   <div className="space-y-3">
                     <p className="text-xs font-bold uppercase tracking-widest opacity-50">
-                      {t("pages.ordersPage.change_status")}
+                      {t("orders.change_status")}
                     </p>
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                       {Object.keys(STATUS_CONFIG).map((status) => {
@@ -266,7 +266,7 @@ const OrdersPage = () => {
                   {/* Customer Info */}
                   <div className="space-y-4">
                     <p className="text-xs font-bold uppercase tracking-widest opacity-50">
-                      {t("pages.ordersPage.customer_information")}
+                      {t("orders.customer_information")}
                     </p>
                     <div className="space-y-3 bg-[--gr-4] dark:bg-[--gr-5] p-4 rounded-2xl">
                       <div className="flex items-start gap-3">
@@ -293,7 +293,7 @@ const OrdersPage = () => {
                   {/* Items */}
                   <div className="space-y-4">
                     <p className="text-xs font-bold uppercase tracking-widest opacity-50">
-                      {t("pages.ordersPage.order_items")}
+                      {t("orders.order_items")}
                     </p>
                     <div className="space-y-3">
                       {selectedOrder.items.map((item, idx) => (
@@ -320,7 +320,7 @@ const OrdersPage = () => {
                             ))}
                             {item.note && (
                               <p className="text-xs italic text-[--primary-1] ml-8">
-                                {t("pages.ordersPage.note_label")} {item.note}
+                                {t("orders.note_label")} {item.note}
                               </p>
                             )}
                           </div>
@@ -336,7 +336,7 @@ const OrdersPage = () => {
                   {selectedOrder.orderNote && (
                     <div className="p-4 rounded-2xl bg-[--status-yellow] border border-[--yellow-1]/20">
                       <p className="text-xs font-bold text-[--status-yellow] uppercase mb-1">
-                        {t("pages.ordersPage.general_note")}
+                        {t("orders.general_note")}
                       </p>
                       <p className="text-sm italic opacity-80">
                         {selectedOrder.orderNote}
@@ -344,23 +344,38 @@ const OrdersPage = () => {
                     </div>
                   )}
 
+                  <div>
+                    {selectedOrder.customerNote && (
+                      <div className="p-2 rounded-md flex max-sm:flex-col max-sm:items-start items-center justify-between border border-[--border-1]">
+                        <p className="text-xs font-bold uppercase mb-1">
+                          {t("orders.customer_note")}
+                        </p>
+                        <p className="text-sm italic opacity-80">
+                          {selectedOrder.customerNote}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Summary */}
                   <div className="space-y-3 pt-4 border-t border-[--border-1]">
                     <div className="flex justify-between text-sm opacity-60">
-                      <span>{t("pages.ordersPage.subtotal")}</span>
+                      <span>{t("orders.subtotal")}</span>
+                      <span>₺{selectedOrder.subTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm opacity-60">
+                      <span>{t("orders.delivery_fee")}</span>
                       <span>
-                        ₺{(selectedOrder.totalAmount * 0.9).toFixed(2)}
+                        ₺{selectedOrder?.deliveryFee?.toFixed(2) || "null"}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-[--green-1] font-medium">
-                      <span>{t("pages.ordersPage.online_discount")}</span>
-                      <span>
-                        -₺{(selectedOrder.totalAmount * 0.1).toFixed(2)}
-                      </span>
+                      <span>{t("orders.online_discount")}</span>
+                      <span>-₺{selectedOrder.discountAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2">
                       <span className="font-bold text-lg">
-                        {t("pages.ordersPage.total")}
+                        {t("orders.total")}
                       </span>
                       <span className="text-2xl font-bold text-[--orange-1]">
                         ₺{selectedOrder.totalAmount.toFixed(2)}
@@ -375,10 +390,10 @@ const OrdersPage = () => {
                   <ShoppingBag className="w-8 h-8 opacity-20" />
                 </div>
                 <h3 className="font-bold opacity-40">
-                  {t("pages.ordersPage.select_order")}
+                  {t("orders.select_order")}
                 </h3>
                 <p className="text-sm opacity-30 mt-1">
-                  {t("pages.ordersPage.realtime_updates")}
+                  {t("orders.realtime_updates")}
                 </p>
               </div>
             )}

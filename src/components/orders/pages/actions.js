@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { useFirebase } from "../../../context/firebase";
 import {
   updateOrderStatus,
@@ -13,6 +14,7 @@ import {
  * - Shows toast.success on success; rolls back on failure.
  */
 export function useOrderStatusActions() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { setOrdersData, setSelectedOrder } = useFirebase();
 
@@ -36,7 +38,9 @@ export function useOrderStatusActions() {
     dispatch(resetUpdateOrderStatus());
 
     if (updateOrderStatus.fulfilled.match(result)) {
-      toast.success("Order status updated", { id: "updateStatusSuccess" });
+      toast.success(t("orders.status_update_success"), {
+        id: "updateStatusSuccess",
+      });
     } else {
       // Rollback on failure (API error toast is handled globally in api.js)
       if (snapshot) {
