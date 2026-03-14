@@ -31,6 +31,7 @@ import menusSlice from "./redux/menus";
 import orderTagsSlice from "./redux/orderTags";
 import ordersSlice from "./redux/orders";
 import waiterCallsSlice from "./redux/waiterCalls";
+import reservationsSlice from "./redux/reservations";
 // import emailSlice from "./redux/email";
 // import smsSlice from "./redux/sms";
 // import tempUsersSlice from "./redux/tempUsers";
@@ -69,6 +70,7 @@ const store = configureStore({
     // sms: smsSlice,
     orders: ordersSlice,
     waiterCalls: waiterCallsSlice,
+    reservations: reservationsSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(loadingMiddleware),

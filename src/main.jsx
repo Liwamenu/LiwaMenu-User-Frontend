@@ -10,6 +10,7 @@ import { PopupProvider } from "./context/PopupContext.jsx";
 import { FirebaseProvider } from "./context/firebase.jsx";
 import { OrdersProvider } from "./context/ordersContext.jsx";
 import { WaiterCallsProvider } from "./context/waiterCallsContext.jsx";
+import { ReservationsProvider } from "./context/reservationsContext.jsx";
 import "./config/i18n";
 
 createRoot(document.getElementById("root")).render(
@@ -18,10 +19,12 @@ createRoot(document.getElementById("root")).render(
       <FirebaseProvider>
         <OrdersProvider>
           <WaiterCallsProvider>
-            <PopupProvider>
-              <App />
-              <Toaster toastOptions={toastOptions} />
-            </PopupProvider>
+            <ReservationsProvider>
+              <PopupProvider>
+                <App />
+                <Toaster toastOptions={toastOptions} />
+              </PopupProvider>
+            </ReservationsProvider>
           </WaiterCallsProvider>
         </OrdersProvider>
       </FirebaseProvider>

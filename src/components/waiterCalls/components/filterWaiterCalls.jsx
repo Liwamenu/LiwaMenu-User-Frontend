@@ -93,6 +93,7 @@ const FilterWaiterCalls = () => {
                   style={{ padding: "0 !important" }}
                   popperClassName="react-datepicker-popper-filter-order-1"
                   value={filter.startDateTime}
+                  dateOnly={true}
                   onChange={(selectedDate) => {
                     setFilter((prev) => {
                       return {
@@ -119,6 +120,7 @@ const FilterWaiterCalls = () => {
                   style={{ padding: "0 !important" }}
                   popperClassName="react-datepicker-popper-filter-order-2"
                   value={filter.endDateTime}
+                  dateOnly={true}
                   onChange={(selectedDate) => {
                     setFilter((prev) => {
                       return {

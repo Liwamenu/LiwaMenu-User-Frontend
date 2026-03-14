@@ -150,20 +150,62 @@ export const WaiterCallsProvider = ({ children }) => {
     const type = (data.type || data.Type || "").toLowerCase();
     if (type !== "waiter_call") return;
 
+    let waiterCallPayload = null;
+    if (data.waiterCall) {
+      if (typeof data.waiterCall === "string") {
+        try {
+          waiterCallPayload = JSON.parse(data.waiterCall);
+        } catch (err) {
+          console.log("[WaiterCalls] Invalid waiterCall payload:", err);
+        }
+      } else if (typeof data.waiterCall === "object") {
+        waiterCallPayload = data.waiterCall;
+      }
+    }
+
+    const normalizedPayload = waiterCallPayload || data;
+
     const incomingId =
-      data.waiterCallId || data.WaiterCallId || data.id || `push-${Date.now()}`;
+      normalizedPayload.Id ||
+      normalizedPayload.id ||
+      data.waiterCallId ||
+      data.WaiterCallId ||
+      `push-${Date.now()}`;
 
     const newCall = {
       id: incomingId,
-      restaurantId: data.restaurantId || data.RestaurantId || null,
-      restaurantName: data.restaurantName || data.RestaurantName || "-",
-      tableNumber: data.tableNumber || data.TableNumber || "-",
-      note: data.note || data.Note || "",
+      restaurantId:
+        normalizedPayload.RestaurantId ||
+        normalizedPayload.restaurantId ||
+        data.restaurantId ||
+        data.RestaurantId ||
+        null,
+      restaurantName:
+        normalizedPayload.RestaurantName ||
+        normalizedPayload.restaurantName ||
+        data.restaurantName ||
+        data.RestaurantName ||
+        "-",
+      tableNumber:
+        normalizedPayload.TableNumber ||
+        normalizedPayload.tableNumber ||
+        data.tableNumber ||
+        data.TableNumber ||
+        "-",
+      note:
+        normalizedPayload.Note ||
+        normalizedPayload.note ||
+        data.note ||
+        data.Note ||
+        "",
       createdDateTime:
+        normalizedPayload.CreatedDateTime ||
+        normalizedPayload.createdDateTime ||
         data.createdDateTime ||
         data.CreatedDateTime ||
         new Date().toISOString(),
-      isResolved: false,
+      isResolved:
+        normalizedPayload.IsResolved ?? normalizedPayload.isResolved ?? false,
     };
 
     setCalls((prev) => {

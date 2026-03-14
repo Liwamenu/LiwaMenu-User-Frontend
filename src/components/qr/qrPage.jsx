@@ -29,6 +29,8 @@ const QRPage = ({ data: restaurant }) => {
     logo: null,
     includeLogo: true,
     size: 1024,
+    tenant: restaurant?.tenant || "demo",
+    restaurantId: restaurant?.id || null,
   };
 
   const [config, setConfig] = useState(initalData);
@@ -84,11 +86,11 @@ const QRPage = ({ data: restaurant }) => {
     if (!restaurant) return false;
     if (!restaurant?.hasLicense) {
       toast.error(t("qrPage.license_missing"), { id: "qr_page" });
-      return true; //testing
+      return false; //testing
     }
     if (!restaurant?.licenseIsActive) {
       toast.error(t("qrPage.license_inactive"), { id: "qr_page" });
-      return true; //testing
+      return false; //testing
     }
     return true;
   }

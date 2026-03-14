@@ -78,7 +78,7 @@ const WaiterCallsPage = () => {
                   <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Table Indicator */}
                     <div
-                      className={`flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center transition-colors ${
+                      className={`flex-shrink-0 size-20 rounded-xl flex flex-col items-center justify-center transition-colors ${
                         call.isResolved
                           ? "bg-[--light-3] text-[--gr-1]"
                           : "bg-[--primary-1] text-white"
@@ -87,7 +87,7 @@ const WaiterCallsPage = () => {
                       <span className="text-xs font-bold uppercase tracking-wider">
                         {t("waiterCalls.table")}
                       </span>
-                      <span className="text-2xl font-black">
+                      <span className="text-base font-black w-full text-wrap text-center">
                         {call.tableNumber}
                       </span>
                     </div>

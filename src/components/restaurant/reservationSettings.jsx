@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
 // COMP
-import { WaitI } from "../../assets/icon";
 import CustomInput from "../common/customInput";
 import CustomToggle from "../common/customToggle";
+import CustomDatePicker from "../common/customdatePicker";
 
 // REDUX
 import {
@@ -24,6 +24,23 @@ const RestaurantReservationSettings = ({ data }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const id = useParams()["*"]?.split("/")[1];
+
+  const parseTimeToDate = (timeValue) => {
+    if (!timeValue) return null;
+    const [hours, minutes] = timeValue.split(":").map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const formatDateToTime = (dateValue) => {
+    if (!(dateValue instanceof Date)) return "";
+    const hours = String(dateValue.getHours()).padStart(2, "0");
+    const minutes = String(dateValue.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
 
   const { success, loading } = useSelector(
     (s) => s.restaurant.setRestaurantReservationSettings,
@@ -133,45 +150,35 @@ const RestaurantReservationSettings = ({ data }) => {
 
             {/* Times */}
             <div className="flex items-center gap-3">
-              <div className="w-full">
-                <label htmlFor="startTime" className="text-sm text-[--gr-1]">
-                  {t("restaurantReservationSettings.start_time_label")}
-                </label>
-                <div className="relative flex-1">
-                  <WaitI className="size-[1rem] absolute left-2 top-1/2 -translate-y-1/2 text-[--gr-1] text-xs" />
-                  <input
-                    type="time"
-                    className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                    value={reservationData?.startTime}
-                    onChange={(e) =>
-                      setReservationData((prev) => ({
-                        ...prev,
-                        startTime: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
+              <CustomDatePicker
+                label={t("restaurantReservationSettings.start_time_label")}
+                value={parseTimeToDate(reservationData?.startTime)}
+                onChange={(date) =>
+                  setReservationData((prev) => ({
+                    ...prev,
+                    startTime: formatDateToTime(date),
+                  }))
+                }
+                timeOnly
+                calendarClassName
+                className2="mt-0 sm:mt-0 w-auto"
+                className="w-full py-1.5 text-sm bg-[--white-1] text-[--black-1]"
+              />
 
-              <div className="w-full">
-                <label htmlFor="startTime" className="text-sm text-[--gr-1]">
-                  {t("restaurantReservationSettings.end_time_label")}
-                </label>
-                <div className="relative flex-1">
-                  <WaitI className="size-[1rem] absolute left-2 top-1/2 -translate-y-1/2 text-[--gr-1] text-xs" />
-                  <input
-                    type="time"
-                    className="w-full pl-7 pr-2 py-1.5 text-sm border border-[--border-1] rounded-lg outline-none focus:border-[--primary-1] bg-[--white-1] text-[--black-1]"
-                    value={reservationData?.endTime}
-                    onChange={(e) =>
-                      setReservationData((prev) => ({
-                        ...prev,
-                        endTime: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
+              <CustomDatePicker
+                label={t("restaurantReservationSettings.end_time_label")}
+                value={parseTimeToDate(reservationData?.endTime)}
+                onChange={(date) =>
+                  setReservationData((prev) => ({
+                    ...prev,
+                    endTime: formatDateToTime(date),
+                  }))
+                }
+                timeOnly
+                calendarClassName
+                className2="mt-0 sm:mt-0 w-auto"
+                className="w-full py-1.5 text-sm bg-[--white-1] text-[--black-1]"
+              />
             </div>
           </main>
           <div className="w-full flex justify-end pt-4">
