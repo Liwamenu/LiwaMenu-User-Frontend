@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
+import i18n from "../config/i18n";
 
 import { getAuth } from "../redux/api";
 import {
@@ -11,6 +12,10 @@ import {
   resetUpdateReservationStatus,
   updateReservationStatus,
 } from "../redux/reservations/updateReservationStatusSlice";
+import { useFirebase } from "./firebase";
+
+import newReservationEnSound from "../assets/sounds/reservations/new-reservation-EN.mp3";
+import newReservationTrSound from "../assets/sounds/reservations/new-reservation-TR.mp3";
 
 export const reservationsFilterInitialState = {
   statusId: null,
@@ -29,6 +34,7 @@ export const useReservations = () => useContext(ReservationsContext);
 
 export const ReservationsProvider = ({ children }) => {
   const dispatch = useDispatch();
+  const { lastPushMessage } = useFirebase();
 
   const localItemsPerPage = JSON.parse(
     localStorage.getItem("ITEMS_PER_PAGE"),
@@ -62,6 +68,18 @@ export const ReservationsProvider = ({ children }) => {
       numbersColl.push({ label: `${i}`, value: i });
     }
     return numbersColl;
+  };
+
+  const playNewReservationSound = () => {
+    const currentLang = (i18n.language || "tr").toLowerCase();
+    const soundSrc = currentLang.startsWith("en")
+      ? newReservationEnSound
+      : newReservationTrSound;
+
+    const sound = new Audio(soundSrc);
+    sound.play().catch((err) => {
+      console.log("[Reservations] Could not play reservation sound:", err);
+    });
   };
 
   const formatDateForApi = (value) => {
@@ -216,6 +234,61 @@ export const ReservationsProvider = ({ children }) => {
 
     if (error) dispatch(resetGetReservations());
   }, [reservations, error, dispatch]);
+
+  useEffect(() => {
+    if (!lastPushMessage?.data) return;
+
+    const data = lastPushMessage.data;
+    const type = (data.type || data.Type || "").toLowerCase();
+    if (type !== "reservation_verified") return;
+
+    let incomingReservation = null;
+    const rawReservation = data.reservation || data.Reservation;
+
+    if (typeof rawReservation === "string") {
+      try {
+        incomingReservation = JSON.parse(rawReservation);
+      } catch (err) {
+        console.log("[Reservations] Invalid reservation payload:", err);
+      }
+    } else if (rawReservation && typeof rawReservation === "object") {
+      incomingReservation = rawReservation;
+    }
+
+    if (!incomingReservation) return;
+
+    const normalized = normalizeReservation(incomingReservation);
+    if (!normalized?.id) return;
+
+    if (
+      restaurantId &&
+      normalized.restaurantId &&
+      normalized.restaurantId !== restaurantId
+    ) {
+      return;
+    }
+
+    setReservationsData((prev) => {
+      const current = prev || [];
+      const existingIndex = current.findIndex(
+        (item) => item.id === normalized.id,
+      );
+
+      if (existingIndex === -1) {
+        setTotalCount((count) => (typeof count === "number" ? count + 1 : 1));
+        return [normalized, ...current];
+      }
+
+      const updated = [...current];
+      updated[existingIndex] = {
+        ...updated[existingIndex],
+        ...normalized,
+      };
+      return updated;
+    });
+
+    playNewReservationSound();
+  }, [lastPushMessage, restaurantId]);
 
   const value = useMemo(
     () => ({
