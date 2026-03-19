@@ -41,15 +41,12 @@ const extendByOnlinePaySlice = createSlice({
 });
 
 export const extendByOnlinePay = createAsyncThunk(
-  "PayTR/ExtendLicenseByPayWithAdmin",
+  "PayTR/add-license",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.post(
-        `${baseURL}PayTR/ExtendLicenseByPayWithAdmin`,
-        {
-          ...data,
-        }
-      );
+      const res = await api.post(`${baseURL}PayTR/add-license`, {
+        ...data,
+      });
 
       console.log(res.data);
       if (res.data.data.includes("html")) {
@@ -69,7 +66,7 @@ export const extendByOnlinePay = createAsyncThunk(
       }
       return rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetExtendByOnlinePay } = extendByOnlinePaySlice.actions;

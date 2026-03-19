@@ -40,10 +40,10 @@ const FirstStep = ({
   const dispatch = useDispatch();
 
   const { success, error, licensePackages } = useSelector(
-    (state) => state.licensePackages.getLicensePackages
+    (state) => state.licensePackages.getLicensePackages,
   );
   const { restaurants } = useSelector(
-    (state) => state.restaurants.getRestaurants
+    (state) => state.restaurants.getRestaurants,
   );
 
   // const { KDVParameters, error: kdvError } = useSelector(
@@ -59,11 +59,11 @@ const FirstStep = ({
   function getTotalPrice() {
     const result = cartItems.reduce(
       (acc, item) => acc + parseFloat(item.price),
-      0
+      0,
     );
     const kdv = cartItems.reduce(
       (acc, item) => acc + (parseFloat(item.price) / 100) * item.kdvPercentage,
-      0
+      0,
     );
     const kdvTotal = formatToPrice(kdv);
     const total = formatToPrice(result);
@@ -144,7 +144,7 @@ const FirstStep = ({
       toast.error(
         "Lütfen restoran seçın 😊",
         { id: "choose_restaurant" },
-        { id: "add-licese" }
+        { id: "add-licese" },
       );
       return;
     }
@@ -152,7 +152,7 @@ const FirstStep = ({
     const existingPackage = cartItems.find(
       (item) =>
         item.licenseTypeId === pkg.licenseTypeId &&
-        item.restaurantId === pkg.restaurantId
+        item.restaurantId === pkg.restaurantId,
     );
 
     if (existingPackage) {
@@ -160,7 +160,7 @@ const FirstStep = ({
         removeItemFromCart({
           id: existingPackage.id,
           restaurantId: pkg.restaurantId,
-        })
+        }),
       );
       if (
         existingPackage.id === pkg.id &&
@@ -225,7 +225,7 @@ const FirstStep = ({
                     const isSelected = cartItems.some(
                       (item) =>
                         item.id === pkg.id &&
-                        item.restaurantId === restaurantData?.id
+                        item.restaurantId === restaurantData?.id,
                     );
 
                     return (
@@ -248,7 +248,8 @@ const FirstStep = ({
                           }
                         >
                           <div className="whitespace-nowrap">
-                            <span>{pkg.time} Yıllık </span>
+                            <span>{pkg.time}</span>{" "}
+                            <span>{pkg.timeId == 0 ? "Yıllık" : "Aylık"}</span>{" "}
                             <span>{pkg.price} tl</span>
                           </div>
                           <div>
