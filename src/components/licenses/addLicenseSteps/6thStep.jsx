@@ -15,11 +15,12 @@ const SixthStep = ({ step, paymentStatus }) => {
 
   useEffect(() => {
     let goToLicenses;
+    console.log(step);
 
     if (step === 6) {
       goToLicenses = setTimeout(
         () => navigate(currentPath?.replace(`/${actionType}`, "")),
-        7000
+        7000,
       );
     }
 

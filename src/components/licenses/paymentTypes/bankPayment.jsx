@@ -11,6 +11,7 @@ import { usePopup } from "../../../context/PopupContext";
 import ForwardButton from "../stepsAssets/forwardButton";
 import CustomFileInput from "../../common/customFileInput";
 import { groupByRestaurantId } from "../../../utils/utils";
+import { PaymentLoader } from "../stepsAssets/paymentLoader";
 
 //IMAGES
 import Getiryemek from "../../../assets/img/packages/Getiryemek.png";
@@ -31,7 +32,10 @@ import {
   extendByBankPay,
   resetExtendByBankPay,
 } from "../../../redux/licenses/extendLicense/extendByBankPaySlice";
-import { PaymentLoader } from "../stepsAssets/paymentLoader";
+import {
+  createReceiptLicensePayment,
+  resetCreateReceiptLicensePayment,
+} from "../../../redux/payments/createReceiptLicensePaymentSlice";
 
 const imageSRCs = [
   { src: Getiryemek, name: "Getiryemek" },
@@ -56,17 +60,21 @@ const BankPayment = ({ user, step, setStep, setPaymentStatus }) => {
 
   const cartItems = useSelector((state) => state.cart.items);
 
-  const {
-    error: addError,
-    loading: addLoading,
-    success: addSuccess,
-  } = useSelector((state) => state.licenses.addByBank);
+  // const {
+  //   error: addError,
+  //   loading: addLoading,
+  //   success: addSuccess,
+  // } = useSelector((state) => state.licenses.addByBank);
 
-  const {
-    error: extendError,
-    loading: extendLoading,
-    success: extendSuccess,
-  } = useSelector((state) => state.licenses.extendByBank);
+  // const {
+  //   error: extendError,
+  //   loading: extendLoading,
+  //   success: extendSuccess,
+  // } = useSelector((state) => state.licenses.extendByBank);
+
+  const { error, loading, success } = useSelector(
+    (state) => state.payments.createReceiptLicensePayment,
+  );
 
   const [document, setDocument] = useState("");
   const [explanation, setExplanation] = useState("");
@@ -74,15 +82,16 @@ const BankPayment = ({ user, step, setStep, setPaymentStatus }) => {
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (addLoading || extendLoading) return;
-    const { city, district, neighbourhood } = user.userInvoiceAddressDTO || {};
-    const paymentAmount = cartItems.reduce(
-      (acc, item) => acc + parseFloat(item.price),
-      0
-    );
+    // if (addLoading || extendLoading) return;
+    if (loading) return;
+    // const { city, district, neighbourhood } = user.userInvoiceAddressDTO || {};
+    // const paymentAmount = cartItems.reduce(
+    //   (acc, item) => acc + parseFloat(item.price),
+    //   0,
+    // );
     const addLicenseBasket = cartItems.reduce((result, item) => {
       const existingRestaurant = result.find(
-        (restaurant) => restaurant.restaurantId === item.restaurantId
+        (restaurant) => restaurant.restaurantId === item.restaurantId,
       );
 
       if (existingRestaurant) {
@@ -106,85 +115,111 @@ const BankPayment = ({ user, step, setStep, setPaymentStatus }) => {
 
     // Create a FormData object
     const formData = new FormData();
-    // formData.append("UserId", user.id);
-    formData.append("UserName", user.fullName);
-    formData.append("UserEmail", user.email);
-    formData.append("UserPhoneNumber", user.phoneNumber);
-    formData.append("UserAddress", `${city}/${district}/${neighbourhood}`);
     formData.append(
-      "UserBasket",
+      "Basket",
       isPageExtend
         ? JSON.stringify(extendLicenseBasket)
-        : JSON.stringify(addLicenseBasket)
+        : JSON.stringify(addLicenseBasket),
     );
-    formData.append("PaymentType", "Bank");
-    formData.append("PaymentAmount", paymentAmount.toString());
-    formData.append("Description", explanation);
+    formData.append("Type", isPageExtend ? "ExtendLicense" : "NewLicense");
     formData.append("Receipt", document);
 
+    // formData.append("UserName", user.fullName);
+    // formData.append("UserEmail", user.email);
+    // formData.append("UserPhoneNumber", user.phoneNumber);
+    // formData.append("UserAddress", `${city}/${district}/${neighbourhood}`);
+    // formData.append("PaymentType", "Bank");
+    // formData.append("PaymentAmount", paymentAmount.toString());
+    // formData.append("Description", explanation);
+
+    // I'M Still leaving this condition for future use if there will be any difference between add and extend form data. For now, both are same so I'm dispatching same action.
     if (isPageExtend) {
-      dispatch(extendByBankPay(formData));
+      dispatch(createReceiptLicensePayment(formData));
     } else {
-      dispatch(addByBankPay(formData));
+      dispatch(createReceiptLicensePayment(formData));
     }
   }
 
-  // ADD SUCCESS
   useEffect(() => {
-    if (addLoading) {
-      toastId.current = toast.loading("Loading...");
+    if (loading) {
+      toastId.current = toast.loading("Loading...", { id: "bankPayment" });
     }
-    if (addSuccess) {
-      setStep(6);
-      toast.remove(toastId.current);
-      setPaymentStatus("success");
-      dispatch(resetAddByBankPay());
-    }
-    if (addError) {
-      setStep(6);
-      toast.remove(toastId.current);
-      setPaymentStatus("failure");
-      dispatch(resetAddByBankPay());
-    }
-
-    return () => {
-      if (cartItems) {
-        dispatch(clearCart());
+    if (success) {
+      if (isPageExtend) {
+        setStep(5);
+      } else {
+        setStep(6);
       }
-    };
-  }, [addLoading, addSuccess, addError]);
-
-  // EXTEND SUCCESS
-  useEffect(() => {
-    if (extendLoading) {
-      toastId.current = toast.loading("Loading...");
-    }
-    if (extendSuccess) {
-      setStep(5);
       toast.remove(toastId.current);
       setPaymentStatus("success");
-      dispatch(resetExtendByBankPay());
+      dispatch(resetCreateReceiptLicensePayment());
     }
-    if (extendError) {
+    if (error) {
       setStep(5);
       toast.remove(toastId.current);
       setPaymentStatus("failure");
-      dispatch(resetExtendByBankPay());
+      dispatch(resetCreateReceiptLicensePayment());
     }
+  }, [loading, success, error]);
 
-    return () => {
-      if (cartItems) {
-        dispatch(clearCart());
-      }
-    };
-  }, [extendLoading, extendSuccess, extendError, dispatch]);
+  // // ADD SUCCESS
+  // useEffect(() => {
+  //   if (addLoading) {
+  //     toastId.current = toast.loading("Loading...");
+  //   }
+  //   if (addSuccess) {
+  //     setStep(6);
+  //     toast.remove(toastId.current);
+  //     setPaymentStatus("success");
+  //     dispatch(resetAddByBankPay());
+  //   }
+  //   if (addError) {
+  //     setStep(6);
+  //     toast.remove(toastId.current);
+  //     setPaymentStatus("failure");
+  //     dispatch(resetAddByBankPay());
+  //   }
+
+  //   return () => {
+  //     if (cartItems) {
+  //       dispatch(clearCart());
+  //     }
+  //   };
+  // }, [addLoading, addSuccess, addError]);
+
+  // // EXTEND SUCCESS
+  // useEffect(() => {
+  //   if (extendLoading) {
+  //     toastId.current = toast.loading("Loading...");
+  //   }
+  //   if (extendSuccess) {
+  //     setStep(5);
+  //     toast.remove(toastId.current);
+  //     setPaymentStatus("success");
+  //     dispatch(resetExtendByBankPay());
+  //   }
+  //   if (extendError) {
+  //     setStep(5);
+  //     toast.remove(toastId.current);
+  //     setPaymentStatus("failure");
+  //     dispatch(resetExtendByBankPay());
+  //   }
+
+  //   return () => {
+  //     if (cartItems) {
+  //       dispatch(clearCart());
+  //     }
+  //   };
+  // }, [extendLoading, extendSuccess, extendError, dispatch]);
 
   //LOADING ANIMATION
   useEffect(() => {
-    if (addLoading || extendLoading) {
+    // if (addLoading || extendLoading) {
+    if (loading) {
       setPopupContent(<PaymentLoader type={1} />);
     } else setPopupContent(null);
-  }, [addLoading, extendLoading]);
+    // }, [addLoading, extendLoading]);
+  }, [loading]);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -244,13 +279,15 @@ const BankPayment = ({ user, step, setStep, setPaymentStatus }) => {
             text="Geri"
             letIcon={true}
             onClick={() => setStep(step - 1)}
-            disabled={addLoading || extendLoading}
+            // disabled={addLoading || extendLoading}
+            disabled={loading}
           />
           <ForwardButton
             text="Devam"
             letIcon={true}
             type="submit"
-            disabled={addLoading || extendLoading}
+            // disabled={addLoading || extendLoading}
+            disabled={loading}
           />
         </div>
       </div>

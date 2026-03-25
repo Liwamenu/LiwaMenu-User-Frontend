@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 // import licenseTypeIds from "../enums/licenseTypeIds";
 
-export function formatDateString(
+export function formatDateString({
   dateString,
   letDay = true,
   letMonth = true,
@@ -9,8 +9,8 @@ export function formatDateString(
   hour = false,
   min = false,
   sec = false,
-  joint = "-"
-) {
+  joint = "-",
+}) {
   const date = new Date(dateString);
 
   // Extract the month, day, and year
@@ -166,7 +166,7 @@ export function formatEmail(email) {
 export const formatSelectorData = (
   data,
   withPhoneNumber = false,
-  withCity = false
+  withCity = false,
 ) => {
   if (!Array.isArray(data) || data.length === 0) {
     return [];
@@ -181,7 +181,7 @@ export const formatSelectorData = (
     sortedData = dataCopy.sort((a, b) => a.name.localeCompare(b.name, "tr"));
   } else if (data[0]?.fullName) {
     sortedData = dataCopy.sort((a, b) =>
-      a.fullName.localeCompare(b.fullName, "tr")
+      a.fullName.localeCompare(b.fullName, "tr"),
     );
   }
   outData = sortedData.map((ent) => {
@@ -260,7 +260,7 @@ export function groupedLicensePackages(data, active = true) {
   }, {});
 
   const sortedArray = Object.values(groupedData).map((group) =>
-    group.sort((a, b) => a.time - b.time)
+    group.sort((a, b) => a.time - b.time),
   );
 
   return sortedArray;

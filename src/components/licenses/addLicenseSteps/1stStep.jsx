@@ -218,7 +218,7 @@ const FirstStep = ({
             licensePackagesData.map((licensePkg, i) => (
               <div
                 key={i}
-                className="flex max-sm:flex-col sm:items-center gap-2 sm:gap-8 max-sm:mb-6 even:bg-[--white-1] odd:bg-[--table-odd]"
+                className="flex max-sm:flex-col sm:items-center gap-2 sm:gap-8 even:bg-[--white-1] odd:bg-[--table-odd]"
               >
                 <div className="max-sm:w-full flex gap-4 py-1 overflow-x-auto">
                   {licensePkg.map((pkg) => {

@@ -41,17 +41,17 @@ const addByBankPaySlice = createSlice({
 });
 
 export const addByBankPay = createAsyncThunk(
-  "Licenses/BankTransfers/AddLicenseByPayWithAdmin",
+  "Payments/CreateReceiptLicensePayment",
   async (formData, { rejectWithValue }) => {
     try {
       const res = await api.post(
-        `${baseURL}BankTransfers/AddLicenseByPayWithAdmin`,
+        `${baseURL}Payments/CreateReceiptLicensePayment`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       console.log(res);
@@ -63,7 +63,7 @@ export const addByBankPay = createAsyncThunk(
       }
       return rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetAddByBankPay } = addByBankPaySlice.actions;

@@ -74,11 +74,11 @@ const OnlinePayment = ({
 
     const paymentAmount = cartItems.reduce(
       (acc, item) => acc + parseFloat(item.price),
-      0
+      0,
     );
     const addLicenseBasket = cartItems.reduce((result, item) => {
       const existingRestaurant = result.find(
-        (restaurant) => restaurant.restaurantId === item.restaurantId
+        (restaurant) => restaurant.restaurantId === item.restaurantId,
       );
 
       if (existingRestaurant) {
@@ -102,20 +102,22 @@ const OnlinePayment = ({
     };
 
     const data = {
-      userName: fullName,
-      userEmail: email,
-      userPhoneNumber: phoneNumber,
-      userAddress: address,
+      // userName: fullName,
+      // userEmail: email,
+      // userPhoneNumber: phoneNumber,
+      // paymentType: "card",
+      // paymentAmount,
+
+      userBasket: isPageExtend
+        ? JSON.stringify(extendLicenseBasket)
+        : JSON.stringify(addLicenseBasket),
       ccOwner: userName,
       cardNumber: cardNumber.replace(/\D/g, ""),
       expiryMonth: month,
       expiryYear: year,
       cvv,
-      userBasket: isPageExtend
-        ? JSON.stringify(extendLicenseBasket)
-        : JSON.stringify(addLicenseBasket),
-      paymentType: "card",
-      paymentAmount,
+      userAddress: address,
+      userId: id,
     };
 
     if (isPageExtend) {

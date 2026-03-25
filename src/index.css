@@ -270,12 +270,12 @@ input[type="number"] {
   min-width: 20.5rem;
 }
 
-.custom-popper-left {
+/* .custom-popper-left {
   right: -3rem;
 }
 .custom-popper-right {
   right: -22rem;
-}
+} */
 
 /* CUSTOM SCROLL BAR */
 ::-webkit-scrollbar {

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { privateApi } from "../../api";
+import { privateApi } from "../api";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -11,11 +11,11 @@ const initialState = {
   data: null,
 };
 
-const extendByOnlinePaySlice = createSlice({
-  name: "extendByOnlinePay",
+const createReceiptLicensePaymentSlice = createSlice({
+  name: "createReceiptLicensePayment",
   initialState: initialState,
   reducers: {
-    resetExtendByOnlinePay: (state) => {
+    resetCreateReceiptLicensePayment: (state) => {
       state.loading = false;
       state.success = false;
       state.error = null;
@@ -24,15 +24,15 @@ const extendByOnlinePaySlice = createSlice({
   },
   extraReducers: (build) => {
     build
-      .addCase(extendByOnlinePay.pending, (state) => {
+      .addCase(createReceiptLicensePayment.pending, (state) => {
         state.loading = true;
       })
-      .addCase(extendByOnlinePay.fulfilled, (state, action) => {
+      .addCase(createReceiptLicensePayment.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.data = action.payload;
       })
-      .addCase(extendByOnlinePay.rejected, (state, action) => {
+      .addCase(createReceiptLicensePayment.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
@@ -40,24 +40,21 @@ const extendByOnlinePaySlice = createSlice({
   },
 });
 
-export const extendByOnlinePay = createAsyncThunk(
-  "PayTR/extend-license",
-  async (data, { rejectWithValue }) => {
+export const createReceiptLicensePayment = createAsyncThunk(
+  "Payments/CreateReceiptLicensePayment",
+  async (formData, { rejectWithValue }) => {
     try {
-      const res = await api.post(`${baseURL}PayTR/extend-license`, {
-        ...data,
-      });
+      const res = await api.post(
+        `${baseURL}Payments/CreateReceiptLicensePayment`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-      console.log(res.data);
-      if (res.data.data.includes("html")) {
-        return res.data.data;
-      }
-
-      const parsedData = JSON.parse(res.data.data);
-      if (parsedData.status === "failed") {
-        throw new Error({ message_TR: parsedData.reason });
-      }
-
+      console.log(res);
       return res.data.data;
     } catch (err) {
       console.log(err);
@@ -69,5 +66,6 @@ export const extendByOnlinePay = createAsyncThunk(
   },
 );
 
-export const { resetExtendByOnlinePay } = extendByOnlinePaySlice.actions;
-export default extendByOnlinePaySlice.reducer;
+export const { resetCreateReceiptLicensePayment } =
+  createReceiptLicensePaymentSlice.actions;
+export default createReceiptLicensePaymentSlice.reducer;

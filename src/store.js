@@ -16,7 +16,7 @@ import cartSlice from "./redux/cart/cartSlice";
 // import accountsSlice from "./redux/accounts";
 // import dashboardSlice from "./redux/dashboard";
 // import messagesSlice from "./redux/messages";
-// import paymentsSlice from "./redux/payments";
+import paymentsSlice from "./redux/payments";
 // import getirYemekSlice from "./redux/getirYemek";
 // import integrationInformationsSlice from "./redux/informations";
 // import rolesSlice from "./redux/roles";
@@ -60,7 +60,7 @@ const store = configureStore({
     // accounts: accountsSlice,
     // dashboard: dashboardSlice,
     // messages: messagesSlice,
-    // payments: paymentsSlice,
+    payments: paymentsSlice,
     // getirYemek: getirYemekSlice,
     // integrationInfos: integrationInformationsSlice,
     // roles: rolesSlice,

@@ -68,21 +68,21 @@ function AddRestaurantPopup({ onSuccess }) {
   const { setPopupContent } = usePopup();
 
   const { loading, success, error } = useSelector(
-    (state) => state.restaurants.addRestaurant
+    (state) => state.restaurants.addRestaurant,
   );
 
   const { cities: citiesData } = useSelector((state) => state.data.getCities);
 
   const { districts: districtsData, success: districtsSuccess } = useSelector(
-    (state) => state.data.getDistricts
+    (state) => state.data.getDistricts,
   );
 
   const { neighs: neighsData, success: neighsSuccess } = useSelector(
-    (state) => state.data.getNeighs
+    (state) => state.data.getNeighs,
   );
 
   const { address, error: addressErr } = useSelector(
-    (state) => state.data.getUserAddress
+    (state) => state.data.getUserAddress,
   );
 
   const {
@@ -206,7 +206,7 @@ function AddRestaurantPopup({ onSuccess }) {
         getNeighs({
           cityId: restaurantData.city.id,
           districtId: restaurantData.district.id,
-        })
+        }),
       );
       setRestaurantData((prev) => {
         return {
@@ -337,7 +337,7 @@ function AddRestaurantPopup({ onSuccess }) {
   }, [document]);
 
   return (
-    <div className=" w-full pt-12 pb-8 bg-[--white-1] rounded-lg border-2 border-solid border-[--border-1] text-[--black-2] text-base overflow-y-auto relative max-h-[95dvh]">
+    <div className=" w-full pt-12 pb-8 bg-[--white-1] rounded-lg border-2 border-solid border-[--border-1] text-[--black-2] text-base overflow-y-auto relative max-h-[95dvh] mx-auto max-w-3xl">
       <div className="flex flex-col bg-[--white-1] relative">
         <div className="absolute -top-6 right-3 z-[50]">
           <div
@@ -396,7 +396,7 @@ function AddRestaurantPopup({ onSuccess }) {
         <h1 className="self-center text-2xl font-bold">
           {t("restaurants.add")}
         </h1>
-        <div className="flex flex-col px-4 sm:px-14 mt-9 w-full text-left">
+        <div className="flex flex-col px-4 sm:px-14 mt-9 w-full text-left customInput">
           <form onSubmit={handleSubmit}>
             <div className="grid sm:grid-cols-2 gap-4">
               <CustomInput
@@ -515,7 +515,7 @@ function AddRestaurantPopup({ onSuccess }) {
                 required
                 label={t("restaurants.address")}
                 placeholder={t("restaurants.address")}
-                className={`text-sm max-sm:h-14 ${!localUser ? "h-14" : "h-9"}`}
+                className={`text-sm max-sm:h-14 bg-transparent ${!localUser ? "h-14" : "h-9"}`}
                 className2={`${localUser && "col-span-full"}`}
                 value={restaurantData.address}
                 onChange={(e) => {

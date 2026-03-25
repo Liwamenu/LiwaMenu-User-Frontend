@@ -14,6 +14,7 @@ import {
   BoxInI,
   WaitI,
   BellI,
+  PaymentI,
 } from "../../assets/icon/index";
 
 //COMP
@@ -36,6 +37,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       text: t("sidebar.licenses"),
       to: "/licenses",
       path: "licenses",
+    },
+    {
+      icon: <PaymentI />,
+      text: "Ödemeler",
+      to: "/payments",
+      path: "payments",
     },
     {
       icon: <BoxInI />,

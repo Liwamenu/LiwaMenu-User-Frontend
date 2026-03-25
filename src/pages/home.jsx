@@ -16,6 +16,7 @@ import RestaurantHome from "./restaurantHome";
 import Orders from "./orders";
 import WaiterCalls from "./waiterCalls";
 import ReservationsPage from "../components/reservations/pages/reservationsPage";
+import Payments from "./payments";
 
 const Home = () => {
   const [showS1, setShowS1] = useState(true);
@@ -40,6 +41,7 @@ const Home = () => {
             />
           }
         />
+        <Route path="/payments/*" element={<Payments />} />
         <Route path="waiterCalls/*" element={<WaiterCalls />} />
         <Route path="reservations/*" element={<ReservationsPage />} />
         <Route path="/restaurants/*" element={<Restourants />} />

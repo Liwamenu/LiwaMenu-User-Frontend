@@ -52,17 +52,16 @@ const addRestaurantSlice = createSlice({
 
 export const addRestaurant = createAsyncThunk(
   "Restaurants/AddRestaurant",
-  async (data, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const res = await api.post(
         `${baseURL}Restaurants/AddRestaurant`,
-        data.formData,
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         },
-        { params: { userId: data.userId } }
       );
 
       // console.log(res);
@@ -74,7 +73,7 @@ export const addRestaurant = createAsyncThunk(
       }
       throw rejectWithValue({ message_TR: err.message });
     }
-  }
+  },
 );
 
 export const { resetAddRestaurant, resetAddRestaurantState } =

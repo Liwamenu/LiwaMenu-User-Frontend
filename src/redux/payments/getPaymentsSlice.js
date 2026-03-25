@@ -1,5 +1,3 @@
-//https://api.pentegrasyon.net:9007/api/v1/Users/GetUsers
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
 
@@ -10,54 +8,54 @@ const initialState = {
   loading: false,
   success: false,
   error: false,
-  restaurants: null,
+  payments: null,
 };
 
-const getRestaurantsSlice = createSlice({
-  name: "getRestaurants",
+const getPaymentsSlice = createSlice({
+  name: "getPayments",
   initialState: initialState,
   reducers: {
-    resetGetRestaurantsState: (state) => {
+    resetGetPaymentsState: (state) => {
       state.loading = false;
       state.success = false;
       state.error = null;
     },
-    resetGetRestaurants: (state) => {
-      state.restaurants = null;
+    resetGetPayments: (state) => {
+      state.payments = null;
     },
   },
   extraReducers: (build) => {
     build
-      .addCase(getRestaurants.pending, (state) => {
+      .addCase(getPayments.pending, (state) => {
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.restaurants = null;
+        state.payments = null;
       })
-      .addCase(getRestaurants.fulfilled, (state, action) => {
+      .addCase(getPayments.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
-        state.restaurants = action.payload;
+        state.payments = action.payload;
       })
-      .addCase(getRestaurants.rejected, (state, action) => {
+      .addCase(getPayments.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
-        state.restaurants = null;
+        state.payments = null;
       });
   },
 });
 
-export const getRestaurants = createAsyncThunk(
-  "Restaurants/getRestaurants",
+export const getPayments = createAsyncThunk(
+  "Payments/GetMyPayments",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.get(`${baseURL}Restaurants/GetmyRestaurants`, {
+      const res = await api.get(`${baseURL}Payments/GetMyPayments`, {
         params: data,
       });
 
-      // console.log(res);
+      // console.log(res.data);
       return res.data;
     } catch (err) {
       console.log(err);
@@ -69,6 +67,6 @@ export const getRestaurants = createAsyncThunk(
   },
 );
 
-export const { resetGetRestaurantsState, resetGetRestaurants } =
-  getRestaurantsSlice.actions;
-export default getRestaurantsSlice.reducer;
+export const { resetGetPaymentsState, resetGetPayments } =
+  getPaymentsSlice.actions;
+export default getPaymentsSlice.reducer;

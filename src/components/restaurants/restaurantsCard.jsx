@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { formatDateString } from "../../utils/utils";
 
 const RestaurantsCard = ({ inData }) => {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ const RestaurantsCard = ({ inData }) => {
           state: { restaurant: r },
         });
   }
+  console.log(inData);
 
   return (
     <main
@@ -77,7 +79,7 @@ const RestaurantsCard = ({ inData }) => {
               </p>
               <p
                 className={`text-sm border rounded-md w-28 text-center py-2 ${
-                  r.licenseIsActive && r.licenseId
+                  r.licenseIsActive
                     ? "border-[--green-1] bg-[--light-green] text-[--green-1]"
                     : "border-[--red-1] bg-[--light-red] text-[--red-1]"
                 }`}
@@ -85,15 +87,18 @@ const RestaurantsCard = ({ inData }) => {
                 {r.licenseIsActive
                   ? t("restaurants.active")
                   : r.licenseId
-                  ? t("restaurants.passive")
-                  : t("restaurants.license_no")}
+                    ? t("restaurants.passive")
+                    : t("restaurants.license_no")}
               </p>
             </div>
 
             <div className="flex items-center justify-between gap-4 text-sm ">
               <p className="font-medium">{t("restaurants.license")}</p>
-              {r.licenseId && !r.licenseIsExpired ? (
-                <p>{r.licenseStart}</p>
+              {r.licenseIsActive && !r.licenseIsExpired ? (
+                <p className="w-28 flex justify-center py-2 border border-[--border-1] rounded-md">
+                  {" "}
+                  {formatDateString({ dateString: r.licenseStart })}
+                </p>
               ) : (
                 <button
                   className="text-white border border-[--primary-1] bg-[--primary-1] rounded-md w-28 py-2 text-center"
