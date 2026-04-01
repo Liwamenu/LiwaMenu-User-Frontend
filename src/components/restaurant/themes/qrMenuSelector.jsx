@@ -41,6 +41,12 @@ const THEMES = [
     url: "https://demo4.liwamenu.com",
     color: "hsl(48 100% 50%)",
   },
+  {
+    id: 4,
+    name: "Tema 5",
+    url: "https://demo5.liwamenu.com",
+    color: "hsl(120 100% 25%)",
+  },
 ];
 
 const ThemeSelector = ({ data }) => {
