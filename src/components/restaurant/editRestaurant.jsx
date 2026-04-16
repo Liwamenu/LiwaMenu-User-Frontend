@@ -88,8 +88,8 @@ const EditRestaurant = ({ data: restaurant }) => {
     (state) => state.data.getLocation,
   );
 
-  const [lat, setLat] = useState(formatCoordinate(restaurant.latitude));
-  const [lng, setLng] = useState(formatCoordinate(restaurant.longitude));
+  const [lat, setLat] = useState(formatCoordinate(restaurant?.latitude));
+  const [lng, setLng] = useState(formatCoordinate(restaurant?.longitude));
   const [document, setDocument] = useState("");
   const [document2, setDocument2] = useState("");
   const [isMapOpen, setIsMapOpen] = useState(false);
