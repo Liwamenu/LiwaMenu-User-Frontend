@@ -23,7 +23,6 @@ const RestaurantsCard = ({ inData }) => {
           state: { restaurant: r },
         });
   }
-  console.log(inData);
 
   return (
     <main

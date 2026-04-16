@@ -15,15 +15,17 @@ import {
 //COMP
 import Badge from "./components/badge";
 import Button from "./components/button";
-import CustomInput from "../common/customInput";
-import CustomToggle from "../common/customToggle";
-import { EyeI, ParamsI, QRI } from "../../assets/icon";
+import CustomInput from "../../common/customInput";
+import CustomToggle from "../../common/customToggle";
+import { EyeI, ParamsI, QRI } from "../../../assets/icon";
 
 const QRPage = ({ data: restaurant }) => {
   const { t } = useTranslation();
   const initalData = {
     tableStart: 1,
     tableEnd: 5,
+    tablePrefix: "",
+    tableSuffix: "",
     gradientStart: "#9705E6",
     gradientEnd: "#18A0CD",
     logo: null,
@@ -41,12 +43,24 @@ const QRPage = ({ data: restaurant }) => {
   const previewInstance = useRef(null);
   const [defaultQR, setDefaultQR] = useState(null);
 
+  const getTableId = (tableNumber) => {
+    return `${config.tablePrefix || ""}${tableNumber}${config.tableSuffix || ""}`;
+  };
+
+  const getTableUrl = (tableNumber) => {
+    return `https://${config.tenant}.liwamenu.com?restaurantId=${config.restaurantId}&tableNumber=${encodeURIComponent(getTableId(tableNumber))}`;
+  };
+
+  const getFileSafeTableId = (tableId) => {
+    return tableId.replace(/[^a-zA-Z0-9-_]+/g, "_");
+  };
+
   const initalGenerator = async () => {
     const generator = new QRCodeStyling({
       width: 300,
       height: 300,
       type: "svg",
-      data: `https://${config.tenant}.liwamenu.com?restaurantId=${config.restaurantId}&tableNumber=1`,
+      data: getTableUrl(1),
       image: config.logo || "",
       imageOptions: {
         crossOrigin: "anonymous",
@@ -84,7 +98,7 @@ const QRPage = ({ data: restaurant }) => {
 
   function checkLicense() {
     if (!restaurant) return false;
-    if (!restaurant?.hasLicense) {
+    if (!restaurant?.hasQrLicense) {
       toast.error(t("qrPage.license_missing"), { id: "qr_page" });
       return false; //testing
     }
@@ -112,7 +126,7 @@ const QRPage = ({ data: restaurant }) => {
   useEffect(() => {
     if (previewInstance.current) {
       previewInstance.current.update({
-        data: `https://${config.tenant}.liwamenu.com?restaurantId=${config.restaurantId}&tableNumber=1`,
+        data: getTableUrl(1),
         image: config.includeLogo ? config.logo || "" : "",
         dotsOptions: {
           gradient: {
@@ -159,8 +173,8 @@ const QRPage = ({ data: restaurant }) => {
     const end = Math.max(config.tableStart, config.tableEnd);
 
     for (let i = start; i <= end; i++) {
-      // Scanned URL includes restaurantId and tableNumber as query parameters
-      const url = `https://${config.tenant}.liwamenu.com?restaurantId=${config.restaurantId}&tableNumber=${i}`;
+      const tableId = getTableId(i);
+      const url = getTableUrl(i);
 
       const generator = new QRCodeStyling({
         width: config.size,
@@ -196,6 +210,7 @@ const QRPage = ({ data: restaurant }) => {
         if (blob) {
           newItems.push({
             id: i,
+            tableId,
             url,
             dataUrl: URL.createObjectURL(blob),
           });
@@ -215,7 +230,7 @@ const QRPage = ({ data: restaurant }) => {
   const downloadQR = (dataUrl, name) => {
     const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = `qr-table-${name}.png`;
+    link.download = `qr-table-${getFileSafeTableId(name)}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -230,7 +245,7 @@ const QRPage = ({ data: restaurant }) => {
       try {
         const response = await fetch(item.dataUrl);
         const blob = await response.blob();
-        folder.file(`qr-table-${item.id}.png`, blob);
+        folder.file(`qr-table-${getFileSafeTableId(item.tableId)}.png`, blob);
       } catch (error) {
         console.error(`Failed to add QR ${item.id} to zip:`, error);
       }
@@ -345,6 +360,28 @@ const QRPage = ({ data: restaurant }) => {
                       className="py-[7px] mt-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-[--white-1]"
                       onChange={(v) =>
                         setConfig({ ...config, tableEnd: parseInt(v) || 1 })
+                      }
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <CustomInput
+                      type="text"
+                      value={config?.tablePrefix}
+                      label={t("qrPage.table_prefix")}
+                      className="py-[7px] mt-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-[--white-1]"
+                      onChange={(v) =>
+                        setConfig({ ...config, tablePrefix: v || "" })
+                      }
+                    />
+
+                    <CustomInput
+                      type="text"
+                      value={config?.tableSuffix}
+                      label={t("qrPage.table_suffix")}
+                      className="py-[7px] mt-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-[--white-1]"
+                      onChange={(v) =>
+                        setConfig({ ...config, tableSuffix: v || "" })
                       }
                     />
                   </div>
@@ -552,7 +589,7 @@ const QRPage = ({ data: restaurant }) => {
                             {t("qrPage.location_label")}
                           </span>
                           <span className="text-base font-black tracking-tight text-[--primary-1]">
-                            {t("qrPage.table_label", { id: item.id })}
+                            {t("qrPage.table_label", { id: item.tableId })}
                           </span>
                         </div>
                       </div>

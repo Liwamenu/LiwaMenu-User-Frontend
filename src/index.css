@@ -321,3 +321,24 @@ input[type="number"] {
   filter: invert(1); /* makes it white-ish */
   opacity: 0.7;
 }
+
+.dark .react-tel-input .flag-dropdown.open .selected-flag {
+  background-color: #1e293b !important;
+}
+.dark .react-tel-input .country-list {
+  background-color: #12121e !important;
+  font-family: "Poppins";
+}
+.react-tel-input .country-list {
+  font-family: "Poppins";
+}
+.dark .react-tel-input .country-list .country:hover {
+  background-color: #111827 !important;
+}
+.dark .react-tel-input .country-list .country.highlight {
+  background-color: #111827 !important;
+}
+
+/* .light .react-tel-input .country-list {
+  background-color: #f9fafb !important;
+} */

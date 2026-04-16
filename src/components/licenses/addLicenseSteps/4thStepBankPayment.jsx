@@ -1,3 +1,5 @@
+import { CopyI } from "../../../assets/icon";
+import { copyToClipboard } from "../../../utils/utils";
 import BackButton from "../stepsAssets/backButton";
 import ForwardButton from "../stepsAssets/forwardButton";
 
@@ -24,13 +26,33 @@ const FourthStepBankPayment = ({ step, setStep }) => {
             <p>Döviz:</p>
             <p>TL</p>
           </div>
-          <div className="flex gap-2 bg-[--light-1] p-2">
+          <div
+            className="flex gap-2 bg-[--light-1] p-2 border border-transparent max-w-max rounded-md hover:border-[--primary-1] cursor-pointer"
+            onClick={() =>
+              copyToClipboard({ text: "TR76 0006 2000 4610 0006 2920 57" })
+            }
+          >
             <p>IBAN:</p>
-            <p>TR76 0006 2000 4610 0006 2920 57</p>
+            <p className="flex gap-2">
+              TR76 0006 2000 4610 0006 2920 57{" "}
+              <span>
+                <CopyI />
+              </span>
+            </p>
           </div>
-          <div className="flex gap-2 bg-[--light-1] p-2">
+          <div
+            className="flex gap-2 bg-[--light-1] p-2  border border-transparent max-w-max rounded-md hover:border-[--primary-1] cursor-pointer"
+            onClick={() =>
+              copyToClipboard({ text: "Liwa Yazılım San. Tic. Ltd. Şti." })
+            }
+          >
             <p>Hesap Adı:</p>
-            <p>Liwa Yazılım San. Tic. Ltd. Şti.</p>
+            <p className="flex gap-2">
+              Liwa Yazılım San. Tic. Ltd. Şti.{" "}
+              <span>
+                <CopyI />
+              </span>
+            </p>
           </div>
         </div>
       </main>
@@ -40,7 +62,7 @@ const FourthStepBankPayment = ({ step, setStep }) => {
         <BackButton
           text="Geri"
           letIcon={true}
-          onClick={() => setStep(step - 1)}
+          onClick={() => setStep(step - 2)}
         />
         <ForwardButton text="Devam" letIcon={true} type="submit" />
       </div>

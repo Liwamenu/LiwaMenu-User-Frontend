@@ -15,22 +15,13 @@ import CustomPhoneInput from "../common/customPhoneInput";
 
 //REDUX
 import {
-  getNeighs,
-  resetGetNeighsState,
-} from "../../redux/data/getNeighsSlice";
-import {
   getLocation,
   resetGetLocationState,
 } from "../../redux/data/getLocationSlice";
 import {
-  getDistricts,
-  resetGetDistrictsState,
-} from "../../redux/data/getDistrictsSlice";
-import {
   updateRestaurant,
   resetUpdateRestaurant,
 } from "../../redux/restaurants/updateRestaurantSlice";
-import { getCities } from "../../redux/data/getCitiesSlice";
 
 const EditRestaurant = ({ data: restaurant }) => {
   const { t } = useTranslation();
@@ -63,14 +54,12 @@ const EditRestaurant = ({ data: restaurant }) => {
       dealerId,
       userId,
       name,
-      phoneNumber: phoneNumber?.startsWith("90")
-        ? phoneNumber
-        : "90" + phoneNumber,
-      latitude: latitude,
-      longitude: longitude,
-      city: { label: city, value: city, id: null },
-      district: { label: district, value: district, id: null },
-      neighbourhood: { label: neighbourhood, value: neighbourhood, id: null },
+      phoneNumber,
+      latitude,
+      longitude,
+      city,
+      district,
+      neighbourhood,
       address,
       isActive,
       imageAbsoluteUrl,
@@ -80,16 +69,6 @@ const EditRestaurant = ({ data: restaurant }) => {
 
   const { loading, success, error } = useSelector(
     (state) => state.restaurants.updateRestaurant,
-  );
-
-  const { cities: citiesData } = useSelector((state) => state.data.getCities);
-
-  const { districts: districtsData, success: districtsSuccess } = useSelector(
-    (state) => state.data.getDistricts,
-  );
-
-  const { neighs: neighsData, success: neighsSuccess } = useSelector(
-    (state) => state.data.getNeighs,
   );
 
   const { success: locationSuccess, location } = useSelector(
@@ -102,11 +81,8 @@ const EditRestaurant = ({ data: restaurant }) => {
     location: null,
     before: null,
   });
-  const [cities, setCities] = useState([]);
-  const [neighs, setNeighs] = useState([]);
   const [document, setDocument] = useState("");
   const [document2, setDocument2] = useState("");
-  const [districts, setDistricts] = useState([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [restaurantDataBefore, setRestaurantDataBefore] = useState(
     formatRestaurant(restaurant),
@@ -134,9 +110,9 @@ const EditRestaurant = ({ data: restaurant }) => {
     formData.append("PhoneNumber", restaurantData.phoneNumber);
     formData.append("Latitude", restaurantData.latitude);
     formData.append("Longitude", restaurantData.longitude);
-    formData.append("City", restaurantData.city.value);
-    formData.append("District", restaurantData.district.value);
-    formData.append("Neighbourhood", restaurantData.neighbourhood.value);
+    formData.append("City", restaurantData.city);
+    formData.append("District", restaurantData.district);
+    formData.append("Neighbourhood", restaurantData.neighbourhood);
     formData.append("Address", restaurantData.address);
     formData.append("IsActive", restaurantData.isActive);
     document && formData.append("Image", document);
@@ -186,189 +162,53 @@ const EditRestaurant = ({ data: restaurant }) => {
     }
   }, [loading, success, error]);
 
-  // GET AND SET CITIES IF THERE IS NO CITIES
-  useEffect(() => {
-    if (!restaurantData) return;
-    if (!citiesData) {
-      dispatch(getCities());
-    } else {
-      setCities(citiesData);
-      if (!restaurantData?.city?.id) {
-        const city = citiesData.filter(
-          (city) =>
-            city?.label?.toLowerCase() ===
-            restaurantData?.city?.label?.toLowerCase(), //toLocaleLowerCase('tr-TR')
-        )[0];
-
-        if (city) {
-          setRestaurantDataBefore((prev) => {
-            return {
-              ...prev,
-              city,
-            };
-          });
-          setRestaurantData((prev) => {
-            return {
-              ...prev,
-              city,
-            };
-          });
-        }
-      }
-    }
-  }, [citiesData]);
-
-  // GET DISTRICTS WHENEVER USER'S CITY CHANGES
-  useEffect(() => {
-    if (!restaurantData) return;
-    if (restaurantData.city?.id) {
-      dispatch(getDistricts({ cityId: restaurantData.city.id }));
-      setRestaurantData((prev) => {
-        return {
-          ...prev,
-          district: null,
-        };
-      });
-    }
-  }, [restaurantData?.city]);
-
-  // SET DISTRICTS
-  useEffect(() => {
-    if (!restaurantData) return;
-    if (districtsSuccess) {
-      setDistricts(districtsData);
-
-      if (!restaurantData.district || !restaurantData.district?.id) {
-        const district = districtsData.filter(
-          (dist) =>
-            dist?.label.toLowerCase() ===
-            restaurantDataBefore.district?.label.toLowerCase(),
-        )[0];
-        if (district) {
-          setRestaurantDataBefore((prev) => {
-            return {
-              ...prev,
-              district,
-            };
-          });
-          setRestaurantData((prev) => {
-            return {
-              ...prev,
-              district,
-            };
-          });
-        }
-      }
-      dispatch(resetGetDistrictsState());
-    }
-  }, [districtsSuccess]);
-
-  // GET NEIGHBOURHOODS WHENEVER THE INVOICE DISTRICT CHANGES
-  useEffect(() => {
-    if (!restaurantData) return;
-    if (restaurantData.district?.id && restaurantData.city?.id) {
-      dispatch(
-        getNeighs({
-          cityId: restaurantData.city.id,
-          districtId: restaurantData.district.id,
-        }),
-      );
-      setRestaurantData((prev) => {
-        return {
-          ...prev,
-          neighbourhood: null,
-        };
-      });
-    }
-  }, [restaurantData?.district]);
-
-  // SET NEIGHBOURHOODS
-  useEffect(() => {
-    if (!restaurantData) return;
-    if (neighsSuccess) {
-      setNeighs(neighsData);
-      if (!restaurantData.neighbourhood) {
-        const neigh = neighsData.filter(
-          (neigh) =>
-            neigh.label.toLowerCase() ===
-            restaurantDataBefore.neighbourhood.label.toLowerCase(),
-        )[0];
-        if (neigh) {
-          setRestaurantDataBefore((prev) => {
-            return {
-              ...prev,
-              neighbourhood: { ...neigh, id: null },
-            };
-          });
-          setRestaurantData((prev) => {
-            return {
-              ...prev,
-              neighbourhood: { ...neigh, id: null },
-            };
-          });
-        }
-      }
-      dispatch(resetGetNeighsState());
-    }
-  }, [neighsSuccess]);
-
-  // GET LOACTION IF THE NEIGH CHANGED
-  useEffect(() => {
-    if (!restaurantData) return;
-    const city = restaurantData.city;
-    const district = restaurantData.district;
-    const neighbourhood = restaurantData.neighbourhood;
-
-    if (city?.value && district?.value && neighbourhood?.value) {
-      const address = `${city.value}, ${district.value}, ${neighbourhood.value}`;
-      if (!isEqual(address, locationData.before)) {
-        dispatch(getLocation(address));
-        setLocationData((prev) => {
-          return {
-            ...prev,
-            before: address,
-          };
-        });
-      }
-    }
-  }, [restaurantData?.neighbourhood]);
-
   // SET LOCATION
   useEffect(() => {
-    if (!restaurantData) return;
     if (locationSuccess) {
+      const boundaryCoords = location.boundaryCoords;
       const averageLat = (
-        location.reduce((sum, loc) => sum + loc.lat, 0) / location.length
+        boundaryCoords.reduce((sum, loc) => sum + loc.lat, 0) /
+        boundaryCoords.length
       ).toFixed(6);
       const averageLng = (
-        location.reduce((sum, loc) => sum + loc.lng, 0) / location.length
+        boundaryCoords.reduce((sum, loc) => sum + loc.lng, 0) /
+        boundaryCoords.length
       ).toFixed(6);
 
-      const neighbourhood = restaurantData.neighbourhood;
-      if (neighbourhood?.id) {
-        //CHECK THE ORIGINAL VALUE
-        setRestaurantData((prev) => {
-          return {
-            ...prev,
-            latitude: averageLat,
-            longitude: averageLng,
-          };
-        });
-        setLat(averageLat);
-        setLng(averageLng);
-      } else {
-        setLat(restaurantData.latitude);
-        setLng(restaurantData.longitude);
-      }
+      setRestaurantData((prev) => {
+        return {
+          ...prev,
+          latitude: averageLat,
+          longitude: averageLng,
+        };
+      });
       setLocationData((prev) => {
         return {
           ...prev,
-          location,
+          location: boundaryCoords,
+        };
+      });
+      setLat(averageLat);
+      setLng(averageLng);
+      setRestaurantData((prev) => {
+        return {
+          ...prev,
+          city: location.city,
+          district: location.district,
+          neighbourhood: location.neighborhood,
+          address: location.fullAddress,
         };
       });
       dispatch(resetGetLocationState());
     }
   }, [locationSuccess]);
+
+  //SET THE USER LOCATIOn
+  useEffect(() => {
+    if (!lat || !lng) {
+      dispatch(getLocation());
+    }
+  }, [lat, lng]);
 
   //PREVIEW
   useEffect(() => {
@@ -486,50 +326,32 @@ const EditRestaurant = ({ data: restaurant }) => {
               </div>
 
               <div className="flex max-sm:flex-col gap-4">
-                <CustomSelect
-                  required={true}
-                  label={t("restaurants.city") + "*"}
+                <CustomInput
+                  required
+                  label={t("restaurants.city")}
                   placeholder={t("restaurants.city")}
-                  style={{ padding: "1px 0px" }}
-                  className="text-sm"
-                  value={
-                    restaurantData.city
-                      ? restaurantData.city
-                      : { value: null, label: t("restaurants.city_select") }
-                  }
-                  options={[
-                    { value: null, label: t("restaurants.city_select") },
-                    ...cities,
-                  ]}
-                  onChange={(selectedOption) => {
+                  className="py-[.45rem] text-sm bg-[--white-1]"
+                  value={restaurantData.city}
+                  onChange={(e) => {
                     setRestaurantData((prev) => {
                       return {
                         ...prev,
-                        city: selectedOption,
+                        city: e,
                       };
                     });
                   }}
                 />
-                <CustomSelect
-                  required={true}
-                  label={t("restaurants.district") + "*"}
+                <CustomInput
+                  required
+                  label={t("restaurants.district")}
                   placeholder={t("restaurants.district")}
-                  style={{ padding: "1px 0px" }}
-                  className="text-sm"
-                  value={
-                    restaurantData.district
-                      ? restaurantData.district
-                      : { value: null, label: t("restaurants.district_select") }
-                  }
-                  options={[
-                    { value: null, label: t("restaurants.district_select") },
-                    ...districts,
-                  ]}
-                  onChange={(selectedOption) => {
+                  className="py-[.45rem] text-sm bg-[--white-1]"
+                  value={restaurantData.district}
+                  onChange={(e) => {
                     setRestaurantData((prev) => {
                       return {
                         ...prev,
-                        district: selectedOption,
+                        district: e,
                       };
                     });
                   }}
@@ -537,32 +359,17 @@ const EditRestaurant = ({ data: restaurant }) => {
               </div>
 
               <div className="flex max-sm:flex-col gap-4">
-                <CustomSelect
-                  required={true}
-                  label={t("restaurants.neighbourhood") + "*"}
+                <CustomInput
+                  required
+                  label={t("restaurants.neighbourhood")}
                   placeholder={t("restaurants.neighbourhood")}
-                  style={{ padding: "1px 0px" }}
-                  className="text-sm"
-                  value={
-                    restaurantData.neighbourhood
-                      ? restaurantData.neighbourhood
-                      : {
-                          value: null,
-                          label: t("restaurants.neighbourhood_select"),
-                        }
-                  }
-                  options={[
-                    {
-                      value: null,
-                      label: t("restaurants.neighbourhood_select"),
-                    },
-                    ...neighs,
-                  ]}
-                  onChange={(selectedOption) => {
+                  className="py-[.45rem] text-sm bg-[--white-1]"
+                  value={restaurantData.neighbourhood}
+                  onChange={(e) => {
                     setRestaurantData((prev) => {
                       return {
                         ...prev,
-                        neighbourhood: selectedOption,
+                        neighbourhood: e,
                       };
                     });
                   }}

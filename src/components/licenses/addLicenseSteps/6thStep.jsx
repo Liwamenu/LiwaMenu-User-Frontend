@@ -15,7 +15,6 @@ const SixthStep = ({ step, paymentStatus }) => {
 
   useEffect(() => {
     let goToLicenses;
-    console.log(step);
 
     if (step === 6) {
       goToLicenses = setTimeout(

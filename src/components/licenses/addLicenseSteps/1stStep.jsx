@@ -197,7 +197,7 @@ const FirstStep = ({
                 className="flex max-sm:flex-col sm:items-center gap-2 sm:gap-8 even:bg-[--white-1] odd:bg-[--table-odd]"
               >
                 <div className="max-sm:w-full flex gap-4 py-1 overflow-x-auto">
-                  {licensePkg.map((pkg) => {
+                  {licensePkg.map((pkg, i) => {
                     const isSelected = cartItems.some(
                       (item) =>
                         item.id === pkg.id &&
@@ -205,36 +205,49 @@ const FirstStep = ({
                     );
 
                     return (
-                      <div
-                        key={pkg.id}
-                        className="flex items-center text-[12px] leading-snug text-white"
-                      >
-                        <div
-                          className={`flex flex-col justify-center py-1.5 px-6 rounded cursor-pointer text-[--black-1] ${
-                            isSelected
-                              ? "bg-[--primary-1] text-white"
-                              : "bg-[--light-5]"
-                          }`}
-                          onClick={() =>
-                            handleAddToCart({
-                              ...pkg,
-                              restaurantId: restaurantData.id,
-                              restaurantName: restaurantData.label,
-                            })
-                          }
-                        >
-                          <div className="whitespace-nowrap">
-                            <span>{pkg.time}</span>{" "}
-                            <span>{pkg.timeId == 0 ? "Yıllık" : "Aylık"}</span>{" "}
-                            <span>{pkg.price} tl</span>
+                      <>
+                        {i === 0 && (
+                          <div className="flex items-center text-[12px] leading-snug text-white">
+                            <div className="flex flex-col justify-center py-1.5 px-6 rounded text-[--primary-1]">
+                              <div className="whitespace-nowrap">
+                                <span>{pkg.licensePackageType}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-normal">
-                              {pkg.description}
-                            </span>
+                        )}
+                        <div
+                          key={pkg.id}
+                          className="flex items-center text-[12px] leading-snug text-white"
+                        >
+                          <div
+                            className={`flex flex-col justify-center py-1.5 px-6 rounded cursor-pointer text-[--black-1] ${
+                              isSelected
+                                ? "bg-[--primary-1] text-white"
+                                : "bg-[--light-5]"
+                            }`}
+                            onClick={() =>
+                              handleAddToCart({
+                                ...pkg,
+                                restaurantId: restaurantData.id,
+                                restaurantName: restaurantData.label,
+                              })
+                            }
+                          >
+                            <div className="whitespace-nowrap">
+                              <span>{pkg.time}</span>{" "}
+                              <span>
+                                {pkg.timeId == 0 ? "Yıllık" : "Aylık"}
+                              </span>{" "}
+                              <span>{pkg.price} tl</span>
+                            </div>
+                            <div>
+                              <span className="font-normal">
+                                {pkg.description}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </>
                     );
                   })}
                 </div>

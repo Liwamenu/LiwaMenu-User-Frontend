@@ -43,13 +43,14 @@ import AddSubCategories from "../components/restaurant/subCategories/addSubCateg
 import OrderTags from "../components/restaurant/orderTags/orderTags";
 
 //QR
-import QRPage from "../components/qr/qrPage";
+import QRPage from "../components/restaurant/qr/qrPage";
 
 //SURVEY
 import SurveySettings from "../components/restaurant/survey/surveySettings";
 
 //THEME
 import ThemeSelector from "../components/restaurant/themes/qrMenuSelector";
+import TvMenuSelector from "../components/restaurant/themes/tvMenuSelector";
 
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();
@@ -58,6 +59,9 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
 
   const { restaurants } = useSelector(
     (state) => state.restaurants.getRestaurants,
+  );
+  const { success: setSuccess } = useSelector(
+    (state) => state.restaurant.setRestaurantSettings,
   );
 
   const { restaurant: stateRest, success } = useSelector(
@@ -69,10 +73,10 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
 
   // Fetch restaurant if not in state
   useEffect(() => {
-    if (!restaurant && !data) {
+    if ((!restaurant && !data) || setSuccess) {
       dispatch(getRestaurant({ restaurantId: id }));
     }
-  }, [data]);
+  }, [data, setSuccess]);
 
   useEffect(() => {
     setShowS1(false);
@@ -168,6 +172,10 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
 
           {/* THEME */}
           <Route path="/qrthemes/:id" element={<ThemeSelector data={data} />} />
+          <Route
+            path="/tvthemes/:id"
+            element={<TvMenuSelector data={data} />}
+          />
 
           {/* QR */}
           <Route path="/qr/:id" element={<QRPage data={data} />} />

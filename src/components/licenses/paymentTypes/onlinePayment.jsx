@@ -135,6 +135,7 @@ const OnlinePayment = ({
     if (addSuccess) {
       setStep(5);
       toast.remove(toastId.current);
+      dispatch(clearCart());
       return;
     }
     if (addError) {
@@ -142,13 +143,8 @@ const OnlinePayment = ({
       setPaymentStatus("failure");
       toast.remove(toastId.current);
       dispatch(resetAddByOnlinePay());
+      dispatch(clearCart());
     }
-
-    return () => {
-      if (cartItems) {
-        dispatch(clearCart());
-      }
-    };
   }, [addLoading, addSuccess, addError, dispatch]);
 
   // EXTEND TOAST
@@ -159,6 +155,7 @@ const OnlinePayment = ({
     if (extendSuccess) {
       setStep(4);
       toast.remove(toastId.current);
+      dispatch(clearCart());
       return;
     }
     if (extendError) {
@@ -166,13 +163,8 @@ const OnlinePayment = ({
       setPaymentStatus("failure");
       toast.remove(toastId.current);
       dispatch(resetExtendByOnlinePay());
+      dispatch(clearCart());
     }
-
-    return () => {
-      if (cartItems) {
-        dispatch(clearCart());
-      }
-    };
   }, [extendLoading, extendSuccess, extendError, dispatch]);
 
   //LOADING ANIMATION

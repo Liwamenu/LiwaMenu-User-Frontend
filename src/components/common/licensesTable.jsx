@@ -9,7 +9,8 @@ const LicensesTable = ({ inData, totalItems, onSuccess }) => {
         <table className="w-full text-sm font-light">
           <thead>
             <tr className="bg-[--light-3] h-8 text-left text-[--black-1]">
-              <th className="pl-4 font-normal">Restoran</th>
+              <th className="pl-4 font-normal">License Type</th>
+              <th className="font-normal">Restoran</th>
               {inData[0]?.userName && (
                 <th className="font-normal">Kullanıcı</th>
               )}
@@ -29,6 +30,9 @@ const LicensesTable = ({ inData, totalItems, onSuccess }) => {
                 } `}
               >
                 <td className="whitespace-nowrap text-[--black-2] pl-4 font-normal">
+                  {data.licensePackageType}
+                </td>
+                <td className="whitespace-nowrap text-[--black-2] font-normal">
                   {data.restaurantName}
                 </td>
                 {inData[0]?.userName && (

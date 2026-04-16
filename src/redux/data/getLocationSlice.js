@@ -50,17 +50,64 @@ export const getLocation = createAsyncThunk(
   "Route/GetLocation",
   async (address, { rejectWithValue }) => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      address
-    )}&key=${apiKey}`;
+    const getGeolocation = () =>
+      new Promise((resolve, reject) => {
+        if (!("geolocation" in navigator)) {
+          reject(new Error("Geolocation is not supported by this browser."));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve(pos.coords),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+        );
+      });
+
+    const buildGeocodeUrl = (params) =>
+      `https://maps.googleapis.com/maps/api/geocode/json?${params}&key=${apiKey}`;
+
+    const getComponent = (components, typeList) => {
+      const match = components.find((component) =>
+        typeList.some((type) => component.types.includes(type)),
+      );
+      return match ? match.long_name : null;
+    };
 
     try {
+      let geocodeUrl;
+
+      if (address && address.trim()) {
+        geocodeUrl = buildGeocodeUrl(`address=${encodeURIComponent(address)}`);
+      } else {
+        const coords = await getGeolocation();
+        geocodeUrl = buildGeocodeUrl(
+          `latlng=${coords.latitude},${coords.longitude}`,
+        );
+      }
+
       const response = await axios.get(geocodeUrl);
       const data = response.data;
 
       if (data.status === "OK") {
         const result = data.results[0];
         const bounds = result.geometry.bounds;
+        const components = result.address_components || [];
+        const fullAddress = result.formatted_address || null;
+        const city = getComponent(components, [
+          "locality",
+          "administrative_area_level_1",
+        ]);
+        const district = getComponent(components, [
+          "administrative_area_level_2",
+          "administrative_area_level_3",
+        ]);
+        const neighborhood = getComponent(components, [
+          "neighborhood",
+          "sublocality",
+          "sublocality_level_1",
+          "sublocality_level_2",
+        ]);
 
         if (bounds) {
           const boundaryCoords = [
@@ -83,7 +130,13 @@ export const getLocation = createAsyncThunk(
           ];
 
           // console.log(boundaryCoords);
-          return boundaryCoords;
+          return {
+            fullAddress,
+            city,
+            district,
+            neighborhood,
+            boundaryCoords,
+          };
         } else {
           // Fallback if bounds are not available
           const viewport = result.geometry.viewport;
@@ -95,7 +148,13 @@ export const getLocation = createAsyncThunk(
           ];
 
           // console.log(boundaryCoords);
-          return boundaryCoords;
+          return {
+            fullAddress,
+            city,
+            district,
+            neighborhood,
+            boundaryCoords,
+          };
         }
       } else {
         throw new Error(`Geocode was not successful: ${data.status}`);
@@ -104,7 +163,7 @@ export const getLocation = createAsyncThunk(
       console.log(err);
       return rejectWithValue({ message: err.message });
     }
-  }
+  },
 );
 
 export const { resetGetLocationState, resetGetLocation } =
