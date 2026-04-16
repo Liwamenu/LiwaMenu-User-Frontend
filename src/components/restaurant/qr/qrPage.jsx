@@ -1,5 +1,6 @@
 //MODULES
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
 import QRCodeStyling from "qr-code-styling";
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useEffect } from "react";
@@ -18,8 +19,11 @@ import Button from "./components/button";
 import CustomInput from "../../common/customInput";
 import CustomToggle from "../../common/customToggle";
 import { EyeI, ParamsI, QRI } from "../../../assets/icon";
+import { getRestaurant } from "../../../redux/restaurants/getRestaurantSlice";
+import { useParams } from "react-router-dom";
 
 const QRPage = ({ data: restaurant }) => {
+  const dispatch = useDispatch();
   const { t } = useTranslation();
   const initalData = {
     tableStart: 1,
@@ -35,6 +39,7 @@ const QRPage = ({ data: restaurant }) => {
     restaurantId: restaurant?.id || null,
   };
 
+  const id = useParams()["*"].split("/")[1];
   const [config, setConfig] = useState(initalData);
   const [generatedItems, setGeneratedItems] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -260,6 +265,11 @@ const QRPage = ({ data: restaurant }) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   };
+
+  //GET RESTAURANT DATA
+  useEffect(() => {
+    dispatch(getRestaurant({ restaurantId: id }));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[--white-2] py-10 px-4 md:px-8">

@@ -16,6 +16,10 @@ import {
   setRestaurantSettings,
   resetSetRestaurantSettings,
 } from "../../redux/restaurant/setRestaurantSettingsSlice";
+import {
+  checkTenantAvailability,
+  resetCheckTenantAvailability,
+} from "../../redux/restaurant/checkTenantAvailabilitySlice";
 
 const RestaurantSettings = ({ data: inData }) => {
   const { t } = useTranslation();
@@ -23,6 +27,12 @@ const RestaurantSettings = ({ data: inData }) => {
   const { success, error } = useSelector(
     (state) => state.restaurant.setRestaurantSettings,
   );
+  const {
+    loading: isCheckingTenant,
+    success: tenantCheckSuccess,
+    data: tenantCheckData,
+    error: tenantCheckError,
+  } = useSelector((state) => state.restaurant.checkTenantAvailability);
 
   const initialData = useMemo(
     () => ({
@@ -56,6 +66,17 @@ const RestaurantSettings = ({ data: inData }) => {
   const [restaurantData, setRestaurantData] = useState(initialData);
   const [restaurantDataBefore, setRestaurantDataBefore] = useState(initialData);
 
+  const handleCheckTenantAvailability = async () => {
+    const tenantValue = restaurantData?.tenant?.trim();
+
+    if (!tenantValue) {
+      toast.error(t("restaurantSettings.tenant_check_empty"));
+      return;
+    }
+
+    dispatch(checkTenantAvailability(tenantValue));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -82,6 +103,31 @@ const RestaurantSettings = ({ data: inData }) => {
     if (error) dispatch(resetSetRestaurantSettings());
   }, [success, error, dispatch, restaurantData]);
 
+  useEffect(() => {
+    if (!tenantCheckSuccess && !tenantCheckError) return;
+
+    if (tenantCheckSuccess) {
+      const isAvailable =
+        typeof tenantCheckData === "boolean"
+          ? tenantCheckData
+          : (tenantCheckData?.isAvailable ??
+            tenantCheckData?.available ??
+            null);
+
+      if (isAvailable === false) {
+        toast.error(t("restaurantSettings.tenant_check_taken"), {
+          id: "tenant-check",
+        });
+      } else {
+        toast.success(t("restaurantSettings.tenant_check_available"), {
+          id: "tenant-check",
+        });
+      }
+    }
+
+    dispatch(resetCheckTenantAvailability());
+  }, [tenantCheckSuccess, tenantCheckData, tenantCheckError, dispatch, t]);
+
   return (
     <div className="w-full pb-8 mt-1 bg-[--white-1] rounded-lg text-[--black-2]">
       <div className="flex flex-col px-4 sm:px-14">
@@ -106,7 +152,7 @@ const RestaurantSettings = ({ data: inData }) => {
                   </span>
                 </label>
 
-                <div className="flex items-end">
+                <div className="flex items-end gap-2">
                   <span className="bg-[--gr-4] text-[--gr-1] pl-3 py-[7.5px] rounded-l-md">
                     https://
                   </span>
@@ -125,6 +171,17 @@ const RestaurantSettings = ({ data: inData }) => {
                   <span className="bg-[--gr-4] text-[--gr-1] pr-3 py-[7.5px] rounded-r-md">
                     .liwamenu.com
                   </span>
+
+                  <button
+                    type="button"
+                    onClick={handleCheckTenantAvailability}
+                    disabled={isCheckingTenant}
+                    className="h-[39px] px-3 rounded-md border border-[--border-1] bg-[--white-1] text-[--black-2] whitespace-nowrap hover:bg-[--white-2] transition-colors disabled:opacity-60"
+                  >
+                    {isCheckingTenant
+                      ? t("restaurantSettings.tenant_check_loading")
+                      : t("restaurantSettings.tenant_check")}
+                  </button>
                 </div>
               </div>
 

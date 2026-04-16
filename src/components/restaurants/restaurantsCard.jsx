@@ -96,7 +96,7 @@ const RestaurantsCard = ({ inData }) => {
               {r.licenseIsActive && !r.licenseIsExpired ? (
                 <p className="w-28 flex justify-center py-2 border border-[--border-1] rounded-md">
                   {" "}
-                  {formatDateString({ dateString: r.licenseStart })}
+                  {formatDateString({ dateString: r.licenseEnd })}
                 </p>
               ) : (
                 <button
