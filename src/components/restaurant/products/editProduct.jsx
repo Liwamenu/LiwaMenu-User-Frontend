@@ -1,8 +1,8 @@
 // MODULES
 import toast from "react-hot-toast";
 import isEqual from "lodash/isEqual";
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 
@@ -40,6 +40,7 @@ const emptyPortion = () => ({
 const EditProduct = ({ product: prodToPopup }) => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const params = useParams();
   const restaurantId = params.id;
   const { t } = useTranslation();
@@ -51,8 +52,11 @@ const EditProduct = ({ product: prodToPopup }) => {
   const { setSecondPopupContent } = usePopup();
   const { product } = location?.state || {};
 
-  const [preview, setPreview] = useState(null);
-  const [productData, setProductData] = useState(prodToPopup || product);
+  // Initialize preview from the product's existing imageURL so editors see the
+  // current image instead of an empty upload zone.
+  const initialProduct = prodToPopup || product;
+  const [preview, setPreview] = useState(initialProduct?.imageURL || null);
+  const [productData, setProductData] = useState(initialProduct);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState([]);
 
@@ -208,14 +212,25 @@ const EditProduct = ({ product: prodToPopup }) => {
   useEffect(() => {
     if (success) {
       toast.success(t("editProduct.success"));
-      setSecondPopupContent(null);
       dispatch(resetEditProduct());
-      dispatch(
-        getProducts({ restaurantId: restaurantId || productData.restaurantId }),
-      );
+      if (prodToPopup) {
+        // Opened as a popup → close the popup; the underlying list re-fetches.
+        setSecondPopupContent(null);
+        dispatch(
+          getProducts({
+            restaurantId: restaurantId || productData.restaurantId,
+          }),
+        );
+      } else {
+        // Opened as a full page → go back to the products list. navigate(-1)
+        // preserves the list's URL search params (page=N) so the user lands
+        // on the exact page they came from.
+        navigate(-1);
+      }
     }
     if (error) dispatch(resetEditProduct());
-  }, [success, error, dispatch, setSecondPopupContent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [success, error]);
 
   return (
     productData && (
@@ -230,23 +245,9 @@ const EditProduct = ({ product: prodToPopup }) => {
           }`}
         >
           {!prodToPopup && (
-            <>
-              {/* <h1 className="text-2xl font-bold bg-indigo-800 text-white py-4 -mx-4 px-4 sm:px-14 rounded-t-lg">
-              Fiyat Listesi {} Restoranı
-            </h1> */}
-
-              <div className="flex flex-wrap gap-2 my-3 text-sm max-sm:grid max-sm:grid-cols-2 max-sm:items-center">
-                <ProductsHeader />
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={handleSave}
-                    className="px-6 py-2.5 text-sm font-medium text-white bg-[--green-1] rounded-md shadow-lg hover:bg-indigo-700 transition-all"
-                  >
-                    {t("editProduct.save_button")}
-                  </button>
-                </div>
-              </div>
-            </>
+            <div className="flex flex-wrap gap-2 my-3 text-sm">
+              <ProductsHeader />
+            </div>
           )}
 
           <div className="w-full py-8 relative flex flex-col sm:px-8">
@@ -312,7 +313,7 @@ const EditProduct = ({ product: prodToPopup }) => {
                   />
 
                   <CustomSelect
-                    label={`${t("editProduct.subCategory_label")} *`}
+                    label={t("editProduct.subCategory_label")}
                     disabled={!productData.categoryId}
                     placeholder={t("editProduct.subCategory_placeholder")}
                     value={
@@ -321,11 +322,9 @@ const EditProduct = ({ product: prodToPopup }) => {
                             value: productData.subCategoryId,
                             label: productData.subCategoryName,
                           }
-                        : {
-                            value: "",
-                            label: t("editProduct.subCategory_placeholder"),
-                          }
+                        : null
                     }
+                    isClearable
                     style={{ backgroundColor: "var(--light-1)" }}
                     options={getSubcatOptions(productData.categoryId)}
                     onChange={(opt) =>
@@ -399,76 +398,19 @@ const EditProduct = ({ product: prodToPopup }) => {
                     {t("editProduct.image_label")}
                   </span>
 
-                  <div className="bg-[--light-4] p-4 rounded-xl border border-[--border-1]">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
-                        <i className="fa-solid fa-palette mr-1" />
-                        {t("editProduct.image_ai_title")}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => console.log("AI image")}
-                        id="ai-img-btn"
-                        className="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition font-medium shadow-sm flex items-center"
-                      >
-                        <i className="fa-solid fa-wand-magic-sparkles mr-1.5" />
-                        {t("editProduct.image_ai_button")}
-                      </button>
-                    </div>
+                  <AIImagePromptCard
+                    t={t}
+                    onGenerated={handleFileChange}
+                  />
 
-                    <CustomInput
-                      placeholder={t("editProduct.image_prompt_placeholder")}
-                      className="w-full rounded-xl border-[--border-1] bg-[--light-1] focus:bg-[--white-1] p-3.5 text-[--black-1] border focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm"
-                    />
-                  </div>
+                  <ProductImagePicker
+                    preview={preview}
+                    image={productData.image}
+                    onChange={handleFileChange}
+                    onRemove={() => handleFileChange(null)}
+                    t={t}
+                  />
 
-                  <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-[--light-2] transition-all relative cursor-pointer h-48 flex flex-col justify-center items-center">
-                    {preview ? (
-                      <div className="w-full h-full overflow-hidden flex justify-center items-center rounded-lg">
-                        <img
-                          src={preview}
-                          className="max-h-full w-auto object-contain rounded-md"
-                          alt={t("editProduct.image_label")}
-                        />
-                      </div>
-                    ) : (
-                      <div className="group-hover:scale-110 transition-transform duration-300 pointer-events-none">
-                        <div className="w-12 h-12 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <div className="pl-1 pt-1">
-                            <CloudUI />
-                          </div>
-                        </div>
-                        <p className="text-sm text-[--light-1]0 group-hover:text-indigo-600 font-medium">
-                          {t("editProduct.image_click_to_select")}
-                        </p>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 opacity-0">
-                      <CustomFileInput
-                        required={false}
-                        value={productData.image}
-                        onChange={handleFileChange}
-                        accept={"image/png, image/jpeg"}
-                        className="h-full w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* IS NOTE ALLOWED */}
-                  <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-indigo-200 transition-colors">
-                    <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
-                      {t("editProduct.tag")}
-                    </span>
-                    <div className="flex items-center justify-between">
-                      <CustomToggle
-                        label={t("editProduct.freeTag")}
-                        checked={productData.freeTagging}
-                        className1="text-sm"
-                        className="peer-checked:bg-[--green-1] bg-[--border-1] scale-[.9]"
-                        onChange={() => handleToggle("freeTagging")}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -568,12 +510,12 @@ const EditProduct = ({ product: prodToPopup }) => {
           </div>
         </div>
 
-        {prodToPopup && (
+        {prodToPopup ? (
           <div className="w-full flex items-center  absolute bottom-5 right-0 left-0">
             <div className="w-full flex justify-end space-x-3 max-w-4xl mx-auto bg-[--white-1] py-4 px-6 border-t border-[--border-1] rounded-b-lg">
               <button
                 onClick={() => setSecondPopupContent(null)}
-                className="px-6 py-2.5 text-sm font-medium text-[--black-2] bg-[--white-1] border border-[--border-1] rounded-xl hover:bg-[--light-1] hover:text-[--black-1] transition-all"
+                className="px-6 py-2.5 text-sm font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all"
               >
                 {t("editProduct.cancel")}
               </button>
@@ -586,9 +528,193 @@ const EditProduct = ({ product: prodToPopup }) => {
               </button>
             </div>
           </div>
+        ) : (
+          // Full-page mode: bottom action bar mirrors Add Product so users
+          // always end the form with the same Vazgeç + Kaydet pair at the
+          // bottom of the visible content area.
+          <div className="w-full flex justify-end gap-3 px-4 sm:px-8 py-4 border-t border-[--border-1] bg-[--white-1]">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-6 py-2.5 text-sm font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all"
+            >
+              {t("editProduct.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg shadow-[--light-1] hover:bg-[--primary-2] transform hover:-translate-y-0.5 transition-all"
+            >
+              {t("editProduct.save_button")}
+            </button>
+          </div>
         )}
       </section>
     )
+  );
+};
+
+// AI image prompt card — auto-resizing textarea (1 → up to 5 lines) plus a
+// "Liwa AI ile Oluştur" button. When the AI flow eventually returns an image
+// (File or url), it is forwarded via `onGenerated` so the same product image
+// preview area displays it. The actual generation endpoint isn't wired here —
+// the wiring is structural; the parent passes `handleFileChange` and the AI
+// pipeline can be plugged in once available.
+export const AIImagePromptCard = ({ t, onGenerated }) => {
+  const [prompt, setPrompt] = useState("");
+  const [busy, setBusy] = useState(false);
+  const taRef = useRef(null);
+
+  // Auto-resize: grow with content, capped at 5 lines.
+  useEffect(() => {
+    const ta = taRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+    const maxHeight = lineHeight * 5 + 16; // 5 lines + vertical padding
+    const next = Math.min(ta.scrollHeight, maxHeight);
+    ta.style.height = next + "px";
+    ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [prompt]);
+
+  const handleGenerate = async () => {
+    const text = prompt.trim();
+    if (!text) {
+      toast.error(t("editProduct.image_prompt_placeholder"), {
+        id: "ai-prompt-empty",
+      });
+      return;
+    }
+    setBusy(true);
+    try {
+      // TODO: replace with the real Liwa AI generation call.
+      // Once the backend returns a File or a URL, we forward it to onGenerated
+      // so the picker updates the same preview the user sees for uploads.
+      // For now, we just simulate a no-op so the wiring remains correct.
+      console.log("[AI] generate:", text);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="bg-[--light-4] p-3 rounded-xl border border-[--border-1]">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
+          <i className="fa-solid fa-palette mr-1" />
+          {t("editProduct.image_ai_title")}
+        </span>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={busy}
+          className="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition font-medium shadow-sm flex items-center disabled:opacity-60"
+        >
+          <i className="fa-solid fa-wand-magic-sparkles mr-1.5" />
+          {t("editProduct.image_ai_button")}
+        </button>
+      </div>
+
+      <textarea
+        ref={taRef}
+        rows={1}
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder={t("editProduct.image_prompt_placeholder")}
+        className="w-full rounded-lg border border-[--border-1] bg-[--light-1] focus:bg-[--white-1] px-3 py-2 text-[--black-1] focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-500/10 transition-colors outline-none text-sm leading-5 resize-none"
+      />
+    </div>
+  );
+};
+
+// Image picker shared between Edit and Add Product flows.
+// • Vertical layout: large preview area on top, action buttons below
+// • Shows the current image (existing or AI-generated) as a tall preview
+// • Button label switches between "Yükle" (no image) and "Değiştir"
+// • "Kaldır" appears beside the change button when an image is set
+export const ProductImagePicker = ({
+  preview,
+  image,
+  onChange,
+  onRemove,
+  t,
+}) => {
+  const hasImage = !!preview;
+  return (
+    <div
+      className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
+        hasImage
+          ? "border-slate-200 bg-white"
+          : "border-dashed border-[--border-1] bg-[--light-2] hover:border-indigo-300"
+      }`}
+    >
+      <label className="relative w-full aspect-[4/3] sm:aspect-square rounded-lg ring-1 ring-slate-200 bg-slate-50 grid place-items-center overflow-hidden cursor-pointer group">
+        {hasImage ? (
+          <>
+            <img
+              src={preview}
+              alt="preview"
+              className="size-full object-cover"
+            />
+            {/* Hover overlay hint */}
+            <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-colors grid place-items-center">
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-900/60 backdrop-blur-sm">
+                {t("editProduct.image_change")}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+            <span className="grid place-items-center size-12 rounded-full bg-indigo-100 text-indigo-600">
+              <CloudUI />
+            </span>
+            <span className="text-sm font-medium text-[--gr-1] group-hover:text-indigo-600 transition-colors">
+              {t("editProduct.image_click_to_select")}
+            </span>
+            <span className="text-[11px] text-[--gr-1]">
+              {t("editProduct.image_hint")}
+            </span>
+          </div>
+        )}
+        <input
+          type="file"
+          accept="image/png, image/jpeg"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onChange(file);
+            e.target.value = "";
+          }}
+          className="hidden"
+        />
+      </label>
+
+      <div className="flex flex-wrap gap-1.5">
+        <label className="inline-flex flex-1 items-center justify-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold text-white bg-[--primary-1] hover:brightness-110 cursor-pointer transition shadow-sm">
+          {hasImage
+            ? t("editProduct.image_change")
+            : t("editProduct.image_upload")}
+          <input
+            type="file"
+            accept="image/png, image/jpeg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onChange(file);
+              e.target.value = "";
+            }}
+            className="hidden"
+          />
+        </label>
+        {hasImage && onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="inline-flex items-center justify-center gap-1 h-9 px-3 rounded-md text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition"
+          >
+            {t("editProduct.image_remove")}
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 

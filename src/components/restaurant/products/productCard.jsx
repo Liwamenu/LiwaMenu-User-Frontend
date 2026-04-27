@@ -1,11 +1,16 @@
-//MODULES
+// MODULES
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  Image as ImageIcon,
+  Pencil,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 
-//COMP
+// COMP
 import DeleteProduct from "./deleteProduct";
-import { DeleteI, EditI } from "../../../assets/icon";
 import { usePopup } from "../../../context/PopupContext";
 
 const ProductCard = ({ product }) => {
@@ -15,109 +20,134 @@ const ProductCard = ({ product }) => {
   const { setSecondPopupContent } = usePopup();
   const { t } = useTranslation();
 
+  const isHidden = !!product.hide;
+  const portionCount = Array.isArray(product.portions)
+    ? product.portions.length
+    : 0;
+
   return (
-    <div className="bg-[--white-1] rounded-2xl shadow-sm border border-[--gr-4] p-6 mb-4 flex flex-col md:flex-row gap-6 relative group hover:shadow-md transition-shadow duration-200">
-      {/* Left: Image & Basic Info */}
-      <div className="flex flex-col-md:flex-row gap-4 md:w-5/12">
-        {/* Image / Placeholder */}
-        <div className="flex-shrink-0">
-          <div className="w-24 h-24 rounded-lg bg-[--gr-4] overflow-hidden flex items-center justify-center text-[--gr-1] font-bold">
-            {!product.imageURL || imgError ? (
-              <div
-                className={`w-full h-full flex items-center justify-center bg-[--gr-4] text-[--gr-2] font-bold text-lg `}
-              >
-                {!product.image && t("productCard.no_image")}
-              </div>
-            ) : (
-              <img
-                src={product.imageURL}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
-              />
+    <div
+      className={`group flex flex-col sm:flex-row gap-3 p-3 rounded-xl border bg-white transition ${
+        isHidden
+          ? "border-rose-100 bg-rose-50/20"
+          : "border-slate-200 hover:border-indigo-200 hover:shadow-sm"
+      }`}
+    >
+      {/* LEFT: image + name + meta */}
+      <div className="flex gap-3 flex-1 min-w-0">
+        <div className="size-16 sm:size-20 rounded-lg ring-1 ring-slate-200 bg-slate-50 grid place-items-center overflow-hidden shrink-0">
+          {!product.imageURL || imgError ? (
+            <ImageIcon className="size-6 text-slate-300" />
+          ) : (
+            <img
+              src={product.imageURL}
+              alt={product.name}
+              className="size-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1 flex flex-col">
+          <div className="flex items-start gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 truncate flex-1 min-w-0">
+              {product.name}
+            </h3>
+            <span
+              className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md shrink-0 ${
+                isHidden
+                  ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              }`}
+            >
+              {isHidden
+                ? t("editCategories.status_closed")
+                : t("editCategories.status_open")}
+            </span>
+          </div>
+
+          <div className="mt-0.5 flex flex-wrap items-center gap-1">
+            {product.categoryName && (
+              <span className="inline-flex items-center text-[10px] font-medium text-indigo-700 bg-indigo-50 ring-1 ring-indigo-100 px-1.5 py-0.5 rounded-md">
+                {product.categoryName}
+              </span>
+            )}
+            {portionCount > 0 && (
+              <span className="inline-flex items-center text-[10px] font-medium text-slate-600 bg-slate-50 ring-1 ring-slate-200 px-1.5 py-0.5 rounded-md">
+                {t("productCard.portion_count", { count: portionCount })}
+              </span>
             )}
           </div>
-        </div>
 
-        {/* Text Info */}
-        <div className="flex flex-col justify-center">
-          <h3 className="text-lg font-bold text-[--black-2]">{product.name}</h3>
-          <span className="text-[--gr-1] text-sm font-medium">
-            {product.categoryName}
-          </span>
-          <div className="flex gap-1">
-            <p className="min-w-[.1rem] bg-[--gr-3] mt-2"></p>
-            <p className="text-[--gr-2] text-xs italic mt-2 leading-relaxed">
-              "{product.description?.slice(0, 50)}"
-              {product.description?.length > 50 && "..."}
+          {product.description && (
+            <p className="mt-1 text-[11px] text-slate-500 italic line-clamp-2 leading-snug">
+              "{product.description}"
             </p>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Right: Portions & Prices */}
-      <div className="flex-1 flex flex-col justify-center">
-        {product.portions.map((portion, idx) => (
-          <div
-            key={portion.id}
-            className={`flex flex-wrap items-center justify-between bg-[--light-1] p-2 first:rounded-t-md last:rounded-b-md border border-[--gr-4] border-b-[--gr-3] last:border-b-[--gr-4] hover:bg-[--gr-4]`}
-          >
-            <span className="text-[--black-2] font-medium text-base">
-              {portion.name}
-            </span>
-
-            <div className="flex flex-col items-end text-right gap-0.5">
-              <span className="text-[--black-2] font-bold text-lg">
-                {portion.price.toLocaleString("tr-TR", {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 2,
-                })}
+      {/* MIDDLE: portions list */}
+      {portionCount > 0 && (
+        <div className="flex flex-col gap-1 sm:w-[14rem] md:w-[16rem] shrink-0">
+          {product.portions.slice(0, 4).map((portion) => (
+            <div
+              key={portion.id}
+              className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-100"
+            >
+              <span className="text-xs font-medium text-slate-700 truncate min-w-0">
+                {portion.name}
               </span>
-
-              {portion.campaignPrice > 0 && (
-                <span className="text-[--green-1] text-xs font-semibold">
-                  {t("productCard.campaign_prefix")} {portion.campaignPrice}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs font-bold text-slate-900 tabular-nums">
+                  {Number(portion.price).toLocaleString("tr-TR", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
-              )}
+                {portion.campaignPrice > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200 px-1 py-0.5 rounded">
+                    <TrendingUp className="size-2.5" strokeWidth={3} />
+                    {Number(portion.campaignPrice).toLocaleString("tr-TR", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Action Buttons - Absolute bottom right or flex end on mobile */}
-      <div className="flex md:flex-col justify-end max-md:gap-2 mt-4 md:mt-0 md:justify-center md:pl-4">
-        <div className="mb-1">
-          <span
-            className={`${
-              product.hide
-                ? "bg-[--status-red] text-[--red-1]"
-                : "bg-[--status-green] text-[--green-1]"
-            } px-3 py-1 rounded-full text-xs font-semibold`}
-          >
-            {product.hide
-              ? t("editCategories.status_closed")
-              : t("editCategories.status_open")}
-          </span>
+          ))}
+          {portionCount > 4 && (
+            <span className="text-[10px] text-slate-400 italic px-1">
+              +{portionCount - 4}
+            </span>
+          )}
         </div>
+      )}
 
+      {/* RIGHT: action buttons */}
+      <div className="flex sm:flex-col gap-1 sm:gap-1 sm:justify-center shrink-0 sm:border-l sm:border-slate-100 sm:pl-2">
         <button
-          className="max-w-min p-2 hover:bg-[--light-3] rounded-full transition-colors md:ml-1.5"
+          type="button"
           onClick={() =>
             navigate(`/restaurant/products/${id}/edit/${product.id}`, {
               state: { product },
             })
           }
+          title={t("editCategories.edit")}
+          className="grid place-items-center size-8 rounded-md text-indigo-600 hover:bg-indigo-50 transition"
         >
-          <EditI strokeWidth={1.5} className="size-[1.3rem] text-[--black-2]" />
+          <Pencil className="size-3.5" />
         </button>
-
         <button
-          className="max-w-min p-2 hover:bg-[--light-3] rounded-full transition-colors md:ml-1.5"
+          type="button"
           onClick={() =>
             setSecondPopupContent(<DeleteProduct product={product} />)
           }
+          title={t("editCategories.delete")}
+          className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
         >
-          <DeleteI strokeWidth={1.5} className="size-[1.3rem] text-[--red-1]" />
+          <Trash2 className="size-3.5" />
         </button>
       </div>
     </div>

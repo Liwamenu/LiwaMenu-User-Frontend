@@ -658,11 +658,17 @@
   },
   "menuList": {
     "title": "Menu List",
+    "subtitle": "Manage your restaurant's active menus and schedules.",
     "add_menu": "Add New Menu",
     "edit": "Edit",
     "delete": "Delete",
     "every_day": "Every Day",
-    "no_time_plan": "No time plan added."
+    "no_time_plan": "No time plan added.",
+    "summary": "{{count}} menus",
+    "no_menus": "No menus yet",
+    "no_menus_info": "Start by adding your first menu — link categories to it and activate with day/time scheduling.",
+    "schedule_count": "{{count}} schedules",
+    "category_count": "{{count}} categories"
   },
   "addMenu": {
     "title": "New Menu",
@@ -695,16 +701,25 @@
     "add_product": "Add Product"
   },
   "productsList": {
-    "search_placeholder": "Search Product...",
+    "title": "Products",
+    "subtitle": "Edit your products, set prices, and manage their status.",
+    "summary": "{{count}} products",
+    "search_placeholder": "Search product...",
     "all_categories": "All Categories",
     "all_statuses": "All Statuses",
-    "no_products": "No products found."
+    "no_products": "No products found.",
+    "filters": "Filters",
+    "clear_filters": "Clear Filters"
   },
   "productCard": {
     "no_image": "No Image",
-    "campaign_prefix": "Campaign:"
+    "campaign_prefix": "Campaign:",
+    "portion_count": "{{count}} portions"
   },
   "priceList": {
+    "title": "Price List",
+    "subtitle": "Manage product and portion prices in a single list.",
+    "summary": "{{count}} products · {{categories}} categories",
     "success": "Price list updated successfully.",
     "save_changes": "Save Changes",
     "normal_price": "Regular Price",
@@ -751,6 +766,10 @@
     "image_ai_button": "Generate with Liwa AI",
     "image_prompt_placeholder": "Add image detail (e.g. On a wooden table, with ayran...)",
     "image_click_to_select": "Click to Select Image",
+    "image_upload": "Upload",
+    "image_change": "Change",
+    "image_remove": "Remove",
+    "image_hint": "PNG/JPEG · max 5MB",
     "portions_title": "Portions and Prices",
     "add_portion": "Add Portion",
     "portion_name_placeholder": "Portion Name",
@@ -766,7 +785,8 @@
   "addProduct": {
     "title": "New Product",
     "success": "Product added successfully.",
-    "save": "Save"
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "deleteProduct": {
     "title": "Delete Operation",
@@ -839,6 +859,46 @@
     "edit_profile": "Edit Profile",
     "security": "Security",
     "invoice_info": "Invoice Information"
+  },
+  "orderTags": {
+    "title": "Product Tags",
+    "subtitle": "Add extra options and customizations to your products.",
+    "summary": "{{count}} tag groups · {{dirty}} unsaved",
+    "summary_clean": "{{count}} tag groups",
+    "add_group": "Add Group",
+    "save_all": "Save All",
+    "no_groups": "No tag groups yet",
+    "no_groups_info": "Add your first group — define options and which products they apply to.",
+    "validation_unsaved": "Please complete the existing new group first.",
+    "validation_invalid": "Please give every group a name and at least one option.",
+    "saved_success": "Tag groups saved.",
+    "group_name_placeholder": "Group Name",
+    "min": "Min",
+    "max": "Max",
+    "free_tagging": "Free Tagging",
+    "free_tagging_active": "Free Tagging Enabled",
+    "free_tagging_info": "Customers can add a note while ordering.",
+    "tab_options": "Options",
+    "tab_relations": "Related Products",
+    "add_option": "Add Option",
+    "add_relation": "Add Relation",
+    "no_relations_warning": "No relations defined for this group — options won't be shown to customers.",
+    "save_group": "Save",
+    "cancel_new": "Cancel",
+    "delete_group": "Delete Group",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "col_option_name": "Option",
+    "col_price": "Price",
+    "col_default": "Def.",
+    "col_required": "Req.",
+    "col_min": "Min",
+    "col_max": "Max",
+    "col_category": "Category",
+    "col_product": "Product",
+    "col_portion": "Portion",
+    "option_name_placeholder": "Option name",
+    "price_placeholder": "Price"
   },
   "surveySettings": {
     "title": "{{name}} Restaurant Customer Feedback Analytics",

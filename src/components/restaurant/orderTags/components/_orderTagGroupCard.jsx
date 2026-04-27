@@ -1,23 +1,34 @@
-//MODULES
+// MODULES
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  GripVertical,
+  ChevronDown,
+  Trash2,
+  X,
+  Save,
+  Plus,
+  ListChecks,
+  Link2,
+  Lightbulb,
+  AlertTriangle,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-//COMP
+// COMP
 import OptionRow from "./optionRow";
 import RelationRow from "./_relationRow";
 import { NewOption, NewRelation } from "./constraints";
-import CustomInput from "../../../common/customInput";
 import CustomCheckbox from "../../../common/customCheckbox";
-import { ArrowID, CancelI, DeleteI, DragI } from "../../../../assets/icon";
 
-//REDUX
+// REDUX
 import {
   editOrderTag,
   resetEditOrderTag,
 } from "../../../../redux/orderTags/editOrderTagSlice";
 import { addOrderTag } from "../../../../redux/orderTags/addOrderTagSlice";
-import toast from "react-hot-toast";
 
 const OrderTagGroupCard = ({
   group,
@@ -31,6 +42,7 @@ const OrderTagGroupCard = ({
   dragHandleProps,
 }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const { success: editSuccess, error: editError } = useSelector(
     (s) => s.orderTags.edit,
@@ -76,7 +88,6 @@ const OrderTagGroupCard = ({
     const newRels = group.relations.map((rel) =>
       rel.id === relId ? { ...rel, ...updates } : rel,
     );
-    console.log(relId, updates);
     onUpdate({ relations: newRels, isDirty: true });
   };
 
@@ -87,26 +98,22 @@ const OrderTagGroupCard = ({
 
   const handleItemDragEnd = (result) => {
     if (!result.destination) return;
-
     const items = Array.from(group.items);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-
     const updatedItems = items.map((item, index) => ({
       ...item,
       sortOrder: index,
     }));
-
     onUpdate({ items: updatedItems, isDirty: true });
   };
 
   function handleUpdateItem(e) {
     e.preventDefault();
     if (group.relations.length === 0) {
-      toast.error("Lütfen en az bir ilişki ekleyin");
+      toast.error(t("orderTags.no_relations_warning"));
       return;
     }
-    console.log(group);
     group?.isNew
       ? dispatch(addOrderTag({ ...group, restaurantId }))
       : dispatch(editOrderTag({ ...group, restaurantId }));
@@ -114,218 +121,278 @@ const OrderTagGroupCard = ({
 
   useEffect(() => {
     if (editSuccess) {
-      toast.success("Etiket gurubu başarıyla güncellendi.", {
-        id: "edit-order-tag",
-      });
+      toast.success(t("orderTags.saved_success"), { id: "edit-order-tag" });
       dispatch(resetEditOrderTag());
       onUpdate({ isDirty: false, isNew: false });
     }
     if (editError) dispatch(resetEditOrderTag());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editSuccess, editError]);
 
   useEffect(() => {
     if (addSuccess) {
-      toast.success("Etiket gurubu başarıyla eklendi.", {
-        id: "add-order-tag",
-      });
+      toast.success(t("orderTags.saved_success"), { id: "add-order-tag" });
       dispatch(resetEditOrderTag());
       onUpdate({ isDirty: false, isNew: false });
     }
     if (addError) dispatch(resetEditOrderTag());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addSuccess, addError]);
+
+  const borderTone = group.isDirty
+    ? "border-rose-300 ring-1 ring-rose-100"
+    : hasNoRelations && !group.isNew
+      ? "border-rose-300 bg-rose-50/30"
+      : "border-slate-200";
 
   return (
     <form onSubmit={handleUpdateItem}>
       <div
-        className={`rounded-xl shadow-sm border transition-all overflow-visible animate-fade-in bg-[--white-1] 
-        ${group.isDirty ? "border-[--red-1]" : "border-[--border-1]"}
-        ${hasNoRelations && !group.isNew ? "border-[--red-1] bg-[#fff5f5]" : ""}
-        ${isDragging ? "shadow-xl scale-[1.02]" : ""}
-        `}
+        className={`rounded-xl border bg-white transition-all ${borderTone} ${
+          isDragging ? "ring-2 ring-indigo-200 shadow-lg" : ""
+        }`}
       >
-        {/* Header */}
+        {/* HEADER */}
         <div
-          className={`p-4 border-b flex flex-wrap items-center justify-between gap-4 bg-[--light-1] border-[--border-1] ${
-            isCollapsed ? "rounded-xl" : "rounded-t-xl"
+          className={`p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 ${
+            !isCollapsed ? "border-b border-slate-100" : ""
           }`}
         >
-          <div className="flex items-center gap-4 flex-grow">
-            <span
-              className="cursor-move text-xl text-[--primary-1]"
+          {/* Top row: drag handle + name input + actions (mobile collapsed) */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <button
+              type="button"
               {...dragHandleProps}
+              aria-label="drag"
+              className="grid place-items-center size-7 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition cursor-grab active:cursor-grabbing shrink-0"
             >
-              <DragI />
-            </span>
+              <GripVertical className="size-4" />
+            </button>
+            <input
+              type="text"
+              required
+              value={group.name}
+              onChange={(e) =>
+                onUpdate({ name: e.target.value, isDirty: true })
+              }
+              placeholder={t("orderTags.group_name_placeholder")}
+              className="flex-1 min-w-0 h-9 px-3 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm font-semibold outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
 
-            <div className="flex-grow min-w-60 max-w-[26rem]">
-              <CustomInput
+            {/* Mobile-only quick actions (collapse + delete) */}
+            <div className="flex items-center gap-0.5 sm:hidden shrink-0">
+              {group.isNew ? (
+                <button
+                  type="button"
+                  onClick={onCancelNew}
+                  title={t("orderTags.cancel_new")}
+                  className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+                >
+                  <X className="size-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  title={t("orderTags.delete_group")}
+                  className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
+              {!group.isNew && (
+                <button
+                  type="button"
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  title={
+                    isCollapsed
+                      ? t("orderTags.expand")
+                      : t("orderTags.collapse")
+                  }
+                  className="grid place-items-center size-8 rounded-md text-indigo-600 hover:bg-indigo-50 transition"
+                >
+                  <ChevronDown
+                    className={`size-3.5 transition-transform ${
+                      isCollapsed ? "" : "rotate-180"
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Min/Max + Free Tagging + Save + (desktop) actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1 h-9 px-2 rounded-lg border border-slate-200 bg-slate-50/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {t("orderTags.min")}
+              </span>
+              <input
+                type="number"
                 required
-                type="text"
-                value={group.name}
-                onChange={(v) => onUpdate({ name: v, isDirty: true })}
-                className="px-3 py-[8px] text-sm rounded-lg font-bold transition-all bg-[--white-1] border-[--border-1] text-[--black-1] placeholder:!text-[--gr-3]"
-                placeholder="Gurup Adı"
+                value={group.minSelected}
+                onChange={(e) =>
+                  onUpdate({
+                    minSelected: parseInt(e.target.value) || 0,
+                    isDirty: true,
+                  })
+                }
+                className="w-10 text-center text-sm font-bold text-slate-900 bg-transparent outline-none"
+              />
+              <span className="text-slate-300">|</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {t("orderTags.max")}
+              </span>
+              <input
+                type="number"
+                required
+                value={group.maxSelected}
+                onChange={(e) =>
+                  onUpdate({
+                    maxSelected: parseInt(e.target.value) || 1,
+                    isDirty: true,
+                  })
+                }
+                className="w-10 text-center text-sm font-bold text-slate-900 bg-transparent outline-none"
               />
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg border shadow-sm text-sm bg-[--white-1] border-[--border-1]">
-              <span className="font-semibold text-[--gr-1]">Min:</span>
-              <div className="w-20">
-                <CustomInput
-                  required
-                  type="number"
-                  value={group.minSelected}
-                  onChange={(v) =>
-                    onUpdate({
-                      minSelected: parseInt(v) || 0,
-                      isDirty: true,
-                    })
-                  }
-                  className="text-center font-bold text-[--black-1] bg-transparent px-[5px] py-[5px]"
-                />
-              </div>
-              <span className="mx-1 text-[--gr-3]">|</span>
-              <span className="font-semibold text-[--gr-1]">Max:</span>
-              <div className="w-20">
-                <CustomInput
-                  required
-                  type="number"
-                  value={group.maxSelected}
-                  onChange={(v) =>
-                    onUpdate({
-                      maxSelected: parseInt(v) || 1,
-                      isDirty: true,
-                    })
-                  }
-                  className="w-[2.5rem] text-center font-bold text-[--black-1] bg-transparent px-[5px] py-[5px]"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border shadow-sm bg-[--white-1] border-[--border-1] whitespace-nowrap">
+            <label className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-slate-200 bg-slate-50/60 cursor-pointer">
               <CustomCheckbox
                 id={`ft-${group.id}`}
-                label="Serbest Etiketleme"
+                label=""
                 checked={group.freeTagging}
                 onChange={(e) =>
                   onUpdate({ freeTagging: e.target.checked, isDirty: true })
                 }
-                size="4 rounded-[4.5px]"
-                className2="text-xs text-[--gr-1]"
+                size="4 rounded-[4px]"
               />
-            </div>
+              <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">
+                {t("orderTags.free_tagging")}
+              </span>
+            </label>
 
             {group.isDirty && (
               <button
                 type="submit"
-                className="px-3 py-2 rounded-md text-xs font-bold animate-pulse transition-colors flex items-center gap-1 bg-[--red-1] hover:bg-[--red-2] text-white"
+                className="inline-flex items-center gap-1 h-9 px-3 rounded-lg text-xs font-semibold transition bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/25 hover:brightness-110 animate-pulse"
               >
-                Kaydet
+                <Save className="size-3.5" />
+                {t("orderTags.save_group")}
               </button>
             )}
-          </div>
 
-          <div className="flex items-center gap-3">
-            {group.isNew ? (
-              <button
-                type="button"
-                onClick={onCancelNew}
-                className="p-1 text-[--red-1]"
-                title="İptal"
-              >
-                <CancelI className="size-[1rem]" />
-              </button>
-            ) : (
-              <>
+            {/* Desktop-only actions */}
+            <div className="hidden sm:flex items-center gap-0.5 ml-1">
+              {group.isNew ? (
                 <button
                   type="button"
-                  onClick={onDelete}
-                  className="p-1 text-[--red-1]"
-                  title="Sil"
+                  onClick={onCancelNew}
+                  title={t("orderTags.cancel_new")}
+                  className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
                 >
-                  <DeleteI className="size-[1rem]" strokeWidth={1.7} />
+                  <X className="size-3.5" />
                 </button>
-                <div className="w-px h-6 bg-[--border-1]" />
-                <button
-                  type="button"
-                  onClick={() => setIsCollapsed(!isCollapsed)}
-                  className={`p-1 rounded-full transition-transform ${
-                    isCollapsed ? "" : "rotate-180"
-                  } text-[--primary-1] hover:bg-[--light-1]`}
-                >
-                  <ArrowID />
-                </button>
-              </>
-            )}
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={onDelete}
+                    title={t("orderTags.delete_group")}
+                    className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    title={
+                      isCollapsed
+                        ? t("orderTags.expand")
+                        : t("orderTags.collapse")
+                    }
+                    className="grid place-items-center size-8 rounded-md text-indigo-600 hover:bg-indigo-50 transition"
+                  >
+                    <ChevronDown
+                      className={`size-3.5 transition-transform ${
+                        isCollapsed ? "" : "rotate-180"
+                      }`}
+                    />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Body */}
+        {/* BODY */}
         {!isCollapsed && (
-          <div className="bg-[--white-1] rounded-b-xl">
-            <div className="flex border-b border-[--border-1] bg-[--white-2]">
-              <button
-                type="button"
+          <div>
+            {/* Tabs */}
+            <div className="flex gap-0.5 px-2 sm:px-3 pt-2 border-b border-slate-100 overflow-x-auto">
+              <TabButton
+                active={activeTab === "options"}
                 onClick={() => setActiveTab("options")}
-                className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${
-                  activeTab === "options"
-                    ? "border-[--primary-1] text-[--primary-1] bg-[--white-1]"
-                    : "border-transparent text-[--gr-1]"
-                }`}
-              >
-                Etiketler ({group.items.length})
-              </button>
-              <button
-                type="button"
+                icon={ListChecks}
+                label={`${t("orderTags.tab_options")} (${group.items.length})`}
+              />
+              <TabButton
+                active={activeTab === "relations"}
                 onClick={() => setActiveTab("relations")}
-                className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${
-                  activeTab === "relations"
-                    ? "border-[--primary-1] text-[--primary-1] bg-[--white-1]"
-                    : "border-transparent text-[--gr-1]"
-                }`}
-              >
-                İlişkili Ürünler ({group.relations.length})
-              </button>
+                icon={Link2}
+                label={`${t("orderTags.tab_relations")} (${group.relations.length})`}
+                tone="blue"
+              />
             </div>
 
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               {activeTab === "options" ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={addItem}
-                      className="px-4 py-2 rounded-lg text-sm shadow-sm transition-all flex items-center gap-1 bg-[--green-1] hover:bg-[--green-2] text-[--white-1]"
+                      className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-xs font-semibold transition shadow-md shadow-emerald-500/25 hover:brightness-110 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                     >
-                      <CancelI className="size-[1.1rem] rotate-45" /> Seçenek
-                      Ekle
+                      <Plus className="size-4" />
+                      {t("orderTags.add_option")}
                     </button>
                   </div>
 
-                  {/* Table Header */}
-                  <div className="grid grid-cols-12 gap-3 px-3 py-2 border-b-2 text-[10px] uppercase font-bold tracking-wider border-[--border-1] text-[--primary-1] whitespace-nowrap">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-3">Seçenek Adı</div>
-                    <div className="col-span-2">Fiyatı</div>
-                    <div className="col-span-1 text-center">Vars.</div>
-                    <div className="col-span-1 text-center">Zorunlu</div>
-                    <div className="col-span-1 text-center">Min. Adet</div>
-                    <div className="col-span-1 text-center">Max. Adet</div>
-                    <div className="col-span-1"></div>
+                  {/* Desktop column header */}
+                  <div className="hidden md:grid grid-cols-12 gap-2 px-3 text-[10px] uppercase font-bold tracking-wider text-slate-500">
+                    <div className="col-span-1" />
+                    <div className="col-span-3">
+                      {t("orderTags.col_option_name")}
+                    </div>
+                    <div className="col-span-2">{t("orderTags.col_price")}</div>
+                    <div className="col-span-1 text-center">
+                      {t("orderTags.col_default")}
+                    </div>
+                    <div className="col-span-1 text-center">
+                      {t("orderTags.col_required")}
+                    </div>
+                    <div className="col-span-1 text-center">
+                      {t("orderTags.col_min")}
+                    </div>
+                    <div className="col-span-1 text-center">
+                      {t("orderTags.col_max")}
+                    </div>
+                    <div className="col-span-1" />
                   </div>
 
                   <DragDropContext onDragEnd={handleItemDragEnd}>
-                    <Droppable droppableId="items">
+                    <Droppable droppableId={`items-${group.id}`}>
                       {(provided) => (
                         <div
-                          className="space-y-2"
+                          className="flex flex-col gap-1.5"
                           {...provided.droppableProps}
                           ref={provided.innerRef}
                         >
                           {group.items.map((item, index) => (
                             <Draggable
-                              key={index}
-                              draggableId={item.id}
+                              key={item.id || index}
+                              draggableId={item.id || `temp-${index}`}
                               index={index}
                             >
                               {(provided, snapshot) => (
@@ -351,41 +418,50 @@ const OrderTagGroupCard = ({
                   </DragDropContext>
 
                   {group.freeTagging && (
-                    <div className="border p-4 rounded-xl mt-4 flex items-start gap-3 bg-[--status-yellow] border-[--yellow-1]">
-                      <span className="text-xl">💡</span>
-                      <div>
-                        <h4 className="font-bold text-sm text-[--black-1]">
-                          Serbest Etiketleme Etkin
+                    <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2.5">
+                      <span className="grid place-items-center size-7 rounded-lg bg-white text-amber-600 ring-1 ring-amber-200 shrink-0">
+                        <Lightbulb className="size-3.5" />
+                      </span>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-amber-900">
+                          {t("orderTags.free_tagging_active")}
                         </h4>
-                        <p className="text-xs mt-1 text-[--black-2]">
-                          Kullanıcılar sipariş sırasında ek not girebilecektir.
+                        <p className="text-[11px] text-amber-800/90 mt-0.5">
+                          {t("orderTags.free_tagging_info")}
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={addRelation}
-                      className="px-4 py-2 rounded-lg text-sm shadow-sm transition-all flex items-center gap-1 bg-[--blue-1] hover:bg-[--blue-2] text-[--white-1]"
+                      className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-xs font-semibold transition shadow-md shadow-blue-500/25 hover:brightness-110 bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                     >
-                      <CancelI className="size-[1.1rem] rotate-45" /> İlişkili
-                      Ürün Ekle
+                      <Plus className="size-4" />
+                      {t("orderTags.add_relation")}
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-12 gap-3 px-3 py-2 border-b-2 text-[10px] uppercase font-bold tracking-wider border-[--border-1] text-[--blue-1]">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-3">Kategori</div>
-                    <div className="col-span-4">Ürün</div>
-                    <div className="col-span-3">Porsiyon</div>
-                    <div className="col-span-1"></div>
+                  {/* Desktop column header */}
+                  <div className="hidden md:grid grid-cols-12 gap-2 px-3 text-[10px] uppercase font-bold tracking-wider text-slate-500">
+                    <div className="col-span-1" />
+                    <div className="col-span-3">
+                      {t("orderTags.col_category")}
+                    </div>
+                    <div className="col-span-4">
+                      {t("orderTags.col_product")}
+                    </div>
+                    <div className="col-span-3">
+                      {t("orderTags.col_portion")}
+                    </div>
+                    <div className="col-span-1" />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-1.5">
                     {group.relations.map((rel) => (
                       <RelationRow
                         key={rel.id}
@@ -399,10 +475,12 @@ const OrderTagGroupCard = ({
                   </div>
 
                   {group.relations.length === 0 && (
-                    <div className="p-8 border-2 border-dashed rounded-xl text-center border-[--red-3]">
-                      <p className="font-medium text-sm text-[--red-1]">
-                        Bu etiket gurubu için hiç bir ilişki vermediğiniz için
-                        seçenekler müşteriye sorulmayacaktır!
+                    <div className="rounded-xl border-2 border-dashed border-rose-200 bg-rose-50/40 p-4 flex items-start gap-2.5">
+                      <span className="grid place-items-center size-7 rounded-lg bg-white text-rose-600 ring-1 ring-rose-200 shrink-0">
+                        <AlertTriangle className="size-3.5" />
+                      </span>
+                      <p className="text-[11px] text-rose-800 leading-relaxed flex-1 min-w-0">
+                        {t("orderTags.no_relations_warning")}
                       </p>
                     </div>
                   )}
@@ -413,6 +491,27 @@ const OrderTagGroupCard = ({
         )}
       </div>
     </form>
+  );
+};
+
+const TabButton = ({ active, onClick, icon: Icon, label, tone = "indigo" }) => {
+  const activeCls =
+    tone === "blue"
+      ? "text-blue-700 border-blue-600 bg-blue-50/40"
+      : "text-indigo-700 border-indigo-600 bg-indigo-50/40";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative inline-flex items-center gap-1.5 px-3 py-2 rounded-t-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition border-b-2 ${
+        active
+          ? activeCls
+          : "text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50"
+      }`}
+    >
+      <Icon className="size-4" />
+      {label}
+    </button>
   );
 };
 

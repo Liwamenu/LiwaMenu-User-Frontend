@@ -659,11 +659,17 @@
   },
   "menuList": {
     "title": "Menü Listesi",
+    "subtitle": "Restoranınızın aktif menülerini ve programlarını yönetin.",
     "add_menu": "Yeni Menü Ekle",
     "edit": "Düzenle",
     "delete": "Sil",
     "every_day": "Her Gün",
-    "no_time_plan": "Zaman planı eklenmemiş."
+    "no_time_plan": "Zaman planı eklenmemiş.",
+    "summary": "{{count}} menü",
+    "no_menus": "Henüz menü yok",
+    "no_menus_info": "İlk menünüzü ekleyerek başlayın — kategorileri menülere bağlayıp gün ve saat planlamasıyla aktifleştirebilirsiniz.",
+    "schedule_count": "{{count}} plan",
+    "category_count": "{{count}} kategori"
   },
   "addMenu": {
     "title": "Yeni Menü",
@@ -696,16 +702,25 @@
     "add_product": "Ürün Ekle"
   },
   "productsList": {
-    "search_placeholder": "Ürün Ara...",
+    "title": "Ürünler",
+    "subtitle": "Restoran ürünlerinizi düzenleyin, fiyatlandırın ve durumlarını yönetin.",
+    "summary": "{{count}} ürün",
+    "search_placeholder": "Ürün ara...",
     "all_categories": "Tüm Kategoriler",
     "all_statuses": "Tüm Durumlar",
-    "no_products": "Ürün bulunamadı."
+    "no_products": "Ürün bulunamadı.",
+    "filters": "Filtreler",
+    "clear_filters": "Filtreleri Temizle"
   },
   "productCard": {
     "no_image": "Görsel Yok",
-    "campaign_prefix": "Kampanya:"
+    "campaign_prefix": "Kampanya:",
+    "portion_count": "{{count}} porsiyon"
   },
   "priceList": {
+    "title": "Fiyat Listesi",
+    "subtitle": "Ürün ve porsiyon fiyatlarını tek listede yönetin.",
+    "summary": "{{count}} ürün · {{categories}} kategori",
     "success": "Fiyat listesi başarıyla güncellendi.",
     "save_changes": "Değişiklikleri Kaydet",
     "normal_price": "Normal Fiyatı",
@@ -752,6 +767,10 @@
     "image_ai_button": "Liwa AI ile Oluştur",
     "image_prompt_placeholder": "Görsel detayı ekle (Örn: Ahşap masada, yanında ayran ile...)",
     "image_click_to_select": "Görsel Seçmek İçin Tıklayın",
+    "image_upload": "Yükle",
+    "image_change": "Değiştir",
+    "image_remove": "Kaldır",
+    "image_hint": "PNG/JPEG · max 5MB",
     "portions_title": "Porsiyonlar ve Fiyatlar",
     "add_portion": "Porsiyon Ekle",
     "portion_name_placeholder": "Porsiyon Adı",
@@ -767,7 +786,8 @@
   "addProduct": {
     "title": "Yeni Ürün",
     "success": "Ürün başarıyla eklendi.",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "cancel": "Vazgeç"
   },
   "deleteProduct": {
     "title": "Silme İşlemi",
@@ -840,6 +860,46 @@
     "edit_profile": "Profili Düzenle",
     "security": "Güvenlik",
     "invoice_info": "Fatura Bilgileri"
+  },
+  "orderTags": {
+    "title": "Ürün Etiket Yönetimi",
+    "subtitle": "Ürünlerinize ek seçenekler ve özelleştirmeler ekleyin.",
+    "summary": "{{count}} etiket grubu · {{dirty}} kaydedilmemiş",
+    "summary_clean": "{{count}} etiket grubu",
+    "add_group": "Grup Ekle",
+    "save_all": "Tümünü Kaydet",
+    "no_groups": "Henüz etiket grubu yok",
+    "no_groups_info": "İlk grubu ekleyerek başlayın — seçenekleri ve hangi ürünlerle eşleşeceğini ayarlayın.",
+    "validation_unsaved": "Lütfen önce mevcut yeni grubu tamamlayın.",
+    "validation_invalid": "Lütfen tüm grupların adlarını girin ve en az bir seçenek ekleyin.",
+    "saved_success": "Etiket grupları kaydedildi.",
+    "group_name_placeholder": "Grup Adı",
+    "min": "Min",
+    "max": "Max",
+    "free_tagging": "Serbest Etiketleme",
+    "free_tagging_active": "Serbest Etiketleme Etkin",
+    "free_tagging_info": "Müşteriler sipariş sırasında ek not girebilir.",
+    "tab_options": "Seçenekler",
+    "tab_relations": "İlişkili Ürünler",
+    "add_option": "Seçenek Ekle",
+    "add_relation": "İlişkili Ürün Ekle",
+    "no_relations_warning": "Bu grup için hiçbir ilişki tanımlanmadı — seçenekler müşteriye sorulmayacak.",
+    "save_group": "Kaydet",
+    "cancel_new": "İptal",
+    "delete_group": "Grubu Sil",
+    "expand": "Genişlet",
+    "collapse": "Daralt",
+    "col_option_name": "Seçenek Adı",
+    "col_price": "Fiyat",
+    "col_default": "Vars.",
+    "col_required": "Zorunlu",
+    "col_min": "Min",
+    "col_max": "Max",
+    "col_category": "Kategori",
+    "col_product": "Ürün",
+    "col_portion": "Porsiyon",
+    "option_name_placeholder": "Seçenek Adı",
+    "price_placeholder": "Fiyat"
   },
   "surveySettings": {
     "title": "{{name}} Restoranı Müşteri Geri Bildirim Analitikleri",

@@ -4,8 +4,10 @@ const CustomSelect = ({
   label,
   value,
   isSearchable,
+  isClearable,
   options,
   onChange,
+  placeholder,
   className,
   className2,
   disabled,
@@ -31,9 +33,11 @@ const CustomSelect = ({
         onChange={onChange}
         options={options}
         required={required}
+        placeholder={placeholder}
         className={`text-base font-[350] ${className}`}
         isDisabled={disabled}
         isSearchable={isSearchable !== undefined ? isSearchable : true}
+        isClearable={isClearable}
         formatOptionLabel={formatOptionLabel}
         menuPlacement={menuPlacement || "bottom"}
         styles={{
@@ -50,9 +54,9 @@ const CustomSelect = ({
           option: (provided, state) => ({
             ...provided,
             backgroundColor:
-              state.label === value.label ? "var(--light-1)" : "var(--white-1)",
+              state.label === value?.label ? "var(--light-1)" : "var(--white-1)",
             color:
-              state.label === value.label ? "var(--black-2)" : "var(--black-1)",
+              state.label === value?.label ? "var(--black-2)" : "var(--black-1)",
             ...optionStyle,
           }),
           singleValue: (provided, state) => ({

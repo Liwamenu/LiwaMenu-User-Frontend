@@ -121,7 +121,7 @@ const PriceListApplyBulk = ({ list, setList }) => {
   };
 
   return (
-    <div className="bg-[#222265] rounded-2xl p-6 mb-8 text-white shadow-lg relative">
+    <div className="bg-[#222265]/50 rounded-2xl p-6 mb-8 text-white shadow-lg relative">
       <div className="relative z-10">
         {/* Title & Desc */}
         <div className="flex-1 mb-6">

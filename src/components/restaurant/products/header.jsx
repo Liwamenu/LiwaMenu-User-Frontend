@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Package, DollarSign, PlusCircle } from "lucide-react";
 
 const ProductsHeader = () => {
   const params = useParams();
@@ -8,32 +9,42 @@ const ProductsHeader = () => {
   const thisPath = params["*"]?.split("/")[0];
   const { t } = useTranslation();
 
-  const pathMatches = (path) => thisPath === path && fullPath.length == 2;
+  const pathMatches = (path) => thisPath === path && fullPath.length === 2;
 
   const headers = [
-    { label: t("productsHeader.manage"), path: "products" },
-    { label: t("productsHeader.price_list"), path: "price-list" },
-    { label: t("productsHeader.add_product"), path: "add-product" },
+    { label: t("productsHeader.manage"), path: "products", icon: Package },
+    {
+      label: t("productsHeader.price_list"),
+      path: "price-list",
+      icon: DollarSign,
+    },
+    {
+      label: t("productsHeader.add_product"),
+      path: "add-product",
+      icon: PlusCircle,
+    },
   ];
 
   return (
-    <>
-      {headers.map((header) => (
-        <div key={header.path} className="max-sm:flex-1 flex sm:justify-end">
+    <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-sm overflow-x-auto max-w-full">
+      {headers.map(({ label, path, icon: Icon }) => {
+        const active = pathMatches(path);
+        return (
           <Link
-            key={header.path}
-            to={`/restaurant/${header.path}/${id}`}
-            className={`max-sm:min-w-28 max-sm:max-h-10 flex justify-center px-3 py-2 rounded-md whitespace-nowrap ${
-              pathMatches(header.path)
-                ? "bg-[--primary-1] text-white"
-                : "text-[--black-1] bg-[--light-3]"
+            key={path}
+            to={`/restaurant/${path}/${id}`}
+            className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
+              active
+                ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
-            {header.label}
+            <Icon className="size-4" />
+            {label}
           </Link>
-        </div>
-      ))}
-    </>
+        );
+      })}
+    </div>
   );
 };
 

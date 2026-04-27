@@ -1,6 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import CustomSelect from "../../common/customSelector";
 import CustomTextarea from "../../common/customTextarea";
 import CustomToggle from "../../common/customToggle";
 import CustomFileInput from "../../common/customFileInput";
+import { ProductImagePicker, AIImagePromptCard } from "./editProduct";
 
 // DATA
 import categoriesJSON from "../../../assets/js/Categories.json";
@@ -39,6 +40,9 @@ const emptyPortion = () => ({
   specialPrice: 0, // local optional “Özel” price
 });
 
+// First portion is pre-named "Normal" so single-portion products can be saved
+// without an extra rename step. Additional portions added by the user start
+// blank as before.
 const defaultProduct = {
   sortOrder: 0,
   name: "",
@@ -51,11 +55,12 @@ const defaultProduct = {
   subCategoryId: "",
   subCategoryName: "",
   freeTagging: true,
-  portions: [emptyPortion()],
+  portions: [{ ...emptyPortion(), name: "Normal" }],
 };
 
 const AddProduct = () => {
   const params = useParams();
+  const navigate = useNavigate();
   const restaurantId = params.id;
   const dispatch = useDispatch();
 
@@ -273,7 +278,7 @@ const AddProduct = () => {
                 />
 
                 <CustomSelect
-                  label={`${t("editProduct.subCategory_label")} *`}
+                  label={t("editProduct.subCategory_label")}
                   disabled={!productData.categoryId}
                   placeholder={t("editProduct.subCategory_placeholder")}
                   value={
@@ -282,19 +287,11 @@ const AddProduct = () => {
                           value: productData.subCategoryId,
                           label: productData.subCategoryName,
                         }
-                      : {
-                          value: "",
-                          label: t("editProduct.subCategory_placeholder"),
-                        }
+                      : null
                   }
+                  isClearable
                   style={{ backgroundColor: "var(--light-1)" }}
-                  options={[
-                    {
-                      label: t("editProduct.subCategory_placeholder"),
-                      value: "",
-                    },
-                    ...getSubcatOptions(productData.categoryId),
-                  ]}
+                  options={getSubcatOptions(productData.categoryId)}
                   onChange={(opt) =>
                     setProductData((prev) => ({
                       ...prev,
@@ -364,76 +361,19 @@ const AddProduct = () => {
                   {t("editProduct.image_label")}
                 </span>
 
-                <div className="bg-[--light-4] p-4 rounded-xl border border-[--border-1]">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
-                      <i className="fa-solid fa-palette mr-1" />
-                      {t("editProduct.image_ai_title")}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => console.log("AI image")}
-                      id="ai-img-btn"
-                      className="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition font-medium shadow-sm flex items-center"
-                    >
-                      <i className="fa-solid fa-wand-magic-sparkles mr-1.5" />
-                      {t("editProduct.image_ai_button")}
-                    </button>
-                  </div>
+                <AIImagePromptCard
+                  t={t}
+                  onGenerated={handleFileChange}
+                />
 
-                  <CustomInput
-                    placeholder={t("editProduct.image_prompt_placeholder")}
-                    className="w-full rounded-xl border-[--border-1] bg-[--light-1] focus:bg-[--white-1] p-3.5 text-[--black-1] border focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm"
-                  />
-                </div>
+                <ProductImagePicker
+                  preview={preview}
+                  image={productData.image}
+                  onChange={handleFileChange}
+                  onRemove={() => handleFileChange(null)}
+                  t={t}
+                />
 
-                <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-[--light-2] transition-all relative cursor-pointer h-48 flex flex-col justify-center items-center">
-                  {preview ? (
-                    <div className="w-full h-full overflow-hidden flex justify-center items-center rounded-lg">
-                      <img
-                        src={preview}
-                        className="max-h-full w-auto object-contain rounded-md"
-                        alt={t("editProduct.image_label")}
-                      />
-                    </div>
-                  ) : (
-                    <div className="group-hover:scale-110 transition-transform duration-300 pointer-events-none">
-                      <div className="w-12 h-12 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <div className="pl-1 pt-1">
-                          <CloudUI />
-                        </div>
-                      </div>
-                      <p className="text-sm text-[--light-1]0 group-hover:text-indigo-600 font-medium">
-                        {t("editProduct.image_click_to_select")}
-                      </p>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 opacity-0">
-                    <CustomFileInput
-                      required={false}
-                      value={productData.image}
-                      onChange={handleFileChange}
-                      accept={"image/png, image/jpeg"}
-                      className="h-full w-full"
-                    />
-                  </div>
-                </div>
-
-                {/* IS NOTE ALLOWED */}
-                <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-indigo-200 transition-colors">
-                  <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
-                    {t("editProduct.tag")}
-                  </span>
-                  <div className="flex items-center justify-between">
-                    <CustomToggle
-                      label={t("editProduct.freeTag")}
-                      checked={productData.freeTagging}
-                      className1="text-sm"
-                      className="peer-checked:bg-[--green-1] bg-[--border-1] scale-[.9]"
-                      onChange={() => handleToggle("freeTagging")}
-                    />
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -533,12 +473,13 @@ const AddProduct = () => {
 
       <div className="w-full flex items-center  absolute bottom-0 right-0 left-0">
         <div className="w-full flex justify-end space-x-3 max-w-6xl mx-auto bg-[--white-1] py-4 px-6 border-t border-[--border-1] rounded-b-lg">
-          {/* <button
-            // onClick={() => setSecondPopupContent(null)}
-            className="px-6 py-2.5 text-sm font-medium text-[--black-2] bg-[--white-1] border border-[--border-1] rounded-xl hover:bg-[--light-1] hover:text-[--black-1] transition-all"
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-6 py-2.5 text-sm font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all"
           >
-            Vazgeç
-          </button> */}
+            {t("addProduct.cancel")}
+          </button>
 
           <button
             type="submit"
