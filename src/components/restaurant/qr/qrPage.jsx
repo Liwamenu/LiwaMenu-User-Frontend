@@ -53,7 +53,10 @@ const QRPage = ({ data: restaurant }) => {
   };
 
   const getTableUrl = (tableNumber) => {
-    return `https://${config.tenant}.liwamenu.com?&tableNumber=${encodeURIComponent(getTableId(tableNumber))}`;
+    if (tableNumber) {
+      return `https://${config.tenant}.liwamenu.com?&tableNumber=${encodeURIComponent(getTableId(tableNumber))}`;
+    }
+    return `https://${config.tenant}.liwamenu.com`;
   };
 
   const getFileSafeTableId = (tableId) => {
@@ -65,7 +68,7 @@ const QRPage = ({ data: restaurant }) => {
       width: 300,
       height: 300,
       type: "svg",
-      data: getTableUrl(1),
+      data: getTableUrl(),
       image: config.logo || "",
       imageOptions: {
         crossOrigin: "anonymous",
@@ -131,7 +134,7 @@ const QRPage = ({ data: restaurant }) => {
   useEffect(() => {
     if (previewInstance.current) {
       previewInstance.current.update({
-        data: getTableUrl(1),
+        data: getTableUrl(),
         image: config.includeLogo ? config.logo || "" : "",
         dotsOptions: {
           gradient: {
