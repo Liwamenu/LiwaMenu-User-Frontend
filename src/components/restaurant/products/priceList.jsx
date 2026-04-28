@@ -5,11 +5,12 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { DollarSign, Save, Layers, Loader2 } from "lucide-react";
+import { DollarSign, Save, Layers, Loader2, Filter } from "lucide-react";
 
 // COMP
 import ProductsHeader from "./header";
 import PriceListApplyBulk from "./priceListApplyBulk";
+import CustomSelect from "../../common/customSelector";
 
 // REDUX
 import {
@@ -35,6 +36,8 @@ const PriceList = () => {
 
   const [list, setList] = useState([]);
   const [listBefore, setListBefore] = useState([]);
+  // null = "Tüm Ürünler"; otherwise the selected categoryId
+  const [categoryFilter, setCategoryFilter] = useState(null);
 
   const updatePortion = (pIndex, portionIndex, key, value) => {
     setList((prev) => {
@@ -84,6 +87,29 @@ const PriceList = () => {
     });
     return Array.from(grouped.values());
   }, [list]);
+
+  // Dropdown options: "Tüm Ürünler" + every category present in the list.
+  const categoryOptions = useMemo(
+    () => [
+      { label: t("priceList.all_categories"), value: null },
+      ...groupedByCategory.map((g) => ({
+        label: g.categoryName || "—",
+        value: g.categoryId,
+      })),
+    ],
+    [groupedByCategory, t],
+  );
+
+  // Apply the active filter to what's rendered. We don't filter `list` itself
+  // so that bulk-edit + save-changes still target the entire dataset.
+  const visibleGroups = useMemo(() => {
+    if (categoryFilter == null) return groupedByCategory;
+    return groupedByCategory.filter((g) => g.categoryId === categoryFilter);
+  }, [groupedByCategory, categoryFilter]);
+
+  const selectedOption =
+    categoryOptions.find((o) => o.value === categoryFilter) ||
+    categoryOptions[0];
 
   // Decide whether to show " - {portion.name}" inline next to the product
   // name. Skip when the product has only one portion AND that portion's name
@@ -214,6 +240,38 @@ const PriceList = () => {
         <div className="p-3 sm:p-5 space-y-4">
           <PriceListApplyBulk list={list} setList={setList} />
 
+          {/* Category filter — narrows visible groups, doesn't affect bulk/save */}
+          {groupedByCategory.length > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border border-[--border-1] bg-[--white-2]/60">
+              <div className="flex items-center gap-2 shrink-0 sm:w-44">
+                <span className="grid place-items-center size-7 rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300 shrink-0">
+                  <Filter className="size-3.5" />
+                </span>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1]">
+                  {t("priceList.category_filter")}
+                </p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <CustomSelect
+                  className="text-sm"
+                  options={categoryOptions}
+                  value={selectedOption}
+                  onChange={(opt) => setCategoryFilter(opt?.value ?? null)}
+                  isSearchable={false}
+                />
+              </div>
+              {categoryFilter != null && (
+                <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30 shrink-0">
+                  {visibleGroups[0]?.products.reduce(
+                    (n, p) => n + (p.portions?.length || 0),
+                    0,
+                  ) || 0}{" "}
+                  {t("priceList.rows")}
+                </span>
+              )}
+            </div>
+          )}
+
           {groupedByCategory.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-8 grid place-items-center text-center">
               <span className="grid place-items-center size-12 rounded-xl bg-indigo-50 text-indigo-600 mb-3">
@@ -223,9 +281,18 @@ const PriceList = () => {
                 {t("productsList.no_products")}
               </h3>
             </div>
+          ) : visibleGroups.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-8 grid place-items-center text-center">
+              <span className="grid place-items-center size-12 rounded-xl bg-indigo-50 text-indigo-600 mb-3">
+                <Filter className="size-6" />
+              </span>
+              <h3 className="text-sm font-semibold text-[--black-1]">
+                {t("priceList.no_match")}
+              </h3>
+            </div>
           ) : (
             <div className="space-y-3">
-              {groupedByCategory.map((group) => (
+              {visibleGroups.map((group) => (
                 <div
                   key={group.categoryId}
                   className="rounded-xl border border-[--border-1] bg-[--white-1] overflow-hidden"

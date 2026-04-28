@@ -15,7 +15,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { setRestaurantTheme } from "../../../redux/restaurant/setRestaurantThemeSlice";
+import {
+  setRestaurantTheme,
+  resetSetRestaurantTheme,
+} from "../../../redux/restaurant/setRestaurantThemeSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -79,17 +82,15 @@ const ThemeSelector = ({ data }) => {
 
   const [device, setDevice] = useState("iphone");
   const [isLoading, setIsLoading] = useState(true);
+  // null until the server returns a saved themeId or the user picks one —
+  // we do NOT default to Tema 1, so nothing is auto-selected/applied.
   const [selectedThemeId, setSelectedThemeId] = useState(
-    data?.themeId ?? THEMES[0].id,
+    data?.themeId ?? null,
   );
-  const [activeThemeId, setActiveThemeId] = useState(
-    data?.themeId ?? THEMES[0].id,
-  );
+  const [activeThemeId, setActiveThemeId] = useState(data?.themeId ?? null);
 
-  const selectedTheme =
-    THEMES.find((th) => th.id === selectedThemeId) || THEMES[0];
-  const activeTheme =
-    THEMES.find((th) => th.id === activeThemeId) || THEMES[0];
+  const selectedTheme = THEMES.find((th) => th.id === selectedThemeId) || null;
+  const activeTheme = THEMES.find((th) => th.id === activeThemeId) || null;
 
   // The iframe always renders the user's actual menu at their tenant URL.
   // Theme changes are applied via auto-save (clicking a theme dispatches
@@ -97,9 +98,9 @@ const ThemeSelector = ({ data }) => {
   // reloads after the save completes — showing the just-saved theme live.
   const tenant = data?.tenant;
   const liveUrl = buildTenantUrl(tenant);
-  // Cache-bust the iframe by appending a key on each saved-theme change so
-  // the menu app re-fetches and the new theme renders.
-  const iframeUrl = `${liveUrl}?v=${activeThemeId}`;
+  // Cache-bust only when a saved theme exists; otherwise just hit the live URL.
+  const iframeUrl =
+    activeThemeId != null ? `${liveUrl}?v=${activeThemeId}` : liveUrl;
 
   // Track which theme id is currently being saved (for inline spinner).
   const [pendingThemeId, setPendingThemeId] = useState(null);
@@ -145,19 +146,28 @@ const ThemeSelector = ({ data }) => {
     }
   }, [data]);
 
-  // Toast on success + commit active theme + clear pending state
+  // Reset any leftover redux state from previous saves (e.g. user came from
+  // TV themes which uses the same slice) so the success-effect below doesn't
+  // fire spuriously on mount.
   useEffect(() => {
-    if (success) {
+    dispatch(resetSetRestaurantTheme());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Toast on success + commit active theme. Guarded by `pendingThemeId` so a
+  // stale `success` state from another page can't fake a save here.
+  useEffect(() => {
+    if (success && pendingThemeId !== null) {
       toast.success(t("qrThemeSelector.success_updated"), {
         id: "set-theme-success",
       });
-      setActiveThemeId(selectedThemeId);
+      setActiveThemeId(pendingThemeId);
       setPendingThemeId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
 
-  // Clear pending state on failure too
+  // Clear pending state on failure
   useEffect(() => {
     if (!loading && pendingThemeId !== null && !success) {
       setPendingThemeId(null);
@@ -204,28 +214,43 @@ const ThemeSelector = ({ data }) => {
               <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-2">
                 {t("qrThemeSelector.saved_state")}
               </p>
-              <div className="flex items-center gap-3">
-                <span
-                  className="grid place-items-center size-11 rounded-xl text-white font-bold text-sm shrink-0 shadow-sm"
-                  style={{ backgroundColor: activeTheme.color }}
-                >
-                  {activeTheme.name.replace(/\D/g, "") ||
-                    activeTheme.name.charAt(0)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[--black-1] truncate">
-                    {activeTheme.name}
-                  </p>
-                  <p className="text-[11px] text-[--gr-1] truncate">
-                    {t(activeTheme.tagKey)}
-                  </p>
+              {activeTheme ? (
+                <div className="flex items-center gap-3">
+                  <span
+                    className="grid place-items-center size-11 rounded-xl text-white font-bold text-sm shrink-0 shadow-sm"
+                    style={{ backgroundColor: activeTheme.color }}
+                  >
+                    {activeTheme.name.replace(/\D/g, "") ||
+                      activeTheme.name.charAt(0)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[--black-1] truncate">
+                      {activeTheme.name}
+                    </p>
+                    <p className="text-[11px] text-[--gr-1] truncate">
+                      {t(activeTheme.tagKey)}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30">
+                    <Check className="size-3" />
+                    {t("qrThemeSelector.active_badge")}
+                  </span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30">
-                  <Check className="size-3" />
-                  {t("qrThemeSelector.active_badge")}
-                </span>
-              </div>
-
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="grid place-items-center size-11 rounded-xl bg-[--white-2] ring-1 ring-[--border-1] text-[--gr-2] shrink-0">
+                    <Palette className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[--black-1] truncate">
+                      {t("qrThemeSelector.no_theme_title")}
+                    </p>
+                    <p className="text-[11px] text-[--gr-1] truncate">
+                      {t("qrThemeSelector.no_theme_hint")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Theme list */}
