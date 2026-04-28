@@ -14,10 +14,6 @@ import {
   getLicenses,
   resetGetLicensesState,
 } from "../../../redux/licenses/getLicensesSlice";
-import {
-  getRestaurantsMap,
-  resetGetRestaurantsMap,
-} from "../../../redux/restaurants/getRestaurantsMapSlice";
 
 const LicensesPage = () => {
   const { t } = useTranslation();
@@ -26,12 +22,6 @@ const LicensesPage = () => {
   const { loading, success, error, licenses } = useSelector(
     (state) => state.licenses.getLicenses,
   );
-
-  const {
-    loading: restaurantsLoading,
-    error: restaurantsError,
-    entities,
-  } = useSelector((state) => state.restaurants.getRestaurantsMap);
 
   const [searchVal, setSearchVal] = useState("");
   const [licensesData, setLicensesData] = useState(null);
@@ -67,31 +57,22 @@ const LicensesPage = () => {
     }
   }, [licensesData]);
 
-  // SET LICENSES + chain restaurants
+  // GetmyLicenses already returns restaurantName/City/District/etc on each
+  // license, so we just consume the response directly — no per-license
+  // GetRestaurantById fan-out needed.
   useEffect(() => {
     if (error) {
       toast.error(error.message);
       dispatch(resetGetLicensesState());
     }
     if (success) {
-      setTotalItems(licenses.totalCount);
-      dispatch(getRestaurantsMap(licenses.data));
+      setTotalItems(licenses?.totalCount ?? null);
+      setLicensesData(licenses?.data || []);
       dispatch(resetGetLicensesState());
     }
-  }, [success, error, licenses]);
+  }, [success, error, licenses, dispatch]);
 
-  useEffect(() => {
-    if (restaurantsError) {
-      toast.error(restaurantsError.message);
-      dispatch(resetGetRestaurantsMap());
-    }
-    if (entities) {
-      setLicensesData(entities);
-      dispatch(resetGetRestaurantsMap());
-    }
-  }, [entities, restaurantsError, licenses]);
-
-  const isLoading = loading || restaurantsLoading;
+  const isLoading = loading;
   const isEmpty = licensesData && licensesData.length === 0;
   const hasActiveSearch = Boolean(searchVal);
 
