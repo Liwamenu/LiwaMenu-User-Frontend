@@ -49,13 +49,15 @@ const PriceList = () => {
     });
   };
 
-  // Fetch products on mount.
+  // Fetch products once when the page mounts (and again if the restaurant
+  // changes via URL). We deliberately do NOT depend on `list` — when a
+  // restaurant has zero products the effect that syncs `products → list`
+  // re-creates an empty array each tick, which would re-trigger this fetch
+  // forever. Post-save refresh is handled by the success-effect below.
   useEffect(() => {
-    if (!list.length) {
-      dispatch(getProducts({ restaurantId }));
-    }
+    dispatch(getProducts({ restaurantId }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list]);
+  }, [restaurantId]);
 
   // On products load, set local editable list and compute groups.
   useEffect(() => {
