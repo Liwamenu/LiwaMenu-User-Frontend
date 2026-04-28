@@ -21,6 +21,7 @@ import subCategories from "../../../assets/js/SubCategories.json";
 import { formatToPrice } from "../../../utils/utils";
 import ProductsHeader from "./header";
 import { CloudUI, DeleteI } from "../../../assets/icon";
+import { Loader2 } from "lucide-react";
 
 //REDUX
 import {
@@ -67,7 +68,7 @@ const AddProduct = () => {
   const { t } = useTranslation();
 
   const { categories } = useSelector((s) => s.categories.get);
-  const { success, error } = useSelector((s) => s.products.add);
+  const { success, error, loading } = useSelector((s) => s.products.add);
   const { subCategories } = useSelector((s) => s.subCategories.get);
 
   const [preview, setPreview] = useState(null);
@@ -174,12 +175,6 @@ const AddProduct = () => {
     }));
     formData.append("portions", JSON.stringify(portions));
 
-    // Log FormData entries for debugging
-    console.log("FormData payload:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     dispatch(addProduct(formData));
   };
 
@@ -209,9 +204,21 @@ const AddProduct = () => {
       setProductData(defaultProduct);
       dispatch(resetAddProduct());
       dispatch(resetGetProducts());
-    } else if (error) dispatch(resetAddProduct());
+    } else if (error) {
+      // Surface the backend's validation messages instead of failing silently.
+      const fieldErrors = error?.errors
+        ? Object.values(error.errors).flat().filter(Boolean).join(" · ")
+        : null;
+      const msg =
+        fieldErrors ||
+        error?.message_TR ||
+        error?.title ||
+        error?.message ||
+        t("addProduct.error", "Ürün eklenemedi.");
+      toast.error(msg, { id: "addProductError" });
+      dispatch(resetAddProduct());
+    }
   }, [success, error, dispatch]);
-  console.log(productData);
 
   return (
     <form
@@ -483,9 +490,13 @@ const AddProduct = () => {
 
           <button
             type="submit"
-            className="px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg shadow-[--light-1] hover:bg-[--primary-2] transform hover:-translate-y-0.5 transition-all"
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg shadow-[--light-1] hover:bg-[--primary-2] transition-all disabled:opacity-70 disabled:cursor-wait"
           >
-            {t("addProduct.save")}
+            {loading && <Loader2 className="size-4 animate-spin" />}
+            {loading
+              ? t("addProduct.saving", "Kaydediliyor...")
+              : t("addProduct.save")}
           </button>
         </div>
       </div>

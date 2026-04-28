@@ -9,6 +9,11 @@ const initialState = {
   success: false,
   error: false,
   orderTags: null,
+  // Restaurant id the cached `orderTags` belongs to. The list page reads
+  // this to skip the (slow) refetch on revisit. Save/delete handlers in the
+  // page invalidate the cache via resetGetOrderTags, since new groups carry
+  // temp `New-…` ids locally and only the backend has the real ones.
+  fetchedFor: null,
 };
 
 const getOrderTagsSlice = createSlice({
@@ -22,6 +27,7 @@ const getOrderTagsSlice = createSlice({
     },
     resetGetOrderTags: (state) => {
       state.orderTags = null;
+      state.fetchedFor = null;
     },
   },
   extraReducers: (build) => {
@@ -30,19 +36,22 @@ const getOrderTagsSlice = createSlice({
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.orderTags = null;
+        // Stale-while-revalidate: keep the previous payload visible while
+        // the refetch is in flight rather than blanking the page.
       })
       .addCase(getOrderTags.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
         state.orderTags = action.payload;
+        state.fetchedFor = action.meta?.arg?.restaurantId ?? null;
       })
       .addCase(getOrderTags.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
         state.orderTags = null;
+        state.fetchedFor = null;
       });
   },
 });

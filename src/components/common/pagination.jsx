@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { CornerDownLeft } from "lucide-react";
 import { ArrowIL, ArrowIR } from "../../assets/icon/index";
 
 const CustomPagination = ({
@@ -7,7 +10,22 @@ const CustomPagination = ({
   itemsPerPage,
   handlePageChange,
 }) => {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const [jumpValue, setJumpValue] = useState("");
+
+  const goTo = (raw) => {
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n)) return;
+    const clamped = Math.min(Math.max(1, n), totalPages);
+    if (clamped === pageNumber) {
+      setJumpValue("");
+      return;
+    }
+    setPageNumber(clamped);
+    handlePageChange(clamped);
+    setJumpValue("");
+  };
 
   const handlePrevious = () => {
     if (pageNumber > 1) {
@@ -51,14 +69,14 @@ const CustomPagination = ({
   };
 
   return (
-    <div>
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
       <div className="flex gap-1">
         <button
           onClick={handlePrevious}
           disabled={pageNumber === 1}
           className="flex gap-2 text-sm items-center px-2 max-sm:pr-3 sm:px-4 py-1 sm:py-2 rounded-md hover:bg-[--light-3] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ArrowIL className="w-4" /> Önceki
+          <ArrowIL className="w-4" /> {t("pagination.previous", "Önceki")}
         </button>
         <div className="flex sm:gap-1">
           {getPageNumbers().map((page, index) =>
@@ -90,10 +108,52 @@ const CustomPagination = ({
           disabled={pageNumber === totalPages}
           className="flex gap-2 text-sm items-center px-2 max-sm:pr-3 sm:px-4 py-2 rounded-md hover:bg-[--light-3] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sonraki
+          {t("pagination.next", "Sonraki")}
           <ArrowIR className="w-4" />
         </button>
       </div>
+
+      {/* "Go to page" jumper — only shown when there are enough pages to
+          warrant skipping. Submit on Enter or by clicking the arrow. */}
+      {totalPages > 5 && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            goTo(jumpValue);
+          }}
+          className="flex items-center gap-1.5 pl-2 sm:border-l sm:border-[--border-1]"
+        >
+          <label
+            htmlFor="page-jumper"
+            className="text-xs font-medium text-[--gr-1] hidden sm:inline"
+          >
+            {t("pagination.go_to", "Sayfaya git")}:
+          </label>
+          <input
+            id="page-jumper"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={totalPages}
+            value={jumpValue}
+            onChange={(e) =>
+              setJumpValue(e.target.value.replace(/[^0-9]/g, ""))
+            }
+            placeholder={`1-${totalPages}`}
+            className="h-9 w-16 px-2 rounded-md border border-[--border-1] bg-[--white-1] text-[--black-1] text-sm text-center tabular-nums outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            aria-label={t("pagination.go_to", "Sayfaya git")}
+          />
+          <button
+            type="submit"
+            disabled={!jumpValue}
+            title={t("pagination.go_to_action", "Git")}
+            aria-label={t("pagination.go_to_action", "Git")}
+            className="grid place-items-center h-9 px-2.5 rounded-md text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            <CornerDownLeft className="size-3.5" />
+          </button>
+        </form>
+      )}
     </div>
   );
 };

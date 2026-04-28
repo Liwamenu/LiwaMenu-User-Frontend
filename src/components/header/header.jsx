@@ -23,6 +23,71 @@ import {
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
+// Center title — shows the active restaurant's name when the user is inside
+// any /restaurant/... route, otherwise falls back to the Liwamenu brand.
+// Pulls the name from `getRestaurant.restaurant` first, then falls back to
+// the restaurant list (`getRestaurants.restaurants.data`) since not every
+// entry path populates the single-restaurant slice.
+function BrandOrRestaurantName() {
+  const location = useLocation();
+  const single = useSelector(
+    (s) => s.restaurants.getRestaurant.restaurant,
+  );
+  const list = useSelector(
+    (s) => s.restaurants.getRestaurants.restaurants?.data,
+  );
+  const inRestaurantArea = location.pathname.startsWith("/restaurant/");
+
+  // Pull the id out of the URL: paths look like /restaurant/<feature>/<id>/...
+  const urlId = inRestaurantArea
+    ? location.pathname.split("/").filter(Boolean)[2] || null
+    : null;
+
+  // Prefer the single-restaurant cache when its id matches the URL; otherwise
+  // look it up in the list. Mismatches are common right after the user
+  // navigates between restaurants.
+  const restaurant =
+    (single && (!urlId || single.id === urlId) ? single : null) ||
+    (urlId && Array.isArray(list)
+      ? list.find((r) => r.id === urlId)
+      : null);
+
+  if (inRestaurantArea && restaurant?.name) {
+    return (
+      <Link
+        to="/"
+        title={restaurant.name}
+        className="flex items-center min-w-0 max-w-[55%] sm:max-w-[60%] gap-2 px-2"
+      >
+        <span
+          className="grid place-items-center size-8 rounded-lg text-white text-xs font-bold shadow-md shadow-indigo-500/20 shrink-0"
+          style={{ background: PRIMARY_GRADIENT }}
+          aria-hidden="true"
+        >
+          {(restaurant.name || "")
+            .split(" ")
+            .map((s) => s[0])
+            .filter(Boolean)
+            .slice(0, 2)
+            .join("")
+            .toUpperCase() || "R"}
+        </span>
+        <span className="text-base sm:text-lg font-semibold text-[--black-1] truncate tracking-tight">
+          {restaurant.name}
+        </span>
+      </Link>
+    );
+  }
+  return (
+    <Link
+      to="/"
+      className="flex items-center text-3xl max-sm:text-xl text-[--primary-1] font-[conthrax]"
+    >
+      Liwamenu
+    </Link>
+  );
+}
+
 function Header({ openSidebar, setOpenSidebar }) {
   const langRef = useRef();
   const param = useParams();
@@ -135,9 +200,8 @@ function Header({ openSidebar, setOpenSidebar }) {
             />
           </div>
 
-          <p className="flex items-center text-3xl max-sm:text-xl text-[--primary-1] font-[conthrax]">
-            Liwamenu
-          </p>
+          <BrandOrRestaurantName />
+
 
           <div className="flex items-center gap-4 max-sm:gap-2">
             {/* Language Selector */}

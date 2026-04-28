@@ -18,6 +18,7 @@ import {
 
 //COMP
 import CustomToggle from "../common/customToggle";
+import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
 
 //REDUX
@@ -185,6 +186,7 @@ const PaymentMethods = ({ data: restaurant }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
+      <SettingsTabs />
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
         {/* gradient strip */}
         <div

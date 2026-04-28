@@ -8,6 +8,9 @@ import { FiFacebook, FiInstagram, FiYoutube } from "react-icons/fi";
 import { BsTiktok, BsWhatsapp } from "react-icons/bs";
 import { Share2, Save, ExternalLink, Check } from "lucide-react";
 
+// COMP
+import SettingsTabs from "./settingsTabs";
+
 // REDUX
 import {
   getSocialMedias,
@@ -115,6 +118,7 @@ const SocialMedias = ({ data: restaurant }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
+      <SettingsTabs />
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
         <div className="h-0.5" style={{ background: PRIMARY_GRADIENT }} />
 

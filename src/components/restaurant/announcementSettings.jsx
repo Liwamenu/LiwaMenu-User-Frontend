@@ -20,6 +20,7 @@ import {
 // COMPONENTS
 import CustomToogle from "../common/customToggle";
 import CustomTextarea from "../common/customTextarea";
+import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
 
 // REDUX
@@ -114,6 +115,7 @@ const AnnouncementSettings = ({ data }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
+      <SettingsTabs />
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
         {/* gradient strip */}
         <div

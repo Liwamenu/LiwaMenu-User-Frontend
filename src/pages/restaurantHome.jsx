@@ -60,10 +60,6 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const { restaurants } = useSelector(
     (state) => state.restaurants.getRestaurants,
   );
-  const { success: setSuccess } = useSelector(
-    (state) => state.restaurant.setRestaurantSettings,
-  );
-
   const { restaurant: stateRest, success } = useSelector(
     (state) => state.restaurants.getRestaurant,
   );
@@ -71,12 +67,15 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const myRestaurant = restaurants?.data?.filter((r) => r.id === id)[0];
   const [data, setData] = useState(restaurant || myRestaurant);
 
-  // Fetch restaurant if not in state
+  // Fetch restaurant only if we don't already have it. We deliberately do
+  // NOT re-fetch on setRestaurantSettings success — `GetRestaurantById` is
+  // slow (~2.7s) and would keep the global spinner up long after the toast
+  // has already confirmed the save. Each sub-tab fetches its own slice.
   useEffect(() => {
-    if ((!restaurant && !data) || setSuccess) {
+    if (!restaurant && !data) {
       dispatch(getRestaurant({ restaurantId: id }));
     }
-  }, [data, setSuccess]);
+  }, [data, dispatch, id, restaurant]);
 
   useEffect(() => {
     setShowS1(false);

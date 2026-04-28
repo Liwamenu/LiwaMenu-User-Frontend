@@ -20,12 +20,17 @@ import {
   Quote,
   CreditCard,
   ArrowRight,
+  Lock,
+  AlertTriangle,
+  Pencil,
 } from "lucide-react";
 
 //COMP
 import CustomToggle from "../common/customToggle";
 import CustomSelect from "../common/customSelector";
 import LanguagesEnums from "../../enums/languagesEnums";
+import SettingsTabs from "./settingsTabs";
+import { usePopup } from "../../context/PopupContext";
 
 //REDUX
 import {
@@ -84,7 +89,28 @@ const RestaurantSettings = ({ data: inData }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { setSecondPopupContent } = usePopup();
   const restaurantId = useParams()["*"]?.split("/")[1];
+
+  // The tenant slug doubles as the QR code URL — once it's been published,
+  // changing it silently breaks every printed QR. Lock the field by default
+  // when the restaurant already has a tenant; require an explicit warning
+  // confirmation before letting the user edit it.
+  const [tenantUnlocked, setTenantUnlocked] = useState(false);
+  const tenantLocked = !!inData?.tenant && !tenantUnlocked;
+
+  const openTenantUnlockModal = () => {
+    setSecondPopupContent(
+      <TenantUnlockConfirm
+        t={t}
+        onCancel={() => setSecondPopupContent(null)}
+        onConfirm={() => {
+          setTenantUnlocked(true);
+          setSecondPopupContent(null);
+        }}
+      />,
+    );
+  };
   const { success, error } = useSelector(
     (state) => state.restaurant.setRestaurantSettings,
   );
@@ -272,6 +298,7 @@ const RestaurantSettings = ({ data: inData }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
+      <SettingsTabs />
       {/* CARD */}
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
         {/* gradient strip */}
@@ -319,14 +346,20 @@ const RestaurantSettings = ({ data: inData }) => {
                   {t("restaurantSettings.tenant")}
                 </label>
                 <div className="flex flex-col sm:flex-row items-stretch gap-2">
-                  <div className="flex flex-1 rounded-lg border border-[--border-1] bg-[--white-1] focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100 transition overflow-hidden">
+                  <div
+                    className={`flex flex-1 rounded-lg border transition overflow-hidden ${
+                      tenantLocked
+                        ? "border-[--border-1] bg-[--white-2]"
+                        : "border-[--border-1] bg-[--white-1] focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100"
+                    }`}
+                  >
                     <span className="bg-[--white-2] text-[--gr-1] text-xs font-medium px-2.5 grid place-items-center border-r border-[--border-1] shrink-0">
                       https://
                     </span>
                     <input
                       type="text"
                       placeholder={t("restaurantSettings.tenant_placeholder")}
-                      className="flex-1 min-w-0 h-10 px-2 outline-none text-sm bg-transparent"
+                      className="flex-1 min-w-0 h-10 px-2 outline-none text-sm bg-transparent disabled:cursor-not-allowed disabled:text-[--gr-1]"
                       value={restaurantData?.tenant ?? ""}
                       onChange={(e) =>
                         setRestaurantData((prev) => ({
@@ -334,22 +367,39 @@ const RestaurantSettings = ({ data: inData }) => {
                           tenant: e.target.value,
                         }))
                       }
+                      disabled={tenantLocked}
                     />
                     <span className="bg-[--white-2] text-[--gr-1] text-xs font-medium px-2.5 grid place-items-center border-l border-[--border-1] shrink-0">
                       .liwamenu.com
                     </span>
+                    {tenantLocked && (
+                      <span className="bg-[--white-2] text-[--gr-1] px-2 grid place-items-center border-l border-[--border-1] shrink-0">
+                        <Lock className="size-3.5" />
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCheckTenantAvailability}
-                    disabled={isCheckingTenant}
-                    className="h-10 px-3.5 rounded-lg border border-[--border-1] bg-[--white-1] text-sm font-medium text-[--black-2] hover:bg-[--white-2] hover:border-indigo-300 transition disabled:opacity-60 inline-flex items-center justify-center gap-1.5 shrink-0"
-                  >
-                    <Check className="size-4 text-indigo-600" />
-                    {isCheckingTenant
-                      ? t("restaurantSettings.tenant_check_loading")
-                      : t("restaurantSettings.tenant_check")}
-                  </button>
+                  {tenantLocked ? (
+                    <button
+                      type="button"
+                      onClick={openTenantUnlockModal}
+                      className="h-10 px-3.5 rounded-lg border border-rose-200 bg-rose-50 text-sm font-semibold text-rose-700 hover:bg-rose-100 transition inline-flex items-center justify-center gap-1.5 shrink-0 dark:bg-rose-500/15 dark:text-rose-200 dark:border-rose-400/30"
+                    >
+                      <Pencil className="size-3.5" />
+                      {t("restaurantSettings.tenant_change", "Değiştir")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleCheckTenantAvailability}
+                      disabled={isCheckingTenant}
+                      className="h-10 px-3.5 rounded-lg border border-[--border-1] bg-[--white-1] text-sm font-medium text-[--black-2] hover:bg-[--white-2] hover:border-indigo-300 transition disabled:opacity-60 inline-flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <Check className="size-4 text-indigo-600" />
+                      {isCheckingTenant
+                        ? t("restaurantSettings.tenant_check_loading")
+                        : t("restaurantSettings.tenant_check")}
+                    </button>
+                  )}
                 </div>
                 <p className="text-[11px] text-indigo-600 mt-1">
                   {t("restaurantSettings.tenant_note", {
@@ -751,5 +801,44 @@ const RestaurantSettings = ({ data: inData }) => {
     </div>
   );
 };
+
+// Confirmation dialog shown before unlocking the tenant input. Changing the
+// tenant slug breaks any QR codes already in circulation, so we want a
+// deliberate, hard-to-mistakenly-confirm warning before proceeding.
+const TenantUnlockConfirm = ({ t, onCancel, onConfirm }) => (
+  <main className="flex justify-center">
+    <div className="bg-[--white-2] text-[--black-2] rounded-[32px] p-8 md:p-10 w-full max-w-[480px] flex flex-col items-center text-center shadow-2xl">
+      <div className="size-16 bg-rose-50 dark:bg-rose-500/15 rounded-full flex items-center justify-center mb-6">
+        <AlertTriangle
+          className="size-8 text-rose-600 dark:text-rose-300"
+          strokeWidth={1.8}
+        />
+      </div>
+      <h2 className="text-xl font-bold mb-3 tracking-tight text-rose-700 dark:text-rose-200">
+        {t("restaurantSettings.tenant_change_title", "Tenant Değiştir")}
+      </h2>
+      <p className="text-[--gr-1] text-sm sm:text-base mb-8 leading-relaxed px-2 font-medium">
+        {t(
+          "restaurantSettings.tenant_change_warning",
+          "Daha önceden kaydettiğiniz alt domain (Tenant)'ı değiştirmek oluşturduğunuz QR kodların çalışmayacağı anlamına gelir! Tenant değiştirmek istediğinize emin misiniz?",
+        )}
+      </p>
+      <div className="flex gap-3 w-full text-sm">
+        <button
+          onClick={onCancel}
+          className="flex-1 py-2.5 px-6 border border-[--border-1] rounded-xl text-[--gr-1] font-semibold hover:bg-[--white-1] transition-colors"
+        >
+          {t("deleteProduct.cancel", "Vazgeç")}
+        </button>
+        <button
+          onClick={onConfirm}
+          className="flex-1 px-6 py-2.5 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-all shadow-md shadow-rose-500/25"
+        >
+          {t("restaurantSettings.tenant_change_confirm", "Evet, Değiştir")}
+        </button>
+      </div>
+    </div>
+  </main>
+);
 
 export default RestaurantSettings;

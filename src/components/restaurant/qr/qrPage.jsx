@@ -16,6 +16,7 @@ import {
   Sliders,
   Loader2,
   Trash2,
+  ExternalLink,
 } from "lucide-react";
 
 // COMP
@@ -25,6 +26,44 @@ import { getRestaurant } from "../../../redux/restaurants/getRestaurantSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
+// Renders a white-disc data URL with the given table number bold-centered
+// in black. Used as the QR center "image" when the user hasn't uploaded a
+// brand logo but is generating a sequential range — gives every printed QR
+// a human-readable label so staff can identify the table at a glance.
+// Returns a 480px PNG dataURL (chosen so the embedded image stays sharp
+// at the largest supported QR size, 1024×1024).
+const makeTableNumberBadge = (text) => {
+  const size = 480;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  // White disc — fills the QR's "image" cutout cleanly. The qr-code-styling
+  // library hides background dots behind the image (hideBackgroundDots),
+  // so the disc reads as a clean island in the middle of the pattern.
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bold, centered black number. Scale shrinks for longer values so 999
+  // doesn't overflow the disc.
+  const label = String(text);
+  const fontScale =
+    label.length <= 2 ? 0.6 : label.length === 3 ? 0.46 : 0.36;
+  ctx.fillStyle = "#000000";
+  ctx.font = `900 ${size * fontScale}px Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // textBaseline=middle isn't perfectly centered visually due to font
+  // metrics; nudge ~3% downward for a more balanced look.
+  ctx.fillText(label, size / 2, size / 2 + size * 0.03);
+
+  return canvas.toDataURL("image/png");
+};
 
 const QRPage = ({ data: restaurant }) => {
   const dispatch = useDispatch();
@@ -229,24 +268,60 @@ const QRPage = ({ data: restaurant }) => {
     setIsGenerating(true);
     clearGeneratedItems();
 
-    const newItems = [];
-    // Coerce raw string inputs to integers at batch time. Empty/invalid → 1.
     const startNum = parseInt(config.tableStart, 10);
     const endNum = parseInt(config.tableEnd, 10);
-    const safeStart = Number.isFinite(startNum) && startNum >= 1 ? startNum : 1;
-    const safeEnd = Number.isFinite(endNum) && endNum >= 1 ? endNum : safeStart;
-    const start = Math.min(safeStart, safeEnd);
-    const end = Math.max(safeStart, safeEnd);
+    const startValid = Number.isFinite(startNum) && startNum >= 1;
+    const endValid = Number.isFinite(endNum) && endNum >= 1;
+    const prefix = (config.tablePrefix || "").trim();
+    const suffix = (config.tableSuffix || "").trim();
 
-    for (let i = start; i <= end; i++) {
-      const tableId = getTableId(i);
-      const url = getTableUrl(i);
+    // Build the list of QRs to generate. Two modes:
+    //   • Range mode — at least one of Başlangıç / Bitiş is filled, so we
+    //     emit one QR per number in the range, decorated with prefix+suffix.
+    //   • Single mode — both range fields are empty; emit ONE QR that uses
+    //     whatever pieces (prefix and/or suffix) the user filled in, never
+    //     appending a number. Bail out if there is nothing to identify the
+    //     table at all (no prefix, no suffix, no range).
+    const plan = [];
+    if (!startValid && !endValid) {
+      const tableId = `${prefix}${suffix}`;
+      if (!tableId) {
+        toast.error(t("qrPage.toast_no_input"), { id: "qr_page" });
+        setIsGenerating(false);
+        return;
+      }
+      plan.push({ id: tableId, tableId });
+    } else {
+      const safeStart = startValid ? startNum : 1;
+      const safeEnd = endValid ? endNum : safeStart;
+      const start = Math.min(safeStart, safeEnd);
+      const end = Math.max(safeStart, safeEnd);
+      for (let i = start; i <= end; i++) {
+        plan.push({ id: i, tableId: getTableId(i) });
+      }
+    }
+
+    // If the user gave us a brand logo we always honour it. Otherwise, in
+    // range mode the QR's center gets a white disc with the table number
+    // baked in — useful when printing because it lets staff find the right
+    // QR without scanning. In single mode (prefix/suffix only) we don't
+    // know "the number", so we leave the center blank.
+    const useLogo = config.includeLogo && !!config.logo;
+
+    const newItems = [];
+    for (const entry of plan) {
+      const url = `https://${config.tenant}.liwamenu.com?tableNumber=${encodeURIComponent(entry.tableId)}`;
+      const centerImage = useLogo
+        ? config.logo
+        : typeof entry.id === "number"
+          ? makeTableNumberBadge(entry.id)
+          : "";
 
       const generator = new QRCodeStyling({
         width: config.size,
         height: config.size,
         data: url,
-        image: config.includeLogo ? config.logo || "" : "",
+        image: centerImage,
         imageOptions: {
           crossOrigin: "anonymous",
           margin: 10,
@@ -275,22 +350,33 @@ const QRPage = ({ data: restaurant }) => {
         const blob = await generator.getRawData("png");
         if (blob) {
           newItems.push({
-            id: i,
-            tableId,
+            id: entry.id,
+            tableId: entry.tableId,
             url,
             dataUrl: URL.createObjectURL(blob),
           });
         }
       } catch (err) {
-        console.error(`Error generating QR for table ${i}:`, err);
+        console.error(`Error generating QR for ${entry.tableId}:`, err);
       }
     }
 
     setGeneratedItems(newItems);
     setIsGenerating(false);
-    toast.success(t("qrPage.toast_generated", { start, end }), {
-      id: "qr_page",
-    });
+    if (plan.length === 1 && !startValid && !endValid) {
+      toast.success(
+        t("qrPage.toast_generated_single", { id: plan[0].tableId }),
+        { id: "qr_page" },
+      );
+    } else {
+      toast.success(
+        t("qrPage.toast_generated", {
+          start: plan[0].id,
+          end: plan[plan.length - 1].id,
+        }),
+        { id: "qr_page" },
+      );
+    }
   };
 
   const downloadQR = (dataUrl, name) => {
@@ -382,8 +468,18 @@ const QRPage = ({ data: restaurant }) => {
   const tableCount = (() => {
     const s = parseInt(config.tableStart, 10);
     const e = parseInt(config.tableEnd, 10);
-    if (!Number.isFinite(s) || !Number.isFinite(e)) return 0;
-    return Math.abs(e - s) + 1;
+    const sValid = Number.isFinite(s) && s >= 1;
+    const eValid = Number.isFinite(e) && e >= 1;
+    // Range empty but prefix or suffix filled → single QR.
+    if (!sValid && !eValid) {
+      const filler =
+        (config.tablePrefix || "").trim() ||
+        (config.tableSuffix || "").trim();
+      return filler ? 1 : 0;
+    }
+    const safeStart = sValid ? s : 1;
+    const safeEnd = eValid ? e : safeStart;
+    return Math.abs(safeEnd - safeStart) + 1;
   })();
 
   return (
@@ -419,29 +515,23 @@ const QRPage = ({ data: restaurant }) => {
                 {t("qrPage.clear_all")}
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleGenerateBatch}
-              disabled={isGenerating}
-              className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition disabled:opacity-60"
-              style={{ background: PRIMARY_GRADIENT }}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  <span className="hidden sm:inline">
-                    {t("qrPage.processing")}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Plus className="size-4" />
-                  <span className="hidden sm:inline">
-                    {t("qrPage.generate_batch")}
-                  </span>
-                </>
-              )}
-            </button>
+            {/* "Tüm QR Kodları İndir" hero header'a taşındı — toplu üretim
+                yapıldığında en görünür yerde duruyor; "Toplu Oluştur" da
+                aşağıdaki çıktı panelinin başlığına geçti, böylece üretim
+                sonrası tekrar üretme aksiyonu çıktının yanında oluyor. */}
+            {generatedItems.length > 0 && (
+              <button
+                type="button"
+                onClick={downloadAll}
+                className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition"
+                style={{ background: PRIMARY_GRADIENT }}
+              >
+                <Download className="size-3.5" />
+                <span className="hidden sm:inline">
+                  {t("qrPage.download_all")}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -615,6 +705,23 @@ const QRPage = ({ data: restaurant }) => {
                 <Download className="size-3.5" />
                 {t("qrPage.download_default", "PNG İndir")}
               </button>
+              {/* Live tenant link — click to open the actual menu the QR
+                  resolves to, in a new tab. Mirrors the URL the QR encodes
+                  (the bare tenant root, no tableNumber param). */}
+              {config.tenant && (
+                <a
+                  href={`https://${config.tenant}.liwamenu.com`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-700 hover:underline underline-offset-2 transition min-w-0"
+                  title={`https://${config.tenant}.liwamenu.com`}
+                >
+                  <ExternalLink className="size-3 shrink-0" />
+                  <span className="truncate">
+                    {config.tenant}.liwamenu.com
+                  </span>
+                </a>
+              )}
             </Section>
           </div>
 
@@ -644,12 +751,22 @@ const QRPage = ({ data: restaurant }) => {
                   </div>
                   <button
                     type="button"
-                    onClick={downloadAll}
-                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition shrink-0"
+                    onClick={handleGenerateBatch}
+                    disabled={isGenerating}
+                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition shrink-0 disabled:opacity-60"
                     style={{ background: PRIMARY_GRADIENT }}
                   >
-                    <Download className="size-3.5" />
-                    {t("qrPage.download_all")}
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        {t("qrPage.processing")}
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="size-4" />
+                        {t("qrPage.generate_batch")}
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -750,9 +867,6 @@ const EmptyState = ({ t, onGenerate, isGenerating }) => (
       >
         <QrCode className="size-7" strokeWidth={1.8} />
       </span>
-      <h3 className="text-base font-semibold text-[--black-1]">
-        {t("qrPage.batch_offline")}
-      </h3>
       <p className="text-xs text-[--gr-1] mt-1.5 leading-snug">
         {t("qrPage.empty_description")}
       </p>

@@ -9,12 +9,6 @@ import {
   ArrowLeft,
   PenLine,
   Settings,
-  CalendarClock,
-  Megaphone,
-  ClipboardList,
-  Clock,
-  Share2,
-  CreditCard,
   LayoutGrid,
   LayoutList,
   BookOpen,
@@ -69,49 +63,34 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       icon: <Settings className={ICON_CLS} strokeWidth={ICON_STROKE} />,
       text: t("subSidebar.settings"),
       to: `/restaurant/settings/${id}`,
+      // The 6 sub-pages (Rezervasyon, Duyuru, Anket, Çalışma Saatleri,
+      // Sosyal Medya, Ödeme Yöntemleri) are now tabs inside Genel Ayarlar.
+      // Mark this entry as active for any of those routes too.
+      paths: [
+        "settings",
+        "reservationSettings",
+        "announcementSettings",
+        "surveySettings",
+        "hours",
+        "social",
+        "payments",
+      ],
       path: "settings",
-    },
-    {
-      icon: <CalendarClock className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.reservation_settings"),
-      to: `/restaurant/reservationSettings/${id}`,
-      path: "reservationSettings",
-    },
-    {
-      icon: <Megaphone className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.announcement_settings"),
-      to: `/restaurant/announcementSettings/${id}`,
-      path: "announcementSettings",
-    },
-    {
-      icon: <ClipboardList className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.survey_settings"),
-      to: `/restaurant/surveySettings/${id}`,
-      path: "surveySettings",
-    },
-    {
-      icon: <Clock className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.working_hours"),
-      to: `/restaurant/hours/${id}`,
-      path: "hours",
-    },
-    {
-      icon: <Share2 className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.social_media"),
-      to: `/restaurant/social/${id}`,
-      path: "social",
-    },
-    {
-      icon: <CreditCard className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.payment_methods"),
-      to: `/restaurant/payments/${id}`,
-      path: "payments",
     },
     {
       icon: <LayoutGrid className={ICON_CLS} strokeWidth={ICON_STROKE} />,
       text: t("subSidebar.categories"),
       to: `/restaurant/categories/${id}/list`,
       path: "categories",
+    },
+    // Ürünler kategorilerin hemen altında — kullanıcılar günlük menü
+    // bakımının büyük kısmını "kategori → o kategorideki ürünler" sırasıyla
+    // yapıyor, dolayısıyla iki giriş yan yana olunca akış doğal hissediyor.
+    {
+      icon: <Package className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.products"),
+      to: `/restaurant/products/${id}`,
+      path: "products",
     },
     {
       icon: <LayoutList className={ICON_CLS} strokeWidth={ICON_STROKE} />,
@@ -130,12 +109,6 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       text: t("subSidebar.tags"),
       to: `/restaurant/tags/${id}/`,
       path: "tags",
-    },
-    {
-      icon: <Package className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.products"),
-      to: `/restaurant/products/${id}`,
-      path: "products",
     },
     {
       icon: <Palette className={ICON_CLS} strokeWidth={ICON_STROKE} />,
@@ -196,7 +169,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
         <div className="flex flex-col justify-top w-full py-16 h-[100dvh] -mt-16">
           <div className="flex flex-col gap-1 px-3 pb-4 w-full overflow-y-auto">
             {sidebarItems.map((item, index) => {
-              const active = path === item.path;
+              // Support both single `path` and a `paths` array — the
+              // settings entry now stays highlighted across the tabbed
+              // sub-pages (announcement, survey, hours, social, payments).
+              const active = item.paths
+                ? item.paths.includes(path)
+                : path === item.path;
               const locked =
                 isTenantLocked && !ALWAYS_ALLOWED_PATHS.has(item.path);
               return (

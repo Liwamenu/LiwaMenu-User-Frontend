@@ -9,6 +9,7 @@ import { Clock, Save, Check } from "lucide-react";
 // COMP
 import CustomToggle from "../common/customToggle";
 import CustomDatePicker from "../common/customdatePicker";
+import SettingsTabs from "./settingsTabs";
 
 // REDUX
 import {
@@ -171,6 +172,7 @@ const WorkingHours = ({ data }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
+      <SettingsTabs />
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
         <div className="h-0.5" style={{ background: PRIMARY_GRADIENT }} />
 

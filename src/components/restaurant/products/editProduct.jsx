@@ -344,7 +344,12 @@ const EditProduct = ({ product: prodToPopup }) => {
                       </label>
                       <button
                         type="button"
-                        onClick={() => console.log("AI desc")}
+                        onClick={() =>
+                          toast(t("editProduct.ai_coming_soon"), {
+                            id: "ai-coming-soon",
+                            icon: "✨",
+                          })
+                        }
                         className="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition font-medium border border-purple-200 flex items-center shadow-sm"
                       >
                         <i className="fa-solid fa-wand-magic-sparkles mr-1.5" />
@@ -560,9 +565,8 @@ const EditProduct = ({ product: prodToPopup }) => {
 // preview area displays it. The actual generation endpoint isn't wired here —
 // the wiring is structural; the parent passes `handleFileChange` and the AI
 // pipeline can be plugged in once available.
-export const AIImagePromptCard = ({ t, onGenerated }) => {
+export const AIImagePromptCard = ({ t }) => {
   const [prompt, setPrompt] = useState("");
-  const [busy, setBusy] = useState(false);
   const taRef = useRef(null);
 
   // Auto-resize: grow with content, capped at 5 lines.
@@ -578,23 +582,12 @@ export const AIImagePromptCard = ({ t, onGenerated }) => {
   }, [prompt]);
 
   const handleGenerate = async () => {
-    const text = prompt.trim();
-    if (!text) {
-      toast.error(t("editProduct.image_prompt_placeholder"), {
-        id: "ai-prompt-empty",
-      });
-      return;
-    }
-    setBusy(true);
-    try {
-      // TODO: replace with the real Liwa AI generation call.
-      // Once the backend returns a File or a URL, we forward it to onGenerated
-      // so the picker updates the same preview the user sees for uploads.
-      // For now, we just simulate a no-op so the wiring remains correct.
-      console.log("[AI] generate:", text);
-    } finally {
-      setBusy(false);
-    }
+    // The AI generation backend isn't live yet — show an info toast so the
+    // user knows the button is intentional, not broken.
+    toast(t("editProduct.ai_coming_soon"), {
+      id: "ai-coming-soon",
+      icon: "✨",
+    });
   };
 
   return (
@@ -607,8 +600,7 @@ export const AIImagePromptCard = ({ t, onGenerated }) => {
         <button
           type="button"
           onClick={handleGenerate}
-          disabled={busy}
-          className="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition font-medium shadow-sm flex items-center disabled:opacity-60"
+          className="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-600 transition font-medium shadow-sm flex items-center"
         >
           <i className="fa-solid fa-wand-magic-sparkles mr-1.5" />
           {t("editProduct.image_ai_button")}
@@ -648,7 +640,7 @@ export const ProductImagePicker = ({
           : "border-dashed border-[--border-1] bg-[--light-2] hover:border-indigo-300"
       }`}
     >
-      <label className="relative w-full aspect-[4/3] sm:aspect-square rounded-lg ring-1 ring-[--border-1] bg-[--white-2] grid place-items-center overflow-hidden cursor-pointer group">
+      <label className="relative w-full aspect-[4/3] rounded-lg ring-1 ring-[--border-1] bg-[--white-2] grid place-items-center overflow-hidden cursor-pointer group">
         {hasImage ? (
           <>
             <img

@@ -16,7 +16,10 @@ import OrderTagGroupCard from "./components/_orderTagGroupCard";
 // REDUX
 import { getProducts } from "../../../redux/products/getProductsSlice";
 import { addOrderTag } from "../../../redux/orderTags/addOrderTagSlice";
-import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
+import {
+  getOrderTags,
+  resetGetOrderTags,
+} from "../../../redux/orderTags/getOrderTagsSlice";
 import { editOrderTags } from "../../../redux/orderTags/editOrderTagsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { resetEditOrderTags } from "../../../redux/orderTags/editOrderTagsSlice";
@@ -32,8 +35,12 @@ const OrderTags = () => {
   const { setPopupContent } = usePopup();
 
   const { products } = useSelector((s) => s.products.get);
-  const { orderTags } = useSelector((s) => s.orderTags.get);
-  const { categories } = useSelector((s) => s.categories.get);
+  const { orderTags, fetchedFor: tagsFetchedFor } = useSelector(
+    (s) => s.orderTags.get,
+  );
+  const { categories, fetchedFor: catFetchedFor } = useSelector(
+    (s) => s.categories.get,
+  );
   const { success, error, loading } = useSelector((s) => s.orderTags.editAll);
 
   const [state, setState] = useState({
@@ -62,6 +69,9 @@ const OrderTags = () => {
             ...prev,
             tagGroups: prev.tagGroups.filter((g) => g.id !== group.id),
           }));
+          // Invalidate the cache so the next visit sees a fresh list from
+          // the backend instead of one with the deleted group still in it.
+          dispatch(resetGetOrderTags());
         }}
       />,
     );
@@ -123,13 +133,23 @@ const OrderTags = () => {
     }
   };
 
-  // GET data
+  // GET data — fetch only when the slice cache doesn't already have a
+  // fresh payload for THIS restaurant. Three parallel slow GETs all hit
+  // the global loadingMiddleware on this page; skipping any of them on a
+  // revisit makes the page feel instant. Products is left on the simple
+  // `!products` check because the slice is shared with the paged Products
+  // page (different filter combos can poison the cache by restaurantId).
   useEffect(() => {
-    if (!categories) dispatch(getCategories({ restaurantId }));
+    if (!restaurantId) return;
+    if (!categories || catFetchedFor !== restaurantId) {
+      dispatch(getCategories({ restaurantId }));
+    }
     if (!products) dispatch(getProducts({ restaurantId }));
-    if (!orderTags) dispatch(getOrderTags({ restaurantId }));
+    if (!orderTags || tagsFetchedFor !== restaurantId) {
+      dispatch(getOrderTags({ restaurantId }));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories, products, orderTags]);
+  }, [restaurantId]);
 
   useEffect(() => {
     if (categories) setState((prev) => ({ ...prev, categories }));
@@ -149,6 +169,10 @@ const OrderTags = () => {
           isNew: false,
         })),
       }));
+      // Drop the stale slice cache. New groups still hold local temp ids
+      // (e.g. "New-1714…") here; only the backend has the real ids, so the
+      // next visit must refetch instead of trusting the cache.
+      dispatch(resetGetOrderTags());
     }
     if (error) dispatch(resetEditOrderTags());
     // eslint-disable-next-line react-hooks/exhaustive-deps

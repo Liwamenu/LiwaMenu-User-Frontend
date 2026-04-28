@@ -9,6 +9,10 @@ const initialState = {
   success: false,
   error: false,
   subCategories: null,
+  // Restaurant id the cached `subCategories` belongs to. Lets callers skip
+  // refetching when navigating back to a page they just visited, while still
+  // forcing a refresh when the active restaurant changes.
+  fetchedFor: null,
 };
 
 const getSubCategoriesSlice = createSlice({
@@ -21,7 +25,8 @@ const getSubCategoriesSlice = createSlice({
       state.error = null;
     },
     resetGetSubCategories: (state) => {
-      state.Subcategories = null;
+      state.subCategories = null;
+      state.fetchedFor = null;
     },
   },
   extraReducers: (build) => {
@@ -30,19 +35,23 @@ const getSubCategoriesSlice = createSlice({
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.subCategories = null;
+        // Keep the previous payload around so consumers can render stale
+        // data while the (slow) refetch is in flight — clearing it here is
+        // what made the SubCategories page go blank for ~2s on every visit.
       })
       .addCase(getSubCategories.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
         state.subCategories = action.payload;
+        state.fetchedFor = action.meta?.arg?.restaurantId ?? null;
       })
       .addCase(getSubCategories.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
         state.subCategories = null;
+        state.fetchedFor = null;
       });
   },
 });

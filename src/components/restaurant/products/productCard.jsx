@@ -7,13 +7,20 @@ import {
   Pencil,
   Trash2,
   TrendingUp,
+  Check,
 } from "lucide-react";
 
 // COMP
 import DeleteProduct from "./deleteProduct";
 import { usePopup } from "../../../context/PopupContext";
 
-const ProductCard = ({ product, onDeleted }) => {
+const ProductCard = ({
+  product,
+  onDeleted,
+  selectable,
+  selected,
+  onToggleSelect,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
@@ -27,12 +34,39 @@ const ProductCard = ({ product, onDeleted }) => {
 
   return (
     <div
-      className={`group flex flex-col sm:flex-row gap-3 p-3 rounded-xl border bg-[--white-1] transition ${
-        isHidden
-          ? "border-rose-100 bg-rose-50/20"
-          : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
+      className={`group flex flex-col sm:flex-row gap-3 p-3 rounded-xl border transition ${
+        selected
+          ? "border-rose-400 ring-2 ring-rose-100 shadow-sm bg-rose-50/40 dark:bg-rose-500/10 dark:ring-rose-400/20 dark:border-rose-400/40"
+          : isHidden
+            ? "border-rose-100 bg-rose-50/20 bg-[--white-1]"
+            : "border-[--border-1] bg-[--white-1] hover:border-indigo-200 hover:shadow-sm"
       }`}
     >
+      {selectable && (
+        <button
+          type="button"
+          onClick={() => onToggleSelect?.(product.id)}
+          aria-pressed={!!selected}
+          aria-label={
+            selected
+              ? t("productsList.deselect_product", "Seçimi kaldır")
+              : t("productsList.select_product", "Seç")
+          }
+          title={
+            selected
+              ? t("productsList.deselect_product", "Seçimi kaldır")
+              : t("productsList.select_product", "Seç")
+          }
+          className={`shrink-0 grid place-items-center size-5 sm:size-5 rounded-md border transition ${
+            selected
+              ? "bg-rose-600 border-rose-600 text-white shadow-sm"
+              : "bg-[--white-1] border-[--border-1] text-transparent hover:border-rose-400 hover:text-rose-200"
+          } self-start sm:self-center`}
+        >
+          <Check className="size-3.5" strokeWidth={3} />
+        </button>
+      )}
+
       {/* LEFT: image + name + meta */}
       <div className="flex gap-3 flex-1 min-w-0">
         <div className="size-16 sm:size-20 rounded-lg ring-1 ring-[--border-1] bg-[--white-2] grid place-items-center overflow-hidden shrink-0">
@@ -53,17 +87,13 @@ const ProductCard = ({ product, onDeleted }) => {
             <h3 className="text-sm font-semibold text-[--black-1] truncate flex-1 min-w-0">
               {product.name}
             </h3>
-            <span
-              className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md shrink-0 ${
-                isHidden
-                  ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-              }`}
-            >
-              {isHidden
-                ? t("editCategories.status_closed")
-                : t("editCategories.status_open")}
-            </span>
+            {/* Only flag CLOSED products — open is the default, no need to
+                shout about it on every card. */}
+            {isHidden && (
+              <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md shrink-0 bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/30">
+                {t("editCategories.status_closed")}
+              </span>
+            )}
           </div>
 
           <div className="mt-0.5 flex flex-wrap items-center gap-1">
@@ -72,7 +102,9 @@ const ProductCard = ({ product, onDeleted }) => {
                 {product.categoryName}
               </span>
             )}
-            {portionCount > 0 && (
+            {/* Only flag the portion count when there are multiple — single
+                portions are the default and don't need a chip. */}
+            {portionCount > 1 && (
               <span className="inline-flex items-center text-[10px] font-medium text-[--gr-1] bg-[--white-2] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md">
                 {t("productCard.portion_count", { count: portionCount })}
               </span>

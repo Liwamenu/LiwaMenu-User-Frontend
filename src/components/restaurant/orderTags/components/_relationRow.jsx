@@ -88,8 +88,13 @@ const RelationRow = ({
               portionId: "*",
             })
           }
-          isSearchable={false}
+          // Search enabled — the category list can run long and scrolling
+          // through hundreds of items was the original pain point.
+          isSearchable
           menuPlacement="bottom"
+          // Portal to body so the menu doesn't get clipped by the parent
+          // tag-group card's `overflow-hidden`.
+          menuPortalTarget={document.body}
           optionStyle={{ fontSize: "0.875rem" }}
         />
       </div>
@@ -105,8 +110,9 @@ const RelationRow = ({
               portionId: "*",
             })
           }
-          isSearchable={false}
+          isSearchable
           menuPlacement="bottom"
+          menuPortalTarget={document.body}
           optionStyle={{ fontSize: "0.875rem" }}
         />
       </div>
@@ -121,8 +127,9 @@ const RelationRow = ({
               portionId: selected.value === "*" ? "*" : selected.value,
             })
           }
-          isSearchable={false}
+          isSearchable
           menuPlacement="bottom"
+          menuPortalTarget={document.body}
           disabled={relation.productId === "*"}
         />
       </div>

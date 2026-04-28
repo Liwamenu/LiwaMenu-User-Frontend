@@ -9,6 +9,10 @@ const initialState = {
   success: false,
   error: false,
   categories: null,
+  // Restaurant id the cached `categories` belongs to. Used by call sites to
+  // skip duplicate fetches on revisit and across pages (Add/Edit Product,
+  // Sub Categories, Order Tags, etc. all hit this slice).
+  fetchedFor: null,
 };
 
 const getCategoriesSlice = createSlice({
@@ -22,6 +26,7 @@ const getCategoriesSlice = createSlice({
     },
     resetGetCategories: (state) => {
       state.categories = null;
+      state.fetchedFor = null;
     },
   },
   extraReducers: (build) => {
@@ -30,19 +35,24 @@ const getCategoriesSlice = createSlice({
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.categories = null;
+        // Stale-while-revalidate: keep the previous payload visible while
+        // the refetch is in flight. The pages that consume this slice all
+        // already guard on `categories` being truthy, so they handle stale
+        // data gracefully.
       })
       .addCase(getCategories.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
         state.categories = action.payload;
+        state.fetchedFor = action.meta?.arg?.restaurantId ?? null;
       })
       .addCase(getCategories.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
         state.categories = null;
+        state.fetchedFor = null;
       });
   },
 });

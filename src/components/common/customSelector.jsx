@@ -17,6 +17,10 @@ const CustomSelect = ({
   optionStyle,
   singleValueStyle,
   menuPlacement,
+  // When provided (typically `document.body`), the menu is rendered in a
+  // portal so it escapes any ancestor `overflow:hidden` / clipping boxes.
+  // Used by inputs that live inside scrollable cards, popups, etc.
+  menuPortalTarget,
 }) => {
   const formatOptionLabel = ({ label }) => (
     <div dangerouslySetInnerHTML={{ __html: label }} />
@@ -40,6 +44,10 @@ const CustomSelect = ({
         isClearable={isClearable}
         formatOptionLabel={formatOptionLabel}
         menuPlacement={menuPlacement || "bottom"}
+        menuPortalTarget={menuPortalTarget}
+        // Without `fixed` the portalled menu inherits the document scroll
+        // and drifts when the user scrolls inside the parent card.
+        menuPosition={menuPortalTarget ? "fixed" : undefined}
         styles={{
           control: (provided, state) => ({
             ...provided,
@@ -68,6 +76,12 @@ const CustomSelect = ({
             ...provided,
             backgroundColor: "var(--white-1)",
             zIndex: "9999",
+          }),
+          // When portalled, raise above any popup overlays (popup.jsx
+          // uses z-[9999999], so we go higher to ensure clickability).
+          menuPortal: (provided) => ({
+            ...provided,
+            zIndex: 100000000,
           }),
           menuList: (provided, state) => ({
             ...provided,

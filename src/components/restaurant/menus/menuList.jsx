@@ -1,5 +1,5 @@
 // MODULES
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,9 @@ import { usePopup } from "../../../context/PopupContext";
 // REDUX
 import {
   getMenus,
-  resetGetMenusState,
+  addMenuToCache,
+  updateMenuInCache,
+  removeMenuFromCache,
 } from "../../../redux/menus/getMenusSlice";
 
 const PRIMARY_GRADIENT =
@@ -56,20 +58,23 @@ const MenuList = () => {
   const { setPopupContent } = usePopup();
   const { t } = useTranslation();
 
-  const { menus, error } = useSelector((s) => s.menus.get);
-  const [menusData, setMenusData] = useState(null);
+  const { menus, error, fetchedFor } = useSelector((s) => s.menus.get);
 
-  const handleAddMenu = (added) => {
-    setMenusData((prev) => [...(prev || []), added]);
-  };
-  const handleEditMenu = (edited) => {
-    setMenusData((prev) =>
-      prev.map((m) => (m.id === edited.id ? edited : m)),
-    );
-  };
-  const handleDeleteMenu = (id) => {
-    setMenusData((prev) => prev.filter((m) => m.id !== id));
-  };
+  // Render data: prefer the redux cache, fall back to the bundled mock list
+  // when the backend errors out (kept from the legacy behavior so the page
+  // never feels completely broken in dev).
+  const menusData = useMemo(() => {
+    if (error) return menusJSON.menus;
+    return menus;
+  }, [menus, error]);
+
+  // Add/Edit/Delete handlers mutate the redux cache directly so the page
+  // stays in sync with the source of truth — the slice's `menus` array.
+  // This means the cache-skip logic below is safe even after CRUD ops:
+  // the next visit doesn't need a refetch to see the new state.
+  const handleAddMenu = (added) => dispatch(addMenuToCache(added));
+  const handleEditMenu = (edited) => dispatch(updateMenuInCache(edited));
+  const handleDeleteMenu = (id) => dispatch(removeMenuFromCache(id));
 
   const onAddMenu = () => {
     setPopupContent(
@@ -102,22 +107,17 @@ const MenuList = () => {
     );
   };
 
+  // GET menus — only fetch when redux doesn't already have a fresh payload
+  // for THIS restaurant. The backend GetMenusByRestaurantId is slow and the
+  // global loadingMiddleware blocks the whole UI while it's in flight, so
+  // we lean on the slice cache to make revisits feel instant.
   useEffect(() => {
-    if (!menusData) {
+    if (!restaurantId) return;
+    if (!menus || fetchedFor !== restaurantId) {
       dispatch(getMenus({ restaurantId }));
     }
-  }, [dispatch, restaurantId]);
-
-  useEffect(() => {
-    if (menus) {
-      setMenusData(menus);
-      dispatch(resetGetMenusState());
-    }
-    if (error) {
-      dispatch(resetGetMenusState());
-      setMenusData(menusJSON.menus);
-    }
-  }, [menus, error]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantId]);
 
   const totalCount = menusData?.length || 0;
 

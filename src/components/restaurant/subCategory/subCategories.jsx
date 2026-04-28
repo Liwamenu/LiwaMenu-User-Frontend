@@ -39,8 +39,12 @@ const SubCategories = ({ data: restaurant }) => {
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
 
-  const { categories } = useSelector((state) => state.categories.get);
-  const { subCategories } = useSelector((s) => s.subCategories.get);
+  const { categories, fetchedFor: catFetchedFor } = useSelector(
+    (state) => state.categories.get,
+  );
+  const { subCategories, fetchedFor: subFetchedFor } = useSelector(
+    (s) => s.subCategories.get,
+  );
   const { success: updateSuccess, error: updateError, loading } = useSelector(
     (s) => s.subCategories.updateSubOrders,
   );
@@ -76,15 +80,21 @@ const SubCategories = ({ data: restaurant }) => {
   const flattenGroupedData = (grouped) =>
     grouped ? grouped.flatMap((g) => g.subCategories) : [];
 
-  // GET data
+  // GET data — only fetch when redux doesn't already have a fresh payload
+  // for THIS restaurant. Both endpoints are slow on the backend (~2s each)
+  // and the global loading middleware blocks the entire UI until both
+  // resolve, so we lean on the slice cache to make revisits feel instant.
+  // Cross-restaurant navigation still triggers a refetch via fetchedFor.
   useEffect(() => {
-    if (!subCategoriesData) {
-      dispatch(getSubCategories({ restaurantId: restaurant?.id }));
+    if (!restaurant?.id) return;
+    if (!subCategories || subFetchedFor !== restaurant.id) {
+      dispatch(getSubCategories({ restaurantId: restaurant.id }));
     }
-    if (!categoriesData) {
-      dispatch(getCategories({ restaurantId: restaurant?.id }));
+    if (!categories || catFetchedFor !== restaurant.id) {
+      dispatch(getCategories({ restaurantId: restaurant.id }));
     }
-  }, [subCategoriesData, categoriesData, restaurant]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurant?.id]);
 
   useEffect(() => {
     if (subCategories && categories) {
@@ -229,7 +239,12 @@ const SubCategories = ({ data: restaurant }) => {
   };
 
   const handleAddSubCategory = () => {
-    setSubCategoriesData(null); // refetch
+    // Force a fresh fetch — the slice cache is now stale. We dispatch
+    // explicitly because the load effect only depends on `restaurant?.id`,
+    // so flipping local state to null is no longer enough.
+    if (restaurant?.id) {
+      dispatch(getSubCategories({ restaurantId: restaurant.id }));
+    }
   };
 
   const openAddPopup = () => {
