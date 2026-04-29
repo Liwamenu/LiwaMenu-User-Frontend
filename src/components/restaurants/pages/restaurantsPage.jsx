@@ -16,9 +16,6 @@ import {
   getRestaurants,
   resetGetRestaurantsState,
 } from "../../../redux/restaurants/getRestaurantsSlice";
-import { getCities } from "../../../redux/data/getCitiesSlice";
-import { getNeighs } from "../../../redux/data/getNeighsSlice";
-import { getDistricts } from "../../../redux/data/getDistrictsSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -31,34 +28,19 @@ const RestaurantsPage = () => {
     (state) => state.restaurants.getRestaurants,
   );
 
-  const { cities: citiesData } = useSelector((state) => state.data.getCities);
-  const { districts: districtsData, success: districtsSuccess } = useSelector(
-    (state) => state.data.getDistricts,
-  );
-  const { neighs: neighsData, success: neighsSuccess } = useSelector(
-    (state) => state.data.getNeighs,
-  );
-
   const [searchVal, setSearchVal] = useState("");
   const [filter, setFilter] = useState({
     status: null,
-    city: null,
-    district: null,
-    neighbourhood: null,
   });
   const [restaurantsData, setRestaurantsData] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
-
-  const [cities, setCities] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [neighs, setNeighs] = useState([]);
 
   const [pageNumber, setPageNumber] = useState(1);
   const itemsPerPage = import.meta.env.VITE_ROWS_PER_PAGE;
   const [totalItems, setTotalItems] = useState(null);
 
   const activeFilterCount = useMemo(() => {
-    return [filter.status, filter.city, filter.district, filter.neighbourhood]
+    return [filter.status]
       .filter((v) => v && v.value !== null && v.value !== undefined)
       .length;
   }, [filter]);
@@ -70,10 +52,6 @@ const RestaurantsPage = () => {
         pageSize: itemsPerPage,
         searchKey: opts.searchKey ?? searchVal ?? null,
         active: opts.active ?? filter?.status?.value ?? null,
-        city: opts.city ?? filter?.city?.value ?? null,
-        district: opts.district ?? filter?.district?.value ?? null,
-        neighbourhood:
-          opts.neighbourhood ?? filter?.neighbourhood?.value ?? null,
       }),
     );
   }
@@ -99,18 +77,12 @@ const RestaurantsPage = () => {
   function clearFilter() {
     setFilter({
       status: null,
-      city: null,
-      district: null,
-      neighbourhood: null,
     });
     setShowFilter(false);
     setPageNumber(1);
     fetchPage({
       pageNumber: 1,
       active: null,
-      city: null,
-      district: null,
-      neighbourhood: null,
     });
   }
 
@@ -119,12 +91,15 @@ const RestaurantsPage = () => {
     fetchPage({ pageNumber: number });
   }
 
-  // GET RESTAURANTS — initial
+  // GET RESTAURANTS — initial. The Sidebar also fetches this list on mount
+  // (with pageSize=50) for license-gating; if its fetch is already in
+  // flight (`loading`), we wait so we don't fire a duplicate. When that
+  // fetch lands the second effect picks it up.
   useEffect(() => {
-    if (!restaurantsData && !restaurants) {
+    if (!restaurantsData && !restaurants && !loading) {
       dispatch(getRestaurants({ pageNumber, pageSize: itemsPerPage }));
     }
-  }, [restaurantsData, restaurants]);
+  }, [restaurantsData, restaurants, loading]);
 
   // SET RESTAURANTS / clear errors
   useEffect(() => {
@@ -137,41 +112,6 @@ const RestaurantsPage = () => {
       dispatch(resetGetRestaurantsState());
     }
   }, [success, error, restaurants]);
-
-  // GET CITIES
-  useEffect(() => {
-    if (!citiesData) dispatch(getCities());
-    else setCities(citiesData);
-  }, [citiesData]);
-
-  // GET DISTRICTS
-  useEffect(() => {
-    if (filter.city?.id) {
-      dispatch(getDistricts({ cityId: filter.city.id }));
-      setFilter((prev) => ({ ...prev, district: null, neighbourhood: null }));
-    }
-  }, [filter.city]);
-
-  useEffect(() => {
-    if (districtsSuccess) setDistricts(districtsData);
-  }, [districtsSuccess]);
-
-  // GET NEIGHS
-  useEffect(() => {
-    if (filter.district?.id && filter.city?.id) {
-      dispatch(
-        getNeighs({
-          cityId: filter.city.id,
-          districtId: filter.district.id,
-        }),
-      );
-      setFilter((prev) => ({ ...prev, neighbourhood: null }));
-    }
-  }, [filter.district]);
-
-  useEffect(() => {
-    if (neighsSuccess) setNeighs(neighsData);
-  }, [neighsSuccess]);
 
   const allOption = { value: null, label: t("restaurants.all") };
   const isEmpty = restaurantsData && restaurantsData.length === 0;
@@ -262,7 +202,7 @@ const RestaurantsPage = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <CustomSelect
               label={t("restaurants.status")}
               className="text-sm"
@@ -273,31 +213,6 @@ const RestaurantsPage = () => {
               ]}
               value={filter.status || allOption}
               onChange={(opt) => setFilter((p) => ({ ...p, status: opt }))}
-            />
-            <CustomSelect
-              label={t("restaurants.city")}
-              className="text-sm"
-              options={[allOption, ...cities]}
-              value={filter.city || allOption}
-              onChange={(opt) => setFilter((p) => ({ ...p, city: opt }))}
-            />
-            <CustomSelect
-              label={t("restaurants.district")}
-              className="text-sm"
-              isSearchable={false}
-              options={[allOption, ...districts]}
-              value={filter.district || allOption}
-              onChange={(opt) => setFilter((p) => ({ ...p, district: opt }))}
-            />
-            <CustomSelect
-              label={t("restaurants.neighbourhood")}
-              className="text-sm"
-              isSearchable={false}
-              options={[allOption, ...neighs]}
-              value={filter.neighbourhood || allOption}
-              onChange={(opt) =>
-                setFilter((p) => ({ ...p, neighbourhood: opt }))
-              }
             />
           </div>
 

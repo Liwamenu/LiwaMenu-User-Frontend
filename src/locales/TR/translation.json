@@ -1,4 +1,34 @@
 {
+  "cropImage": {
+    "title": "Resmi Düzenle",
+    "preview_loading": "Önizleme yükleniyor…",
+    "size_label": "Boyut:",
+    "size_auto": "640x480 (Otomatik)",
+    "free_ratio": "Serbest",
+    "tools_label": "Düzenleme Araçları",
+    "zoom_in": "Yakınlaştır",
+    "zoom_out": "Uzaklaştır",
+    "rotate_left": "Sola Döndür",
+    "rotate_right": "Sağa Döndür",
+    "flip_horizontal": "Yatay Çevir",
+    "flip_vertical": "Dikey Çevir",
+    "reset": "Sıfırla",
+    "cancel": "İptal",
+    "save": "Kırp ve Kaydet"
+  },
+  "fileInput": {
+    "selected_file": "Seçilen dosya:"
+  },
+  "apiErrors": {
+    "unauthorized": "Yetkili değilsiniz.",
+    "inactive_account": "Hesabınız aktif değil",
+    "bad_request": "İstek başarısız oldu, durum kodu 400",
+    "not_found": "Kaynak bulunamadı, durum kodu 404",
+    "server_error": "Sunucu hatası, durum kodu 500",
+    "unexpected_status": "Beklenmedik hata, durum kodu {{status}}",
+    "no_response": "İstek sunucuya ulaşamadı",
+    "generic": "Bir hata oluştu: {{message}}"
+  },
   "sidebar": {
     "restaurants": "Restoranlar",
     "licenses": "Lisanslar",
@@ -150,6 +180,11 @@
     "request_new": "Yeni Bağlantı Talep Et"
   },
   "restaurants": {
+    "processing": "İşleniyor 🤩...",
+    "update_success": "Restoran başarıyla güncellendi 🥳🥳",
+    "invalid_file_type": "Geçersiz dosya türü",
+    "file_too_large": "Maks. dosya boyutu: {{mb}} MB",
+    "no_changes": "Hiç bir değişiklik yapmadınız.",
     "subtitle": "Tüm restoranlarınızı tek bir panelden yönetin.",
     "total_count_one": "{{count}} restoran",
     "total_count_other": "{{count}} restoran",
@@ -228,6 +263,8 @@
   "licenses": {
     "title": "Lisanslar",
     "subtitle": "Tüm lisanslarınızı tek bir panelden yönetin.",
+    "total_count_one": "{{count}} lisans",
+    "total_count_other": "{{count}} lisans",
     "add": "Lisans Ekle",
     "search_placeholder": "Lisans veya restoran ara...",
     "filter": "Filtrele",
@@ -378,6 +415,7 @@
     "tenant_check_taken": "Tenant zaten kullanımda.",
     "google_analytics": "Google Analytics",
     "google_analytics_placeholder": "Google Analytics Measurement-ID'nizi yazınız",
+    "google_analytics_hint": "websitesinden ulaşabilirsiniz.",
     "menu_language": "Varsayılan Menü Dili",
     "menu_language_placeholder": "örn: tr, en",
     "slogan1": "Sayfa Üstü Slogan",
@@ -514,6 +552,9 @@
     "cancel": "Vazgeç"
   },
   "editCategories": {
+    "no_changes": "Değişiklik yapılmadı.",
+    "update_success": "Kategoriler başarıyla güncellendi.",
+    "upload_image_msg": "Kategori görseli yükleyin",
     "title": "{{name}} Restoranı için Kategorileri Düzenle",
     "info": "Mevcut kategorilerinizi düzenlemek için aşağıdaki formu kullanın. Kategorileri sürükleyip bırakarak sıralayabilirsiniz.",
     "edit": "Kategori Düzenle",
@@ -559,7 +600,7 @@
   },
   "categoryProducts": {
     "title": "Kategori Ürünleri",
-    "subtitle": "Ürün Ekleme ve Çıkarma",
+    "subtitle": "Ürünleri sıralamak için sürükle bırak yapabilirsiniz",
     "close": "Kapat",
     "add_existing": "Mevcut Ürünlerden Ekle",
     "no_products": "Bu kategoride henüz ürün yok.",
@@ -648,6 +689,7 @@
     "subcategory_name": "Alt Kategori Adı",
     "subcategory_image": "Alt Kategori Görseli",
     "upload_image": "Alt kategori görseli yükleyin",
+    "select_category": "Kategori seç",
     "delete": "Sil",
     "save": "Kaydet",
     "success": "Alt Kategoriler başarıyla eklendi."
@@ -837,6 +879,7 @@
     "success": "Ürün başarıyla eklendi.",
     "save": "Kaydet",
     "saving": "Kaydediliyor...",
+    "special_price_short": "Özel",
     "error": "Ürün eklenemedi.",
     "cancel": "Vazgeç"
   },
@@ -924,6 +967,11 @@
     "invoice_info": "Fatura Bilgileri"
   },
   "orderTags": {
+    "delete_title": "Silme İşlemi",
+    "delete_description": "{{name}} grubunu silmek üzeresiniz. Bu işlem geri alınamaz.",
+    "delete_cancel": "İptal",
+    "delete_confirm": "Sil",
+    "delete_success": "Etiket grubu silindi.",
     "title": "Ürün Etiket Yönetimi",
     "subtitle": "Ürünlerinize ek seçenekler ve özelleştirmeler ekleyin.",
     "summary": "{{count}} etiket grubu · {{dirty}} kaydedilmemiş",
@@ -965,6 +1013,8 @@
   },
   "surveySettings": {
     "title": "{{name}} Restoranı Müşteri Geri Bildirim Analitikleri",
+    "edit_aria": "Düzenle",
+    "delete_aria": "Sil",
     "add_survey": "Anket Ekle",
     "new_badge": "YENİ",
     "reviews": "değerlendirme",
@@ -1119,7 +1169,35 @@
     "summary_count": "Toplam {{count}} işlem",
     "search_placeholder": "Sipariş no, müşteri veya restoran ara...",
     "clear_search": "Aramayı temizle",
-    "generic_error": "Bir şeyler ters gitti"
+    "generic_error": "Bir şeyler ters gitti",
+    "empty_title": "Ödeme bulunamadı",
+    "empty_desc": "Filtreleri temizleyerek veya farklı arama yaparak tekrar deneyin.",
+    "copy_order_number": "Sipariş numarasını kopyala",
+    "year_short": "Yıl",
+    "installment": "{{count}} taksit",
+    "receipt": "Dekont",
+    "method_credit_card": "Kredi Kartı",
+    "method_bank_transfer": "Banka Transferi",
+    "method_pay_tr": "PayTR",
+    "method_free": "Ücretsiz",
+    "status_success": "Başarılı",
+    "status_waiting": "Bekliyor",
+    "status_failed": "Başarısız",
+    "status_refunded": "Geri Ödeme",
+    "type_extend_license": "Lisans Uzatma",
+    "type_new_license": "Yeni Lisans",
+    "type_link": "Link Ödeme",
+    "license_qr": "QR Lisans",
+    "license_tv": "TV Lisans",
+    "filter_button": "Filtrele",
+    "filter_title": "Filtreler",
+    "filter_date_range": "Tarih Aralığı",
+    "filter_status": "Durum",
+    "filter_type": "İşlem Tipi",
+    "filter_method": "Ödeme Yöntemi",
+    "filter_clear": "Temizle",
+    "filter_apply": "Uygula",
+    "filter_all": "Hepsi"
   },
   "reservationsPage": {
     "title": "Rezervasyonlar",

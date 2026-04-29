@@ -484,7 +484,7 @@ const EditProduct = ({ product: prodToPopup }) => {
                         />
                         <CustomInput
                           type="number"
-                          placeholder="Özel"
+                          placeholder={t("addProduct.special_price_short")}
                           className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
                           value={formatToPrice(portion.specialPrice) || "0"}
                           onChange={(v) =>

@@ -178,7 +178,7 @@ const EditRestaurant = ({ data: restaurant }) => {
     e.preventDefault();
     const equalData = isEqual(restaurantDataBefore, restaurantData);
     if (equalData && !document && !document2) {
-      toast("Hiç bir değişiklik yapmadınız.");
+      toast(t("restaurants.no_changes"));
       return;
     }
 
@@ -316,16 +316,17 @@ const EditRestaurant = ({ data: restaurant }) => {
   // TOAST
   useEffect(() => {
     if (loading) {
-      toastId.current = toast.loading("İşleniyor 🤩...");
+      toastId.current = toast.loading(t("restaurants.processing"));
     }
     if (error) {
       toast.dismiss(toastId.current);
       dispatch(resetUpdateRestaurant());
     } else if (success) {
       toast.dismiss(toastId.current);
-      toast.success("Restoran başarıyla güncelendi 🥳🥳");
+      toast.success(t("restaurants.update_success"));
       dispatch(resetUpdateRestaurant());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, success, error]);
 
   //PREVIEW
@@ -466,8 +467,8 @@ const EditRestaurant = ({ data: restaurant }) => {
                 {restaurantData?.name || t("restaurants.name")}
               </h1>
               {restaurantData?.isActive && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 shrink-0">
-                  AKTİF
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 shrink-0 uppercase">
+                  {t("restaurants.active")}
                 </span>
               )}
             </div>
@@ -732,11 +733,11 @@ const ImageField = ({ label, hint, preview, onChange, contain }) => {
       "image/webp",
     ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Geçersiz dosya türü");
+      toast.error(t("restaurants.invalid_file_type"));
       return;
     }
     if (file.size > maxFileSizeMB * 1024 * 1024) {
-      toast.error(`Maks. dosya boyutu: ${maxFileSizeMB} MB`);
+      toast.error(t("restaurants.file_too_large", { mb: maxFileSizeMB }));
       return;
     }
 

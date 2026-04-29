@@ -133,13 +133,13 @@ const PaymentMethods = ({ data: restaurant }) => {
 
   // TOAST AND RESET
   useEffect(() => {
-    if (loading) toast.loading("İşleniyor...");
+    if (loading) toast.loading(t("paymentMethods.processing"));
     if (success) {
       toast.dismiss();
-      toast.success("Ödeme Yöntemleri Güncellendi.");
+      toast.success(t("paymentMethods.success"));
       dispatch(resetSetPaymentMethods());
     }
-  }, [loading, success, dispatch]);
+  }, [loading, success, dispatch, t]);
 
   // ADD / DELETE — refresh list after success
   useEffect(() => {

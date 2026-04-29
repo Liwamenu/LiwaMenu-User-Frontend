@@ -1,4 +1,34 @@
 {
+  "cropImage": {
+    "title": "Edit Image",
+    "preview_loading": "Loading preview…",
+    "size_label": "Size:",
+    "size_auto": "640x480 (Auto)",
+    "free_ratio": "Free",
+    "tools_label": "Editing Tools",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out",
+    "rotate_left": "Rotate Left",
+    "rotate_right": "Rotate Right",
+    "flip_horizontal": "Flip Horizontal",
+    "flip_vertical": "Flip Vertical",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "save": "Crop and Save"
+  },
+  "fileInput": {
+    "selected_file": "Selected file:"
+  },
+  "apiErrors": {
+    "unauthorized": "You are not authorized.",
+    "inactive_account": "Your account is not active",
+    "bad_request": "Request failed (400)",
+    "not_found": "Resource not found (404)",
+    "server_error": "Server error (500)",
+    "unexpected_status": "Unexpected error (status {{status}})",
+    "no_response": "Request did not reach the server",
+    "generic": "An error occurred: {{message}}"
+  },
   "sidebar": {
     "restaurants": "Restaurants",
     "licenses": "Licenses",
@@ -150,6 +180,11 @@
     "request_new": "Request New Link"
   },
   "restaurants": {
+    "processing": "Processing 🤩...",
+    "update_success": "Restaurant updated successfully 🥳🥳",
+    "invalid_file_type": "Invalid file type",
+    "file_too_large": "Max file size: {{mb}} MB",
+    "no_changes": "You haven't made any changes.",
     "subtitle": "Manage all your restaurants from a single panel.",
     "total_count_one": "{{count}} restaurant",
     "total_count_other": "{{count}} restaurants",
@@ -228,6 +263,8 @@
   "licenses": {
     "title": "Licenses",
     "subtitle": "Manage all your licenses from a single panel.",
+    "total_count_one": "{{count}} license",
+    "total_count_other": "{{count}} licenses",
     "add": "Add License",
     "search_placeholder": "Search license or restaurant...",
     "filter": "Filter",
@@ -378,6 +415,7 @@
     "tenant_check_taken": "Tenant is already in use.",
     "google_analytics": "Google Analytics",
     "google_analytics_placeholder": "Enter your Google Analytics Measurement-ID",
+    "google_analytics_hint": "is where you can get it.",
     "menu_language": "Default Menu Language",
     "menu_language_placeholder": "e.g. tr, en",
     "slogan1": "Top of Page Slogan",
@@ -514,6 +552,9 @@
     "cancel": "Cancel"
   },
   "editCategories": {
+    "no_changes": "No changes made.",
+    "update_success": "Categories updated successfully.",
+    "upload_image_msg": "Upload category image",
     "title": "Edit Categories for {{name}} Restaurant",
     "info": "Use the form below to edit your existing categories. You can reorder categories by dragging and dropping.",
     "edit": "Edit Category",
@@ -558,7 +599,7 @@
   },
   "categoryProducts": {
     "title": "Category Products",
-    "subtitle": "Add and Remove Products",
+    "subtitle": "Drag and drop to reorder products",
     "close": "Close",
     "add_existing": "Add from Existing Products",
     "no_products": "No products in this category yet.",
@@ -647,6 +688,7 @@
     "subcategory_name": "Subcategory Name",
     "subcategory_image": "Subcategory Image",
     "upload_image": "Upload subcategory image",
+    "select_category": "Select category",
     "delete": "Delete",
     "save": "Save",
     "success": "Subcategories added successfully."
@@ -836,6 +878,7 @@
     "success": "Product added successfully.",
     "save": "Save",
     "saving": "Saving...",
+    "special_price_short": "Special",
     "error": "Could not add product.",
     "cancel": "Cancel"
   },
@@ -923,6 +966,11 @@
     "invoice_info": "Invoice Information"
   },
   "orderTags": {
+    "delete_title": "Delete Item",
+    "delete_description": "You are about to delete the {{name}} group. This cannot be undone.",
+    "delete_cancel": "Cancel",
+    "delete_confirm": "Delete",
+    "delete_success": "Tag group deleted.",
     "title": "Product Tags",
     "subtitle": "Add extra options and customizations to your products.",
     "summary": "{{count}} tag groups · {{dirty}} unsaved",
@@ -964,6 +1012,8 @@
   },
   "surveySettings": {
     "title": "{{name}} Restaurant Customer Feedback Analytics",
+    "edit_aria": "Edit",
+    "delete_aria": "Delete",
     "add_survey": "Add Survey",
     "new_badge": "NEW",
     "reviews": "reviews",
@@ -1118,7 +1168,35 @@
     "summary_count": "{{count}} transactions total",
     "search_placeholder": "Search by order no, customer or restaurant...",
     "clear_search": "Clear search",
-    "generic_error": "Something went wrong"
+    "generic_error": "Something went wrong",
+    "empty_title": "No payments found",
+    "empty_desc": "Try clearing filters or running a different search.",
+    "copy_order_number": "Copy order number",
+    "year_short": "yr",
+    "installment": "{{count}} installments",
+    "receipt": "Receipt",
+    "method_credit_card": "Credit Card",
+    "method_bank_transfer": "Bank Transfer",
+    "method_pay_tr": "PayTR",
+    "method_free": "Free",
+    "status_success": "Success",
+    "status_waiting": "Pending",
+    "status_failed": "Failed",
+    "status_refunded": "Refunded",
+    "type_extend_license": "License Renewal",
+    "type_new_license": "New License",
+    "type_link": "Link Payment",
+    "license_qr": "QR License",
+    "license_tv": "TV License",
+    "filter_button": "Filter",
+    "filter_title": "Filters",
+    "filter_date_range": "Date Range",
+    "filter_status": "Status",
+    "filter_type": "Transaction Type",
+    "filter_method": "Payment Method",
+    "filter_clear": "Clear",
+    "filter_apply": "Apply",
+    "filter_all": "All"
   },
   "reservationsPage": {
     "title": "Reservations",

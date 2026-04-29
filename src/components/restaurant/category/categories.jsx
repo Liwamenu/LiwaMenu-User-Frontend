@@ -131,10 +131,11 @@ const Categories = ({ data: restaurant }) => {
   const sortCategoriesByOrder = (cats) =>
     [...cats].sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const handleManageProducts = (categoryId) => {
+  const handleManageProducts = (categoryId, categoryName) => {
     setPopupContent(
       <CategoryProducts
         categoryId={categoryId}
+        categoryName={categoryName}
         onClose={() => setPopupContent(null)}
       />,
     );
@@ -430,7 +431,7 @@ function ListTab({
                       <div className="flex gap-1 shrink-0 self-end sm:self-center">
                         <button
                           type="button"
-                          onClick={() => handleManageProducts(cat.id)}
+                          onClick={() => handleManageProducts(cat.id, cat.name)}
                           className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition"
                           title={t("editCategories.manage_products")}
                         >

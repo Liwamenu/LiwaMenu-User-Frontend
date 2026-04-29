@@ -14,6 +14,7 @@ import {
   Sparkles,
   Store,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 //UTILS
 import {
@@ -21,36 +22,37 @@ import {
   formatDateString,
   formatToPrice,
 } from "../../utils/utils";
-import { getLicenseTypeLabel } from "../../enums/licenseTypeEnums";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
+// Each meta map stores a translation key, not a baked TR string, so the
+// labels switch with the active language at render time.
 const METHOD_META = {
-  CreditCard: { icon: CreditCard, label: "Kredi Kartı" },
-  BankTransfer: { icon: Banknote, label: "Banka Transferi" },
-  PayTR: { icon: CreditCard, label: "PayTR" },
-  Free: { icon: Gift, label: "Ücretsiz" },
+  CreditCard: { icon: CreditCard, labelKey: "paymentsPage.method_credit_card" },
+  BankTransfer: { icon: Banknote, labelKey: "paymentsPage.method_bank_transfer" },
+  PayTR: { icon: CreditCard, labelKey: "paymentsPage.method_pay_tr" },
+  Free: { icon: Gift, labelKey: "paymentsPage.method_free" },
 };
 
 const STATUS_META = {
   Success: {
-    label: "Başarılı",
+    labelKey: "paymentsPage.status_success",
     cls: "text-emerald-600 bg-emerald-500/10 ring-emerald-500/30",
     dot: "bg-emerald-500",
   },
   Waiting: {
-    label: "Bekliyor",
+    labelKey: "paymentsPage.status_waiting",
     cls: "text-amber-600 bg-amber-500/10 ring-amber-500/30",
     dot: "bg-amber-500",
   },
   Failed: {
-    label: "Başarısız",
+    labelKey: "paymentsPage.status_failed",
     cls: "text-rose-600 bg-rose-500/10 ring-rose-500/30",
     dot: "bg-rose-500",
   },
   Refunded: {
-    label: "Geri Ödeme",
+    labelKey: "paymentsPage.status_refunded",
     cls: "text-sky-600 bg-sky-500/10 ring-sky-500/30",
     dot: "bg-sky-500",
   },
@@ -58,25 +60,26 @@ const STATUS_META = {
 
 const TYPE_META = {
   ExtendLicense: {
-    label: "Lisans Uzatma",
+    labelKey: "paymentsPage.type_extend_license",
     cls: "text-indigo-600 bg-indigo-500/10 ring-indigo-500/30",
   },
   NewLicense: {
-    label: "Yeni Lisans",
+    labelKey: "paymentsPage.type_new_license",
     cls: "text-violet-600 bg-violet-500/10 ring-violet-500/30",
   },
   Link: {
-    label: "Link Ödeme",
+    labelKey: "paymentsPage.type_link",
     cls: "text-cyan-600 bg-cyan-500/10 ring-cyan-500/30",
   },
 };
 
-const LICENSE_PKG_ICONS = {
-  QRLicensePackage: QrCode,
-  TVLicensePackage: Monitor,
+const LICENSE_PKG_META = {
+  QRLicensePackage: { icon: QrCode, labelKey: "paymentsPage.license_qr" },
+  TVLicensePackage: { icon: Monitor, labelKey: "paymentsPage.license_tv" },
 };
 
 const PaymentsTable = ({ payments }) => {
+  const { t } = useTranslation();
   if (!payments?.length) {
     return (
       <div className="grid place-items-center min-h-[20rem] rounded-2xl border border-[--border-1] bg-[--white-1]">
@@ -84,9 +87,11 @@ const PaymentsTable = ({ payments }) => {
           <div className="mx-auto mb-3 grid place-items-center size-12 rounded-2xl bg-[--white-2] ring-1 ring-[--border-1] text-[--gr-1]">
             <Receipt className="size-6" />
           </div>
-          <p className="text-[--black-1] font-semibold">Ödeme bulunamadı</p>
+          <p className="text-[--black-1] font-semibold">
+            {t("paymentsPage.empty_title")}
+          </p>
           <p className="text-xs text-[--gr-1] mt-1">
-            Filtreleri temizleyerek veya farklı arama yaparak tekrar deneyin.
+            {t("paymentsPage.empty_desc")}
           </p>
         </div>
       </div>
@@ -96,7 +101,7 @@ const PaymentsTable = ({ payments }) => {
   return (
     <ul className="space-y-2.5">
       {payments.map((p) => (
-        <PaymentRow key={p.id} p={p} />
+        <PaymentRow key={p.id} p={p} t={t} />
       ))}
     </ul>
   );
@@ -104,7 +109,7 @@ const PaymentsTable = ({ payments }) => {
 
 export default PaymentsTable;
 
-const PaymentRow = ({ p }) => {
+const PaymentRow = ({ p, t }) => {
   const method = METHOD_META[p.paymentMethod] || METHOD_META.Free;
   const status = STATUS_META[p.status] || STATUS_META.Waiting;
   const type = TYPE_META[p.licenseType] || TYPE_META.NewLicense;
@@ -134,7 +139,7 @@ const PaymentRow = ({ p }) => {
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ring-1 ${type.cls}`}
             >
-              {type.label}
+              {t(type.labelKey)}
             </span>
           </div>
 
@@ -151,7 +156,7 @@ const PaymentRow = ({ p }) => {
               type="button"
               onClick={() => copyToClipboard({ text: p.orderNumber })}
               className="inline-flex items-center gap-1 font-mono tracking-tight hover:text-[--primary-1] transition truncate max-w-[14rem]"
-              title="Sipariş numarasını kopyala"
+              title={t("paymentsPage.copy_order_number")}
             >
               <Hash className="size-3 shrink-0" />
               <span className="truncate">{p.orderNumber}</span>
@@ -192,21 +197,22 @@ const PaymentRow = ({ p }) => {
           {items.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {items.map((it, i) => {
-                const PkgIcon =
-                  LICENSE_PKG_ICONS[it.LicensePackageType] || Sparkles;
+                const pkg = LICENSE_PKG_META[it.LicensePackageType];
+                const PkgIcon = pkg?.icon || Sparkles;
+                const pkgLabel = pkg ? t(pkg.labelKey) : it.LicensePackageType;
                 return (
                   <li
                     key={i}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[--white-2] border border-[--border-1] text-[10px] text-[--black-1]"
                   >
                     <PkgIcon className="size-3 text-[--primary-1]" />
-                    <span className="font-semibold">
-                      {getLicenseTypeLabel(it.LicensePackageType)}
-                    </span>
+                    <span className="font-semibold">{pkgLabel}</span>
                     {it.LicensePackageTime ? (
                       <>
                         <span className="text-[--gr-1]">·</span>
-                        <span>{it.LicensePackageTime} Yıl</span>
+                        <span>
+                          {it.LicensePackageTime} {t("paymentsPage.year_short")}
+                        </span>
                       </>
                     ) : null}
                   </li>
@@ -220,7 +226,7 @@ const PaymentRow = ({ p }) => {
             <p className="mt-1.5 text-[11px] text-[--gr-1] font-mono tracking-wide">
               {p.cardMask}
               {p.installmentCount && p.installmentCount > 1
-                ? ` · ${p.installmentCount} taksit`
+                ? ` · ${t("paymentsPage.installment", { count: p.installmentCount })}`
                 : ""}
             </p>
           )}
@@ -241,7 +247,7 @@ const PaymentRow = ({ p }) => {
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ring-1 whitespace-nowrap ${status.cls}`}
             >
               <span className={`size-1.5 rounded-full ${status.dot}`} />
-              {status.label}
+              {t(status.labelKey)}
             </span>
           </div>
           {p.receiptAbsoluteUrl && (
@@ -253,7 +259,7 @@ const PaymentRow = ({ p }) => {
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold text-[--primary-1] bg-[--primary-1]/10 hover:bg-[--primary-1]/15 ring-1 ring-[--primary-1]/30 transition"
               >
                 <FileText className="size-3" />
-                Dekont
+                {t("paymentsPage.receipt")}
                 <ExternalLink className="size-2.5" />
               </a>
             </div>
@@ -273,7 +279,7 @@ const PaymentRow = ({ p }) => {
           </span>
           <span className="inline-flex items-center gap-1 text-[10px] text-[--gr-1] whitespace-nowrap">
             <MethodIcon className="size-3" />
-            {method.label}
+            {t(method.labelKey)}
           </span>
           {p.receiptAbsoluteUrl && (
             <a
@@ -283,7 +289,7 @@ const PaymentRow = ({ p }) => {
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold text-[--primary-1] bg-[--primary-1]/10 hover:bg-[--primary-1]/15 ring-1 ring-[--primary-1]/30 transition"
             >
               <FileText className="size-3" />
-              Dekont
+              {t("paymentsPage.receipt")}
               <ExternalLink className="size-2.5" />
             </a>
           )}

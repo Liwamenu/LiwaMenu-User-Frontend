@@ -127,7 +127,9 @@ const CustomFileInput = ({
           showFileDetails && (
             <div className="text-center flex flex-col justify-between">
               <p className="text-sm">
-                <span className="font-semibold">Seçilen dosya: </span>
+                <span className="font-semibold">
+                  {t("fileInput.selected_file")}{" "}
+                </span>
                 <span className="font-semibold text-[--primary-1]">
                   {value.name?.slice(0, sliceNameAt)}
                   {value.name?.length > sliceNameAt && "..."}

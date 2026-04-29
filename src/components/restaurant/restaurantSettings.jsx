@@ -495,7 +495,7 @@ const RestaurantSettings = ({ data: inData }) => {
                   >
                     analytics.google.com
                   </a>{" "}
-                  websitesinden ulaşabilirsiniz.
+                  {t("restaurantSettings.google_analytics_hint")}
                 </p>
               </div>
 

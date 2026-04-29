@@ -2,6 +2,7 @@
 import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 //COMP
 import { CancelI } from "../../../assets/icon";
@@ -16,6 +17,7 @@ import {
 } from "../../../redux/licenses/updateLicenseIsActiveSlice";
 
 const EditLicenseIsActive = ({ licenseData, onSuccess }) => {
+  const { t } = useTranslation();
   const { setPopupContent } = usePopup();
 
   const handleClick = () => {
@@ -32,7 +34,7 @@ const EditLicenseIsActive = ({ licenseData, onSuccess }) => {
       } px-3 py-1 border border-solid rounded-full`}
       onClick={handleClick}
     >
-      ● {licenseData.isActive ? "Aktif" : "Pasif"}
+      ● {licenseData.isActive ? t("licenses.active") : t("licenses.passive")}
     </span>
   );
 };

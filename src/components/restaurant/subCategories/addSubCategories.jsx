@@ -280,7 +280,7 @@ const AddSubCategories = ({ data: restaurant }) => {
                                           sel.value,
                                         )
                                       }
-                                      placeholder="Kategori seç"
+                                      placeholder={t("addSubCategories.select_category")}
                                     />
                                   </div>
 
