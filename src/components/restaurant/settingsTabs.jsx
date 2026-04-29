@@ -4,6 +4,10 @@
 //
 // Each tab is a real Link so deep links and browser back/forward keep
 // working — we just stop showing the same items in the sub-sidebar.
+//
+// We also render the page-help button to the right of the tabs (rather
+// than in each sub-page's hero), since the strip is already the natural
+// "above the form" anchor and it saves seven near-identical edits.
 import { useEffect, useRef } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,6 +20,20 @@ import {
   Share2,
   CreditCard,
 } from "lucide-react";
+
+import PageHelp from "../common/pageHelp";
+
+// Map the URL slug for each tab to the matching pageHelp.<key> entry in
+// the i18n bundle. Kept inline because the tabs themselves only live here.
+const SLUG_TO_HELP_KEY = {
+  settings: "settings",
+  reservationSettings: "reservationSettings",
+  announcementSettings: "announcementSettings",
+  surveySettings: "surveySettings",
+  hours: "workingHours",
+  social: "socialMedias",
+  payments: "paymentMethods",
+};
 
 const SettingsTabs = () => {
   const { t } = useTranslation();
@@ -94,33 +112,38 @@ const SettingsTabs = () => {
     }
   }, [slug]);
 
+  const helpKey = SLUG_TO_HELP_KEY[slug];
+
   return (
-    <div
-      ref={wrapRef}
-      className="mb-3 -mx-1 overflow-x-auto scrollbar-thin"
-      // Hide native scrollbar visuals on mobile but keep scroll behaviour.
-      style={{ scrollbarWidth: "none" }}
-    >
-      <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-[--border-1] bg-[--white-1] shadow-sm whitespace-nowrap min-w-max">
-        {tabs.map(({ slug: tabSlug, to, icon: Icon, label }) => {
-          const active = slug === tabSlug;
-          return (
-            <Link
-              key={tabSlug}
-              ref={active ? activeRef : null}
-              to={to}
-              className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
-                active
-                  ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
-                  : "text-[--gr-1] hover:text-[--black-1] hover:bg-[--white-2]"
-              }`}
-            >
-              <Icon className="size-4" />
-              {label}
-            </Link>
-          );
-        })}
+    <div className="mb-3 flex items-start gap-2">
+      <div
+        ref={wrapRef}
+        className="-mx-1 overflow-x-auto scrollbar-thin flex-1 min-w-0"
+        // Hide native scrollbar visuals on mobile but keep scroll behaviour.
+        style={{ scrollbarWidth: "none" }}
+      >
+        <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-[--border-1] bg-[--white-1] shadow-sm whitespace-nowrap min-w-max">
+          {tabs.map(({ slug: tabSlug, to, icon: Icon, label }) => {
+            const active = slug === tabSlug;
+            return (
+              <Link
+                key={tabSlug}
+                ref={active ? activeRef : null}
+                to={to}
+                className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                  active
+                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
+                    : "text-[--gr-1] hover:text-[--black-1] hover:bg-[--white-2]"
+                }`}
+              >
+                <Icon className="size-4" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
       </div>
+      {helpKey && <PageHelp pageKey={helpKey} className="self-stretch" />}
     </div>
   );
 };

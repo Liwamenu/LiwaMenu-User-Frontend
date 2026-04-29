@@ -1042,6 +1042,18 @@
     "tag_fresh": "Taze & yeşil"
   },
   "orders": {
+    "subtitle": "Gelen siparişleri canlı olarak takip edin",
+    "summary_count": "Toplam {{count}} sipariş",
+    "filtered_restaurants": "Filtrelenen Restoranlar",
+    "remove_from_filter": "Filtreden kaldır",
+    "clear_all": "Tümünü temizle",
+    "search_placeholder": "Sipariş ID, müşteri veya masa ara...",
+    "clear_search": "Aramayı temizle",
+    "item_count": "{{count}} ürün",
+    "empty_no_match": "Eşleşen sipariş bulunamadı",
+    "empty_no_active": "Aktif sipariş yok",
+    "empty_no_match_desc": "Aramanızla eşleşen sipariş yok. Filtreleri değiştirin veya aramayı temizleyin.",
+    "empty_no_active_desc": "Yeni siparişler buraya canlı olarak düşecek.",
     "active_orders": "Aktif Siparişler",
     "order_details": "Sipariş Detayları",
     "id_label": "ID:",
@@ -1100,6 +1112,36 @@
     "print_item": "Ürün",
     "print_amount": "Tutar",
     "print_thank_you": "Bizi tercih ettiğiniz için teşekkür ederiz."
+  },
+  "paymentsPage": {
+    "title": "Ödemeler",
+    "subtitle": "Tüm ödeme işlemlerinizi takip edin",
+    "summary_count": "Toplam {{count}} işlem",
+    "search_placeholder": "Sipariş no, müşteri veya restoran ara...",
+    "clear_search": "Aramayı temizle",
+    "generic_error": "Bir şeyler ters gitti"
+  },
+  "reservationsPage": {
+    "title": "Rezervasyonlar",
+    "subtitle": "Restoran rezervasyonlarınızı ve misafir taleplerinizi yönetin.",
+    "stat_total": "Toplam Rezervasyon",
+    "stat_pending": "Bekleyen Onay",
+    "stat_confirmed_guests": "Onaylanmış Misafirler",
+    "status_pending": "Bekliyor",
+    "status_accepted": "Onaylandı",
+    "status_rejected": "Reddedildi",
+    "date_time": "Tarih ve Saat",
+    "guests_label": "Misafirler",
+    "special_notes": "Özel Notlar",
+    "people_count": "{{count}} Kişi",
+    "verified": "Doğrulanmış Rezervasyon",
+    "unverified": "Doğrulanmamış",
+    "no_special": "Özel istek yok",
+    "accept": "Onayla",
+    "reject": "Reddet",
+    "decided_on": "Karar Verildi",
+    "empty_title": "Rezervasyon bulunamadı",
+    "empty_desc": "Filtre ayarlarınızı değiştirmeyi deneyin."
   },
   "waiterCalls": {
     "title": "Garson Çağrı Listesi",
@@ -1161,5 +1203,621 @@
     "next": "Sonraki",
     "go_to": "Sayfaya git",
     "go_to_action": "Git"
+  },
+  "pageHelp": {
+    "button_label": "Sayfa Yardımı",
+    "example_label": "Örnek",
+    "warning_label": "Dikkat",
+    "tip_label": "İpucu",
+    "close": "Kapat",
+    "editRestaurant": {
+      "title": "Restoran Düzenle — Yardım",
+      "intro": "Restoranınızın temel bilgilerini düzenlersiniz. Aşağıda her veri alanı tek tek açıklanmıştır.",
+      "sections": [
+        {
+          "heading": "Restoran Adı",
+          "body": "Müşteriye menüde gözüken isim. ZORUNLU. Yazarken otomatik 'Sözcük Başları Büyük' formatına çevrilir.",
+          "example": "'liwa cafe' yazsanız 'Liwa Cafe' olur"
+        },
+        {
+          "heading": "Telefon",
+          "body": "ZORUNLU. Solda ülke kodu otomatik (+90), siz sadece 10 haneli numarayı yazarsınız. Müşteri online siparişle ilgili sorular için bu numarayı arar.",
+          "example": "5XX XXX XX XX (başında 0 olmadan)"
+        },
+        {
+          "heading": "Şehir",
+          "body": "ZORUNLU. Restoranınızın bulunduğu şehir. Otomatik 'İlk Harf Büyük' formatlanır.",
+          "example": "İstanbul"
+        },
+        {
+          "heading": "İlçe",
+          "body": "ZORUNLU. Restoranınızın bulunduğu ilçe.",
+          "example": "Kadıköy"
+        },
+        {
+          "heading": "Mahalle",
+          "body": "ZORUNLU. Restoranınızın bulunduğu mahalle.",
+          "example": "Caferağa"
+        },
+        {
+          "heading": "Açık Adres",
+          "body": "ZORUNLU textarea alanı. Cadde / sokak / bina no / kat / daire detayı. Faturada ve müşterinin yol tarifinde görünür. Şehir/ilçe/mahalleyi tekrar yazmayın.",
+          "example": "Moda Caddesi No:42 Daire 3"
+        },
+        {
+          "heading": "Enlem (Latitude)",
+          "body": "Restoranınızın haritadaki dikey koordinatı. 'Konumu Düzenle'den seçtiyseniz otomatik dolar; manuel de girilebilir. Online sipariş mesafe hesabında kritik.",
+          "example": "41.0123456"
+        },
+        {
+          "heading": "Boylam (Longitude)",
+          "body": "Restoranınızın haritadaki yatay koordinatı. Enlem ile birlikte konum pinini oluşturur.",
+          "example": "29.0234567",
+          "warning": "Yanlış koordinat → yanlış mesafe → online siparişlerde ya iptal ya yanlış kabul. Pin'i mutlaka tam binaya bırakın."
+        },
+        {
+          "heading": "Arka Plan Görseli",
+          "body": "Menünün üstünde hero/banner olarak görünen büyük resim. PNG/JPEG/GIF/WebP destekler, max 5 MB. Yükledikten sonra crop popup'ı açılır; kırptıktan sonra sistem **otomatik 1000 piksele küçültür** (uzun kenar; oran korunur).",
+          "example": "1920×1080 yatay fotoğraf (iç mekân, yemek, dış cephe)",
+          "tip": "4K telefon fotoğrafı sorunsuz; küçültme arka planda yapılır."
+        },
+        {
+          "heading": "Logo",
+          "body": "Menünün köşesinde küçük olarak görünür. Aynı dosya seçici + crop akışı. ANCAK logo için otomatik küçültme YAPILMAZ (kalite korunsun diye).",
+          "example": "Kare 200–500 piksel, ŞEFFAF PNG",
+          "tip": "JPG kullanırsanız etrafında beyaz/renkli kare çerçeve görünür."
+        }
+      ]
+    },
+    "settings": {
+      "title": "Genel Ayarlar — Yardım",
+      "intro": "Restoranınızın 'altyapı' ayarları. Aşağıda her veri alanı tek tek açıklanmıştır.",
+      "sections": [
+        {
+          "heading": "Tenant (Alt Alan Adı)",
+          "body": "Menünüzün internet adresinin başındaki kısım. Tam URL: https://<tenant>.liwamenu.com. Sadece ortadaki adı yazarsınız (https:// ve .liwamenu.com sabit). QR kodlarınız bu adrese yönlendirir.\n\nKaydedilmiş bir tenant varsa alan KİLİTLİ; yan tarafındaki 'Değiştir' butonu kırmızı uyarı modalı açar, onayladıktan sonra düzenleyebilirsiniz.",
+          "example": "'liwacafe' → liwacafe.liwamenu.com",
+          "warning": "Tenant değiştirmek = basılı tüm QR kodlarınız ölü adrese gider. Mecbur değilseniz değiştirmeyin."
+        },
+        {
+          "heading": "Menü Dili",
+          "body": "Bayrak ikonlu dropdown. Menünüzün VARSAYILAN dili — müşteri menüyü ilk açtığında bu dilde görür; sağ üstten kendi dilini seçebilir.",
+          "example": "Türkçe, İngilizce, Almanca, Arapça, Rusça"
+        },
+        {
+          "heading": "Para Birimi",
+          "body": "Fiyatların yanında görünecek tek karakter / kısa simge. Ürün kartlarında, sepette, kuryeci ekranında basılır. Sistem otomatik 'TL' yazmaz; ne girerseniz o görünür.",
+          "example": "₺, $, €, £, ¥"
+        },
+        {
+          "heading": "Google Analytics",
+          "body": "GA4 ölçüm kimliği. analytics.google.com'da Property oluşturup G- ile başlayan kodu kopyalarsınız. Boş bırakırsanız ziyaretçi takibi olmaz.",
+          "example": "G-XXXXXXXXXX",
+          "tip": "Veriler biz değil doğrudan Google'a gider; raporları analytics.google.com'dan görürsünüz."
+        },
+        {
+          "heading": "Sayfa Üstü Slogan",
+          "body": "Menünün en üstünde müşteriye ilk gözüken kısa cümle. Hoş geldin, marka sloganı veya kampanya duyurusu için. Tek satıra sığması ideal.",
+          "example": "'Yıl boyu taze, doğal lezzetler'"
+        },
+        {
+          "heading": "Sayfa Altı Slogan",
+          "body": "Menünün en altında, müşteri ürünleri gezdikten sonra okuyacağı kısa not. Teşekkür, sosyal medya çağrısı veya kapanış cümlesi için.",
+          "example": "'Afiyet olsun — Liwa Ailesi'"
+        },
+        {
+          "heading": "Online Sipariş (Toggle)",
+          "body": "Aktifse müşteri eve/işe paket sipariş verebilir. Pasifse 'Online Sipariş' butonu menüde gözükmez.",
+          "warning": "Aktif etmek için EN AZ BİR ödeme yöntemi tanımlı olmalı; yoksa Ödeme Yöntemleri sekmesine yönlendirilirsiniz."
+        },
+        {
+          "heading": "Online Sipariş İndirim Oranı (%)",
+          "body": "Online Sipariş aktifse açılır. Yüzde olarak girilir; online siparişin son tutarına otomatik uygulanır. İndirim yoksa 0.",
+          "example": "10 → tüm online siparişlerde %10 indirim"
+        },
+        {
+          "heading": "Kurye Ücreti",
+          "body": "Online Sipariş aktifse açılır. Sipariş tutarına EKLENİR. Para birimi göstergesi sağda otomatik.",
+          "example": "30 → her siparişe sabit 30₺ kurye"
+        },
+        {
+          "heading": "Minimum Sipariş Tutarı",
+          "body": "Online Sipariş aktifse açılır. Bu tutarın ALTINDA sipariş verilemez. Müşteri sepete ekleyebilir ama 'Sipariş Ver'e bastığında uyarı görür.",
+          "example": "100 → 99₺'lik sepet geçmez"
+        },
+        {
+          "heading": "Maksimum Mesafe (km)",
+          "body": "ZORUNLU (yıldız işaretli). Online Sipariş aktifse açılır. Restoran konumunuzdan bu kilometre yarıçapı dışındaki müşteri sipariş veremez. Mesafe restoran haritası pin'i ile müşterinin GPS'i arasında hesaplanır.",
+          "example": "5 → restoranınızın 5 km içindeki müşteriler",
+          "warning": "0 yazarsanız KİMSE sipariş veremez; mecburen 1 veya üstü olmalı. Boş kalırsa kaydetmeye çalıştığınızda 'Maksimum mesafe gerekli' uyarısı çıkar."
+        },
+        {
+          "heading": "Masada Sipariş (Toggle)",
+          "body": "Aktifse müşteri restoranınızdaki masada QR'ı okuyup doğrudan sipariş verebilir. Pasifse QR sadece menü görüntüleme amaçlı çalışır."
+        },
+        {
+          "heading": "Masa İndirim Oranı (%)",
+          "body": "Masada Sipariş aktifse açılır. Masadan verilen siparişlere otomatik uygulanan yüzde indirim. 0 = indirim yok.",
+          "example": "5 → masadan sipariş verene %5 indirim"
+        },
+        {
+          "heading": "Masa Mesafesi Kontrolü (Toggle)",
+          "body": "Masada Sipariş aktifse açılır. Aktifse müşterinin GPS konumu kontrol edilir; restoranın belirli metre yarıçapı dışındaysa sipariş REDDEDİLİR. Evden 'masa siparişi yapıyormuş gibi' yapan sahte siparişleri engeller."
+        },
+        {
+          "heading": "Maksimum Masa Mesafesi (m)",
+          "body": "Masa Mesafesi Kontrolü aktifse açılır. METRE cinsinden (km değil). Restoran konumundan bu metre yarıçapı içindeki müşteriler masadan sipariş verebilir.",
+          "example": "50 → restoranınızın 50 metre içindeki müşteriler",
+          "warning": "Çok küçük (< 30m) yaparsanız GPS hatası yüzünden gerçek müşteri bile reddedilebilir."
+        },
+        {
+          "heading": "Özel Fiyatlandırma (Toggle)",
+          "body": "Aktifse ürün düzenlemede her porsiyon için 'Normal Fiyat' + 'Özel Fiyat' iki alan çıkar. İki fiyatlı menü için (üye fiyatı, kampanya, vb.).",
+          "example": "Türk Kahvesi: Normal 60₺ / Özel 45₺"
+        },
+        {
+          "heading": "Özel Fiyat Etiket Adı",
+          "body": "Özel Fiyatlandırma aktifse açılır. Müşterinin menüde alternatif fiyatın yanında göreceği etiket. Boş bırakırsanız 'Özel Fiyat' yazar.",
+          "example": "'Üye Fiyatı', 'Kampanya', 'Happy Hour'"
+        },
+        {
+          "heading": "Restoranı Gizle (Toggle)",
+          "body": "Aktifse menünüze HİÇ KİMSE erişemez. Müşteri tenant URL'sini açtığında 'kapalı' uyarısı görür. Online sipariş, masadan sipariş, menü görüntüleme — hepsi kapanır.",
+          "warning": "Tatil dönüşünde toggle'ı kapatmayı UNUTMAYIN!"
+        }
+      ]
+    },
+    "reservationSettings": {
+      "title": "Rezervasyon Ayarları — Yardım",
+      "intro": "Müşterinin menüden masa rezervasyonu yapmasına izin verirsiniz ve kuralları belirlersiniz. Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Rezervasyon Aktif (Toggle)",
+          "body": "Aktifse müşterinin menüsünde 'Rezervasyon Yap' butonu görünür; talep gönderebilir. Pasifse buton hiç gözükmez."
+        },
+        {
+          "heading": "Başlangıç Saati",
+          "body": "Time picker (HH:MM). Bir gün içinde EN ERKEN hangi saate rezervasyon kabul edilebileceği. Bu saatten ÖNCESİNDE slot oluşmaz.",
+          "example": "Restoran 12:00'da açılıyor → 12:00"
+        },
+        {
+          "heading": "Bitiş Saati",
+          "body": "Time picker (HH:MM). Bir gün içinde EN GEÇ hangi saate rezervasyon kabul edilebileceği. Bu saatten SONRASINDA slot oluşmaz.",
+          "example": "Mutfak 23:00'te kapanıyor → 22:00 (son müşteri yemeğini bitirsin)",
+          "warning": "Bitiş, Başlangıç'tan ÖNCE olmamalı; aksi halde hiç slot oluşmaz."
+        },
+        {
+          "heading": "Aralık (dakika)",
+          "body": "İki rezervasyon slotu arasındaki dakika farkı. Min 1 dakika. Küçük = çok seçenek (personeli zorlar); büyük = az slot ama yönetimi kolay.",
+          "example": "30 dakika → 19:00, 19:30, 20:00, 20:30, 21:00 ..."
+        },
+        {
+          "heading": "Maksimum Kişi Sayısı",
+          "body": "Bir rezervasyon talebinde EN FAZLA kaç kişi seçilebileceği. Min 1. Müşteri rezervasyon yaparken 1 ile bu değer arasında dropdown görür; daha büyük grup taleplerini sistem reddeder.",
+          "example": "10 → en fazla 10 kişilik rezervasyon",
+          "tip": "Çok büyük gruplar (40+) için telefonla görüşülmesini istiyorsanız bu alanı 30 ile sınırlayın."
+        }
+      ]
+    },
+    "announcementSettings": {
+      "title": "Duyuru Ayarları — Yardım",
+      "intro": "Menüde tüm müşterilere açılır pencere olarak gösterilecek bir duyuru tasarlarsınız. Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Duyuruyu Aktifleştir (Toggle)",
+          "body": "Aktifse müşteri menüye girdiğinde duyuru ortada popup olarak çıkar. Pasifse hiç görünmez."
+        },
+        {
+          "heading": "Gösterim Gecikmesi (ms)",
+          "body": "Müşteri menüyü açtıktan KAÇ MİLİSANİYE sonra duyurunun çıkacağı. 0 = anında. 1000 = 1 sn sonra.",
+          "example": "1500 → müşterinin gözü menüye alıştıktan hemen sonra",
+          "tip": "Çok hızlı çıkarsa müşteri okumaz; çok geç çıkarsa fark etmeyebilir."
+        },
+        {
+          "heading": "HTML İçerik (Textarea)",
+          "body": "Karanlık panele duyurunuzun HTML kodunu yazarsınız. Tailwind CSS sınıflarını kullanabilirsiniz (rounded-xl, bg-amber-50, text-2xl, vs.). Sağ panel CANLI önizleme — yazdıkça günceller. HTML/Tailwind bilmiyorsanız 'Sihirli Üret' ile AI'den şablon alabilirsiniz.",
+          "example": "<div class=\"p-6 text-center\"><h2 class=\"text-2xl font-bold\">Yılbaşı Menüsü!</h2><p class=\"mt-2\">31 Aralık akşamı yerinizi ayırtın</p></div>"
+        },
+        {
+          "heading": "Sihirli Üret (AI Promptu)",
+          "body": "Yapay zekâya ne tür bir duyuru istediğinizi söylersiniz, HTML üretir. Türkçe yazabilirsiniz. Sonuç HTML İçerik alanına otomatik yapıştırılır.",
+          "example": "'Yılbaşı kampanyası için neon renkli, animasyonlu, yıldız ikonlu duyuru'"
+        }
+      ]
+    },
+    "surveySettings": {
+      "title": "Anket Ayarları — Yardım",
+      "intro": "Müşterilerden hizmet kalitenize dair geri bildirim toplarsınız. Bu sayfada veri girişi popup'ta yapılır ('Anket Ekle' veya bir satırın kalem ikonu). Aşağıda popup'taki alanlar tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Kategori Adı",
+          "body": "Müşterinin menünün sonundaki ankette göreceği başlık. Kısa ve net olsun. Bu başlık altına müşteri 1–5 yıldız puan verir.",
+          "example": "'Yemek Lezzeti', 'Servis Hızı', 'Ortam', 'Fiyat-Performans'"
+        },
+        {
+          "heading": "Kategori İkonu (Emoji)",
+          "body": "Kategori başlığının yanında görünecek emoji. Görsel ipucu — müşteri başlığa bakmadan da neyi puanladığını anlar.",
+          "example": "🍽️ Yemek, ⏱️ Servis Hızı, 🏠 Ortam, 💰 Fiyat"
+        },
+        {
+          "heading": "Aktif (Toggle)",
+          "body": "Kategori müşteri anketinde gösterilsin mi? Pasifse o kategori müşteriye sorulmaz; eski puanlamalar muhafaza edilir."
+        }
+      ]
+    },
+    "workingHours": {
+      "title": "Çalışma Saatleri — Yardım",
+      "intro": "Haftanın 7 günü için açılış/kapanış saatlerinizi girersiniz. Müşteri kapalı saatlerde sipariş veremez. Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Gün Açık / Kapalı (Toggle)",
+          "body": "Her gün için ayrı bir toggle. Aktifse o gün açık olarak işaretlenir; pasifse kapalı sayılır ve saat alanları kullanılamaz hâle gelir."
+        },
+        {
+          "heading": "Açılış Saati (Time Picker)",
+          "body": "Sadece o gün açıkken kullanılabilir. Time picker (HH:MM) ile o gün ilk siparişi en erken hangi saate kabul edeceğinizi belirlersiniz.\n\nBir günü ilk kez 'Açık' yaptığınızda otomatik 08:00 olarak gelir.",
+          "example": "Kahvaltı restoranı: 07:00 / Akşam restoranı: 18:00"
+        },
+        {
+          "heading": "Kapanış Saati (Time Picker)",
+          "body": "Sadece o gün açıkken kullanılabilir. Time picker (HH:MM) ile son siparişi en geç hangi saate kabul edeceğinizi belirlersiniz.\n\nİlk açışta otomatik 23:59 olarak gelir.",
+          "example": "Mutfak 23:00'te kapanıyorsa: 22:30 (son siparişlerin hazırlanmasına yarım saat pay)",
+          "warning": "Açık işaretlediğiniz gün için Açılış/Kapanış girmediyseniz kaydetmeye çalıştığınızda uyarı çıkar."
+        }
+      ]
+    },
+    "socialMedias": {
+      "title": "Sosyal Medya — Yardım",
+      "intro": "Sosyal medya hesaplarınızın linklerini ekleyin. Menünün altında platform ikonları olarak görünür. Boş bırakılan platform menüde hiç gözükmez. Aşağıda her input tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Facebook URL",
+          "body": "Facebook sayfanızın TAM internet adresi. Tarayıcıda profilinizi açıp adresi olduğu gibi kopyalayın.",
+          "example": "https://facebook.com/liwacafe",
+          "warning": "Sadece 'liwacafe' yazmak YETMEZ; tam URL gerekir."
+        },
+        {
+          "heading": "Instagram URL",
+          "body": "Instagram profilinizin TAM adresi. '@' işareti yok, sadece kullanıcı adı kısmı URL'de.",
+          "example": "https://instagram.com/liwacafe"
+        },
+        {
+          "heading": "TikTok URL",
+          "body": "TikTok hesabınızın profil adresi. URL içinde '@' işareti vardır.",
+          "example": "https://tiktok.com/@liwacafe"
+        },
+        {
+          "heading": "YouTube URL",
+          "body": "YouTube kanalınızın adresi. İki format: /channel/UCxxxxx (eski) veya /@kanaladi (yeni).",
+          "example": "https://youtube.com/@liwacafe"
+        },
+        {
+          "heading": "WhatsApp URL",
+          "body": "Müşterinin WhatsApp üzerinden size yazabileceği link. wa.me/<numara> formatı: ülke kodu + numara, başında + olmadan.",
+          "example": "https://wa.me/905XXXXXXXXX (90 = TR, sonrası 10 haneli numaranız)",
+          "tip": "Restoran telefon numaranız kayıtlıysa placeholder'da otomatik önerilir."
+        }
+      ]
+    },
+    "paymentMethods": {
+      "title": "Ödeme Yöntemleri — Yardım",
+      "intro": "Müşterinin online siparişte hangi yöntemleri kullanabileceğini belirlersiniz. Aşağıda veri girişi yapılan alanlar tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Yöntem Adı (Yeni Ekleme Popup'ı)",
+          "body": "Yeni yöntem eklerken popup'taki tek input. Adı serbest, max 40 karakter. Müşteri sipariş sırasında bu adı görür.",
+          "example": "'Kapıda Nakit', 'Kapıda Kart', 'Online Kart', 'Havale/EFT', 'Sodexo', 'Multinet', 'Yemek Çeki'"
+        },
+        {
+          "heading": "Tümünü Aktif Et (Master Toggle)",
+          "body": "Tek dokunuşla tüm tanımlı yöntemlerin tamamını birden açar veya kapatır.",
+          "warning": "Online Sipariş aktifse hepsini birden kapatamazsınız — sistem en az bir yöntemin aktif kalmasını ister."
+        },
+        {
+          "heading": "Yöntem Aktif/Pasif (Per-Method Toggle)",
+          "body": "Her yöntemin satırındaki toggle. Aktifse müşteri sipariş sırasında bu yöntemi seçebilir; pasifse seçeneklerde gözükmez.",
+          "warning": "Online Sipariş aktifken son aktif yöntemi de kapatamazsınız."
+        }
+      ]
+    },
+    "categories": {
+      "title": "Kategoriler — Yardım",
+      "intro": "Menünüzü kategorilere bölersiniz. Veri girişi 'Kategori Ekle' veya bir kategorinin kalem ikonu ile açılan popup'ta yapılır. Aşağıda popup'taki alanlar tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Kategori Adı",
+          "body": "ZORUNLU. Müşterinin menüde göreceği kategori başlığı. Kısa ve net olsun.",
+          "example": "'Pizzalar', 'Burgerler', 'İçecekler', 'Tatlılar', 'Kahvaltı'"
+        },
+        {
+          "heading": "Kategori Görseli",
+          "body": "ZORUNLU. Bu kategoriyi temsil eden bir resim. Müşteri menüde kategori başlığı + bu görsel ile karşılaşır.",
+          "example": "'Tatlılar' için cheesecake fotoğrafı, 'Pizzalar' için margherita fotoğrafı",
+          "tip": "Yatay/kare oran, net ve aydınlık fotoğraflar tercih edin. Sonradan değiştirebilirsiniz."
+        },
+        {
+          "heading": "Bağlı Olduğu Menüler",
+          "body": "Bu kategorinin hangi 'Menü'lere (Kahvaltı / Akşam / Geç Saat vb.) dahil olacağını seçersiniz. Birden fazla menüye bağlanabilir; hiçbir menüye bağlamazsanız her zaman görünür."
+        },
+        {
+          "heading": "Toplu Görsel Yükleme (Toplu Sekmesi)",
+          "body": "Kategoriler sayfasının üstündeki 'Toplu' sekmesine geçince, tüm kategorilerin görselsiz olanlarını grid hâlinde görür ve her birine ayrı görsel yükleyip tek seferde 'Kaydet' diyebilirsiniz. Veri girişi: her satırda yalnız 'görsel yükleme' alanı var.",
+          "example": "Yeni açılan restoran: 10 kategori için 10 ayrı popup açmak yerine toplu modda hepsini topluca yükleyin."
+        }
+      ]
+    },
+    "subCategories": {
+      "title": "Alt Kategoriler — Yardım",
+      "intro": "Büyük kategorileri ikinci seviyeye bölersiniz. Veri girişi popup'ta yapılır. Aşağıda popup'taki alanlar tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Alt Kategori Adı",
+          "body": "ZORUNLU. Müşterinin filtre çubuğunda göreceği etiket. Ana kategorinin altında, fitre olarak çalışır.",
+          "example": "'Pizzalar' altında: 'Etli Pizzalar', 'Sebzeli', 'Karışık'\n'İçecekler' altında: 'Sıcak', 'Soğuk', 'Alkollü'"
+        },
+        {
+          "heading": "Bağlı Olduğu Ana Kategori",
+          "body": "ZORUNLU dropdown. Alt kategorinin hangi ana kategoriye ait olduğunu seçersiniz. Bir alt kategori SADECE bir ana kategoriye bağlanır.",
+          "warning": "Sonradan ana kategoriyi değiştirmek istiyorsanız 'Düzenle' (kalem) butonundan bu dropdown'u değiştirebilirsiniz; sürükle-bırak sadece aynı ana kategori içinde sıralama yapar."
+        },
+        {
+          "heading": "Görsel",
+          "body": "İsteğe bağlı. Alt kategorinin görsel temsili. Boş bırakırsanız sadece ad olarak gösterilir."
+        },
+        {
+          "heading": "Aktif (Toggle)",
+          "body": "Alt kategori müşteriye gösterilsin mi? Pasifse menüde fitre olarak çıkmaz; ürünler ana kategoride kalır ama bu fitre kullanılamaz."
+        }
+      ]
+    },
+    "products": {
+      "title": "Ürünler — Yardım",
+      "intro": "Menüdeki tüm ürünleri yönettiğiniz liste sayfası. Veri girişi yapılan alanlar: filtre çubuğu (arama/kategori/durum/tekrarlananlar) + ürün ekleme/düzenleme formundaki alanlar. Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Arama Kutusu",
+          "body": "Yazdıkça anında filtreler. Türkçe karakter duyarlı DEĞİL — 'i'='ı'='İ'='I', 'o'='ö', 'u'='ü', 'c'='ç', 'g'='ğ', 's'='ş'.",
+          "example": "'kofte' yazınca 'köfte', 'KÖFTE', 'Köfteler' hepsi gelir."
+        },
+        {
+          "heading": "Kategori Filtresi (Dropdown)",
+          "body": "Sadece seçtiğiniz kategorideki ürünleri gösterir. 'Tüm Kategoriler' varsayılan değer.",
+          "example": "'Pizzalar' seçince sadece pizza ürünleri listelenir."
+        },
+        {
+          "heading": "Durum Filtresi (Dropdown)",
+          "body": "Ürünleri sale durumuna göre filtreler.\n• Tümü → her şey\n• Açık → satışta (stokta var)\n• Kapalı → satıştan kaldırılmış (stokta yok)"
+        },
+        {
+          "heading": "Tekrarlanan Ürünler Anahtarı (Switch)",
+          "body": "Aktifse sistem TÜM ürünleri sayfa sayfa çeker, aynı isimden olanları listeler. Yanlışlıkla iki kere eklenen ürünleri yakalamak için.",
+          "warning": "Backend bir sayfada max 100 ürün döner; çok ürününüz varsa tekrarlananları bulmak biraz uzun sürebilir."
+        },
+        {
+          "heading": "Sayfaya Git Input'u (Pagination)",
+          "body": "Toplam sayfa sayısı 5'ten fazlaysa pagination'ın yanında küçük bir number input çıkar. Sayfa numarası yazıp 'Git'e basınca doğrudan o sayfaya atlarsınız."
+        },
+        {
+          "heading": "Ürün Adı (Ekle/Düzenle Formu)",
+          "body": "ZORUNLU. Müşterinin menüde göreceği ürün ismi.",
+          "example": "'Margherita Pizza', 'Türk Kahvesi', 'Çikolatalı Sufle'"
+        },
+        {
+          "heading": "Ürün Açıklaması",
+          "body": "Müşteriye gösterilecek kısa açıklama (içindekiler / aroma notları). Uzunsa kart üzerinde 2 satır gösterilir, sonrası kesilir.",
+          "example": "'Domates sosu, mozzarella, taze fesleğen'"
+        },
+        {
+          "heading": "Ürün Görseli",
+          "body": "Müşterinin görmek isteyeceği ana fotoğraf. Yoksa varsayılan placeholder gösterilir."
+        },
+        {
+          "heading": "Kategori (Dropdown)",
+          "body": "ZORUNLU. Ürünün hangi kategoride yer alacağı."
+        },
+        {
+          "heading": "Alt Kategori (Dropdown)",
+          "body": "İsteğe bağlı. Seçtiğiniz ana kategori altında alt kategori atayabilirsiniz."
+        },
+        {
+          "heading": "Porsiyon Adı + Fiyat",
+          "body": "Bir üründe birden çok porsiyon olabilir; her porsiyonun KENDİ adı ve fiyatı vardır. '+ Porsiyon Ekle' ile ekstra satır eklersiniz, çöp ile silersiniz.",
+          "example": "Pizza → Küçük 120₺, Orta 180₺, Büyük 240₺\nKahve → tek porsiyon 60₺ (porsiyon adı 'Standart' veya boş)"
+        },
+        {
+          "heading": "Özel Fiyat (Porsiyon Başına)",
+          "body": "Genel Ayarlar > Özel Fiyatlandırma aktifse her porsiyonun yanında ek bir fiyat alanı çıkar. Müşteriye 2 fiyat (normal + özel) gösterilir.",
+          "example": "Türk Kahvesi → Normal 60₺ / Üye Fiyatı 45₺"
+        },
+        {
+          "heading": "Stok / Açık Toggle",
+          "body": "Ürünün satışa açık olup olmadığı. Kapatırsanız müşteri 'KAPALI' rozetiyle görür ama sipariş veremez. Geçici olarak gizlemek için silmeden önce bunu kullanın."
+        },
+        {
+          "heading": "Etiket Grupları (Çoklu Seçim)",
+          "body": "Etiket sayfasında oluşturduğunuz tag gruplarını bu ürüne bağlarsınız. Müşteri ürünü sepete eklerken o etiket grupları açılır (porsiyon, ekstra malzeme, soğanlı/soğansız, vb.)."
+        }
+      ]
+    },
+    "menus": {
+      "title": "Menüler — Yardım",
+      "intro": "Bir 'Menü' = belirli kategorilerin belirli gün ve saatlerde aktif olduğu kümedir. Veri girişi popup'ta yapılır. Aşağıda popup'taki alanlar tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Menü Adı",
+          "body": "ZORUNLU. Müşterinin görmediği iç ad — yönetimde menüleri ayırmak için. Kısa ve net olsun.",
+          "example": "'Kahvaltı', 'Akşam Menüsü', 'Hafta Sonu', 'Geç Gece'"
+        },
+        {
+          "heading": "Kategoriler (Çoklu Seçim)",
+          "body": "Restoranınızdaki tüm kategoriler işaretleme listesi olarak çıkar. Bu menüye dahil olacakları işaretleyin. Bir kategori birden fazla menüde olabilir.",
+          "example": "'Kahvaltı' menüsü için: 'Kahvaltı Tabakları', 'Çay/Kahve', 'Yumurtalı Tarifler' işaretle"
+        },
+        {
+          "heading": "Plan — Başlangıç Saati",
+          "body": "Time picker (HH:MM). Bu menünün hangi saatten itibaren aktif olacağı. Bir menüde birden fazla plan olabilir, her plana ayrı saat girersiniz.",
+          "example": "Kahvaltı için: 07:00"
+        },
+        {
+          "heading": "Plan — Bitiş Saati",
+          "body": "Time picker (HH:MM). Bu plan hangi saate kadar aktif olacak.",
+          "example": "Kahvaltı için: 11:00"
+        },
+        {
+          "heading": "Plan — Günler (Çoklu Checkbox)",
+          "body": "Pzt – Pzr arasında bu planın HANGİ GÜNLER aktif olacağını işaretlersiniz. Tek bir gün, hafta içi 5 gün, hafta sonu 2 gün veya 7 günün hepsi olabilir.",
+          "example": "Hafta içi kahvaltı: Pzt, Sal, Çar, Per, Cum işaretli\nHafta sonu kahvaltı: Cmt, Pzr işaretli (ayrı bir plan satırı)"
+        },
+        {
+          "heading": "Birden Fazla Plan",
+          "body": "Aynı menüye birden fazla zaman planı ekleyebilirsiniz. Her plan ayrı saat aralığı + farklı günler taşır. En az 1 plan zorunlu.",
+          "example": "Kahvaltı menüsü:\nPlan 1 → 07:00–11:00 / Pzt-Cum\nPlan 2 → 09:00–13:00 / Cmt-Pzr",
+          "warning": "Aynı saatte birden fazla menü aktifse müşteri TÜMÜNÜN kategorilerinin BİRLEŞİMİNİ görür. Çakışmamasına dikkat edin."
+        }
+      ]
+    },
+    "orderTags": {
+      "title": "Etiketler — Yardım",
+      "intro": "'Etiket Grubu' = sipariş anında müşteriye sunulan ek seçenek seti (pişirme derecesi, ekstra malzeme, sos seçimi, vb.). Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Grup Adı",
+          "body": "ZORUNLU. Grubun başlığı; müşteri sipariş anında bu adı görür.",
+          "example": "'Pişirme Derecesi', 'Ekstra Malzemeler', 'Sos Seçimi', 'Buzlu mu?'"
+        },
+        {
+          "heading": "Min Seçim (Number Input)",
+          "body": "Müşterinin EN AZ kaç seçenek işaretlemek zorunda olduğu. 0 = opsiyonel.",
+          "example": "Min=0 → seçim isteğe bağlı\nMin=1 → mecburen en az 1 seçim"
+        },
+        {
+          "heading": "Max Seçim (Number Input)",
+          "body": "Müşterinin EN FAZLA kaç seçenek işaretleyebileceği.\n\nMin/Max kombinasyonları:\n• 0/1 → opsiyonel tek seçim\n• 1/1 → zorunlu tek seçim (radio gibi)\n• 0/N → opsiyonel çoklu\n• 1/N → zorunlu çoklu",
+          "example": "Pişirme Derecesi: Min=1, Max=1\nEkstra Malzeme: Min=0, Max=5"
+        },
+        {
+          "heading": "Serbest Etiketleme (Checkbox)",
+          "body": "Aktifse müşteri ek bir 'Not' alanına yazılı tercih bırakabilir (sistem dışı serbest tercihler için).",
+          "example": "Pizza siparişinde aktifse 'Soğansız', 'Az tuzlu' gibi yazılabilir.",
+          "tip": "Katı seçenek listesiyle çalışan gruplarda kapatın; serbest yazı mutfak/sipariş yönetimini zorlaştırabilir."
+        },
+        {
+          "heading": "Seçenek Adı (Seçenekler Sekmesi)",
+          "body": "Bir grubun içindeki tek bir tercihin adı. Müşteri bu adı görür.",
+          "example": "'Pişirme Derecesi' altında: 'Az pişmiş', 'Orta', 'İyi pişmiş'"
+        },
+        {
+          "heading": "Seçenek Fiyatı",
+          "body": "O seçeneği seçen müşterinin sipariş tutarına EKLENECEK fiyat. Ücretsizse 0.",
+          "example": "Mantar +15₺, Sucuk +25₺, Zeytin +10₺"
+        },
+        {
+          "heading": "Seçenek — Varsayılan (Checkbox)",
+          "body": "Aktifse müşteri sipariş ekranını açtığında bu seçenek otomatik işaretli gelir. Müşteri kaldırabilir."
+        },
+        {
+          "heading": "Seçenek — Zorunlu (Checkbox)",
+          "body": "Aktifse müşteri bu seçeneği KALDIRAMAZ. Otomatik dahil olur."
+        },
+        {
+          "heading": "Seçenek — Min Adet (Number)",
+          "body": "Müşteri o seçenekten EN AZ kaç adet alabileceği. Çoğu zaman 0 veya 1."
+        },
+        {
+          "heading": "Seçenek — Max Adet (Number)",
+          "body": "Müşteri o seçenekten EN FAZLA kaç adet alabileceği. 'Ekstra mantar 3 kere' gibi durumlar için >1 olabilir."
+        },
+        {
+          "heading": "İlişkili Ürün — Kategori (Dropdown)",
+          "body": "Bu grubun hangi kategorideki ürünlerde gösterileceği. ARAMA destekli dropdown.\n• 'Tüm Kategoriler' → her üründe gösterilir\n• Bir kategori seç → o kategorinin altındaki ürünlerde gösterilir"
+        },
+        {
+          "heading": "İlişkili Ürün — Ürün (Dropdown)",
+          "body": "Kategoriden sonraki dropdown. ARAMA destekli.\n• 'Tüm Ürünler' → seçili kategorinin tüm ürünlerinde\n• Bir ürün seç → sadece o ürünün siparişinde"
+        },
+        {
+          "heading": "İlişkili Ürün — Porsiyon (Dropdown)",
+          "body": "En son dropdown. ARAMA destekli.\n• 'Tüm Porsiyonlar' → seçili ürünün tüm porsiyonlarında\n• Bir porsiyon seç → sadece o porsiyonun siparişinde",
+          "tip": "Bir grup birden çok ilişkiye sahip olabilir; örneğin 'Pişirme Derecesi' hem Burger hem Steak kategorisine bağlanabilir."
+        }
+      ]
+    },
+    "qrThemes": {
+      "title": "QR Menü Temaları — Yardım",
+      "intro": "Müşterinin TELEFONUNDA göreceği menü tasarımını seçersiniz. Bu sayfada veri girişi yok — sadece SEÇİM yaparsınız (tema kartına tıklamak otomatik kaydeder).",
+      "sections": [
+        {
+          "heading": "Tema Seçimi (Tıklama)",
+          "body": "5 hazır tema kartından birine tıklarsınız; sistem hemen kaydeder ve sağdaki canlı önizleme yeni temayla güncellenir.\n\nTemalar: Klasik (turuncu — sıcak/geleneksel), Modern (mor — minimalist), Doğal (yeşil — organik/vegan), Güneşli (sarı — eğlenceli/fast-food), Taze (koyu yeşil — sağlıklı/salata bar).",
+          "tip": "Sayfaya girdiğinizde mevcut temanız otomatik işaretli; değiştirmek için sadece başka bir karta tıklayın.",
+          "warning": "Seçim CANLI menüye anında yansır. Restoranınızda menü kullanan müşteri varsa anında yeni tasarımı görür."
+        },
+        {
+          "heading": "Önizleme Cihaz Seçici (Toggle Grup)",
+          "body": "Sağ paneldeki cihaz çerçevesini değiştiren 3 toggle: iPhone (dar dikey), Android (orta), Tablet (geniş). Sadece önizleme amaçlıdır — kaydedilen ayar yok."
+        }
+      ]
+    },
+    "tvThemes": {
+      "title": "TV Menü Temaları — Yardım",
+      "intro": "Restoranınızdaki BÜYÜK EKRAN/TV için tasarlanmış menü temaları (QR menüden bağımsız ayrı seçim). Bu sayfada veri girişi yok — sadece SEÇİM yaparsınız.",
+      "sections": [
+        {
+          "heading": "Tema Seçimi (Tıklama)",
+          "body": "5 hazır tema kartından birine tıklarsınız; sistem hemen kaydeder ve sağdaki TV önizleme yenilenir.\n\nQR menü temasından BAĞIMSIZDIR — telefon ve TV ekranı farklı tema kullanabilir (telefon küçük puntoyla yoğun bilgi, TV büyük kart düzeni).",
+          "warning": "Restoranınızdaki TV açıksa anında yansır; müşteri varken aniden değiştirmeyin."
+        },
+        {
+          "heading": "Önizleme Cihaz Seçici",
+          "body": "Sağ paneldeki cihaz çerçevesini değiştiren toggle grubu. TV menüsü için en doğal seçenek 'Tablet' veya geniş çerçeve."
+        }
+      ]
+    },
+    "qrCode": {
+      "title": "QR Kod Oluştur — Yardım",
+      "intro": "Restoranınızdaki masalara yapıştırılacak QR kodlarını toplu olarak üretirsiniz. Aşağıda her veri alanı tek tek anlatılmıştır.",
+      "sections": [
+        {
+          "heading": "Masa Öneki",
+          "body": "Üretilen her QR'ın masa adının başına eklenecek metin. Boş bırakabilirsiniz.",
+          "example": "Önek 'MASA-' + Başlangıç:1 + Bitiş:10 → MASA-1, MASA-2, ..., MASA-10"
+        },
+        {
+          "heading": "Masa Soneki",
+          "body": "Adın SONUNA eklenecek metin. Boş bırakabilirsiniz.",
+          "example": "Sonek '-A' → 1-A, 2-A, ... ya da MASA-1-A, MASA-2-A, ..."
+        },
+        {
+          "heading": "Başlangıç Numarası",
+          "body": "Sıralı üretim için aralığın ilk değeri. Boş bırakabilirsiniz.",
+          "example": "Salondaki ilk masa numaranız 11 ise: 11"
+        },
+        {
+          "heading": "Bitiş Numarası",
+          "body": "Sıralı üretim için aralığın son değeri. Boş bırakabilirsiniz.\n\nBaşlangıç + Bitiş aralığındaki HER tam sayı için bir QR üretilir.",
+          "example": "Başlangıç: 1, Bitiş: 30 → 30 adet QR (MASA-1 ... MASA-30)",
+          "tip": "Başlangıç VE Bitiş ikisi de BOŞSA: tek QR üretilir, içinde sadece 'önek + sonek' yazar (numara eklenmez). Bu, 'TAKEOUT' veya 'VIP-1' gibi tek/özel QR'lar için kullanışlı."
+        },
+        {
+          "heading": "Gradyan Başlangıç Rengi (Color Picker)",
+          "body": "QR'ın ana rengi (sol-üstten başlar). Renk seçici veya HEX kodu yazılabilir. Siyah-siyah seçerseniz klasik beyaz-siyah QR olur.",
+          "example": "#000000 (siyah), #4f46e5 (mor)"
+        },
+        {
+          "heading": "Gradyan Bitiş Rengi (Color Picker)",
+          "body": "QR'ın ikinci rengi (sağ-alta doğru ilerler). Başlangıçtan farklıysa gradyan oluşur.",
+          "example": "#000000 (siyah), #06b6d4 (cyan)"
+        },
+        {
+          "heading": "Ortadaki Logoyu Göster (Toggle)",
+          "body": "Aktifse QR'ın ortasında bir görsel/logo görünür. Pasifse logo alanı gizlenir.\n\n• Aktif + logo yüklü → logonuz QR ortasında\n• Aktif + logo yok + sıralı aralık verdiyseniz → her QR'ın ortasında otomatik 'masa numarası' (beyaz daire içinde siyah rakam)\n• Pasif → ortada hiçbir şey yok"
+        },
+        {
+          "heading": "Marka Logosu (Yükleme Alanı)",
+          "body": "Sadece 'Logoyu Göster' aktifken görünür. PNG/JPG yükleyebilirsiniz; şeffaf PNG en iyisi.",
+          "tip": "Yüklemezseniz ve sıralı aralık verdiyseniz sistem otomatik masa numarasını basar."
+        }
+      ]
+    }
   }
 }

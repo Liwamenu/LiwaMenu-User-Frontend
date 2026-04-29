@@ -9,6 +9,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
@@ -16,6 +17,7 @@ import FilterReservations from "../components/filterReservations";
 import { useReservations } from "../../../context/reservationsContext";
 
 const ReservationsPage = () => {
+  const { t } = useTranslation();
   const {
     reservationsData,
     totalCount,
@@ -28,6 +30,12 @@ const ReservationsPage = () => {
     handleUpdateStatus,
     updateLoading,
   } = useReservations();
+
+  const STATUS_LABEL = {
+    Accepted: t("reservationsPage.status_accepted"),
+    PendingOwnerDecision: t("reservationsPage.status_pending"),
+    Rejected: t("reservationsPage.status_rejected"),
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -62,10 +70,10 @@ const ReservationsPage = () => {
           <div className="w-full py-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold text-[--black-1]">
-                Reservations
+                {t("reservationsPage.title")}
               </h2>
               <p className="text-[--gr-1] text-sm mt-1">
-                Manage your restaurant bookings and guest requests.
+                {t("reservationsPage.subtitle")}
               </p>
             </div>
 
@@ -77,14 +85,14 @@ const ReservationsPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {[
               {
-                label: "Total Bookings",
+                label: t("reservationsPage.stat_total"),
                 value: reservationsData.length,
                 icon: Calendar,
                 color: "text-[--primary-1]",
                 bg: "bg-[--status-primary-1]",
               },
               {
-                label: "Pending Approval",
+                label: t("reservationsPage.stat_pending"),
                 value: reservationsData.filter(
                   (reservation) =>
                     reservation.status === "PendingOwnerDecision",
@@ -94,7 +102,7 @@ const ReservationsPage = () => {
                 bg: "bg-[--status-yellow]",
               },
               {
-                label: "Confirmed Guests",
+                label: t("reservationsPage.stat_confirmed_guests"),
                 value: reservationsData
                   .filter((reservation) => reservation.status === "Accepted")
                   .reduce(
@@ -149,9 +157,8 @@ const ReservationsPage = () => {
                             className={`mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(reservation.status)}`}
                           >
                             {getStatusIcon(reservation.status)}
-                            {reservation.status === "PendingOwnerDecision"
-                              ? "Pending"
-                              : reservation.status}
+                            {STATUS_LABEL[reservation.status] ||
+                              reservation.status}
                           </div>
                         </div>
                       </div>
@@ -176,7 +183,7 @@ const ReservationsPage = () => {
                     <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-[--gr-2] uppercase tracking-widest">
-                          Date & Time
+                          {t("reservationsPage.date_time")}
                         </p>
                         <div className="flex items-center gap-2 text-[--black-1] font-semibold">
                           <Calendar size={16} className="text-[--primary-1]" />
@@ -184,7 +191,7 @@ const ReservationsPage = () => {
                             {reservation.reservationDate
                               ? new Date(
                                   reservation.reservationDate,
-                                ).toLocaleDateString("en-US", {
+                                ).toLocaleDateString(undefined, {
                                   month: "short",
                                   day: "numeric",
                                   year: "numeric",
@@ -204,22 +211,26 @@ const ReservationsPage = () => {
 
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-[--gr-2] uppercase tracking-widest">
-                          Guests
+                          {t("reservationsPage.guests_label")}
                         </p>
                         <div className="flex items-center gap-2 text-[--black-1] font-semibold">
                           <Users size={16} className="text-[--primary-1]" />
-                          <span>{reservation.guestCount} People</span>
+                          <span>
+                            {t("reservationsPage.people_count", {
+                              count: reservation.guestCount,
+                            })}
+                          </span>
                         </div>
                         <p className="text-xs text-[--gr-1]">
                           {reservation.isVerified
-                            ? "Verified Booking"
-                            : "Unverified"}
+                            ? t("reservationsPage.verified")
+                            : t("reservationsPage.unverified")}
                         </p>
                       </div>
 
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-[--gr-2] uppercase tracking-widest">
-                          Special Notes
+                          {t("reservationsPage.special_notes")}
                         </p>
                         {reservation.specialNotes ? (
                           <div className="flex items-start gap-2 text-sm text-[--gr-1] italic">
@@ -231,7 +242,7 @@ const ReservationsPage = () => {
                           </div>
                         ) : (
                           <p className="text-sm text-[--gr-2] italic">
-                            No special requests
+                            {t("reservationsPage.no_special")}
                           </p>
                         )}
                       </div>
@@ -247,7 +258,7 @@ const ReservationsPage = () => {
                             disabled={updateLoading}
                             className="flex-1 lg:w-full px-4 py-2 bg-[--primary-1] hover:opacity-90 text-white rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            Accept
+                            {t("reservationsPage.accept")}
                           </button>
                           <button
                             onClick={() =>
@@ -256,13 +267,13 @@ const ReservationsPage = () => {
                             disabled={updateLoading}
                             className="flex-1 lg:w-full px-4 py-2 bg-[--white-1] hover:bg-[--light-4] text-[--red-2] border border-[--red-1] rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            Reject
+                            {t("reservationsPage.reject")}
                           </button>
                         </>
                       ) : (
                         <div className="text-center">
                           <p className="text-[10px] font-bold text-[--gr-2] uppercase mb-1">
-                            Decided On
+                            {t("reservationsPage.decided_on")}
                           </p>
                           <p className="text-xs font-medium text-[--gr-1]">
                             {reservation.ownerDecisionAt
@@ -282,8 +293,12 @@ const ReservationsPage = () => {
             {reservationsData.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-[--gr-2]">
                 <Calendar size={48} className="mb-4 opacity-20" />
-                <p className="text-lg font-medium">No reservations found</p>
-                <p className="text-sm">Try changing your filter settings.</p>
+                <p className="text-lg font-medium">
+                  {t("reservationsPage.empty_title")}
+                </p>
+                <p className="text-sm">
+                  {t("reservationsPage.empty_desc")}
+                </p>
               </div>
             )}
           </div>

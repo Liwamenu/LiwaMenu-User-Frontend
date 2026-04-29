@@ -1041,6 +1041,18 @@
     "tag_fresh": "Fresh & green"
   },
   "orders": {
+    "subtitle": "Track incoming orders in real time",
+    "summary_count": "{{count}} orders total",
+    "filtered_restaurants": "Filtered Restaurants",
+    "remove_from_filter": "Remove from filter",
+    "clear_all": "Clear all",
+    "search_placeholder": "Search by order ID, customer or table...",
+    "clear_search": "Clear search",
+    "item_count": "{{count}} items",
+    "empty_no_match": "No matching orders found",
+    "empty_no_active": "No active orders",
+    "empty_no_match_desc": "No orders match your search. Try adjusting filters or clearing the search.",
+    "empty_no_active_desc": "New orders will land here in real time.",
     "active_orders": "Active Orders",
     "order_details": "Order Details",
     "id_label": "ID:",
@@ -1099,6 +1111,36 @@
     "print_item": "Item",
     "print_amount": "Amount",
     "print_thank_you": "Thank you for your order."
+  },
+  "paymentsPage": {
+    "title": "Payments",
+    "subtitle": "Track all your payment transactions",
+    "summary_count": "{{count}} transactions total",
+    "search_placeholder": "Search by order no, customer or restaurant...",
+    "clear_search": "Clear search",
+    "generic_error": "Something went wrong"
+  },
+  "reservationsPage": {
+    "title": "Reservations",
+    "subtitle": "Manage your restaurant bookings and guest requests.",
+    "stat_total": "Total Bookings",
+    "stat_pending": "Pending Approval",
+    "stat_confirmed_guests": "Confirmed Guests",
+    "status_pending": "Pending",
+    "status_accepted": "Accepted",
+    "status_rejected": "Rejected",
+    "date_time": "Date & Time",
+    "guests_label": "Guests",
+    "special_notes": "Special Notes",
+    "people_count": "{{count}} People",
+    "verified": "Verified Booking",
+    "unverified": "Unverified",
+    "no_special": "No special requests",
+    "accept": "Accept",
+    "reject": "Reject",
+    "decided_on": "Decided On",
+    "empty_title": "No reservations found",
+    "empty_desc": "Try changing your filter settings."
   },
   "waiterCalls": {
     "title": "Waiter Call Lists",
@@ -1160,5 +1202,818 @@
     "next": "Next",
     "go_to": "Go to page",
     "go_to_action": "Go"
+  },
+  "pageHelp": {
+    "button_label": "Page Help",
+    "example_label": "Example",
+    "warning_label": "Warning",
+    "tip_label": "Tip",
+    "close": "Close",
+    "editRestaurant": {
+      "title": "Edit Restaurant — Help",
+      "intro": "Edit ALL basic restaurant information here: the name customers see in the menu, contact info, full street address, map location, and menu images. These are the foundation; they don't change often, but if they're wrong customers can't find you.",
+      "sections": [
+        {
+          "heading": "Restaurant Name",
+          "body": "The first name customers see when opening the menu. Should match your brand — keep it consistent with social media, invoices, signage. Auto-formatted to Title Case as you type.",
+          "example": "Liwa Cafe & Restaurant"
+        },
+        {
+          "heading": "Phone",
+          "body": "How customers reach you and how the system contacts you about online orders. Country code is automatic (+90 for TR); you only enter the 10-digit local number. Wrong number = harder order confirmation.",
+          "example": "5XX XXX XX XX (10 digits, no leading 0)",
+          "warning": "Use a line you actually monitor — most negative-feedback calls go to this number."
+        },
+        {
+          "heading": "City",
+          "body": "City the restaurant is in. Auto-formatted to title case.",
+          "example": "Istanbul"
+        },
+        {
+          "heading": "District",
+          "body": "District the restaurant is in. Combined with city + neighbourhood for the 'full address'.",
+          "example": "Kadıköy"
+        },
+        {
+          "heading": "Neighbourhood",
+          "body": "Neighbourhood the restaurant is in.",
+          "example": "Caferağa"
+        },
+        {
+          "heading": "Street Address",
+          "body": "Avenue / street / building / floor / apt detail. Shows on invoices and customer directions. Don't repeat city/district/neighbourhood — those are above already.",
+          "example": "Moda Avenue No:42 Apt 3"
+        },
+        {
+          "heading": "Location (Map)",
+          "body": "The EXACT pin on the map. Just typing the address isn't enough — Google Maps can be 100m off. Click 'Edit Location' and drag the pin precisely onto your building.\n\nUsed in two places:\n• Online-order distance calculation (5 km rule, etc.)\n• Customer turn-by-turn directions from their phone.",
+          "warning": "Wrong pin = wrong distance = orders either get rejected or accepted from way too far away."
+        },
+        {
+          "heading": "Background Image (Menu Hero)",
+          "body": "The big banner at the top of the menu. Your interior, exterior, or a signature dish works well. Landscape orientation looks best.\n\nThe system auto-resizes to ~1000px — even if you upload a 4K phone photo, you don't lose quality.",
+          "example": "1920×1080 or 2000×1200 photo",
+          "tip": "Pick an atmospheric image without text/logo overlay — the menu's typography handles text already."
+        },
+        {
+          "heading": "Logo",
+          "body": "Your brand logo, shown small in the menu corner. Sits in front of the background image.",
+          "example": "Square 200–500 pixels, TRANSPARENT PNG",
+          "tip": "Use a JPG and you'll see a square coloured frame around the logo. Transparent PNG always looks cleaner."
+        },
+        {
+          "heading": "Save",
+          "body": "The indigo button at the bottom right. Sends every change in one go. Leaving the page without saving discards your edits."
+        }
+      ]
+    },
+    "settings": {
+      "title": "General Settings — Help",
+      "intro": "All your restaurant's 'infrastructure' settings: web subdomain, language/currency, which order types you accept, slogans the customer sees, custom price label, and the master 'hide' switch.",
+      "sections": [
+        {
+          "heading": "Tenant (Subdomain)",
+          "body": "Your menu's web address. Comes out as '<tenant>.liwamenu.com' and is encoded inside every QR. The 'Check' button next to the field verifies whether that name is available.\n\nOnce saved, the field locks; clicking 'Change' opens a red warning modal that you must confirm before unlocking.",
+          "example": "Tenant: 'liwacafe' → URL: liwacafe.liwamenu.com",
+          "warning": "Changing the tenant = every printed QR points to a dead address. Don't change unless you have to."
+        },
+        {
+          "heading": "Menu Language",
+          "body": "The DEFAULT language. The first thing the customer sees when opening the menu is in this language. Customers can switch from the top right, but the default is this.",
+          "example": "Pick 'Turkish' for a restaurant in Türkiye."
+        },
+        {
+          "heading": "Currency Symbol",
+          "body": "Single character or short symbol shown next to prices. The system doesn't auto-write 'TL' — whatever you enter shows up.",
+          "example": "₺ (TR), € (EU), $ (US)"
+        },
+        {
+          "heading": "Google Analytics",
+          "body": "Google Analytics measurement ID for tracking who visits your menu, when, and which page. Free account at analytics.google.com — copy the measurement ID.",
+          "example": "G-XXXXXXXXXX",
+          "tip": "Optional; leave blank if you don't want it. Data goes straight to Google, not us."
+        },
+        {
+          "heading": "Top Slogan",
+          "body": "Short line shown at the top of the menu. Use for a welcome message, brand slogan, or campaign announcement.",
+          "example": "'Year-round fresh, natural flavours.'"
+        },
+        {
+          "heading": "Bottom Slogan",
+          "body": "Short note at the bottom of the menu, after the customer has seen all the products. Good for thanks, follow-on call, or sign-off.",
+          "example": "'Enjoy your meal — The Liwa Family'"
+        },
+        {
+          "heading": "Online Order (Delivery)",
+          "body": "When on, customers can order remotely (delivery to home/office). Activating unlocks 4 fields below:\n\n• Discount Rate (%) — auto-applied to online orders\n• Delivery Fee (₺) — added to order total\n• Minimum Order (₺) — orders below this aren't accepted\n• Maximum Distance (km) — customers beyond this can't order (REQUIRED)",
+          "warning": "AT LEAST ONE payment method must be defined before activating. Otherwise the system redirects you to the Payment Methods tab."
+        },
+        {
+          "heading": "In-Person Order (QR Order)",
+          "body": "When on, customers can scan the table QR and order directly.\n\nSub-options:\n• Table Discount Rate (%) — applied to table orders\n• Table Distance Check — when on, only customers within a metres-radius of the restaurant can order (blocks fake remote orders)\n• Maximum Table Distance (m) — radius for the check",
+          "example": "Active + 50 m check → only customers within 50 m of the restaurant can place a table order."
+        },
+        {
+          "heading": "Special Pricing Active",
+          "body": "Lets you show some products at an alternate price (member price, sale, campaign). When on, the product edit page shows two price fields.",
+          "example": "Two-tier menu: regular price + 'Member Price'"
+        },
+        {
+          "heading": "Special Price Label",
+          "body": "Appears when Special Pricing Active is on. The label customers see next to the alternate price.",
+          "example": "'Campaign', 'Member Price', 'Happy Hour'"
+        },
+        {
+          "heading": "Hide Restaurant",
+          "body": "Closes your menu to ALL access. Turn on for vacation, renovation, or temporary closure — customers landing on the menu see a 'closed' notice.",
+          "example": "Annual holiday or renovation period (hide for 1 week)",
+          "warning": "Don't forget you turned it on — while hidden, no one can access the menu, online orders, or table ordering."
+        }
+      ]
+    },
+    "reservationSettings": {
+      "title": "Reservation Settings — Help",
+      "intro": "Let customers request a table from the menu and define the rules. Reservation requests appear in the admin panel's 'Reservations' page; you approve or reject them.",
+      "sections": [
+        {
+          "heading": "Reservations Active",
+          "body": "When on, a 'Make Reservation' button appears at the top of the menu. When off, the button is hidden and no requests come in.",
+          "tip": "Leaving it on is convenient for restaurants with weekend crowds — customers book through the system instead of constantly calling."
+        },
+        {
+          "heading": "Start Time",
+          "body": "Earliest time of day you accept reservations. No slots open before this.",
+          "example": "Restaurant opens at 12:00 → Start: 12:00"
+        },
+        {
+          "heading": "End Time",
+          "body": "Latest time of day you accept reservations. No slots open after this.",
+          "example": "Kitchen closes at 23:00 → End: 22:00 (so the last guests can finish)"
+        },
+        {
+          "heading": "Interval (minutes)",
+          "body": "Spacing between reservation slots. Smaller = more options (but harder on staff); larger = fewer slots but easier to manage.",
+          "example": "30 min → 19:00, 19:30, 20:00, 20:30 ... slots"
+        },
+        {
+          "heading": "Maximum Party Size",
+          "body": "Largest single-reservation group size. Bigger groups can't book through the form (you might want to handle weddings/groups by phone).",
+          "example": "10 → a 12-person group can't book in one reservation"
+        }
+      ]
+    },
+    "announcementSettings": {
+      "title": "Announcement Settings — Help",
+      "intro": "Design a popup announcement shown to every customer when they open the menu. Use for campaigns, grand openings, special days, new menu launches. If you know HTML/Tailwind you have full freedom; if not, the 'Magic Generate' button asks AI for a ready template.",
+      "sections": [
+        {
+          "heading": "Enable Announcement",
+          "body": "When on, the announcement appears as a popup in the centre of the menu when a customer opens it. When off, nothing shows.",
+          "example": "Run a New Year menu announcement for one week, then turn it off."
+        },
+        {
+          "heading": "Display Delay (ms)",
+          "body": "How many milliseconds AFTER opening the menu the announcement should appear. 0 = instant, 2000 = 2 seconds later. Too fast = customer doesn't read it, too slow = they may not notice.",
+          "example": "1500 ms (1.5 sec) — right after the customer's eyes adjust to the menu"
+        },
+        {
+          "heading": "HTML Content",
+          "body": "Left panel = HTML code, right panel = live preview. You can use Tailwind CSS classes (rounded-xl, bg-amber-50, text-2xl, etc.). Not a designer/developer? Don't touch — use 'Magic Generate' instead.",
+          "example": "<div class=\"p-6 text-center\"><h2 class=\"text-2xl font-bold\">New Year Menu!</h2><p class=\"mt-2\">Book your table for Dec 31st</p></div>",
+          "tip": "Whatever you type in the dark panel renders instantly in the right preview card."
+        },
+        {
+          "heading": "Magic Generate",
+          "body": "Tell AI what kind of announcement you want (write in any language) and it generates HTML for you. Try 'New Year menu announcement, animated, with star icons'.",
+          "example": "Prompt: 'Neon-coloured, fun announcement for our 10-year campaign'"
+        },
+        {
+          "heading": "Live Preview",
+          "body": "Right-side card — exactly what the customer sees. While disabled, it blurs with a 'Preview Disabled' label."
+        },
+        {
+          "heading": "Save Changes",
+          "body": "Indigo button at the bottom right. Leaving without saving discards your changes."
+        }
+      ]
+    },
+    "surveySettings": {
+      "title": "Survey Settings — Help",
+      "intro": "Collect feedback from customers about your service quality. Survey categories (food, service, ambiance, etc.) show at the end of the menu as star ratings, and you track results here.",
+      "sections": [
+        {
+          "heading": "Add Survey Category (+ Button)",
+          "body": "The '+ Add Survey' button at the top right opens a new rating category. For each: a title (e.g. 'Service Speed'), an icon (emoji), and an optional description.",
+          "example": "New category: 🍽️ 'Food Taste', 🏠 'Ambiance', ⏱️ 'Service Speed'"
+        },
+        {
+          "heading": "Category List",
+          "body": "Each row = a category; shows average rating + number of reviews + star count. Colour code lets you read quality at a glance:\n• Green ≥ 4.5 (excellent)\n• Blue ≥ 4.0 (good)\n• Amber < 4.0 (needs improvement)\n• Grey = no ratings yet"
+        },
+        {
+          "heading": "Edit / Delete",
+          "body": "Pencil icon on each category row edits content; trash icon deletes. Deletion isn't undoable; ratings on a deleted category don't transfer to a new one you add."
+        },
+        {
+          "heading": "Performance Insight",
+          "body": "Indigo banner at the bottom of the page. Auto-finds your highest-rated category and shows '⭐ Strongest category: …'. Tells you what customers love most.",
+          "tip": "If no ratings yet, a Sparkles icon shows 'No feedback yet'."
+        },
+        {
+          "heading": "Overall Counter",
+          "body": "Below the hero title: 'X categories · Y reviews · ⭐ Z'. Z is the average across all categories."
+        }
+      ]
+    },
+    "workingHours": {
+      "title": "Working Hours — Help",
+      "intro": "Define which days of the week and which hours the restaurant is open. Customers can't order during closed hours. The 'Are we open today?' check uses this data.",
+      "sections": [
+        {
+          "heading": "Day Toggle (Open / Closed)",
+          "body": "Each row = one day; the toggle on the left sets that day's open/closed state.\n\n• When ON, you fill in the hours for that day; row background turns indigo.\n• When OFF, time fields go faded grey and aren't editable.\n\nThe first time you open a day, hours auto-fill to 08:00 – 23:59; tweak as you like.",
+          "example": "Mon–Sat: OPEN 09:00–23:00 / Sun: CLOSED"
+        },
+        {
+          "heading": "Open Time",
+          "body": "Earliest time you accept orders that day. Orders before this aren't accepted.",
+          "example": "Breakfast: 07:00, evening restaurant: 18:00"
+        },
+        {
+          "heading": "Close Time",
+          "body": "Latest time you accept orders. Usually a bit before the kitchen actually closes so the last orders can be prepared.",
+          "example": "Kitchen closes at 23:00 → Close: 22:30 (30 min prep buffer)"
+        },
+        {
+          "heading": "Weekday vs Weekend",
+          "body": "Different hours per day are fully supported. Late Friday–Saturday, early Sunday close, Monday fully closed — all common.",
+          "tip": "Restaurants busy on weekends often push the close time 1–2 hours later to give customers an extended window."
+        },
+        {
+          "heading": "Save",
+          "body": "Indigo button at the bottom right. Leaving without saving discards changes. If you've marked a day open without filling its hours, you'll see a warning."
+        }
+      ]
+    },
+    "socialMedias": {
+      "title": "Social Media — Help",
+      "intro": "Add links to your social profiles. They show as small platform icons at the bottom of the menu. Customers tap them to open your profile in a new tab. Five platforms supported.",
+      "sections": [
+        {
+          "heading": "Facebook",
+          "body": "Full URL of your Facebook page. Copy the page/profile address as-is.",
+          "example": "https://facebook.com/liwacafe"
+        },
+        {
+          "heading": "Instagram",
+          "body": "Full URL of your Instagram profile. Just the @handle isn't enough.",
+          "example": "https://instagram.com/liwacafe"
+        },
+        {
+          "heading": "TikTok",
+          "body": "Profile URL for your TikTok account. Includes the '@' character.",
+          "example": "https://tiktok.com/@liwacafe"
+        },
+        {
+          "heading": "YouTube",
+          "body": "Your YouTube channel address. Starts with /channel/... or /@channelname.",
+          "example": "https://youtube.com/@liwacafe or https://youtube.com/channel/UCxxxxx"
+        },
+        {
+          "heading": "WhatsApp",
+          "body": "Direct WhatsApp link customers can use to message you. The wa.me/number format works; country code + number, no leading +.",
+          "example": "https://wa.me/905XXXXXXXXX (90 = TR, then your 10-digit number)",
+          "tip": "If your restaurant phone is set, it auto-suggests in the placeholder."
+        },
+        {
+          "heading": "Empty Fields",
+          "body": "Leave platforms you don't have empty. The customer's menu only shows icons for platforms with values; empties don't appear.",
+          "example": "No TikTok? Leave it blank; the TikTok icon won't show in the menu."
+        },
+        {
+          "heading": "↗ Side Link Button",
+          "body": "Arrow icon to the right of each row opens the entered URL in a new tab. Use it to verify the link lands on the right profile."
+        },
+        {
+          "heading": "Save",
+          "body": "Indigo button at the bottom right. Sends every platform in one go."
+        }
+      ]
+    },
+    "paymentMethods": {
+      "title": "Payment Methods — Help",
+      "intro": "Pick which methods customers can use during online order checkout. If online ordering is on, AT LEAST ONE method must be active; otherwise the system warns you.",
+      "sections": [
+        {
+          "heading": "Add Method (+ Button)",
+          "body": "The '+ Add Method' button at the top right defines a new payment method. Free-form name — 'Cash on Delivery', 'Card on Delivery', 'Online Card', 'Bank Transfer', 'Sodexo', 'Multinet', etc.",
+          "example": "'Cash on Delivery' or 'Meal Voucher'"
+        },
+        {
+          "heading": "Enable All (Master Toggle)",
+          "body": "Single tap to turn ALL defined methods on/off at once. Quick bulk action.",
+          "warning": "While Online Order is active, you can't disable everything — the system requires at least one method to stay active."
+        },
+        {
+          "heading": "Per-Method On/Off",
+          "body": "Toggle on each row turns that method on/off. Customer only sees active methods.",
+          "tip": "If WhatsApp ordering is common in your area, keeping 'Bank Transfer' active can help."
+        },
+        {
+          "heading": "Delete Method (Trash Icon)",
+          "body": "Red trash icon on each row removes that method permanently. A confirmation popup appears; deletion isn't undoable.",
+          "warning": "Past orders that used this method aren't affected, but future orders won't see it as an option."
+        },
+        {
+          "heading": "Counter",
+          "body": "The hero subtitle shows '3 / 5 active' — total defined / how many are active."
+        },
+        {
+          "heading": "Save",
+          "body": "Click Save at the bottom right to send your on/off changes. Adding/deleting is instant; on/off toggles need Save to persist."
+        }
+      ]
+    },
+    "categories": {
+      "title": "Categories — Help",
+      "intro": "Split your menu into categories. Each appears as a tab/page in the menu. Use the List tab to edit one by one, or the Bulk tab to upload images for many at once.",
+      "sections": [
+        {
+          "heading": "Add Category (+ Button)",
+          "body": "Indigo '+ Add Category' at top right opens a new category popup. Asks for: name (required), image (required), and which menus it belongs to (if any).",
+          "example": "New: 'Seasonal Salads' + a salad bowl photo"
+        },
+        {
+          "heading": "List Tab",
+          "body": "Lists every category as a card. Each card shows: image + name + product count + edit/delete buttons.",
+          "tip": "Lots of categories means a long page; don't keep ones you don't need."
+        },
+        {
+          "heading": "Bulk Tab",
+          "body": "See categories without images and upload them all in a single batch. Perfect for new restaurants — no need to open 10 separate dialogs for 10 categories.",
+          "example": "10 categories → bulk mode shows them side by side; assign images and Save once."
+        },
+        {
+          "heading": "Sorting (Drag & Drop)",
+          "body": "In the List tab, drag the category cards to reorder. The order is saved automatically.",
+          "tip": "Put best-sellers or items you want to push at the top — that's what customers see first."
+        },
+        {
+          "heading": "Edit (Pencil Icon)",
+          "body": "Edit the category's name, image, and which menus it belongs to."
+        },
+        {
+          "heading": "Delete (Trash Icon)",
+          "body": "Permanently removes the category. A confirmation popup appears.",
+          "warning": "Deleting a category affects its products and subcategories. Move products to another category first."
+        },
+        {
+          "heading": "Product List Indicator",
+          "body": "The number on each category card = how many products it contains. Click it and that category's products list in a popup."
+        }
+      ]
+    },
+    "subCategories": {
+      "title": "Subcategories — Help",
+      "intro": "Split big categories into a second level: Pizza > Meat / Vegetarian / Mixed. Customers entering the parent category see the subcategories as a filter strip and tap one to narrow down faster.",
+      "sections": [
+        {
+          "heading": "Add Subcategory (+ Button)",
+          "body": "The indigo '+ Add Subcategory' button at the top right opens a popup. Asks for:\n• Name (e.g. 'Meat Pizzas')\n• Image (optional)\n• Parent CATEGORY (required)",
+          "example": "New: 'Meat' subcategory bound to the 'Pizzas' parent category"
+        },
+        {
+          "heading": "Binding to a Parent Category",
+          "body": "Every subcategory belongs to one parent. The list shows parents as headings, with their subcategories underneath.",
+          "example": "Pizzas (parent)\n  └─ Meat Pizzas\n  └─ Vegetarian Pizzas\n  └─ Mixed Pizzas",
+          "warning": "To move a subcategory to a different parent, use the Edit (pencil) button to change the parent. Drag-and-drop only sorts within the same parent."
+        },
+        {
+          "heading": "Drag & Drop Sorting",
+          "body": "Use the handle icon at the left to grab and drag. Sorting works WITHIN the same parent category; you can't drag a subcategory across parents."
+        },
+        {
+          "heading": "Save Order",
+          "body": "When you change the order, a 'Save Order' button appears at the top. Until you click it, changes aren't persisted.",
+          "tip": "Drag several subcategories first, then save once for performance."
+        },
+        {
+          "heading": "Edit / Delete",
+          "body": "Each subcategory row has pencil (edit) and trash (delete) icons on the right. Delete shows a confirmation popup.",
+          "warning": "Deleting a subcategory doesn't directly affect its products — they stay in the parent category, just lose the subcategory tag."
+        },
+        {
+          "heading": "Product Count Badge",
+          "body": "Right of each subcategory: 'X products' badge. How many products are tagged with this subcategory."
+        },
+        {
+          "heading": "Open / Closed Badge",
+          "body": "Green 'OPEN' = active; muted 'CLOSED' = inactive. Closed subcategories don't show to customers."
+        }
+      ]
+    },
+    "products": {
+      "title": "Products — Help",
+      "intro": "The main page for managing every product in your menu. The top tabs switch between Manage / Price List / Add Product. This help covers the Manage tab.",
+      "sections": [
+        {
+          "heading": "Top Tabs",
+          "body": "Three tabs at the very top:\n• Manage Products (List) — this page, for viewing/editing every product\n• Price List — fast bulk price editing\n• Add Product — form to create a new product"
+        },
+        {
+          "heading": "Counter (Total Products)",
+          "body": "The hero subtitle shows 'X products' — the total in your restaurant. Updates as you apply filters."
+        },
+        {
+          "heading": "Search Box",
+          "body": "Magnifier-icon box at top left. Filters locally as you type — no need to press Enter.\n\nDIACRITIC-INSENSITIVE: 'i' = 'ı' = 'I' = 'İ', 'o' = 'ö', 'u' = 'ü', 'c' = 'ç', 'g' = 'ğ', 's' = 'ş'.",
+          "example": "Type 'kofte' and you'll find 'köfte', 'KÖFTE', 'Köfteler'"
+        },
+        {
+          "heading": "Clear Search (X)",
+          "body": "When you've typed in the search box, an 'X' appears on the right; clicking it clears the search."
+        },
+        {
+          "heading": "Category Filter",
+          "body": "Dropdown next to the search box. 'All Categories' is the default; pick one and only that category's products show.\n\nThe category filter runs server-side → list refreshes, page resets to 1.",
+          "example": "Pick 'Pizzas' to see only pizzas."
+        },
+        {
+          "heading": "Status Filter (Open / Closed / All)",
+          "body": "Filter products by sale status:\n• All → everything\n• Open → in-stock, on sale\n• Closed → sold out / inactive"
+        },
+        {
+          "heading": "Duplicates Switch",
+          "body": "On the filter strip, a 'Duplicate products' toggle. Turn on to scan all products for items with the same name. Catches accidentally double-added entries.",
+          "warning": "The backend caps a page at 100 products; finding duplicates correctly fetches ALL products page by page. Wait a moment if you have many."
+        },
+        {
+          "heading": "Clear Filters",
+          "body": "When any filter is active (search + category + status + duplicates), a 'Clear' button appears in the strip. One click resets to defaults."
+        },
+        {
+          "heading": "Product Card — Image",
+          "body": "Square image on the left. If absent, a default placeholder shows. Clicking the card opens the edit page."
+        },
+        {
+          "heading": "Product Card — Name and Description",
+          "body": "Name (large, bold) and below it the description in small text. Long descriptions show 2 lines and truncate."
+        },
+        {
+          "heading": "Product Card — CLOSED Badge",
+          "body": "If a product is closed (sold out / inactive), the image corner shows a red 'CLOSED' badge. Open products don't show a badge (no need)."
+        },
+        {
+          "heading": "Product Card — Portion Badge",
+          "body": "If the product has multiple portions (e.g. 'Small/Medium/Large'), the count is shown. Single-portion items don't show this badge."
+        },
+        {
+          "heading": "Product Card — Price",
+          "body": "Lowest portion's price + currency symbol. The 'starting from' price."
+        },
+        {
+          "heading": "Product Card — Edit / Delete",
+          "body": "Right side has two icons: pencil (edit) and trash (delete). Delete shows a confirmation popup.",
+          "warning": "Deleting one product should be under a second; if the backend errors, a toast appears."
+        },
+        {
+          "heading": "Product Card — Bulk Select Checkbox",
+          "body": "Top-left of every card. Checking turns the card pink-toned and reveals the 'bulk action' bars at top and bottom.",
+          "tip": "Once one card is selected, a 'Select All' option appears in the header — one click selects every visible product."
+        },
+        {
+          "heading": "Bulk Action Bar",
+          "body": "When one or more products are selected, an 'X products selected' bar appears at both the top and bottom. The 'Delete' button at the right opens a bulk-delete confirmation.",
+          "warning": "Bulk delete isn't undoable! The confirmation popup re-shows the count to be deleted."
+        },
+        {
+          "heading": "Pagination",
+          "body": "Bottom of the page: 'Previous / 1 2 3 ... / Next' buttons. Each page shows VITE_ROWS_PER_PAGE products (set via env var).",
+          "tip": "If there are more than 5 pages, a 'Go to page' input appears — type a page number and click 'Go' to jump."
+        },
+        {
+          "heading": "Liwa AI (Add/Edit pages)",
+          "body": "On the Add/Edit Product pages, some fields have a 'Generate with Liwa AI' button. NOT YET ACTIVE — coming soon, currently grey."
+        }
+      ]
+    },
+    "menus": {
+      "title": "Menus — Help",
+      "intro": "A 'Menu' is a bundle of categories that's active on specific days at specific hours. 'Breakfast Menu', 'Dinner Menu', 'Late-Night Menu', etc. Whichever menu is active when the customer opens the app — they see those categories and products.",
+      "sections": [
+        {
+          "heading": "Top Counter",
+          "body": "The hero subtitle shows 'X menus' — total menus defined in your restaurant."
+        },
+        {
+          "heading": "Add Menu (+ Button)",
+          "body": "The indigo '+ Add Menu' button at the top right opens a popup. Asks for the menu name, which categories to include, and time plans (hour range + days)."
+        },
+        {
+          "heading": "Menu Card — Title",
+          "body": "Each card's top: the menu name (e.g. 'Breakfast Menu')."
+        },
+        {
+          "heading": "Menu Card — Plan Count Badge",
+          "body": "Shows how many time plans this menu has. If you have 'weekday morning, weekend midday', the badge says '2 plans'."
+        },
+        {
+          "heading": "Menu Card — Category Count Badge",
+          "body": "Number of categories assigned. The badge appears when there's at least 1 category; 0 hides it."
+        },
+        {
+          "heading": "Menu Card — Edit (Pencil)",
+          "body": "Pencil icon on the right of the card. Opens a popup with the menu's name, categories, and time plans; tweak any field and save."
+        },
+        {
+          "heading": "Menu Card — Delete (Trash)",
+          "body": "Next to the pencil. A confirmation popup appears; deleting the menu doesn't affect categories assigned to it (they remain)."
+        },
+        {
+          "heading": "Time Plan List",
+          "body": "Each plan is its own row in the card body. Format: '07:00 – 11:00' + days.\n• 'Every Day' badge → all 7 days selected\n• Otherwise short labels: Mon, Tue, Wed..."
+        },
+        {
+          "heading": "Empty State",
+          "body": "If you haven't created any menus yet, an empty state card with 'No menus yet' appears in the middle — pointing to the '+ Add Menu' button."
+        },
+        {
+          "heading": "Add Menu — Name",
+          "body": "First field in the popup. The internal name (not shown to customers) — used by you to tell menus apart. Keep it short and clear.",
+          "example": "'Breakfast', 'Weekend', 'Late Night'"
+        },
+        {
+          "heading": "Add Menu — Categories",
+          "body": "All your restaurant's categories show as a checkbox list. Tick the ones to include in this menu. A category can belong to multiple menus.",
+          "example": "Breakfast menu: 'Breakfast Plates', 'Tea/Coffee', 'Egg Recipes'"
+        },
+        {
+          "heading": "Add Menu — Time Plan",
+          "body": "Add one or more time plans. Each: start time + end time + which days of the week.",
+          "example": "Plan 1: 07:00 – 11:00 — Mon, Tue, Wed, Thu, Fri\nPlan 2: 09:00 – 13:00 — Sat, Sun"
+        },
+        {
+          "heading": "Add Menu — Plan Add/Remove",
+          "body": "'+ Add Plan' creates a new plan row; trash icon next to each plan removes it. At least one plan is required."
+        },
+        {
+          "heading": "Overlapping Menus",
+          "body": "If multiple menus are active at the same time, the customer sees the UNION of their categories. To avoid overlap, design your hours so plans don't stack.",
+          "tip": "Define your main menus (Breakfast / Dinner / Late) first, then plan their hours so they don't overlap."
+        }
+      ]
+    },
+    "orderTags": {
+      "title": "Tags — Help",
+      "intro": "A 'Tag Group' = a set of extra options offered to the customer at order time. Doneness, extra toppings, sauce choice, temperature preference. A tag group can bind to many products; when the customer adds that product, the group opens automatically.",
+      "sections": [
+        {
+          "heading": "Header Counter",
+          "body": "Hero subtitle shows 'X groups'; if there are unsaved (dirty) groups, a 'Y dirty' badge appears. Saved/clean shows 'X groups ready'."
+        },
+        {
+          "heading": "Save All Changes (Bulk Save)",
+          "body": "The RED 'Save All Changes' button at top right only appears when at least one group is dirty. Sends every dirty + new group in one dispatch.",
+          "warning": "The backend assigns new ids to new groups; if you don't refresh the page, local ids may stay stale. After saving, the cache is invalidated and fresh data is fetched on the next visit."
+        },
+        {
+          "heading": "+ Add Group",
+          "body": "Indigo '+ Add Group' at top right adds an empty group card. Doesn't allow adding a new one if there's already an unnamed one.",
+          "tip": "A new group carries 'isNew' + 'isDirty' flags; if you leave the page without saving, it's lost."
+        },
+        {
+          "heading": "Group Card — Drag Handle",
+          "body": "The drag handle on the left. Drag to reorder groups; reordering automatically marks them dirty."
+        },
+        {
+          "heading": "Group Card — Name",
+          "body": "Required group title. Customer sees this name. Empty title = can't save.",
+          "example": "'Doneness', 'Extra Toppings', 'Iced?'"
+        },
+        {
+          "heading": "Group Card — Min / Max Selection",
+          "body": "Min: minimum picks the customer must make.\nMax: maximum picks allowed.\n\nCombinations:\n• Min=0, Max=1 → optional single pick\n• Min=1, Max=1 → required single pick (radio-style)\n• Min=0, Max=N → multiple optional\n• Min=1, Max=N → required multiple",
+          "example": "Doneness: Min=1, Max=1 (required single)\nExtra Toppings: Min=0, Max=5 (optional, up to 5)"
+        },
+        {
+          "heading": "Group Card — Free Tagging",
+          "body": "Checkbox next to the tag group. When on, the customer gets a free-form 'Other / Note' field.",
+          "example": "Pizza order: 'No onions', 'less salt' notes.",
+          "tip": "Turn OFF for groups with strict categories (e.g. 'Meat Pizza Choice'); free text complicates kitchen workflow."
+        },
+        {
+          "heading": "Group Card — Save This Group",
+          "body": "If you've changed only one group, a RED 'Save' button appears just for it. Sends only that group.",
+          "tip": "If two groups have changes, you can save one before the other when one is more urgent."
+        },
+        {
+          "heading": "Group Card — Delete / Cancel",
+          "body": "Newly added (unsaved) groups show an 'X' (cancel) — just removes from the page, doesn't go to backend.\n\nSaved groups show a Trash icon — confirmation popup, then deletion from backend."
+        },
+        {
+          "heading": "Group Card — Collapse / Expand",
+          "body": "Saved groups have an up/down arrow instead of pencil. Hides/shows group content; useful when you have many groups for visual clarity."
+        },
+        {
+          "heading": "Tab: Options",
+          "body": "Individual choices inside a group. For each: name, price, default flag, mandatory flag, min count, max count (portion-style).\n\n'+ Add Option' adds a new option; drag-and-drop reorders."
+        },
+        {
+          "heading": "Tab: Related Products",
+          "body": "Which products this group shows for. Three dropdowns chain: category → product → portion.\n\n• 'All Categories' → all products\n• Pick a category → all products in that category\n• Pick a product too → only that product\n• Pick a portion too → only that portion of that product",
+          "tip": "Dropdowns are now SEARCHABLE — type to filter long lists."
+        },
+        {
+          "heading": "Related Products — + New Relation",
+          "body": "A group can have multiple relations. E.g. 'Doneness' can bind to both Burger and Steak categories.\n'+ Add Relation' opens a new row."
+        },
+        {
+          "heading": "No-Relations Warning",
+          "body": "A group with no relations turns red and shows 'This group isn't assigned to any product'; it can't be shown to customers. Add at least one relation before saving."
+        }
+      ]
+    },
+    "qrThemes": {
+      "title": "QR Menu Themes — Help",
+      "intro": "Pick the menu design customers see on their PHONE. Colour palette, category layout, product card design — all driven by the theme. 5 ready-made themes; selection saves instantly.",
+      "sections": [
+        {
+          "heading": "Theme Cards (Left Panel)",
+          "body": "5 theme cards stacked. Each shows:\n• Theme colour dot (visual hint, far left)\n• Theme name (Theme 1, Theme 2, ...)\n• Tag (Classic, Modern, Natural, Sunny, Fresh)\n\nThe currently active card has an indigo border and ✓ mark."
+        },
+        {
+          "heading": "Theme Selection (Auto-Save)",
+          "body": "Clicking a theme card immediately dispatches a save to the backend. While saving, a small spinner spins on that theme card. Once saved, the right-side iframe refreshes with the new theme.",
+          "warning": "Saved themes go LIVE on the customer menu instantly. Any customer browsing right now sees the new design."
+        },
+        {
+          "heading": "Device Selector (iPhone / Android / Tablet)",
+          "body": "Three toggles in the right panel. Resizes the preview frame to match the picked device:\n• iPhone: narrow vertical frame\n• Android: similar but a different frame\n• Tablet: wider frame\n\nUse it to check how the menu looks on the device your customers actually use."
+        },
+        {
+          "heading": "Live Preview (iframe)",
+          "body": "The right panel shows your REAL menu in a frame, served from your real tenant URL. NOT A MOCK — actual menu, actual products, actual prices.",
+          "tip": "The phone frame stays put; only the content (iframe) reloads. No flicker when switching themes."
+        },
+        {
+          "heading": "Refresh Button (RefreshCcw)",
+          "body": "Small refresh button above the preview. Cache-busts and reloads the iframe. Press it if the theme changed but the preview didn't update."
+        },
+        {
+          "heading": "Live URL Link",
+          "body": "Below the hero or near the iframe, your tenant URL (e.g. liwacafe.liwamenu.com) is a clickable link. Opens the menu at full size in a new tab.",
+          "example": "https://<tenant>.liwamenu.com — the actual address your customers visit"
+        },
+        {
+          "heading": "Theme Tag Cheat-Sheet",
+          "body": "Each theme has a personality:\n• Classic (orange) — warm, traditional cafés\n• Modern (purple) — minimalist, next-gen restaurants\n• Natural (green) — organic, vegan, seafood\n• Sunny (yellow) — fun, fast-food\n• Fresh (deep green) — healthy, salad bar\n\nThe right theme makes customers 'feel' your restaurant correctly."
+        },
+        {
+          "heading": "No Save Button — Auto!",
+          "body": "There's NO manual save button; clicking a theme card IS the save. If something fails a toast appears; even if you close the page, the last picked theme persists.",
+          "warning": "If you accidentally pick the wrong theme, just click the right one — your old theme isn't lost instantly, but the new one does save."
+        }
+      ]
+    },
+    "tvThemes": {
+      "title": "TV Menu Themes — Help",
+      "intro": "Themes designed for a BIG SCREEN inside your restaurant. Counter-service cafés, fast-food, or self-service spots that mirror their menu onto a TV. Independent from the QR menu — separate theme picker.",
+      "sections": [
+        {
+          "heading": "What is a TV Menu?",
+          "body": "Hang a TV in your restaurant, plug an Android TV box / mini PC behind it, browse to your tenant URL — your menu fills the screen. Customers at the counter read the menu off the TV.",
+          "example": "Migros in-store cafés, Starbucks, fast-food chains use this approach."
+        },
+        {
+          "heading": "Independent of QR Theme",
+          "body": "TV theme and QR theme save SEPARATELY. The customer's phone and the wall TV can have different designs; that's natural — what's tiny on a phone should be big cards on a TV.",
+          "tip": "'Modern' on phone (info-dense) + 'Classic' on TV (big cards) is a great combo."
+        },
+        {
+          "heading": "Theme Cards",
+          "body": "Same 5 ready-made designs as QR themes. Colours and vibes differ; layout is optimised for the TV screen.\n\nEach card shows:\n• Colour dot (visual hint)\n• Theme name\n• Tag (Classic / Modern / Natural / Sunny / Fresh)"
+        },
+        {
+          "heading": "Theme Selection (Auto-Save)",
+          "body": "Click a card and the system saves immediately. The loading spinner spins on the card; once saved, the right-side TV preview refreshes.",
+          "warning": "If your in-restaurant TV is on, the theme change appears on it instantly. Switching themes while customers are present can cause confusion."
+        },
+        {
+          "heading": "Device Selector",
+          "body": "On the right panel you can change the preview device. For TV, the most natural choice is 'Tablet' or a wide frame."
+        },
+        {
+          "heading": "Live Preview",
+          "body": "The right panel iframes your real tenant URL in a frame. Theme changes reflect instantly.",
+          "tip": "The Refresh (RefreshCcw) button cache-busts the preview."
+        },
+        {
+          "heading": "Live URL Link",
+          "body": "Next to the preview, your tenant URL is a clickable link. Opens the menu at full size in a new tab — useful to check 'how does it look fullscreen' before plugging into the TV."
+        }
+      ]
+    },
+    "qrCode": {
+      "title": "Generate QR Code — Help",
+      "intro": "Bulk-generate the QR codes that go on your restaurant tables. Each QR sends scanners to your tenant URL with a ?tableNumber=… parameter, so the system knows which table when an order is placed.",
+      "sections": [
+        {
+          "heading": "Left Panel — Technical Parameters",
+          "body": "The top section of the left panel: table-naming rules (prefix, suffix, start, end). The number of QRs to generate is determined by these fields; the 'X QR' counter at the top of the page reflects them."
+        },
+        {
+          "heading": "Table Prefix",
+          "body": "Text prepended to each QR's table identifier. Can be empty.",
+          "example": "Prefix: 'TABLE-' → TABLE-1, TABLE-2, ..."
+        },
+        {
+          "heading": "Table Suffix",
+          "body": "Text appended to the table identifier. Can be empty.",
+          "example": "Suffix: '-A' → 1-A, 2-A, ... or TABLE-1-A, TABLE-2-A, ..."
+        },
+        {
+          "heading": "Start Number",
+          "body": "Range start. Can be 1, 5, 100 — anything.",
+          "example": "If your first table number is 11 instead of 1: Start: 11"
+        },
+        {
+          "heading": "End Number",
+          "body": "Range end. One QR is generated for EVERY integer between start and end inclusive.",
+          "example": "Start: 1, End: 30 → 30 QRs"
+        },
+        {
+          "heading": "Empty Range = Single QR",
+          "body": "If Start AND End are both empty, only ONE QR is generated; it contains 'prefix + suffix'. No numeric digit is appended.",
+          "example": "Prefix: 'TAKEOUT', range empty → one QR with 'TAKEOUT'\nPrefix: 'VIP', Suffix: '-1' → one QR with 'VIP-1'",
+          "tip": "Want a special 'Takeaway' QR for the counter? Leave the range empty and enter 'TAKEOUT' as the prefix."
+        },
+        {
+          "heading": "Visual — Gradient Start Colour",
+          "body": "The QR's primary colour (starts top-left). Pick via colour picker or type a HEX. Black-black = classic QR.",
+          "example": "#4f46e5 (purple), #000000 (black)"
+        },
+        {
+          "heading": "Visual — Gradient End Colour",
+          "body": "The QR's second colour (ends bottom-right). Different start/end = gradient.",
+          "example": "#06b6d4 (cyan), #000000 (black)"
+        },
+        {
+          "heading": "Display Center Logo",
+          "body": "Toggle. ON → an image/logo shows in the QR's centre. OFF → the centre stays empty (the dot pattern continues).\n\nWhen OFF, the logo upload area below is hidden."
+        },
+        {
+          "heading": "Brand Logo (Upload Area)",
+          "body": "Appears when the toggle is ON. Upload PNG/JPG. Transparent PNG looks cleanest.\n\nIf you don't upload AND you've set a sequential range, the system AUTOMATICALLY places the table number in the centre of each QR (white circle, black digit).",
+          "example": "No logo + range 1-30 → each QR shows 1, 2, 3... in the centre.\nWith logo → each QR shows your logo in the centre.",
+          "tip": "Want both logo AND table number? That's not supported on this page; you'd need to edit the generated PNG."
+        },
+        {
+          "heading": "Preview — Default QR",
+          "body": "The top of the left panel. Live preview of the QR for your tenant root URL (https://<tenant>.liwamenu.com — no tableNumber).\n\nUpdates instantly as settings (colour, logo) change."
+        },
+        {
+          "heading": "Preview — Download PNG",
+          "body": "Indigo button below the preview. Downloads only the default QR (tenant root) as a PNG. Useful for 'come pick up' / 'takeout' QRs."
+        },
+        {
+          "heading": "Preview — Tenant URL Link",
+          "body": "Below the download button, your tenant URL is a clickable link. Opens the menu in a new tab."
+        },
+        {
+          "heading": "Hero — Bulk Counter",
+          "body": "The hero subtitle shows 'X QR'. Auto-calculated from the range + prefix/suffix in the left panel. Empty everything = 0."
+        },
+        {
+          "heading": "Hero — Download All QR Codes",
+          "body": "After clicking 'Generate Batch' and producing QRs, this download button appears in the hero. Bundles every generated QR into one ZIP.",
+          "example": "After generating 30 QRs → one click → qr-codes.zip"
+        },
+        {
+          "heading": "Hero — Clear All",
+          "body": "Removes every generated QR (only from the view; backend isn't affected). Useful before regenerating."
+        },
+        {
+          "heading": "Right Panel — Generated QRs",
+          "body": "Empty state (QR icon + 'Start Generating' button) until you generate. After generation: a 4-column grid:\n• Each card shows the QR image\n• Hovering reveals a 'Download' button\n• Underneath: the table label (e.g. TABLE-1)"
+        },
+        {
+          "heading": "Right Panel — Generate Batch (Output Header)",
+          "body": "After QRs are generated, a 'Generate Batch' button appears in the output panel header. Use it to RE-generate with the same parameters (tweak a colour and regenerate, etc.)."
+        },
+        {
+          "heading": "Single QR Download",
+          "body": "Hovering a generated QR card reveals an indigo 'Download' button. Downloads that one QR as PNG.\n\nFilename is 'qr-table-TABLE-1.png' format — Turkish characters get ASCII-folded (e.g. 'Bahçe-1' → 'Bahce-1')."
+        },
+        {
+          "heading": "Generate Batch — License Check",
+          "body": "First thing the button does: checks whether your restaurant has a QR license. None → red toast 'Restaurant license not found'. Inactive → 'License inactive'.",
+          "warning": "Generating QRs needs a license; without one, bulk generation won't run."
+        },
+        {
+          "heading": "Nothing Filled In",
+          "body": "If prefix, suffix, AND range are ALL empty, Generate Batch shows a red toast: 'Please enter a table prefix, suffix, or number range'. Won't let you generate empty QRs."
+        }
+      ]
+    }
   }
 }

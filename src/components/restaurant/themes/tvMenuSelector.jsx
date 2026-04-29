@@ -19,6 +19,7 @@ import {
   setRestaurantTheme,
   resetSetRestaurantTheme,
 } from "../../../redux/restaurant/setRestaurantThemeSlice";
+import PageHelp from "../../common/pageHelp";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -188,6 +189,7 @@ const ThemeSelector = ({ data }) => {
               {t("tvThemeSelector.subtitle")}
             </p>
           </div>
+          <PageHelp pageKey="tvThemes" />
           {loading && (
             <span className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30">
               <Loader2 className="size-3.5 animate-spin" />

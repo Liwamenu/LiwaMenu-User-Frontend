@@ -22,6 +22,7 @@ import {
 import { googleMap, toNameCase } from "../../utils/utils";
 import CustomPhoneInput from "../common/customPhoneInput";
 import EditImageFile from "../common/editImageFile";
+import PageHelp from "../common/pageHelp";
 import { usePopup } from "../../context/PopupContext";
 
 //REDUX
@@ -46,6 +47,64 @@ function formatCoordinate(value) {
   }
 
   return `${cleanedValue.slice(0, 2)}.${cleanedValue.slice(2)}`;
+}
+
+// Downscale a freshly-cropped image so the longest edge is at most maxEdge
+// pixels, preserving the aspect ratio. Anything already small enough is
+// returned untouched. PNGs stay PNG (alpha preserved); everything else
+// (JPEG / WebP / GIF) re-encodes to high-quality JPEG, which keeps the
+// file modest while still looking sharp at the typical hero crop sizes.
+//
+// Used only for the BACKGROUND image upload — large hero photos otherwise
+// look blurry once the backend's storage pipeline rescales them, and the
+// user has no need for >1000px source material.
+async function resizeImageToMaxEdge(file, maxEdge = 1000) {
+  // Read as data URL so we can decode through HTMLImageElement (works for
+  // every type the picker accepts).
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = dataUrl;
+  });
+
+  const longest = Math.max(img.naturalWidth, img.naturalHeight);
+  if (longest <= maxEdge) return file;
+
+  const scale = maxEdge / longest;
+  const targetW = Math.round(img.naturalWidth * scale);
+  const targetH = Math.round(img.naturalHeight * scale);
+
+  // `document` is shadowed inside the React component below by a state
+  // variable, so use the global explicitly here at module scope (where it
+  // still resolves to the browser document).
+  const canvas = window.document.createElement("canvas");
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return file;
+  ctx.drawImage(img, 0, 0, targetW, targetH);
+
+  const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob(resolve, outputType, 0.9),
+  );
+  if (!blob) return file;
+
+  // Keep the original filename root, swap extension to match output type.
+  const ext = outputType === "image/png" ? "png" : "jpg";
+  const baseName = (file.name || "background").replace(/\.[^.]+$/, "");
+  return new File([blob], `${baseName}.${ext}`, {
+    type: outputType,
+    lastModified: Date.now(),
+  });
 }
 
 const EditRestaurant = ({ data: restaurant }) => {
@@ -418,6 +477,7 @@ const EditRestaurant = ({ data: restaurant }) => {
                 .join(" / ") || "—"}
             </p>
           </div>
+          <PageHelp pageKey="editRestaurant" />
         </div>
 
         <div className="p-4 sm:p-5">
@@ -591,14 +651,34 @@ const EditRestaurant = ({ data: restaurant }) => {
                   label={t("restaurants.image_main")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* LEFT — Background → "Image" API field */}
+                  {/* LEFT — Background → "Image" API field.
+                      Background photos coming out of phone cameras can be
+                      4–6 MB and 4000+px wide; the menu hero only needs
+                      ~1000px, and bigger uploads go through a backend
+                      rescale that softens the image. Downscale here so
+                      the user sees what the menu will actually display. */}
                   <ImageField
                     label={t("restaurants.background_label")}
                     hint={t("restaurants.background_hint")}
                     preview={preview}
-                    onChange={setDocument}
+                    onChange={async (file) => {
+                      if (!file) {
+                        setDocument(file);
+                        return;
+                      }
+                      try {
+                        const resized = await resizeImageToMaxEdge(file, 1000);
+                        setDocument(resized);
+                      } catch (err) {
+                        console.error("Background resize failed", err);
+                        // Fallback: send the original so the upload still
+                        // works even if canvas decoding hiccups.
+                        setDocument(file);
+                      }
+                    }}
                   />
-                  {/* RIGHT — Logo → "LogoImage" API field */}
+                  {/* RIGHT — Logo → "LogoImage" API field. No downscale —
+                      logos are already small and may rely on transparency. */}
                   <ImageField
                     label={t("restaurants.logo_label")}
                     hint={t("restaurants.logo_hint")}

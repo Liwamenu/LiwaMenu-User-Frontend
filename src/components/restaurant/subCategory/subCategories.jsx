@@ -20,6 +20,7 @@ import {
 import EditSubCategory from "./editSubCategory";
 import DeleteSubCategory from "./deleteSubCategory";
 import AddSubCategory from "./addSubCategory";
+import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 import fallbackImg from "../../../assets/img/No_Img.svg";
 
@@ -320,6 +321,7 @@ const SubCategories = ({ data: restaurant }) => {
                 : t("editSubCategories.header_subtitle")}
             </p>
           </div>
+          <PageHelp pageKey="subCategories" />
           <button
             type="button"
             onClick={openAddPopup}

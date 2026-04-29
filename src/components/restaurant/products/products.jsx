@@ -20,6 +20,7 @@ import ProductsHeader from "./header";
 import ProductCard from "./productCard";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
+import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 
 // REDUX
@@ -475,6 +476,7 @@ const Products = () => {
                 : t("productsList.subtitle")}
             </p>
           </div>
+          <PageHelp pageKey="products" />
         </div>
 
         {/* FILTERS */}

@@ -283,12 +283,11 @@ function Login() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4" noValidate>
-              {/* Email/phone */}
+              {/* Email/phone — visible label removed (the placeholder is
+                  self-explanatory). Kept as a screen-reader-only label so
+                  assistive tech still has a proper name to announce. */}
               <div>
-                <label
-                  htmlFor="emailOrPhone"
-                  className="block text-xs font-semibold text-slate-700 mb-1.5"
-                >
+                <label htmlFor="emailOrPhone" className="sr-only">
                   {t("auth.email_or_phone_label")}
                 </label>
                 <div className="relative">
@@ -311,22 +310,14 @@ function Login() {
                 />
               </div>
 
-              {/* Password */}
+              {/* Password — visible label removed (placeholder covers it).
+                  "Şifremi unuttum?" sits below the input, right-aligned —
+                  natural reading flow: try password first, then notice the
+                  recovery link if you can't recall it. */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label
-                    htmlFor="password"
-                    className="block text-xs font-semibold text-slate-700"
-                  >
-                    {t("auth.password_label")}
-                  </label>
-                  <Link
-                    to="/forgotPassword"
-                    className="text-xs font-medium text-[--primary-1] hover:underline"
-                  >
-                    {t("auth.forgot_password")}
-                  </Link>
-                </div>
+                <label htmlFor="password" className="sr-only">
+                  {t("auth.password_label")}
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
                   <input
@@ -359,6 +350,14 @@ function Login() {
                       <Eye className="size-4" />
                     )}
                   </button>
+                </div>
+                <div className="flex justify-end mt-1.5">
+                  <Link
+                    to="/forgotPassword"
+                    className="text-xs font-medium text-[--primary-1] hover:underline"
+                  >
+                    {t("auth.forgot_password")}
+                  </Link>
                 </div>
               </div>
 

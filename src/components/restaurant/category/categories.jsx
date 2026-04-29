@@ -30,6 +30,7 @@ import EditCategory from "./editCategory";
 import DeleteCategory from "./deleteCategory";
 import AddCategory from "./addCategory";
 import CategoryProducts from "./categoryProducts";
+import PageHelp from "../../common/pageHelp";
 import fallbackImg from "../../../assets/img/No_Img.svg";
 import { usePopup } from "../../../context/PopupContext";
 
@@ -201,6 +202,7 @@ const Categories = ({ data: restaurant }) => {
                 : t("editCategories.info")}
             </p>
           </div>
+          <PageHelp pageKey="categories" />
           <button
             type="button"
             onClick={openAddCategoryPopup}

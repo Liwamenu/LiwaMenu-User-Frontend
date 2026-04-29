@@ -22,6 +22,7 @@ import {
 // COMP
 import CustomInput from "../../common/customInput";
 import CustomToggle from "../../common/customToggle";
+import PageHelp from "../../common/pageHelp";
 import { getRestaurant } from "../../../redux/restaurants/getRestaurantSlice";
 
 const PRIMARY_GRADIENT =
@@ -505,6 +506,7 @@ const QRPage = ({ data: restaurant }) => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <PageHelp pageKey="qrCode" />
             {generatedItems.length > 0 && (
               <button
                 type="button"

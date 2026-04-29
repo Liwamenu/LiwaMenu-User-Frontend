@@ -9,6 +9,7 @@ import { Tags, Plus, Save, Loader2 } from "lucide-react";
 
 // COMP
 import DeleteOrderTag from "./deleteOrderTag";
+import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 import { NewOrderTagGroup } from "./components/constraints";
 import OrderTagGroupCard from "./components/_orderTagGroupCard";
@@ -209,6 +210,7 @@ const OrderTags = () => {
             </p>
           </div>
           <div className="flex gap-1.5 shrink-0">
+            <PageHelp pageKey="orderTags" />
             {dirtyCount > 0 && (
               <button
                 type="button"

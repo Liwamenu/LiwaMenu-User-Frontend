@@ -200,9 +200,9 @@ const OrdersPage = () => {
             {t("orders.active_orders")}
           </h1>
           <p className="mt-1 text-sm text-[--gr-1]">
-            Gelen siparişleri canlı olarak takip edin
+            {t("orders.subtitle")}
             {typeof totalCount === "number" && totalCount > 0
-              ? ` · Toplam ${totalCount} sipariş`
+              ? ` · ${t("orders.summary_count", { count: totalCount })}`
               : ""}
           </p>
         </div>
@@ -212,7 +212,7 @@ const OrdersPage = () => {
       {filter.restaurants?.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mr-1">
-            Filtrelenen Restoranlar
+            {t("orders.filtered_restaurants")}
           </span>
           {filter.restaurants.map((r) => (
             <button
@@ -220,7 +220,7 @@ const OrdersPage = () => {
               type="button"
               onClick={() => removeRestaurantFilter(r)}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[--primary-1]/10 text-[--primary-1] text-xs font-semibold ring-1 ring-[--primary-1]/30 hover:bg-[--primary-1]/15 transition"
-              title="Filtreden kaldır"
+              title={t("orders.remove_from_filter")}
             >
               <Store className="size-3" />
               {r.label}
@@ -232,7 +232,7 @@ const OrdersPage = () => {
             onClick={clearAllRestaurantFilters}
             className="text-xs font-semibold text-rose-600 hover:underline ml-1"
           >
-            Tümünü temizle
+            {t("orders.clear_all")}
           </button>
         </div>
       )}
@@ -245,7 +245,7 @@ const OrdersPage = () => {
             type="text"
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            placeholder="Sipariş ID, müşteri veya masa ara..."
+            placeholder={t("orders.search_placeholder")}
             className="w-full h-11 pl-10 pr-10 rounded-xl border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] placeholder:text-[--gr-1] outline-none transition focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-100"
           />
           {searchVal && (
@@ -253,7 +253,7 @@ const OrdersPage = () => {
               type="button"
               onClick={() => setSearchVal("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center size-6 rounded-full hover:bg-[--white-2] text-[--gr-1] transition"
-              aria-label="Aramayı temizle"
+              aria-label={t("orders.clear_search")}
             >
               <X className="size-3.5" />
             </button>
@@ -264,7 +264,7 @@ const OrdersPage = () => {
 
       {/* LIST */}
       {!filteredOrders || filteredOrders.length === 0 ? (
-        <EmptyState searchActive={Boolean(searchVal)} />
+        <EmptyState searchActive={Boolean(searchVal)} t={t} />
       ) : (
         <ul className="space-y-2.5">
           {filteredOrders.map((order) => (
@@ -391,7 +391,7 @@ const OrderRow = ({ order, onSelect, isActive, t }) => {
               )}
               {itemCount > 0 && (
                 <span className="text-[--gr-1]">
-                  · {itemCount} ürün
+                  · {t("orders.item_count", { count: itemCount })}
                 </span>
               )}
             </div>
@@ -410,19 +410,21 @@ const OrderRow = ({ order, onSelect, isActive, t }) => {
   );
 };
 
-const EmptyState = ({ searchActive }) => (
+const EmptyState = ({ searchActive, t }) => (
   <div className="grid place-items-center min-h-[24rem] rounded-2xl border border-[--border-1] bg-[--white-1]">
     <div className="text-center px-6">
       <div className="mx-auto mb-3 grid place-items-center size-12 rounded-2xl bg-[--white-2] ring-1 ring-[--border-1] text-[--gr-1]">
         <ShoppingBag className="size-6" />
       </div>
       <p className="text-[--black-1] font-semibold">
-        {searchActive ? "Eşleşen sipariş bulunamadı" : "Aktif sipariş yok"}
+        {searchActive
+          ? t("orders.empty_no_match")
+          : t("orders.empty_no_active")}
       </p>
       <p className="text-xs text-[--gr-1] mt-1 max-w-xs">
         {searchActive
-          ? "Aramanızla eşleşen sipariş yok. Filtreleri değiştirin veya aramayı temizleyin."
-          : "Yeni siparişler buraya canlı olarak düşecek."}
+          ? t("orders.empty_no_match_desc")
+          : t("orders.empty_no_active_desc")}
       </p>
     </div>
   </div>

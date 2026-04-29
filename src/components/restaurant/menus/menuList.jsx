@@ -17,6 +17,7 @@ import {
 import AddMenu from "./addMenu";
 import EditMenu from "./editMenu";
 import DeleteMenu from "./deleteMenu";
+import PageHelp from "../../common/pageHelp";
 import menusJSON from "../../../assets/js/Menus.json";
 import { usePopup } from "../../../context/PopupContext";
 
@@ -144,6 +145,7 @@ const MenuList = () => {
                 : t("menuList.subtitle")}
             </p>
           </div>
+          <PageHelp pageKey="menus" />
           <button
             type="button"
             onClick={onAddMenu}

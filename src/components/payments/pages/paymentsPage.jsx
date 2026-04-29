@@ -2,6 +2,7 @@
 import toast from "react-hot-toast";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { CreditCard, Search, X } from "lucide-react";
 
 //COMP
@@ -22,6 +23,7 @@ const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
 const PaymentsPage = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { loading, success, error, payments } = useSelector(
     (state) => state.payments.get,
@@ -63,7 +65,7 @@ const PaymentsPage = () => {
       const msg =
         error?.message_TR ||
         error?.message ||
-        "Bir şeyler ters gitti";
+        t("paymentsPage.generic_error");
       toast.error(msg);
       dispatch(resetGetPaymentsState());
     }
@@ -119,11 +121,13 @@ const PaymentsPage = () => {
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-[--black-1] leading-tight">
-            Ödemeler
+            {t("paymentsPage.title")}
           </h1>
           <p className="mt-1 text-sm text-[--gr-1]">
-            Tüm ödeme işlemlerinizi takip edin
-            {totalItems > 0 ? ` · Toplam ${totalItems} işlem` : ""}
+            {t("paymentsPage.subtitle")}
+            {totalItems > 0
+              ? ` · ${t("paymentsPage.summary_count", { count: totalItems })}`
+              : ""}
           </p>
         </div>
       </header>
@@ -136,7 +140,7 @@ const PaymentsPage = () => {
             type="text"
             value={searchVal}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Sipariş no, müşteri veya restoran ara..."
+            placeholder={t("paymentsPage.search_placeholder")}
             className="w-full h-11 pl-10 pr-10 rounded-xl border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] placeholder:text-[--gr-1] outline-none transition focus:border-[--primary-1] focus:ring-4 focus:ring-indigo-100"
           />
           {searchVal && (
@@ -144,7 +148,7 @@ const PaymentsPage = () => {
               type="button"
               onClick={clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center size-6 rounded-full hover:bg-[--white-2] text-[--gr-1] transition"
-              aria-label="Aramayı temizle"
+              aria-label={t("paymentsPage.clear_search")}
             >
               <X className="size-3.5" />
             </button>
