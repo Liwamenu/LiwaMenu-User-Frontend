@@ -1,6 +1,5 @@
 // MODULES
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
 import QRCodeStyling from "qr-code-styling";
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useEffect } from "react";
@@ -17,13 +16,15 @@ import {
   Loader2,
   Trash2,
   ExternalLink,
+  Database,
 } from "lucide-react";
 
 // COMP
 import CustomInput from "../../common/customInput";
 import CustomToggle from "../../common/customToggle";
 import PageHelp from "../../common/pageHelp";
-import { getRestaurant } from "../../../redux/restaurants/getRestaurantSlice";
+import SambaTablesModal from "./sambaTablesModal";
+import { usePopup } from "../../../context/PopupContext";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -67,7 +68,6 @@ const makeTableNumberBadge = (text) => {
 };
 
 const QRPage = ({ data: restaurant }) => {
-  const dispatch = useDispatch();
   const { t } = useTranslation();
 
   const initialData = {
@@ -88,6 +88,7 @@ const QRPage = ({ data: restaurant }) => {
   const [config, setConfig] = useState(initialData);
   const [generatedItems, setGeneratedItems] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const { setPopupContent } = usePopup();
 
   const fileInputRef = useRef(null);
   const previewInstance = useRef(null);
@@ -264,58 +265,31 @@ const QRPage = ({ data: restaurant }) => {
     setGeneratedItems([]);
   };
 
-  const handleGenerateBatch = async () => {
-    if (!checkLicense()) return;
-    setIsGenerating(true);
-    clearGeneratedItems();
-
-    const startNum = parseInt(config.tableStart, 10);
-    const endNum = parseInt(config.tableEnd, 10);
-    const startValid = Number.isFinite(startNum) && startNum >= 1;
-    const endValid = Number.isFinite(endNum) && endNum >= 1;
-    const prefix = (config.tablePrefix || "").trim();
-    const suffix = (config.tableSuffix || "").trim();
-
-    // Build the list of QRs to generate. Two modes:
-    //   • Range mode — at least one of Başlangıç / Bitiş is filled, so we
-    //     emit one QR per number in the range, decorated with prefix+suffix.
-    //   • Single mode — both range fields are empty; emit ONE QR that uses
-    //     whatever pieces (prefix and/or suffix) the user filled in, never
-    //     appending a number. Bail out if there is nothing to identify the
-    //     table at all (no prefix, no suffix, no range).
-    const plan = [];
-    if (!startValid && !endValid) {
-      const tableId = `${prefix}${suffix}`;
-      if (!tableId) {
-        toast.error(t("qrPage.toast_no_input"), { id: "qr_page" });
-        setIsGenerating(false);
-        return;
-      }
-      plan.push({ id: tableId, tableId });
-    } else {
-      const safeStart = startValid ? startNum : 1;
-      const safeEnd = endValid ? endNum : safeStart;
-      const start = Math.min(safeStart, safeEnd);
-      const end = Math.max(safeStart, safeEnd);
-      for (let i = start; i <= end; i++) {
-        plan.push({ id: i, tableId: getTableId(i) });
-      }
-    }
-
-    // If the user gave us a brand logo we always honour it. Otherwise, in
-    // range mode the QR's center gets a white disc with the table number
-    // baked in — useful when printing because it lets staff find the right
-    // QR without scanning. In single mode (prefix/suffix only) we don't
-    // know "the number", so we leave the center blank.
+  // Generate the QR PNGs for an arbitrary plan and push them into
+  // `generatedItems`. Shared by the form-based batch generator and the
+  // SambaPOS table-list flow. `plan` is `[{ id, tableId, badge? }]`.
+  //   • `id`        — unique key for the rendered grid card
+  //   • `tableId`   — encoded into `?tableNumber=` on the QR's URL
+  //   • `badge`     — optional override for the white-disc center label
+  //                   (defaults: numeric `id` → its digits; otherwise no
+  //                   badge unless explicitly provided).
+  const runQRGeneration = async (plan) => {
+    if (!plan.length) return [];
     const useLogo = config.includeLogo && !!config.logo;
 
     const newItems = [];
     for (const entry of plan) {
       const url = `https://${config.tenant}.liwamenu.com?tableNumber=${encodeURIComponent(entry.tableId)}`;
+      const badge =
+        entry.badge !== undefined
+          ? entry.badge
+          : typeof entry.id === "number"
+            ? entry.id
+            : null;
       const centerImage = useLogo
         ? config.logo
-        : typeof entry.id === "number"
-          ? makeTableNumberBadge(entry.id)
+        : badge !== null && badge !== ""
+          ? makeTableNumberBadge(badge)
           : "";
 
       const generator = new QRCodeStyling({
@@ -362,6 +336,49 @@ const QRPage = ({ data: restaurant }) => {
       }
     }
 
+    return newItems;
+  };
+
+  const handleGenerateBatch = async () => {
+    if (!checkLicense()) return;
+    setIsGenerating(true);
+    clearGeneratedItems();
+
+    const startNum = parseInt(config.tableStart, 10);
+    const endNum = parseInt(config.tableEnd, 10);
+    const startValid = Number.isFinite(startNum) && startNum >= 1;
+    const endValid = Number.isFinite(endNum) && endNum >= 1;
+    const prefix = (config.tablePrefix || "").trim();
+    const suffix = (config.tableSuffix || "").trim();
+
+    // Build the list of QRs to generate. Two modes:
+    //   • Range mode — at least one of Başlangıç / Bitiş is filled, so we
+    //     emit one QR per number in the range, decorated with prefix+suffix.
+    //   • Single mode — both range fields are empty; emit ONE QR that uses
+    //     whatever pieces (prefix and/or suffix) the user filled in, never
+    //     appending a number. Bail out if there is nothing to identify the
+    //     table at all (no prefix, no suffix, no range).
+    const plan = [];
+    if (!startValid && !endValid) {
+      const tableId = `${prefix}${suffix}`;
+      if (!tableId) {
+        toast.error(t("qrPage.toast_no_input"), { id: "qr_page" });
+        setIsGenerating(false);
+        return;
+      }
+      plan.push({ id: tableId, tableId });
+    } else {
+      const safeStart = startValid ? startNum : 1;
+      const safeEnd = endValid ? endNum : safeStart;
+      const start = Math.min(safeStart, safeEnd);
+      const end = Math.max(safeStart, safeEnd);
+      for (let i = start; i <= end; i++) {
+        plan.push({ id: i, tableId: getTableId(i) });
+      }
+    }
+
+    const newItems = await runQRGeneration(plan);
+
     setGeneratedItems(newItems);
     setIsGenerating(false);
     if (plan.length === 1 && !startValid && !endValid) {
@@ -378,6 +395,58 @@ const QRPage = ({ data: restaurant }) => {
         { id: "qr_page" },
       );
     }
+  };
+
+  // Open the SambaPOS picker. The modal handles fetching + selection;
+  // when the user confirms, it hands back the list of names that survived
+  // their unchecks and we run them through the shared generator. Each
+  // call replaces the existing generated grid (the user can run this as
+  // many times as they like — clear-and-regenerate semantics).
+  const openSambaTablesModal = () => {
+    setPopupContent(
+      <SambaTablesModal
+        restaurantId={id}
+        onClose={() => setPopupContent(null)}
+        onGenerate={handleGenerateFromTableNames}
+      />,
+    );
+  };
+
+  // Derive a short visual badge from a free-form table name. Trailing
+  // digits win ("Bahçe-1" → "1") so numeric tables look the same whether
+  // they came from the form's range or from SambaPOS. Otherwise we fall
+  // back to the first character — gives "Misafir" → "M" / "Patron" → "P"
+  // which is enough to tell printed QRs apart at a glance.
+  const deriveBadgeFromName = (name) => {
+    const trailing = String(name).match(/(\d+)\s*$/);
+    if (trailing) return trailing[1];
+    const first = String(name).trim().charAt(0);
+    return first ? first.toLocaleUpperCase("tr-TR") : null;
+  };
+
+  const handleGenerateFromTableNames = async (names) => {
+    if (!checkLicense()) return;
+    if (!Array.isArray(names) || names.length === 0) {
+      toast.error(t("sambaTables.toast_no_selection"), { id: "qr_page" });
+      return;
+    }
+    setIsGenerating(true);
+    clearGeneratedItems();
+
+    const plan = names.map((name) => ({
+      id: name,
+      tableId: name,
+      badge: deriveBadgeFromName(name),
+    }));
+
+    const newItems = await runQRGeneration(plan);
+
+    setGeneratedItems(newItems);
+    setIsGenerating(false);
+    toast.success(
+      t("sambaTables.toast_generated", { count: newItems.length }),
+      { id: "qr_page" },
+    );
   };
 
   const downloadQR = (dataUrl, name) => {
@@ -460,11 +529,12 @@ const QRPage = ({ data: restaurant }) => {
     URL.revokeObjectURL(link.href);
   };
 
-  // Refresh restaurant data once
-  useEffect(() => {
-    dispatch(getRestaurant({ restaurantId: id }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // We deliberately do NOT refetch the restaurant on mount here. The
+  // parent (`restaurantHome.jsx`) already loads it via getRestaurant
+  // when entering /restaurant/* routes, and `Restaurants/GetRestaurantById`
+  // is one of the slow endpoints (~2.7s) that gates the global spinner.
+  // The QR page only reads tenant + id + license flags off the prop,
+  // which the parent keeps fresh — fetching again was pure waste.
 
   const tableCount = (() => {
     const s = parseInt(config.tableStart, 10);
@@ -507,6 +577,21 @@ const QRPage = ({ data: restaurant }) => {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <PageHelp pageKey="qrCode" />
+            {/* Pull tables straight from the SambaPOS integration so the
+                user doesn't have to type prefixes/ranges. The modal
+                handles fetching + per-table opt-out before handing
+                names to runQRGeneration. */}
+            <button
+              type="button"
+              onClick={openSambaTablesModal}
+              disabled={isGenerating}
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 transition disabled:opacity-60 dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30"
+            >
+              <Database className="size-3.5" />
+              <span className="hidden sm:inline">
+                {t("sambaTables.open_button")}
+              </span>
+            </button>
             {generatedItems.length > 0 && (
               <button
                 type="button"

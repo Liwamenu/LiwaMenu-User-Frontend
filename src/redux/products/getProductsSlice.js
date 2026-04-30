@@ -4,11 +4,31 @@ import { privateApi } from "../api";
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
 
+// Stable cache key from a `getProducts` argument object. Used by the
+// slice to remember which (restaurant, page, filters) combination the
+// cached `products` payload belongs to, so call sites can skip the
+// network on revisit when the params still match. Exported so the
+// Products page computes the SAME key when checking the cache.
+export const productsCacheKey = (arg) => {
+  if (!arg) return null;
+  return [
+    arg.restaurantId ?? "",
+    arg.pageNumber ?? 1,
+    arg.pageSize ?? "",
+    arg.categoryId ?? "all",
+    arg.hide === null || arg.hide === undefined ? "any" : String(arg.hide),
+  ].join("|");
+};
+
 const initialState = {
   loading: false,
   success: false,
   error: false,
   products: null,
+  // Key of the (restaurant, page, filter) combination that the cached
+  // `products` payload belongs to — null when no payload is cached.
+  // Use this on revisit to skip the refetch when the params still match.
+  fetchedFor: null,
 };
 
 const getProductsSlice = createSlice({
@@ -22,6 +42,7 @@ const getProductsSlice = createSlice({
     },
     resetGetProducts: (state) => {
       state.products = null;
+      state.fetchedFor = null;
     },
   },
   extraReducers: (build) => {
@@ -30,19 +51,23 @@ const getProductsSlice = createSlice({
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.products = null;
+        // Stale-while-revalidate: keep the previous payload visible
+        // while the refetch is in flight, matching the pattern used
+        // by Categories / SubCategories / Menus / OrderTags slices.
       })
       .addCase(getProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
         state.products = action.payload;
+        state.fetchedFor = productsCacheKey(action.meta?.arg);
       })
       .addCase(getProducts.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
         state.products = null;
+        state.fetchedFor = null;
       });
   },
 });

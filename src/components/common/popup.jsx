@@ -24,13 +24,18 @@ const Popup = () => {
 
   return (
     <>
+      {/* Loader overlay — backdrop only. We deliberately do NOT wrap the
+          loader in the bg-[--btn-txt] full-width card the popups use,
+          because that turns it into a tall horizontal strip across the
+          screen. The loader component sizes itself; popup-style cards
+          are reserved for the actual popup slots below. */}
       <div
         className={`fixed top-0 left-0 right-0 bottom-0 justify-center items-center transition-colors p-[2%] z-[9999999] ${
           loadingComponent ? "flex bg-black/20" : "hidden"
         }`}
       >
         <div
-          className={`bg-[--btn-txt] w-full rounded-xl transition-all ${
+          className={`transition-all ${
             loadingComponent ? "scale-100 opacity-100" : "scale-125 opacity-0"
           }`}
         >

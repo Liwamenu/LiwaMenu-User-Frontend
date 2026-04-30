@@ -86,10 +86,7 @@ const LicensesPage = () => {
           </h1>
           <p className="mt-1 text-sm text-[--gr-1]">
             {typeof totalItems === "number"
-              ? t("licenses.total_count", {
-                  count: totalItems,
-                  defaultValue: `${totalItems} lisans`,
-                })
+              ? t("licenses.total_count", { count: totalItems })
               : t("licenses.subtitle")}
           </p>
         </div>

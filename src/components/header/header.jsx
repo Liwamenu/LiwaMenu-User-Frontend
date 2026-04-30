@@ -24,7 +24,7 @@ const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
 // Center title — shows the active restaurant's name when the user is inside
-// any /restaurant/... route, otherwise falls back to the Liwamenu brand.
+// any /restaurant/... route, otherwise falls back to the LiwaMenu brand.
 // Pulls the name from `getRestaurant.restaurant` first, then falls back to
 // the restaurant list (`getRestaurants.restaurants.data`) since not every
 // entry path populates the single-restaurant slice.
@@ -83,7 +83,7 @@ function BrandOrRestaurantName() {
       to="/"
       className="flex items-center text-3xl max-sm:text-xl text-[--primary-1] font-[conthrax]"
     >
-      Liwamenu
+      LiwaMenu
     </Link>
   );
 }

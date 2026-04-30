@@ -18,10 +18,10 @@ const PrivacyPolicy = () => {
     <article className="text-sm leading-relaxed text-slate-600 space-y-4">
       <div>
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
-          Liwamenu Kullanım Şartları
+          LiwaMenu Kullanım Şartları
         </h2>
         <p className="mb-3">
-          Liwamenu ürünü online sipariş platformlarına entegre olarak çalışan
+          LiwaMenu ürünü online sipariş platformlarına entegre olarak çalışan
           ve çok yönlü olarak tarafların teknik sorunları nedeni ile zaman zaman
           aksaklıklar yaşanabilecek bir hizmettir. Bu kriterler aşağıdaki gibidir.
         </p>
@@ -34,7 +34,7 @@ const PrivacyPolicy = () => {
             güncellemeye dayalı sorunlar
           </li>
           <li>
-            Liwamenu sunucularında yaşanabilecek teknik veya güncellemeye
+            LiwaMenu sunucularında yaşanabilecek teknik veya güncellemeye
             bağlı sorunlar.
           </li>
         </ul>

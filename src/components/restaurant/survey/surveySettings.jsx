@@ -222,7 +222,7 @@ const SurveySettings = ({ data }) => {
                           )
                         }
                         className="grid place-items-center size-8 rounded-md text-indigo-600 hover:bg-indigo-50 transition"
-                        aria-label="Düzenle"
+                        aria-label={t("surveySettings.edit_aria")}
                       >
                         <Pencil className="size-3.5" />
                       </button>
@@ -240,7 +240,7 @@ const SurveySettings = ({ data }) => {
                           )
                         }
                         className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
-                        aria-label="Sil"
+                        aria-label={t("surveySettings.delete_aria")}
                       >
                         <Trash2 className="size-3.5" />
                       </button>

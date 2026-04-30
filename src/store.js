@@ -32,6 +32,7 @@ import orderTagsSlice from "./redux/orderTags";
 import ordersSlice from "./redux/orders";
 import waiterCallsSlice from "./redux/waiterCalls";
 import reservationsSlice from "./redux/reservations";
+import sambaTablesSlice from "./redux/sambaTables";
 // import emailSlice from "./redux/email";
 // import smsSlice from "./redux/sms";
 // import tempUsersSlice from "./redux/tempUsers";
@@ -71,6 +72,7 @@ const store = configureStore({
     orders: ordersSlice,
     waiterCalls: waiterCallsSlice,
     reservations: reservationsSlice,
+    sambaTables: sambaTablesSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(loadingMiddleware),

@@ -1,20 +1,14 @@
 import { combineReducers } from "@reduxjs/toolkit";
 
 // Slices
-import getCitiesSlice from "./getCitiesSlice";
-import getCurrencySlice from "./getCurrencySlice";
-import getDistrictsSlice from "./getDistrictsSlice";
 import getLocationSlice from "./getLocationSlice";
-import getNeighsSlice from "./getNeighsSlice";
-import getUserAddress from "./getUserAddressSlice";
 
+// `getLocation` is the only entry left here — it talks to Google Maps for
+// reverse-geocoding when the user picks a pin. The previous CityDistrict /
+// Neighbourhood / Currency / UserAddress slices were removed: they hit
+// api.pentegrasyon.net which is a separate service we no longer rely on.
 const dataSlice = combineReducers({
-  getCities: getCitiesSlice,
-  getDistricts: getDistrictsSlice,
-  getNeighs: getNeighsSlice,
   getLocation: getLocationSlice,
-  getCurrency: getCurrencySlice,
-  getUserAddress: getUserAddress,
 });
 
 export default dataSlice;

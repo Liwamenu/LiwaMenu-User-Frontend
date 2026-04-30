@@ -99,7 +99,7 @@ const AuthShell = ({
 
         <div className="relative z-10">
           <Link to="/" className="font-[conthrax] text-3xl tracking-wide">
-            Liwamenu
+            LiwaMenu
           </Link>
         </div>
 
@@ -140,7 +140,7 @@ const AuthShell = ({
             to="/"
             className="lg:hidden font-[conthrax] text-2xl text-[--primary-1]"
           >
-            Liwamenu
+            LiwaMenu
           </Link>
 
           <div className="ml-auto relative" ref={langRef}>

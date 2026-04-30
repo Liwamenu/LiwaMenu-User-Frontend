@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 // COMP
 import ProductsHeader from "./header";
 import ProductCard from "./productCard";
+import EditProduct from "./editProduct";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 import PageHelp from "../../common/pageHelp";
@@ -27,6 +28,7 @@ import { usePopup } from "../../../context/PopupContext";
 import {
   getProducts,
   resetGetProducts,
+  productsCacheKey,
 } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { privateApi } from "../../../redux/api";
@@ -74,8 +76,14 @@ const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = Math.max(1, parseInt(searchParams.get("page"), 10) || 1);
 
-  const { categories } = useSelector((s) => s.categories.get);
-  const { products, error } = useSelector((s) => s.products.get);
+  const { categories, fetchedFor: catFetchedFor } = useSelector(
+    (s) => s.categories.get,
+  );
+  const {
+    products,
+    error,
+    fetchedFor: productsFetchedFor,
+  } = useSelector((s) => s.products.get);
   const [categoryOptions, setCategoryOptions] = useState([]);
 
   const allCategoryOption = {
@@ -421,10 +429,31 @@ const Products = () => {
     );
   };
 
+  // Open edit as a popup instead of navigating to /products/:id/edit/:prodId.
+  // Full-page navigation unmounts this component, which loses the active
+  // category/status filter and the current page (the URL only persists
+  // `?page=N`, not the filters). Hosting EditProduct in a popup keeps the
+  // list mounted so save → close → refetch lands the user back on the
+  // exact same page with the same filters applied.
+  const openEditPopup = (product) =>
+    setSecondPopupContent(
+      <EditProduct product={product} onSaved={refetchProducts} />,
+    );
+
+  // Mount-time fetch — honors the URL ?page=N so back-nav from edit lands
+  // on the same page the user came from. Skips the network entirely when
+  // the slice already has a cached payload for the SAME (restaurant,
+  // page, pageSize, no-filter) combination, so revisits within a session
+  // are instant. Filter / page changes go through handleFilter and
+  // handlePageChange, which dispatch unconditionally — that's intentional
+  // (the user explicitly asked for fresh data).
   useEffect(() => {
-    if (!productsData) {
-      // Honor the URL ?page=N on first mount so back-nav from edit lands
-      // on the same page the user came from.
+    const wantedKey = productsCacheKey({
+      restaurantId,
+      pageNumber: initialPage,
+      pageSize: itemsPerPage,
+    });
+    if (productsFetchedFor !== wantedKey) {
       dispatch(
         getProducts({
           restaurantId,
@@ -434,7 +463,7 @@ const Products = () => {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productsData]);
+  }, [restaurantId, initialPage]);
 
   useEffect(() => {
     if (products) {
@@ -444,9 +473,16 @@ const Products = () => {
     if (error) dispatch(resetGetProducts());
   }, [products, error]);
 
+  // Categories slice has its own `fetchedFor` cache (used here just for
+  // the filter dropdown). The plain `!categories` check would miss a
+  // restaurant switch with stale cached data for the previous restaurant,
+  // so guard on both conditions like the Categories page does.
   useEffect(() => {
-    if (!categories) dispatch(getCategories({ restaurantId }));
-  }, [categories]);
+    if (!categories || catFetchedFor !== restaurantId) {
+      dispatch(getCategories({ restaurantId }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantId]);
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
@@ -675,6 +711,7 @@ const Products = () => {
                         <ProductCard
                           product={product}
                           onDeleted={refetchProducts}
+                          onEdit={openEditPopup}
                           selectable
                           selected={selectedIds.has(product.id)}
                           onToggleSelect={toggleSelectId}
@@ -732,6 +769,7 @@ const Products = () => {
                       key={product.id}
                       product={product}
                       onDeleted={refetchProducts}
+                      onEdit={openEditPopup}
                       selectable
                       selected={selectedIds.has(product.id)}
                       onToggleSelect={toggleSelectId}
@@ -776,6 +814,7 @@ const Products = () => {
                     key={product.id}
                     product={product}
                     onDeleted={refetchProducts}
+                    onEdit={openEditPopup}
                     selectable
                     selected={selectedIds.has(product.id)}
                     onToggleSelect={toggleSelectId}

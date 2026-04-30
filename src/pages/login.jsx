@@ -174,7 +174,7 @@ function Login() {
             to="/"
             className="font-[conthrax] text-3xl tracking-wide bg-indigo-950/85 ring-1 ring-white/10 px-7 py-2.5 rounded-full shadow-lg shadow-indigo-950/30 backdrop-blur-sm"
           >
-            Liwamenu
+            LiwaMenu
           </Link>
         </div>
 
@@ -227,7 +227,7 @@ function Login() {
             to="/"
             className="lg:hidden font-[conthrax] text-2xl text-[--primary-1]"
           >
-            Liwamenu
+            LiwaMenu
           </Link>
 
           <div className="ml-auto relative" ref={langRef}>

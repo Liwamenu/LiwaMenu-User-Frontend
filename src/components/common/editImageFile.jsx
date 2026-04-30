@@ -2,12 +2,14 @@
 import "cropperjs/dist/cropper.css";
 import Cropper from "react-cropper";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 //CONTEXT
 import { usePopup } from "../../context/PopupContext";
 import { CancelI } from "../../assets/icon";
 
 const EditImageFile = ({ file, onSave }) => {
+  const { t } = useTranslation();
   const cropperRef = useRef(null);
   const { setCropImgPopup } = usePopup();
   const [imageURL, setImageURL] = useState(null);
@@ -91,7 +93,9 @@ const EditImageFile = ({ file, onSave }) => {
     <div className="flex items-center justify-center transition-all duration-300">
       <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-4xl p-6 transform transition-all duration-300 modal-content max-h-[95vh] overflow-y-auto">
         <div className="flex justify-between items-center pb-3">
-          <h3 className="text-xl font-bold text-[--black-1]">Resmi Düzenle</h3>
+          <h3 className="text-xl font-bold text-[--black-1]">
+            {t("cropImage.title")}
+          </h3>
           <button
             onClick={onClose}
             className="text-[--gr-1] hover:text-[--black-2] transition-colors"
@@ -117,7 +121,9 @@ const EditImageFile = ({ file, onSave }) => {
             />
           ) : (
             <div className="h-[400px] flex items-center justify-center">
-              <p className="text-sm text-[--gr-1]">Önizleme yükleniyor…</p>
+              <p className="text-sm text-[--gr-1]">
+                {t("cropImage.preview_loading")}
+              </p>
             </div>
           )}
         </div>
@@ -127,7 +133,8 @@ const EditImageFile = ({ file, onSave }) => {
           {/* Aspect Ratio */}
           <div className="flex justify-between items-center bg-[--light-4] p-3 rounded-lg border border-[--border-1]">
             <span className="text-xs font-medium text-[--black-2]">
-              <span className="text-[--gr-1]">Boyut:</span> 640x480 (Otomatik)
+              <span className="text-[--gr-1]">{t("cropImage.size_label")}</span>{" "}
+              {t("cropImage.size_auto")}
             </span>
             <div className="flex space-x-2">
               <button
@@ -168,7 +175,7 @@ const EditImageFile = ({ file, onSave }) => {
                     : "bg-[--light-3] text-[--black-2] hover:bg-[--light-4]"
                 }`}
               >
-                Serbest
+                {t("cropImage.free_ratio")}
               </button>
             </div>
           </div>
@@ -176,13 +183,13 @@ const EditImageFile = ({ file, onSave }) => {
           {/* Tools */}
           <div className="flex justify-between items-center bg-[--light-4] p-3 rounded-lg border border-[--border-1]">
             <span className="text-sm font-medium text-[--black-2]">
-              Düzenleme Araçları
+              {t("cropImage.tools_label")}
             </span>
             <div className="flex space-x-2">
               <button
                 onClick={handleZoomIn}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Yakınlaştır"
+                title={t("cropImage.zoom_in")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -197,7 +204,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleZoomOut}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Uzaklaştır"
+                title={t("cropImage.zoom_out")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -212,7 +219,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleRotateLeft}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Sola Döndür"
+                title={t("cropImage.rotate_left")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -227,7 +234,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleRotateRight}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Sağa Döndür"
+                title={t("cropImage.rotate_right")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -242,7 +249,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleFlipHorizontal}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Yatay Çevir"
+                title={t("cropImage.flip_horizontal")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -257,7 +264,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleFlipVertical}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Dikey Çevir"
+                title={t("cropImage.flip_vertical")}
               >
                 <div className="rotate-90">
                   <svg
@@ -274,7 +281,7 @@ const EditImageFile = ({ file, onSave }) => {
               <button
                 onClick={handleReset}
                 className="p-2 bg-[--light-3] text-[--black-2] rounded-lg hover:bg-[--light-4] transition-colors"
-                title="Sıfırla"
+                title={t("cropImage.reset")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -296,14 +303,14 @@ const EditImageFile = ({ file, onSave }) => {
             onClick={onClose}
             className="px-6 py-2.5 text-sm font-medium text-[--black-2] bg-[--white-1] border border-[--border-1] rounded-xl hover:bg-[--light-1] hover:text-[--black-1] transition-all"
           >
-            İptal
+            {t("cropImage.cancel")}
           </button>
           <button
             onClick={cropImage}
             className="px-8 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg hover:bg-[--primary-2] transform hover:-translate-y-0.5 transition-all"
           >
             <i className="fa-solid fa-check mr-2"></i>
-            Kırp ve Kaydet
+            {t("cropImage.save")}
           </button>
         </div>
       </div>

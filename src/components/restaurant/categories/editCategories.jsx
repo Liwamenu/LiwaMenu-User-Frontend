@@ -86,7 +86,7 @@ const EditCategories = ({ data: restaurant }) => {
     e?.preventDefault();
 
     if (isEqual(categoriesData, categoriesDataBefore) && index === undefined) {
-      toast.error("Değişiklik yapılmadı.", { id: "categories" });
+      toast.error(t("editCategories.no_changes"), { id: "categories" });
       return;
     }
 
@@ -149,11 +149,12 @@ const EditCategories = ({ data: restaurant }) => {
   // TOAST
   useEffect(() => {
     if (success) {
-      toast.success("Kategoriler başarıyla güncellendi.", { id: "categories" });
+      toast.success(t("editCategories.update_success"), { id: "categories" });
       setCategoriesDataBefore(categoriesData);
       dispatch(resetEditCategories());
     }
     if (error) dispatch(resetEditCategories());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error]);
 
   return (
@@ -438,10 +439,11 @@ const EditCategories = ({ data: restaurant }) => {
 export default EditCategories;
 
 function CustomFileInputMsg() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center text-xs">
       <CloudUI className="size-[1.5rem] mt-2" strokeWidth={1.5} />
-      <p>Kategori görseli yükleyin</p>
+      <p>{t("editCategories.upload_image_msg")}</p>
     </div>
   );
 }

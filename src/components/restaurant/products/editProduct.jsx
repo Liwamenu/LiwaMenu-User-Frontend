@@ -37,7 +37,7 @@ const emptyPortion = () => ({
   specialPrice: 0, // local optional “Özel” price
 });
 
-const EditProduct = ({ product: prodToPopup }) => {
+const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -214,13 +214,22 @@ const EditProduct = ({ product: prodToPopup }) => {
       toast.success(t("editProduct.success"));
       dispatch(resetEditProduct());
       if (prodToPopup) {
-        // Opened as a popup → close the popup; the underlying list re-fetches.
+        // Opened as a popup → close it. Prefer the parent-supplied
+        // `onSaved` callback so the host list refetches with its current
+        // filters and page intact (e.g. Products page stays on page 12
+        // with the chosen category filter); only fall back to a generic
+        // `getProducts` for legacy callers that don't pass `onSaved` and
+        // would otherwise see stale data after save.
         setSecondPopupContent(null);
-        dispatch(
-          getProducts({
-            restaurantId: restaurantId || productData.restaurantId,
-          }),
-        );
+        if (onSaved) {
+          onSaved();
+        } else {
+          dispatch(
+            getProducts({
+              restaurantId: restaurantId || productData.restaurantId,
+            }),
+          );
+        }
       } else {
         // Opened as a full page → go back to the products list. navigate(-1)
         // preserves the list's URL search params (page=N) so the user lands
@@ -484,7 +493,7 @@ const EditProduct = ({ product: prodToPopup }) => {
                         />
                         <CustomInput
                           type="number"
-                          placeholder="Özel"
+                          placeholder={t("addProduct.special_price_short")}
                           className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
                           value={formatToPrice(portion.specialPrice) || "0"}
                           onChange={(v) =>

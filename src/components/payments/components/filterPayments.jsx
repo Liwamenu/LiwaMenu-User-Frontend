@@ -1,6 +1,7 @@
 //MODULES
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { Check, Filter, X } from "lucide-react";
 
 //UTILS
@@ -30,6 +31,7 @@ const FilterPayments = ({
   setPageNumber,
   activeFilterCount = 0,
 }) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const filterPaymentsRef = useRef();
   const { contentRef, setContentRef } = usePopup();
@@ -98,7 +100,7 @@ const FilterPayments = ({
         }
       >
         <Filter className="size-4" />
-        Filtrele
+        {t("paymentsPage.filter_button")}
         {activeFilterCount > 0 && (
           <span className="grid place-items-center min-w-5 h-5 px-1 rounded-full bg-white text-[--primary-1] text-[10px] font-bold">
             {activeFilterCount}
@@ -109,7 +111,9 @@ const FilterPayments = ({
       {openFilter && (
         <div className="absolute right-0 top-12 z-50 w-[20rem] sm:w-[24rem] rounded-2xl bg-[--white-1] border border-[--border-1] shadow-2xl shadow-indigo-500/10 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[--border-1] bg-[--white-2]/60">
-            <h3 className="text-sm font-bold text-[--black-1]">Filtreler</h3>
+            <h3 className="text-sm font-bold text-[--black-1]">
+              {t("paymentsPage.filter_title")}
+            </h3>
             <button
               type="button"
               onClick={() => setOpenFilter(false)}
@@ -122,7 +126,7 @@ const FilterPayments = ({
           <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-1.5">
-                Tarih Aralığı
+                {t("paymentsPage.filter_date_range")}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <CustomDatePicker
@@ -147,24 +151,27 @@ const FilterPayments = ({
             </div>
 
             <ChipSelect
-              label="Durum"
+              label={t("paymentsPage.filter_status")}
               options={statuses}
               value={draft?.statusId ?? null}
               onChange={(v) => setDraft((p) => ({ ...p, statusId: v }))}
+              t={t}
             />
 
             <ChipSelect
-              label="İşlem Tipi"
+              label={t("paymentsPage.filter_type")}
               options={paymentLicenseType}
               value={draft?.typeId ?? null}
               onChange={(v) => setDraft((p) => ({ ...p, typeId: v }))}
+              t={t}
             />
 
             <ChipSelect
-              label="Ödeme Yöntemi"
+              label={t("paymentsPage.filter_method")}
               options={PaymentMethod}
               value={draft?.paymentMethodId ?? null}
               onChange={(v) => setDraft((p) => ({ ...p, paymentMethodId: v }))}
+              t={t}
             />
           </div>
 
@@ -174,7 +181,7 @@ const FilterPayments = ({
               onClick={handleClear}
               className="h-10 px-3.5 rounded-lg text-sm font-medium text-[--gr-1] hover:bg-[--white-2] transition"
             >
-              Temizle
+              {t("paymentsPage.filter_clear")}
             </button>
             <button
               type="button"
@@ -183,7 +190,7 @@ const FilterPayments = ({
               style={{ background: PRIMARY_GRADIENT }}
             >
               <Check className="size-4" />
-              Uygula
+              {t("paymentsPage.filter_apply")}
             </button>
           </div>
         </div>
@@ -194,14 +201,14 @@ const FilterPayments = ({
 
 export default FilterPayments;
 
-const ChipSelect = ({ label, options, value, onChange }) => (
+const ChipSelect = ({ label, options, value, onChange, t }) => (
   <div>
     <label className="block text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-1.5">
       {label}
     </label>
     <div className="flex flex-wrap gap-1.5">
       <Chip selected={value == null} onClick={() => onChange(null)}>
-        Hepsi
+        {t("paymentsPage.filter_all")}
       </Chip>
       {options.map((o) => (
         <Chip
@@ -209,7 +216,7 @@ const ChipSelect = ({ label, options, value, onChange }) => (
           selected={value === o.value}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {o.labelKey ? t(o.labelKey) : o.label}
         </Chip>
       ))}
     </div>

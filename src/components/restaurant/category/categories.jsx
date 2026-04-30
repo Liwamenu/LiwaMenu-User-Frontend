@@ -35,10 +35,7 @@ import fallbackImg from "../../../assets/img/No_Img.svg";
 import { usePopup } from "../../../context/PopupContext";
 
 // REDUX
-import {
-  getCategories,
-  resetGetCategories,
-} from "../../../redux/categories/getCategoriesSlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import {
   editCategories,
   resetEditCategories,
@@ -56,7 +53,9 @@ const Categories = ({ data: restaurant }) => {
   const dispatch = useDispatch();
   const { setPopupContent } = usePopup();
 
-  const { categories } = useSelector((state) => state.categories.get);
+  const { categories, fetchedFor: catFetchedFor } = useSelector(
+    (state) => state.categories.get,
+  );
   const { success, error, loading } = useSelector(
     (state) => state.categories.edit,
   );
@@ -68,20 +67,27 @@ const Categories = ({ data: restaurant }) => {
   // Bulk image-edit state: map of categoryId -> { file, previewUrl }
   const [bulkChanges, setBulkChanges] = useState({});
 
-  // GET CATEGORIES
+  // GET CATEGORIES — relies on the slice's `fetchedFor` cache, so revisits
+  // within the same restaurant skip the (slow) network round trip. The
+  // earlier implementation called resetGetCategories() right after copying
+  // the slice into local state, which nuked the cache and forced a refetch
+  // on every mount; that's removed now. The slice is still invalidated
+  // explicitly after add/edit/delete so we never serve stale rows.
   useEffect(() => {
-    if (!categoriesData) {
+    if (!categories || catFetchedFor !== params?.id) {
       dispatch(getCategories({ restaurantId: params?.id }));
     }
-  }, [categoriesData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params?.id]);
 
-  // SET CATEGORIES WHEN FETCHED
+  // SET CATEGORIES WHEN FETCHED — also runs on remount with cached data,
+  // because `categories` will be the cached reference straight from the
+  // slice. The hydrate is idempotent (same sort, same setState).
   useEffect(() => {
     if (categories) {
       const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
       setCategoriesData(sorted);
       setCategoriesDataBefore(sorted);
-      dispatch(resetGetCategories());
     }
   }, [categories]);
 
@@ -131,10 +137,11 @@ const Categories = ({ data: restaurant }) => {
   const sortCategoriesByOrder = (cats) =>
     [...cats].sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const handleManageProducts = (categoryId) => {
+  const handleManageProducts = (categoryId, categoryName) => {
     setPopupContent(
       <CategoryProducts
         categoryId={categoryId}
+        categoryName={categoryName}
         onClose={() => setPopupContent(null)}
       />,
     );
@@ -430,7 +437,7 @@ function ListTab({
                       <div className="flex gap-1 shrink-0 self-end sm:self-center">
                         <button
                           type="button"
-                          onClick={() => handleManageProducts(cat.id)}
+                          onClick={() => handleManageProducts(cat.id, cat.name)}
                           className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition"
                           title={t("editCategories.manage_products")}
                         >

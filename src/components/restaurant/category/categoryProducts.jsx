@@ -17,7 +17,6 @@ import {
 // COMPONENTS & FUNCTIONS
 import EditProduct from "../products/editProduct";
 import DeleteProduct from "../products/deleteProduct";
-import fallbackImg from "../../../assets/img/No_Img.svg";
 import { usePopup } from "../../../context/PopupContext";
 
 // REDUX
@@ -36,7 +35,7 @@ const PRIMARY_GRADIENT =
 const sortBySortOrder = (list) =>
   [...list].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
-const CategoryProducts = ({ categoryId, onClose }) => {
+const CategoryProducts = ({ categoryId, categoryName, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -225,12 +224,12 @@ const CategoryProducts = ({ categoryId, onClose }) => {
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="text-sm sm:text-base font-semibold text-[--black-1] truncate tracking-tight">
-            {t("categoryProducts.title")}
+            {categoryName
+              ? `${t("categoryProducts.title")} — ${categoryName}`
+              : t("categoryProducts.title")}
           </h3>
           <p className="text-[11px] text-[--gr-1] truncate mt-0.5">
-            {items?.length
-              ? t("categoryProducts.summary", { count: items.length })
-              : t("categoryProducts.subtitle")}
+            {t("categoryProducts.subtitle")}
           </p>
         </div>
         <button
@@ -360,14 +359,6 @@ const ProductRow = ({ prod, t, provided, isDragging, onEdit, onDelete }) => {
       >
         <GripVertical className="size-4" />
       </button>
-      <div className="size-12 rounded-lg ring-1 ring-[--border-1] bg-[--white-2] grid place-items-center overflow-hidden shrink-0">
-        <img
-          src={prod.image || fallbackImg}
-          alt={prod.name}
-          className="size-full object-cover pointer-events-none"
-          draggable={false}
-        />
-      </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-[--black-1] truncate">
           {prod.name}
