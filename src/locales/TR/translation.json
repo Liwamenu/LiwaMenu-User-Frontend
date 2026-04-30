@@ -17,7 +17,12 @@
     "save": "Kırp ve Kaydet"
   },
   "fileInput": {
-    "selected_file": "Seçilen dosya:"
+    "selected_file": "Seçilen dosya:",
+    "size_label": "Boyut:",
+    "max_size_hint": "Maks. {{mb}} MB",
+    "invalid_type": "Geçersiz dosya türü.",
+    "too_large": "Dosya boyutu en fazla {{mb}} MB olabilir.",
+    "replace_action": "Yeniden seçmek için tıklayın"
   },
   "apiErrors": {
     "unauthorized": "Yetkili değilsiniz.",
@@ -508,7 +513,10 @@
     "success": "Çalışma saatleri başarıyla güncellendi.",
     "processing": "İşleniyor...",
     "open_count": "{{count}} gün açık · {{closed}} gün kapalı",
-    "apply_to_all": "Tümüne uygula",
+    "apply_to_all": "Tüm Günlere Uygula",
+    "apply_to_all_tooltip": "Pazartesi'nin saatlerini diğer tüm günlere kopyala",
+    "apply_to_all_invalid": "Önce Pazartesi için açılış ve kapanış saatlerini ayarlayın.",
+    "applied_to_all": "Pazartesi'nin saatleri tüm günlere uygulandı.",
     "subtitle": "Restoranın haftalık açılış ve kapanış saatlerini düzenleyin."
   },
   "socialMedias": {
@@ -775,6 +783,8 @@
     "search_placeholder": "Ürün ara...",
     "all_categories": "Tüm Kategoriler",
     "all_statuses": "Tüm Durumlar",
+    "all_recommendations": "Tüm Ürünler",
+    "recommended_only": "Şef Tavsiyesi",
     "no_products": "Ürün bulunamadı.",
     "filters": "Filtreler",
     "clear_filters": "Filtreleri Temizle",
@@ -785,6 +795,10 @@
     "duplicate_badge": "Kopya {{n}}/{{total}}",
     "no_duplicates": "Tekrarlanan ürün yok",
     "no_duplicates_hint": "Tüm ürün isimleri benzersiz görünüyor.",
+    "show_no_image": "Fotoğrafsız ürünler",
+    "no_image_summary": "{{count}} ürün",
+    "no_no_image": "Fotoğrafsız ürün yok",
+    "no_no_image_hint": "Tüm ürünlerde görsel mevcut.",
     "select_product": "Seç",
     "deselect_product": "Seçimi kaldır",
     "select_visible": "Sayfadakileri seç",
@@ -802,7 +816,19 @@
   "productCard": {
     "no_image": "Görsel Yok",
     "campaign_prefix": "Kampanya:",
-    "portion_count": "{{count}} porsiyon"
+    "portion_count": "{{count}} porsiyon",
+    "chef_recommended": "Şef Tavsiyesi",
+    "change_image": "Fotoğrafı Değiştir"
+  },
+  "quickEditImage": {
+    "title": "Ürün Fotoğrafını Değiştir",
+    "current": "Mevcut",
+    "new": "Yeni",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "success": "Fotoğraf güncellendi.",
+    "no_file": "Lütfen önce yeni bir fotoğraf seçin."
   },
   "priceList": {
     "title": "Fiyat Listesi",
@@ -811,7 +837,7 @@
     "category_filter": "Kategori",
     "all_categories": "Tüm Ürünler",
     "no_match": "Seçilen kategoride ürün bulunamadı.",
-    "rows": "satır",
+    "products": "ürün",
     "success": "Fiyat listesi başarıyla güncellendi.",
     "save_changes": "Değişiklikleri Kaydet",
     "normal_price": "Normal Fiyatı",
@@ -832,7 +858,14 @@
     "bulk_error_invalid_value": "Lütfen geçerli bir değer girin",
     "bulk_undo_button": "Geri Al",
     "bulk_undo_title": "Son işlemi geri al",
-    "bulk_apply_button": "Uygula"
+    "bulk_apply_button": "Uygula",
+    "bulk_category_label": "Kategori",
+    "bulk_all_categories": "Tüm Kategoriler",
+    "bulk_confirm_title": "Toplu Fiyat Güncelleme",
+    "bulk_confirm_message_all": "Tüm kategorilerin fiyatları güncellenecek, emin misiniz?",
+    "bulk_confirm_message_category": "{{category}} kategori fiyatları güncellenecek, emin misiniz?",
+    "bulk_confirm_cancel": "Vazgeç",
+    "bulk_confirm_yes": "Evet, Güncelle"
   },
   "editProduct": {
     "no_changes": "Değişiklik yapılmadı.",
@@ -920,14 +953,15 @@
     "empty_title": "Masa bulunamadı",
     "empty_desc": "SambaPOS tarafında tanımlı bir masa görünmüyor. Backend tarafında masaları oluşturduktan sonra tekrar deneyin.",
     "error_title": "Masalar alınamadı",
-    "error_desc": "Sunucuya bağlanılırken bir hata oluştu. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    "error_desc": "Sisteminizde kurulu SambaPOS yazılımı mevcut değil veya QR Menünüzle senkronize edilmemiş olabilir.",
     "retry": "Tekrar Dene",
     "refresh": "Yenile",
     "close": "Kapat",
     "cancel": "Vazgeç",
     "generate": "QR Oluştur ({{count}})",
     "toast_no_selection": "QR oluşturmak için en az bir masa seçili olmalı.",
-    "toast_generated": "{{count}} masa için QR oluşturuldu."
+    "toast_generated": "{{count}} masa için QR oluşturuldu.",
+    "toast_fetch_failed": "SambaPOS'dan Masalar Gönderilmemiş."
   },
   "qrPage": {
     "header_title": "QR Toplu Üretim Stüdyosu",

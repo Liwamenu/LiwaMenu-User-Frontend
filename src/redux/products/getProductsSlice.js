@@ -17,6 +17,9 @@ export const productsCacheKey = (arg) => {
     arg.pageSize ?? "",
     arg.categoryId ?? "all",
     arg.hide === null || arg.hide === undefined ? "any" : String(arg.hide),
+    arg.recommendation === null || arg.recommendation === undefined
+      ? "any"
+      : String(arg.recommendation),
   ].join("|");
 };
 

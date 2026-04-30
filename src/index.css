@@ -1,6 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap");
+/* App-wide UI font: Inter (humanist sans, optimized for screens). Loaded
+   with the full weight axis 100..900 so the elegant lighter weights
+   (200/300) read correctly while bold/semibold classes still bump up to
+   600/700. Conthrax stays as the LiwaMenu logo brand font. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
 @import url("https://fonts.cdnfonts.com/css/conthrax");
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -161,11 +164,11 @@ section {
   background-color: #10111c;
 }
 .dark input {
-  font-family: "Lexend Deca", sans-serif;
+  font-family: "Inter", sans-serif;
   /* background-color: #1b1a1e; */
 }
 .light input {
-  font-family: "Lexend Deca", sans-serif;
+  font-family: "Inter", sans-serif;
   /* background-color: #ffffff; */
 }
 
@@ -187,7 +190,14 @@ section {
 
 body {
   overflow-x: hidden;
-  font-family: "Lexend Deca", sans-serif;
+  font-family: "Inter", sans-serif;
+  /* Default body weight = 300 (Inter Light) for an elegant, less heavy
+     feel. Tailwind's font-medium / font-semibold / font-bold classes
+     still bump emphasized text up; only un-classed text reads lighter. */
+  font-weight: 300;
+  /* Slight letter-spacing trim — Inter at light weights benefits from
+     a tiny negative tracking on body copy. */
+  letter-spacing: -0.005em;
 }
 
 /* Sidebar item entrance animation — staggered slide-in */
@@ -442,7 +452,7 @@ input[type="number"] {
   border: 1px solid var(--border-1) !important;
   background: var(--white-1) !important;
   color: var(--black-1) !important;
-  font-family: "Lexend Deca", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
   font-size: 0.95rem !important;
   font-weight: 400 !important;
   outline: none !important;
@@ -480,11 +490,11 @@ input[type="number"] {
 }
 .react-tel-input .country-list {
   background-color: var(--white-2) !important;
-  font-family: "Poppins";
+  font-family: "Inter", sans-serif;
   color: var(--black-2) !important;
 }
 .react-tel-input .country-list {
-  font-family: "Poppins";
+  font-family: "Inter", sans-serif;
 }
 .react-tel-input .country-list .country:hover {
   background-color: var(--light-3) !important;

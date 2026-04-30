@@ -264,11 +264,8 @@ const PriceList = () => {
               </div>
               {categoryFilter != null && (
                 <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30 shrink-0">
-                  {visibleGroups[0]?.products.reduce(
-                    (n, p) => n + (p.portions?.length || 0),
-                    0,
-                  ) || 0}{" "}
-                  {t("priceList.rows")}
+                  {visibleGroups[0]?.products.length || 0}{" "}
+                  {t("priceList.products")}
                 </span>
               )}
             </div>
@@ -407,8 +404,12 @@ const PriceInput = ({ label, value, onChange, onKeyDown, dataAttr, tone }) => {
   const tones = {
     slate:
       "border-[--border-1] bg-[--white-1] text-[--black-1] focus:border-indigo-500 focus:ring-indigo-100",
+    // Dark variants matter — without them the light bg-emerald-50/40
+    // composites with a dark parent into a muddy near-black, and the
+    // dark text-emerald-700 disappears into it. Switch to a brighter
+    // tinted wash + light emerald text in dark mode.
     emerald:
-      "border-emerald-200 bg-emerald-50/40 text-emerald-700 focus:border-emerald-500 focus:ring-emerald-100",
+      "border-emerald-200 bg-emerald-50/40 text-emerald-700 focus:border-emerald-500 focus:ring-emerald-100 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/20",
   };
   return (
     <input

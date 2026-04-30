@@ -160,7 +160,14 @@ const Categories = ({ data: restaurant }) => {
     );
   };
 
-  // SAVE NEW ORDER (existing behavior)
+  // SAVE NEW ORDER (list tab) — same /editCategories endpoint as bulk,
+  // same contract: PascalCase keys + `Images` array + `DonotPostTheImages`.
+  // For categories with a new image we strip every image-related field
+  // so the backend doesn't preserve the previous one (see saveAll for
+  // the full reasoning and field list). Legacy `image_${index}` is
+  // also re-sent as a fallback. The old `deletedCategories` field
+  // isn't in the swagger schema and was dropped — deletes go through
+  // the dedicated DeleteCategory endpoint.
   const saveNewOrder = (e) => {
     e?.preventDefault();
     if (isEqual(categoriesData, categoriesDataBefore)) {
@@ -168,18 +175,34 @@ const Categories = ({ data: restaurant }) => {
       return;
     }
     const formData = new FormData();
-    const payloadCategories = categoriesData.map(({ image, ...rest }) => rest);
-    const deletedCategories = categoriesDataBefore.filter(
-      (prev) => !categoriesData.some((c) => c.id === prev.id),
-    );
-    formData.append("restaurantId", restaurant?.id);
-    formData.append("categoriesData", JSON.stringify(payloadCategories));
-    formData.append("deletedCategories", JSON.stringify(deletedCategories));
-    categoriesData.forEach((cat, index) => {
-      if (cat.image) formData.append(`image_${index}`, cat.image);
-      else if (cat.imageAbsoluteUrl)
-        formData.append(`imageUrl_${index}`, cat.imageAbsoluteUrl);
+    const payloadCategories = categoriesData.map(({ image, ...rest }) => {
+      if (image) {
+        return {
+          ...rest,
+          imageURL: null,
+          imageUrl: null,
+          imageAbsoluteUrl: null,
+          imageFileName: null,
+          imageContentType: null,
+          imageHash: null,
+          hasImage: false,
+        };
+      }
+      return rest;
     });
+    const hasNewImage = categoriesData.some((c) => c.image);
+
+    formData.append("RestaurantId", restaurant?.id);
+    formData.append("CategoriesData", JSON.stringify(payloadCategories));
+    formData.append("DonotPostTheImages", String(!hasNewImage));
+
+    categoriesData.forEach((cat, index) => {
+      if (cat.image) {
+        formData.append("Images", cat.image, cat.image.name);
+        formData.append(`image_${index}`, cat.image);
+      }
+    });
+
     dispatch(editCategories(formData));
   };
 
@@ -624,18 +647,53 @@ function BulkImageTab({
       return;
     }
 
+    // Backend (per swagger /api/Categories/editCategories) expects:
+    //   RestaurantId / CategoriesData / Images / DonotPostTheImages
+    // — PascalCase keys, `Images` as a repeated multipart field (one
+    // per new file), and a `DonotPostTheImages` flag. The previous
+    // payload also leaked image metadata back to the server unchanged
+    // (`imageUrl`, `imageFileName`, `imageHash`, `hasImage`, …) which
+    // the backend treats as "this category already has an image, keep
+    // it" and silently ignores the queued upload. To force the swap
+    // we now zero out *every* image-related field on changed rows.
+    // We also re-send the legacy `image_${index}` key the single-
+    // edit endpoint accepts, so whichever variant the bulk endpoint's
+    // model binder picks up gets the file.
     const formData = new FormData();
-    const payloadCategories = categoriesData.map(({ image, ...rest }) => rest);
-    formData.append("restaurantId", restaurant?.id);
-    formData.append("categoriesData", JSON.stringify(payloadCategories));
-    formData.append("deletedCategories", JSON.stringify([]));
+    const payloadCategories = categoriesData.map(({ image, ...rest }) => {
+      const change = bulkChanges[rest.id];
+      if (change?.file) {
+        return {
+          ...rest,
+          // Clear every flavour the backend might read to detect an
+          // existing image. Keep the keys present (rather than
+          // `delete`) so model binders that require the full DTO
+          // shape don't choke on missing properties.
+          imageURL: null,
+          imageUrl: null,
+          imageAbsoluteUrl: null,
+          imageFileName: null,
+          imageContentType: null,
+          imageHash: null,
+          hasImage: false,
+        };
+      }
+      return rest;
+    });
+
+    formData.append("RestaurantId", restaurant?.id);
+    formData.append("CategoriesData", JSON.stringify(payloadCategories));
+    formData.append("DonotPostTheImages", "false");
 
     categoriesData.forEach((cat, index) => {
       const change = bulkChanges[cat.id];
       if (change?.file) {
+        // Swagger-spec field name (bulk endpoint).
+        formData.append("Images", change.file, change.file.name);
+        // Legacy field name single-edit uses successfully — kept as
+        // a belt-and-suspenders fallback in case the bulk binder
+        // hasn't been updated to the new spec yet.
         formData.append(`image_${index}`, change.file);
-      } else if (cat.imageAbsoluteUrl) {
-        formData.append(`imageUrl_${index}`, cat.imageAbsoluteUrl);
       }
     });
 

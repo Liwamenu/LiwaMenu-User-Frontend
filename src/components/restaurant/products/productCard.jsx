@@ -8,6 +8,8 @@ import {
   Trash2,
   TrendingUp,
   Check,
+  Camera,
+  ChefHat,
 } from "lucide-react";
 
 // COMP
@@ -22,6 +24,10 @@ const ProductCard = ({
   // and stay mounted, preserving its filter/page state). When not
   // provided, falls back to the legacy full-page navigation.
   onEdit,
+  // Optional: when provided, the Camera button opens a quick photo-
+  // swap popup via this callback. Without it, the button is hidden
+  // (so callers that don't wire the popup don't get a dead button).
+  onChangeImage,
   selectable,
   selected,
   onToggleSelect,
@@ -107,6 +113,16 @@ const ProductCard = ({
                 {product.categoryName}
               </span>
             )}
+            {/* Chef's pick — same chip family as the others, amber tone +
+                ChefHat icon. Surfaces the `recommendation` flag the user
+                already sets on the Edit Product form so it's visible at
+                a glance without opening the product. */}
+            {product.recommendation && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 ring-1 ring-amber-200 px-1.5 py-0.5 rounded-md dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/30">
+                <ChefHat className="size-3" strokeWidth={2.25} />
+                {t("productCard.chef_recommended", "Şef Tavsiyesi")}
+              </span>
+            )}
             {/* Only flag the portion count when there are multiple — single
                 portions are the default and don't need a chip. */}
             {portionCount > 1 && (
@@ -180,6 +196,19 @@ const ProductCard = ({
         >
           <Pencil className="size-3.5" />
         </button>
+        {/* Quick photo swap — only rendered when the parent wires the
+            handler. Distinct emerald tone from Pencil/Trash so the row
+            still reads as three discrete actions. */}
+        {onChangeImage && (
+          <button
+            type="button"
+            onClick={() => onChangeImage(product)}
+            title={t("productCard.change_image", "Fotoğrafı Değiştir")}
+            className="grid place-items-center size-8 rounded-md text-emerald-600 hover:bg-emerald-50 transition"
+          >
+            <Camera className="size-3.5" />
+          </button>
+        )}
         <button
           type="button"
           onClick={() =>

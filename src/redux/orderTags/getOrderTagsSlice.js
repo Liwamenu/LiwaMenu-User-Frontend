@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { normalizeKeysDeep } from "../../utils/normalizeKeys";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -67,8 +68,15 @@ export const getOrderTags = createAsyncThunk(
         },
       );
 
-      // console.log(res.data);
-      return res.data.data;
+      // Defensively lowercase the leading char of every key. The
+      // OrderTags read endpoint isn't documented in swagger (only the
+      // create/update DTOs are) and has been observed serializing in
+      // PascalCase (`IsDefault`, `IsMandatory`, …). The OptionRow
+      // component reads `item.isDefault` / `item.isMandatory`, so
+      // without this normalization the "Varsayılan" and "Zorunlu"
+      // checkboxes would render unchecked on data the QR menu shows
+      // as required. camelCase responses pass through unchanged.
+      return normalizeKeysDeep(res.data.data);
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

@@ -17,7 +17,12 @@
     "save": "Crop and Save"
   },
   "fileInput": {
-    "selected_file": "Selected file:"
+    "selected_file": "Selected file:",
+    "size_label": "Size:",
+    "max_size_hint": "Max {{mb}} MB",
+    "invalid_type": "Invalid file type.",
+    "too_large": "File size cannot exceed {{mb}} MB.",
+    "replace_action": "Click to choose another file"
   },
   "apiErrors": {
     "unauthorized": "You are not authorized.",
@@ -508,7 +513,10 @@
     "success": "Working hours updated successfully.",
     "processing": "Processing...",
     "open_count": "{{count}} days open · {{closed}} days closed",
-    "apply_to_all": "Apply to all",
+    "apply_to_all": "Apply to All Days",
+    "apply_to_all_tooltip": "Copy Monday's hours to every other day",
+    "apply_to_all_invalid": "Set Monday's open and close times first.",
+    "applied_to_all": "Monday's hours applied to all days.",
     "subtitle": "Manage your restaurant's weekly opening and closing schedule."
   },
   "socialMedias": {
@@ -774,6 +782,8 @@
     "search_placeholder": "Search product...",
     "all_categories": "All Categories",
     "all_statuses": "All Statuses",
+    "all_recommendations": "All Products",
+    "recommended_only": "Chef's Pick",
     "no_products": "No products found.",
     "filters": "Filters",
     "clear_filters": "Clear Filters",
@@ -784,6 +794,10 @@
     "duplicate_badge": "Copy {{n}}/{{total}}",
     "no_duplicates": "No duplicate products",
     "no_duplicates_hint": "All product names look unique.",
+    "show_no_image": "Products without photo",
+    "no_image_summary": "{{count}} products",
+    "no_no_image": "No products missing a photo",
+    "no_no_image_hint": "Every product already has an image.",
     "select_product": "Select",
     "deselect_product": "Deselect",
     "select_visible": "Select on page",
@@ -801,7 +815,19 @@
   "productCard": {
     "no_image": "No Image",
     "campaign_prefix": "Campaign:",
-    "portion_count": "{{count}} portions"
+    "portion_count": "{{count}} portions",
+    "chef_recommended": "Chef's Pick",
+    "change_image": "Change Image"
+  },
+  "quickEditImage": {
+    "title": "Change Product Image",
+    "current": "Current",
+    "new": "New",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "success": "Photo updated.",
+    "no_file": "Please pick a new photo first."
   },
   "priceList": {
     "title": "Price List",
@@ -810,7 +836,7 @@
     "category_filter": "Category",
     "all_categories": "All Products",
     "no_match": "No products in the selected category.",
-    "rows": "rows",
+    "products": "products",
     "success": "Price list updated successfully.",
     "save_changes": "Save Changes",
     "normal_price": "Regular Price",
@@ -831,7 +857,14 @@
     "bulk_error_invalid_value": "Please enter a valid value",
     "bulk_undo_button": "Undo",
     "bulk_undo_title": "Undo last operation",
-    "bulk_apply_button": "Apply"
+    "bulk_apply_button": "Apply",
+    "bulk_category_label": "Category",
+    "bulk_all_categories": "All Categories",
+    "bulk_confirm_title": "Bulk Price Update",
+    "bulk_confirm_message_all": "Prices for all categories will be updated. Are you sure?",
+    "bulk_confirm_message_category": "Prices for the \"{{category}}\" category will be updated. Are you sure?",
+    "bulk_confirm_cancel": "Cancel",
+    "bulk_confirm_yes": "Yes, Update"
   },
   "editProduct": {
     "no_changes": "No changes made.",
@@ -935,14 +968,15 @@
     "empty_title": "No tables found",
     "empty_desc": "No tables defined on the SambaPOS side. Try again after the backend creates them.",
     "error_title": "Couldn't fetch tables",
-    "error_desc": "Something went wrong contacting the server. Check your connection and try again.",
+    "error_desc": "SambaPOS may not be installed on your system, or it may not be synced with your QR Menu yet.",
     "retry": "Retry",
     "refresh": "Refresh",
     "close": "Close",
     "cancel": "Cancel",
     "generate": "Generate QR ({{count}})",
     "toast_no_selection": "Pick at least one table to generate.",
-    "toast_generated": "Generated QR for {{count}} tables."
+    "toast_generated": "Generated QR for {{count}} tables.",
+    "toast_fetch_failed": "SambaPOS hasn't sent any tables."
   },
   "qrPage": {
     "header_title": "QR Batch Studio",
@@ -1794,7 +1828,7 @@
         },
         {
           "heading": "Pagination",
-          "body": "Bottom of the page: 'Previous / 1 2 3 ... / Next' buttons. Each page shows VITE_ROWS_PER_PAGE products (set via env var).",
+          "body": "Bottom of the page: 'Previous / 1 2 3 ... / Next' buttons. Each page shows 20 products.",
           "tip": "If there are more than 5 pages, a 'Go to page' input appears — type a page number and click 'Go' to jump."
         },
         {
