@@ -9,6 +9,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import i18n from "../config/i18n";
 import { formatDate } from "../utils/utils";
+import { normalizeKeysDeep } from "../utils/normalizeKeys";
 import { getAuth } from "../redux/api";
 import { getOrders, resetGetOrders } from "../redux/orders/getOrdersSlice";
 import { useFirebase } from "./firebase";
@@ -89,26 +90,6 @@ export const OrdersProvider = ({ children }) => {
     sound.play().catch((err) => {
       console.log("[Orders] Could not play new order sound:", err);
     });
-  };
-
-  const toCamelFirst = (key) =>
-    typeof key === "string" && key.length > 0
-      ? key.charAt(0).toLowerCase() + key.slice(1)
-      : key;
-
-  const normalizeKeysDeep = (value) => {
-    if (Array.isArray(value)) {
-      return value.map((item) => normalizeKeysDeep(item));
-    }
-
-    if (value && typeof value === "object") {
-      return Object.entries(value).reduce((acc, [key, val]) => {
-        acc[toCamelFirst(key)] = normalizeKeysDeep(val);
-        return acc;
-      }, {});
-    }
-
-    return value;
   };
 
   const parseOrderFromPayload = (payloadData) => {

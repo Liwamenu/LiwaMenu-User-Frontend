@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Clock, Save, Check } from "lucide-react";
+import { Clock, Save, Check, CopyCheck } from "lucide-react";
 
 // COMP
 import CustomToggle from "../common/customToggle";
@@ -103,6 +103,35 @@ const WorkingHours = ({ data }) => {
         return { ...r, IsClosed: true };
       }),
     );
+  };
+
+  // Copy Monday's open/close into every other day. Anything previously
+  // closed gets opened with Monday's hours, and any existing values are
+  // overwritten — restaurants almost always run a uniform week, so the
+  // user's expectation here is "make Tue–Sun match Monday." Nothing is
+  // persisted until the user hits Save, so this stays undoable by just
+  // editing individual rows afterwards.
+  const applyMondayToAll = () => {
+    const monday = workingHoursData.find((r) => r.Day === 1);
+    if (!monday || monday.IsClosed || !monday.Open || !monday.Close) {
+      toast.error(t("workingHours.apply_to_all_invalid"));
+      return;
+    }
+    setWorkingHoursData((prev) =>
+      prev.map((r) =>
+        r.Day === 1
+          ? r
+          : {
+              ...r,
+              IsClosed: false,
+              Open: monday.Open,
+              Close: monday.Close,
+            },
+      ),
+    );
+    toast.success(t("workingHours.applied_to_all"), {
+      id: "workingHours-apply-all",
+    });
   };
 
   const handleSubmit = (e) => {
@@ -295,6 +324,25 @@ const WorkingHours = ({ data }) => {
                         onChange={(v) => setDay(day, { Close: v })}
                       />
                     </div>
+
+                    {/* "Apply Monday's hours to every other day" — only on
+                        Monday, only when Monday has valid open/close set.
+                        Label is shown at every breakpoint so mobile users
+                        can tell what the icon-only version meant; the
+                        button stretches to full row width on mobile via
+                        the parent flex-col's default align-stretch. */}
+                    {day === 1 && isOpen && row.Open && row.Close && (
+                      <button
+                        type="button"
+                        onClick={applyMondayToAll}
+                        title={t("workingHours.apply_to_all_tooltip")}
+                        aria-label={t("workingHours.apply_to_all")}
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 active:bg-indigo-200 transition shrink-0 dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30"
+                      >
+                        <CopyCheck className="size-3.5" />
+                        <span>{t("workingHours.apply_to_all")}</span>
+                      </button>
+                    )}
                   </div>
                 );
               })}

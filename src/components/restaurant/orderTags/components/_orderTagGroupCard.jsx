@@ -148,14 +148,25 @@ const OrderTagGroupCard = ({
   return (
     <form onSubmit={handleUpdateItem}>
       <div
-        className={`rounded-xl border bg-[--white-1] transition-all ${borderTone} ${
+        className={`rounded-xl border bg-[--white-1] transition-all overflow-hidden ${borderTone} ${
           isDragging ? "ring-2 ring-indigo-200 shadow-lg" : ""
         }`}
       >
-        {/* HEADER */}
+        {/* Brand accent strip — keeps each group card anchored visually
+            when the body is expanded with many options/relations rows.
+            Without it the header used to blend into the body once the
+            user opened either tab. */}
+        <div className="h-0.5 bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500" />
+
+        {/* HEADER — tinted indigo→cyan wash so it stays clearly distinct
+            from the white body when expanded. The name input and the
+            min/max + free-tagging chips keep their white-ish backgrounds
+            so they pop against the wash. */}
         <div
-          className={`p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 ${
-            !isCollapsed ? "border-b border-[--border-1]" : ""
+          className={`p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-gradient-to-r from-indigo-50 via-violet-50 to-cyan-50 dark:from-indigo-500/10 dark:via-violet-500/10 dark:to-cyan-500/10 ${
+            !isCollapsed
+              ? "border-b border-indigo-200/70 dark:border-indigo-400/25"
+              : ""
           }`}
         >
           {/* Top row: drag handle + name input + actions (mobile collapsed) */}
@@ -221,9 +232,11 @@ const OrderTagGroupCard = ({
             </div>
           </div>
 
-          {/* Min/Max + Free Tagging + Save + (desktop) actions */}
+          {/* Min/Max + Free Tagging + Save + (desktop) actions.
+              Solid white backgrounds (was --white-2/60) so the inputs
+              stay readable as inputs against the tinted header wash. */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            <div className="inline-flex items-center gap-1 h-9 px-2 rounded-lg border border-[--border-1] bg-[--white-2]/60">
+            <div className="inline-flex items-center gap-1 h-9 px-2 rounded-lg border border-[--border-1] bg-[--white-1]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1]">
                 {t("orderTags.min")}
               </span>
@@ -257,7 +270,7 @@ const OrderTagGroupCard = ({
               />
             </div>
 
-            <label className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-[--border-1] bg-[--white-2]/60 cursor-pointer">
+            <label className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-[--border-1] bg-[--white-1] cursor-pointer">
               <CustomCheckbox
                 id={`ft-${group.id}`}
                 label=""

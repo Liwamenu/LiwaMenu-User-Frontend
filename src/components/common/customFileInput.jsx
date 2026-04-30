@@ -61,11 +61,11 @@ const CustomFileInput = ({
     const fileType = file.type;
     const allowedTypes = accept.split(",").map((type) => type.trim());
     if (!allowedTypes.includes(fileType)) {
-      toast.error("Invalid file type");
+      toast.error(t("fileInput.invalid_type"));
       return;
     }
     if (file.size > maxFileSizeMB * 1024 * 1024) {
-      toast.error(`File size exceeds the maximum limit of ${maxFileSizeMB} MB`);
+      toast.error(t("fileInput.too_large", { mb: maxFileSizeMB }));
       return;
     }
 
@@ -120,26 +120,35 @@ const CustomFileInput = ({
             <CloudUI className="size-[2.5rem]" strokeWidth={1.5} />
             <p className="mb-2 text-sm">{msg || t("restaurants.file-info")}</p>
             <p className="text-xs">
-              {getReadableAcceptText(accept)} (MAX. 800x400px)
+              {getReadableAcceptText(accept)} ·{" "}
+              {t("fileInput.max_size_hint", { mb: maxFileSizeMB })}
             </p>
           </>
+        ) : showFileDetails ? (
+          <div className="text-center flex flex-col justify-between">
+            <p className="text-sm">
+              <span className="font-semibold">
+                {t("fileInput.selected_file")}{" "}
+              </span>
+              <span className="font-semibold text-[--primary-1]">
+                {value.name?.slice(0, sliceNameAt)}
+                {value.name?.length > sliceNameAt && "..."}
+              </span>
+            </p>
+            <p className="text-xs">
+              {t("fileInput.size_label")} {(value.size / 1024).toFixed(2)} KB
+            </p>
+          </div>
         ) : (
-          showFileDetails && (
-            <div className="text-center flex flex-col justify-between">
-              <p className="text-sm">
-                <span className="font-semibold">
-                  {t("fileInput.selected_file")}{" "}
-                </span>
-                <span className="font-semibold text-[--primary-1]">
-                  {value.name?.slice(0, sliceNameAt)}
-                  {value.name?.length > sliceNameAt && "..."}
-                </span>
-              </p>
-              <p className="text-xs">
-                Boyut: {(value.size / 1024).toFixed(2)} KB
-              </p>
-            </div>
-          )
+          // Compact "click to replace" affordance for callers that hide
+          // the verbose file-details block (e.g. QuickEditImage, which
+          // shows the new image in its own preview pane). Without this
+          // branch the dropzone went blank after a selection, leaving
+          // the user with nothing to click to pick a different file.
+          <div className="flex items-center gap-2 text-sm font-medium text-[--primary-1]">
+            <CloudUI className="size-5" strokeWidth={1.75} />
+            <span>{t("fileInput.replace_action")}</span>
+          </div>
         )}
       </div>
       <input

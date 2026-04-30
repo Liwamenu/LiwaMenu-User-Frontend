@@ -12,6 +12,7 @@ import {
   Trash2,
   CheckCheck,
   AlertTriangle,
+  ImageOff,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -19,6 +20,7 @@ import toast from "react-hot-toast";
 import ProductsHeader from "./header";
 import ProductCard from "./productCard";
 import EditProduct from "./editProduct";
+import QuickEditImage from "./quickEditImage";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 import PageHelp from "../../common/pageHelp";
@@ -112,18 +114,40 @@ const Products = () => {
     { label: t("editCategories.status_closed"), value: false },
   ];
 
+  // Chef's-pick filter — sends `recommendation: true` to the backend when
+  // active. `null` means "no filter" (the default). Status and chef-pick
+  // are orthogonal dimensions (a product can be open AND recommended), so
+  // this lives as its own dropdown rather than being merged into status.
+  const recommendationOptions = [
+    { label: t("productsList.all_recommendations"), value: null },
+    { label: t("productsList.recommended_only"), value: true },
+  ];
+
   const [productsData, setProductsData] = useState(null);
   const [searchVal, setSearchVal] = useState("");
   const [statusFilter, setStatusFilter] = useState(statusOptions[0]);
   const [categoryFilter, setCategoryFilter] = useState(allCategoryOption);
+  const [recommendationFilter, setRecommendationFilter] = useState(
+    recommendationOptions[0],
+  );
 
   const [pageNumber, setPageNumber] = useState(initialPage);
-  const itemsPerPage = import.meta.env.VITE_ROWS_PER_PAGE;
+  // Products page uses a fixed 20 rows per page, independent of the
+  // shared VITE_ROWS_PER_PAGE env var (which still drives Restaurants /
+  // Payments / License packages). Product cards are taller than those
+  // tables so 20 fits the viewport with a comfortable scroll, while 10
+  // felt sparse and 30+ pushed the pagination too far down.
+  const itemsPerPage = 20;
   const [totalItems, setTotalItems] = useState(null);
 
   // Duplicate-finder mode: fetches every product once and shows only the
   // names that appear more than once so the user can clean them up.
   const [showDuplicates, setShowDuplicates] = useState(false);
+  // No-image mode: same fetch-all backing, filters down to products
+  // missing an imageURL so the user can quickly find what still needs
+  // a photo. Mutually exclusive with duplicates mode (only one special
+  // view is active at a time — UI gets too crowded otherwise).
+  const [showNoImage, setShowNoImage] = useState(false);
   const [allProducts, setAllProducts] = useState(null);
   const [dupLoading, setDupLoading] = useState(false);
 
@@ -164,6 +188,14 @@ const Products = () => {
     return !opt.value; // value=true → hide=false (active), value=false → hide=true (closed)
   };
 
+  // Map the chef-pick option to the backend `recommendation` query value:
+  // `null` means "no filter", `true` means "only chef's picks". The backend
+  // is expected to ignore the param when null/undefined.
+  const recommendationForFilter = (opt) => {
+    if (!opt || opt.value === null || opt.value === undefined) return null;
+    return !!opt.value;
+  };
+
   const isAllCategory = (opt) =>
     !opt || opt.value === ALL_CATEGORIES_VALUE || !opt.id;
 
@@ -171,14 +203,17 @@ const Products = () => {
     if (type === "status") setStatusFilter(opt);
     else if (type === "category") setCategoryFilter(opt);
     else if (type === "search") setSearchVal(opt);
+    else if (type === "recommendation") setRecommendationFilter(opt);
 
     const nextStatus = type === "status" ? opt : statusFilter;
     const nextCategory = type === "category" ? opt : categoryFilter;
     const nextSearch = type === "search" ? opt : searchVal;
+    const nextRecommendation =
+      type === "recommendation" ? opt : recommendationFilter;
 
     // Backend search isn't diacritic-insensitive (Turkish "ı" ≠ "i", etc.),
     // so search is applied client-side over `allProducts`. Backend only
-    // gets the category/status/page filters here.
+    // gets the category/status/recommendation/page filters here.
     dispatch(
       getProducts({
         restaurantId,
@@ -186,6 +221,7 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: hideForStatus(nextStatus),
         categoryId: isAllCategory(nextCategory) ? null : nextCategory.id,
+        recommendation: recommendationForFilter(nextRecommendation),
       }),
     );
     setPageNumber(1);
@@ -200,6 +236,7 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: hideForStatus(statusFilter),
         categoryId: isAllCategory(categoryFilter) ? null : categoryFilter.id,
+        recommendation: recommendationForFilter(recommendationFilter),
       }),
     );
   }
@@ -208,6 +245,7 @@ const Products = () => {
     setSearchVal("");
     setStatusFilter(statusOptions[0]);
     setCategoryFilter(allCategoryOption);
+    setRecommendationFilter(recommendationOptions[0]);
     dispatch(
       getProducts({
         restaurantId,
@@ -215,6 +253,7 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: null,
         categoryId: null,
+        recommendation: null,
       }),
     );
     setPageNumber(1);
@@ -223,7 +262,8 @@ const Products = () => {
   const hasActiveFilters =
     searchVal ||
     statusFilter?.value !== null ||
-    !isAllCategory(categoryFilter);
+    !isAllCategory(categoryFilter) ||
+    recommendationFilter?.value !== null;
 
   // Pull *every* product. Used by the duplicate-finder and client-side
   // search modes — both need full DTOs (description, prices, etc.) so
@@ -284,6 +324,14 @@ const Products = () => {
 
   const handleToggleDuplicates = (next) => {
     setShowDuplicates(next);
+    if (next) setShowNoImage(false); // mutex
+    clearSelection();
+    if (next) fetchAllProducts();
+  };
+
+  const handleToggleNoImage = (next) => {
+    setShowNoImage(next);
+    if (next) setShowDuplicates(false); // mutex
     clearSelection();
     if (next) fetchAllProducts();
   };
@@ -383,6 +431,18 @@ const Products = () => {
     ).size;
   }, [duplicateProducts]);
 
+  // Products missing an image — empty / null / whitespace-only imageURL
+  // counts as "no image" so existing rows that were imported without a
+  // value get caught alongside truly null entries. Sorted alphabetically
+  // by name so the list reads predictably.
+  const noImageProducts = useMemo(() => {
+    if (!allProducts || allProducts.length === 0) return [];
+    const norm = (s) => (s || "").trim().toLowerCase();
+    return allProducts
+      .filter((p) => !p.imageURL || !String(p.imageURL).trim())
+      .sort((a, b) => norm(a.name).localeCompare(norm(b.name), "tr"));
+  }, [allProducts]);
+
   // === Client-side search ===
   // Active when the user has typed anything. Searches the locally-cached
   // `allProducts` list with diacritic folding (so "kavurma" matches "Kâvurma"
@@ -390,10 +450,16 @@ const Products = () => {
   const searchActive = !!searchVal && searchVal.trim().length > 0;
 
   // Pull the full list once when search begins (or restart it when content
-  // changes via delete/edit). Skipping if duplicates mode is on — that mode
-  // already loads the full list itself.
+  // changes via delete/edit). Skipping if duplicates / no-image modes are
+  // on — those modes already load the full list themselves.
   useEffect(() => {
-    if (searchActive && !allProducts && !dupLoading && !showDuplicates) {
+    if (
+      searchActive &&
+      !allProducts &&
+      !dupLoading &&
+      !showDuplicates &&
+      !showNoImage
+    ) {
       fetchAllProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -405,24 +471,36 @@ const Products = () => {
     if (!q) return allProducts;
     const catId = isAllCategory(categoryFilter) ? null : categoryFilter.id;
     const statusVal = statusFilter?.value;
+    const recVal = recommendationFilter?.value;
     return allProducts.filter((p) => {
       // Apply category filter
       if (catId && p.categoryId !== catId) return false;
       // Apply status filter (true = active, false = closed/hidden)
       if (statusVal === true && p.hide) return false;
       if (statusVal === false && !p.hide) return false;
+      // Apply chef's-pick filter (true = only recommended)
+      if (recVal === true && !p.recommendation) return false;
       // Match against name (and description as a bonus)
       const nameN = normalizeSearch(p.name);
       const descN = normalizeSearch(p.description || "");
       return nameN.includes(q) || descN.includes(q);
     });
-  }, [searchActive, allProducts, searchVal, categoryFilter, statusFilter]);
+  }, [
+    searchActive,
+    allProducts,
+    searchVal,
+    categoryFilter,
+    statusFilter,
+    recommendationFilter,
+  ]);
 
   // Re-fetch with the currently active filters/page — used after a delete
   // so the list reflects the server state immediately (no manual refresh).
   const refetchProducts = () => {
-    if (showDuplicates || searchVal) {
-      // Search is client-side over the full cache, so refresh that too.
+    if (showDuplicates || showNoImage || searchVal) {
+      // Search / duplicates / no-image are all client-side over the
+      // full product cache, so a delete/edit means we have to refresh
+      // that cache rather than the paginated slice.
       fetchAllProducts();
       return;
     }
@@ -433,6 +511,7 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: hideForStatus(statusFilter),
         categoryId: isAllCategory(categoryFilter) ? null : categoryFilter.id,
+        recommendation: recommendationForFilter(recommendationFilter),
       }),
     );
   };
@@ -446,6 +525,14 @@ const Products = () => {
   const openEditPopup = (product) =>
     setSecondPopupContent(
       <EditProduct product={product} onSaved={refetchProducts} />,
+    );
+
+  // Quick photo-swap popup — bypasses the heavy Edit Product form when
+  // the user only wants to change the image. onSaved triggers the same
+  // current-filters refetch as edit so the list stays put.
+  const openQuickEditImage = (product) =>
+    setSecondPopupContent(
+      <QuickEditImage product={product} onSaved={refetchProducts} />,
     );
 
   // Mount-time fetch — honors the URL ?page=N so back-nav from edit lands
@@ -558,8 +645,12 @@ const Products = () => {
               )}
             </form>
 
-            <div className="flex gap-2 sm:shrink-0">
-              <div className="flex-1 sm:w-48">
+            {/* Filter dropdowns. flex-wrap keeps the row from overflowing
+                on narrow screens now that there are three filters; each
+                dropdown gets a `min-w-[140px]` so a wrapped row still
+                shows readable labels. */}
+            <div className="flex flex-wrap gap-2 sm:shrink-0">
+              <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
                 <CustomSelect
                   label=""
                   value={categoryFilter}
@@ -571,12 +662,24 @@ const Products = () => {
                   menuPlacement="auto"
                 />
               </div>
-              <div className="flex-1 sm:w-44">
+              <div className="flex-1 min-w-[140px] sm:w-44 sm:flex-none">
                 <CustomSelect
                   label=""
                   value={statusFilter}
                   options={statusOptions}
                   onChange={(opt) => handleFilter(opt, "status")}
+                  isSearchable={false}
+                  className="text-sm font-medium"
+                  className2="relative w-full"
+                  menuPlacement="auto"
+                />
+              </div>
+              <div className="flex-1 min-w-[140px] sm:w-44 sm:flex-none">
+                <CustomSelect
+                  label=""
+                  value={recommendationFilter}
+                  options={recommendationOptions}
+                  onChange={(opt) => handleFilter(opt, "recommendation")}
                   isSearchable={false}
                   className="text-sm font-medium"
                   className2="relative w-full"
@@ -597,47 +700,97 @@ const Products = () => {
             </div>
           </div>
 
-          {/* Duplicate-finder toggle */}
-          <div className="mt-2.5 flex items-center justify-between gap-3 px-1">
-            <label
-              htmlFor="dup-toggle"
-              className={`flex items-center gap-2 text-xs cursor-pointer select-none transition ${
-                showDuplicates
-                  ? "text-amber-700 dark:text-amber-300 font-semibold"
-                  : "text-[--gr-1]"
-              }`}
-            >
-              <Copy className="size-3.5" />
-              {t("productsList.show_duplicates", "Tekrarlananları göster")}
-            </label>
-            <div className="flex items-center gap-2">
-              {showDuplicates && !dupLoading && allProducts && (
-                <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/30">
-                  {t("productsList.duplicates_summary", {
-                    products: duplicateProducts.length,
-                    groups: duplicateGroupCount,
-                    defaultValue: "{{products}} ürün · {{groups}} grup",
-                  })}
-                </span>
-              )}
-              <button
-                id="dup-toggle"
-                type="button"
-                role="switch"
-                aria-checked={showDuplicates}
-                onClick={() => handleToggleDuplicates(!showDuplicates)}
-                className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border transition ${
+          {/* Filter switches — duplicate-finder + no-image-finder.
+              Stacked so both stay readable on mobile; on the same
+              section so the user knows these are the "special view"
+              toggles. The two are mutually exclusive (handlers in the
+              page-level handleToggle* clear the other on enable). */}
+          <div className="mt-2.5 space-y-2 px-1">
+            {/* Duplicate-finder toggle */}
+            <div className="flex items-center justify-between gap-3">
+              <label
+                htmlFor="dup-toggle"
+                className={`flex items-center gap-2 text-xs cursor-pointer select-none transition ${
                   showDuplicates
-                    ? "bg-amber-500 border-amber-500"
-                    : "bg-[--white-2] border-[--border-1]"
+                    ? "text-amber-700 dark:text-amber-300 font-semibold"
+                    : "text-[--gr-1]"
                 }`}
               >
-                <span
-                  className={`inline-block size-4 rounded-full bg-white shadow transition-transform ${
-                    showDuplicates ? "translate-x-4" : "translate-x-0.5"
-                  } translate-y-[1px]`}
-                />
-              </button>
+                <Copy className="size-3.5" />
+                {t("productsList.show_duplicates", "Tekrarlananları göster")}
+              </label>
+              <div className="flex items-center gap-2">
+                {showDuplicates && !dupLoading && allProducts && (
+                  <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/30">
+                    {t("productsList.duplicates_summary", {
+                      products: duplicateProducts.length,
+                      groups: duplicateGroupCount,
+                      defaultValue: "{{products}} ürün · {{groups}} grup",
+                    })}
+                  </span>
+                )}
+                <button
+                  id="dup-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked={showDuplicates}
+                  onClick={() => handleToggleDuplicates(!showDuplicates)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border transition ${
+                    showDuplicates
+                      ? "bg-amber-500 border-amber-500"
+                      : "bg-[--white-2] border-[--border-1]"
+                  }`}
+                >
+                  <span
+                    className={`inline-block size-4 rounded-full bg-white shadow transition-transform ${
+                      showDuplicates ? "translate-x-4" : "translate-x-0.5"
+                    } translate-y-[1px]`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* No-image toggle */}
+            <div className="flex items-center justify-between gap-3">
+              <label
+                htmlFor="no-image-toggle"
+                className={`flex items-center gap-2 text-xs cursor-pointer select-none transition ${
+                  showNoImage
+                    ? "text-indigo-700 dark:text-indigo-300 font-semibold"
+                    : "text-[--gr-1]"
+                }`}
+              >
+                <ImageOff className="size-3.5" />
+                {t("productsList.show_no_image", "Fotoğrafsız ürünler")}
+              </label>
+              <div className="flex items-center gap-2">
+                {showNoImage && !dupLoading && allProducts && (
+                  <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                    {t("productsList.no_image_summary", {
+                      count: noImageProducts.length,
+                      defaultValue: "{{count}} ürün",
+                    })}
+                  </span>
+                )}
+                <button
+                  id="no-image-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked={showNoImage}
+                  onClick={() => handleToggleNoImage(!showNoImage)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border transition ${
+                    showNoImage
+                      ? "bg-indigo-600 border-indigo-600"
+                      : "bg-[--white-2] border-[--border-1]"
+                  }`}
+                >
+                  <span
+                    className={`inline-block size-4 rounded-full bg-white shadow transition-transform ${
+                      showNoImage ? "translate-x-4" : "translate-x-0.5"
+                    } translate-y-[1px]`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -720,6 +873,7 @@ const Products = () => {
                           product={product}
                           onDeleted={refetchProducts}
                           onEdit={openEditPopup}
+                          onChangeImage={openQuickEditImage}
                           selectable
                           selected={selectedIds.has(product.id)}
                           onToggleSelect={toggleSelectId}
@@ -741,6 +895,63 @@ const Products = () => {
                   {t(
                     "productsList.no_duplicates_hint",
                     "Tüm ürün isimleri benzersiz görünüyor.",
+                  )}
+                </p>
+              </div>
+            )
+          ) : showNoImage ? (
+            // === No-image view ===
+            dupLoading ? (
+              <div className="grid place-items-center py-12 text-[--gr-1]">
+                <Loader2 className="size-6 animate-spin text-indigo-600" />
+              </div>
+            ) : noImageProducts.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[--gr-1]">
+                    {t("productsList.no_image_summary", {
+                      count: noImageProducts.length,
+                      defaultValue: "{{count}} ürün",
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectAllVisible(noImageProducts.map((p) => p.id))
+                    }
+                    className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30"
+                  >
+                    <CheckCheck className="size-3.5" />
+                    {t("productsList.select_visible", "Sayfadakileri seç")}
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {noImageProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onDeleted={refetchProducts}
+                      onEdit={openEditPopup}
+                      onChangeImage={openQuickEditImage}
+                      selectable
+                      selected={selectedIds.has(product.id)}
+                      onToggleSelect={toggleSelectId}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-8 grid place-items-center text-center">
+                <span className="grid place-items-center size-12 rounded-xl bg-emerald-50 text-emerald-600 mb-3 dark:bg-emerald-500/15 dark:text-emerald-300">
+                  <ImageOff className="size-6" />
+                </span>
+                <h3 className="text-sm font-semibold text-[--black-1]">
+                  {t("productsList.no_no_image", "Fotoğrafsız ürün yok")}
+                </h3>
+                <p className="text-xs text-[--gr-1] mt-1">
+                  {t(
+                    "productsList.no_no_image_hint",
+                    "Tüm ürünlerde görsel mevcut.",
                   )}
                 </p>
               </div>
@@ -778,6 +989,7 @@ const Products = () => {
                       product={product}
                       onDeleted={refetchProducts}
                       onEdit={openEditPopup}
+                      onChangeImage={openQuickEditImage}
                       selectable
                       selected={selectedIds.has(product.id)}
                       onToggleSelect={toggleSelectId}
@@ -823,6 +1035,7 @@ const Products = () => {
                     product={product}
                     onDeleted={refetchProducts}
                     onEdit={openEditPopup}
+                    onChangeImage={openQuickEditImage}
                     selectable
                     selected={selectedIds.has(product.id)}
                     onToggleSelect={toggleSelectId}
@@ -854,8 +1067,9 @@ const Products = () => {
           />
         )}
 
-        {/* PAGINATION (hidden in duplicate / search modes) */}
+        {/* PAGINATION (hidden in duplicate / no-image / search modes) */}
         {!showDuplicates &&
+          !showNoImage &&
           !searchActive &&
           productsData &&
           productsData.length > 0 &&

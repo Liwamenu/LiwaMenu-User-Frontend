@@ -62,8 +62,13 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
 
   const sortedTables = useMemo(() => {
     if (!Array.isArray(tables)) return [];
+    // Natural / numeric-aware sort: with `numeric: true`, embedded
+    // numbers compare as numbers ("Bahçe-2" < "Bahçe-10") instead of
+    // as strings ("Bahçe-10" < "Bahçe-2" because '1' < '2'). This
+    // order also flows through to QR generation since the modal hands
+    // `remaining` straight to onGenerate without re-sorting.
     return [...tables].sort((a, b) =>
-      trFold(a).localeCompare(trFold(b), "tr"),
+      trFold(a).localeCompare(trFold(b), "tr", { numeric: true }),
     );
   }, [tables]);
 
