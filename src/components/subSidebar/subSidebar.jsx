@@ -162,7 +162,7 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
             className="font-[conthrax] text-2xl tracking-wide bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent hover:from-indigo-500 hover:to-cyan-400 transition-all"
             style={{ animation: "sidebar-logo-in 500ms ease-out both" }}
           >
-            Liwamenu
+            LiwaMenu
           </Link>
         </header>
 
@@ -177,6 +177,45 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
                 : path === item.path;
               const locked =
                 isTenantLocked && !ALWAYS_ALLOWED_PATHS.has(item.path);
+
+              // The "Go Back" item (path === "restaurants") gets a
+              // dedicated 3D-button treatment so it reads as a primary
+              // navigation action rather than another menu pill. Keeps
+              // the rest of the list using the standard pill style.
+              if (item.path === "restaurants") {
+                return (
+                  <Link
+                    to={item.to}
+                    key={index}
+                    onClick={() => setOpenSidebar(!openSidebar)}
+                    style={{
+                      animation: `sidebar-item-in 320ms ease-out ${index * 25}ms both`,
+                    }}
+                    className="block mb-3"
+                  >
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="
+                        group relative w-full inline-flex items-center justify-center gap-2
+                        h-9 px-3 rounded-lg text-[13px] font-semibold tracking-wide
+                        text-white
+                        bg-gradient-to-b from-indigo-500 to-indigo-600
+                        shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18),0_2px_0_0_rgb(67_56_202),0_3px_8px_-2px_rgb(99_102_241/0.30)]
+                        active:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18),0_1px_0_0_rgb(67_56_202),0_1px_3px_-1px_rgb(99_102_241/0.20)]
+                        active:translate-y-px
+                        transition-transform duration-100
+                      "
+                    >
+                      <span className="grid place-items-center size-5 rounded-md bg-white/10 ring-1 ring-white/15">
+                        {item.icon}
+                      </span>
+                      <span className="leading-none">{item.text}</span>
+                    </button>
+                  </Link>
+                );
+              }
+
               return (
                 <Link
                   to={locked ? "#" : item.to}

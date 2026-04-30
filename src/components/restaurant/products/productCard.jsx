@@ -17,6 +17,11 @@ import { usePopup } from "../../../context/PopupContext";
 const ProductCard = ({
   product,
   onDeleted,
+  // Optional: when provided, the Pencil button opens edit via this
+  // callback (so the parent list can host EditProduct as a popup
+  // and stay mounted, preserving its filter/page state). When not
+  // provided, falls back to the legacy full-page navigation.
+  onEdit,
   selectable,
   selected,
   onToggleSelect,
@@ -161,11 +166,15 @@ const ProductCard = ({
       <div className="flex sm:flex-col gap-1 sm:gap-1 sm:justify-center shrink-0 sm:border-l sm:border-[--border-1] sm:pl-2">
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            if (onEdit) {
+              onEdit(product);
+              return;
+            }
             navigate(`/restaurant/products/${id}/edit/${product.id}`, {
               state: { product },
-            })
-          }
+            });
+          }}
           title={t("editCategories.edit")}
           className="grid place-items-center size-8 rounded-md text-indigo-600 hover:bg-indigo-50 transition"
         >

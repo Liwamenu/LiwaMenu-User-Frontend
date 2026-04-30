@@ -172,7 +172,7 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
             <Store className="size-4" strokeWidth={2.5} />
           </span>
           <span className="font-[conthrax] text-lg tracking-wide text-[--black-1]">
-            Liwamenu
+            LiwaMenu
           </span>
         </Link>
       </header>

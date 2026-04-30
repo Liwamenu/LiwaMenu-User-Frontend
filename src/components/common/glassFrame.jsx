@@ -66,7 +66,7 @@ const GlassFrame = ({ component, className, className2 }) => {
             to="/"
             className="text-2xl p-4 font-[conthrax] text-center text-white w-full ml-20"
           >
-            Liwamenu
+            LiwaMenu
           </Link>
 
           {/* Language Selector */}
@@ -109,7 +109,7 @@ const GlassFrame = ({ component, className, className2 }) => {
         {component}
       </div>
       <div className="absolute bottom-0 left-0 right-0 z-[999] text-white font-extralight p-1 text-xs bg-indigo-500/60 max-sm:text-center">
-        Liwamenu bir LiwaSoft iştirakidir.{" "}
+        LiwaMenu bir LiwaSoft iştirakidir.{" "}
         <span className="max-sm:hidden">- </span>
         <span className="max-sm:block">
           Müşteri Hizmetleri :{" "}

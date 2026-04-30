@@ -16,6 +16,7 @@ import {
   Check,
   Languages,
   CircleDollarSign,
+  Hash,
   ChartLine,
   Quote,
   CreditCard,
@@ -157,6 +158,9 @@ const RestaurantSettings = ({ data: inData }) => {
       deliveryFee: inData?.deliveryFee,
       tableNumber: inData?.tableNumber,
       moneySign: inData?.moneySign,
+      // Number of digits shown after the decimal point in money figures
+      // (e.g. ₺100,00 → 2). Defaults to 2 (kuruş) for the TR market.
+      decimalPlaces: inData?.decimalPlaces ?? 2,
       maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
       minOrderAmount: inData?.minOrderAmount,
@@ -296,6 +300,21 @@ const RestaurantSettings = ({ data: inData }) => {
 
   const moneySign = restaurantData?.moneySign || "₺";
 
+  // Live preview of how money will be rendered for each decimal-places
+  // choice. Reads the *raw* input value (no ₺ fallback) so an empty
+  // currency field shows just the numbers, and inserts a single non-breaking
+  // space between symbol and amount when a symbol is present (regular
+  // spaces get collapsed by react-select renderers).
+  const previewSymbol = restaurantData?.moneySign ?? "";
+  const previewPrefix = previewSymbol ? `${previewSymbol} ` : "";
+  const decimalOptions = [0, 1, 2, 3].map((n) => ({
+    value: n,
+    label:
+      n === 0
+        ? `0 — ${previewPrefix}100`
+        : `${n} — ${previewPrefix}100,${"0".repeat(n)}`,
+  }));
+
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
       <SettingsTabs />
@@ -408,8 +427,11 @@ const RestaurantSettings = ({ data: inData }) => {
                 </p>
               </div>
 
-              {/* Menu Lang + Money Sign */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              {/* Menu Lang + Money Sign + Decimal Places — three fields share
+                  one row from sm+ up. Decimal Places sits to the right of
+                  Money Sign because it modifies how the symbol's amount is
+                  rendered (e.g. ₺ 100,00 vs ₺ 100). */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <div>
                   <label className={labelCls}>
                     <Languages className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
@@ -460,6 +482,37 @@ const RestaurantSettings = ({ data: inData }) => {
                       setRestaurantData((prev) => ({
                         ...prev,
                         moneySign: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    <Hash className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
+                    {t("restaurantSettings.decimal_places")}
+                  </label>
+                  <CustomSelect
+                    className="text-sm"
+                    style={{
+                      borderRadius: "0.5rem",
+                      borderColor: "#e2e8f0",
+                      minHeight: "40px",
+                      height: "40px",
+                    }}
+                    value={
+                      decimalOptions.find(
+                        (o) =>
+                          o.value ===
+                          (Number.isFinite(restaurantData?.decimalPlaces)
+                            ? restaurantData.decimalPlaces
+                            : 2),
+                      ) || decimalOptions[2]
+                    }
+                    options={decimalOptions}
+                    onChange={(selected) =>
+                      setRestaurantData((prev) => ({
+                        ...prev,
+                        decimalPlaces: selected.value,
                       }))
                     }
                   />

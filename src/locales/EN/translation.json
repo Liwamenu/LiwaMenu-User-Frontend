@@ -108,11 +108,11 @@
     "brand_feature_1": "Real-time order notifications",
     "brand_feature_2": "QR menu in seconds",
     "brand_feature_3": "Secure payment integration",
-    "footer_credit": "Liwamenu is a LiwaSoft subsidiary."
+    "footer_credit": "LiwaMenu is a LiwaSoft subsidiary."
   },
   "register": {
     "title": "Sign up",
-    "subtitle": "Create your Liwamenu account and start managing your restaurant.",
+    "subtitle": "Create your LiwaMenu account and start managing your restaurant.",
     "phone_label": "Phone",
     "email_label": "Email",
     "first_name": "First Name",
@@ -327,7 +327,7 @@
     "bank_payment": "Bank Transfer",
     "bank_payment_desc": "Manual payment via EFT/wire transfer",
     "cart_summary": "Cart Summary",
-    "bank_account_title": "Liwamenu Bank Account",
+    "bank_account_title": "LiwaMenu Bank Account",
     "bank_account_subtitle": "Use the details below to make your payment, then upload the receipt in the next step.",
     "bank_name": "Bank Name",
     "currency": "Currency",
@@ -446,6 +446,7 @@
     "is_special_price_active": "Activate Custom Price",
     "money_sign": "Currency Symbol",
     "money_sign_placeholder": "e.g. ₺, $, €",
+    "decimal_places": "Decimal Places",
     "table_number": "Number of Tables",
     "table_number_placeholder": "Enter number of tables",
     "delivery_fee": "Delivery Fee",
@@ -921,9 +922,31 @@
     "passwords_match": "Passwords match.",
     "hint": "Pick a strong password: at least 4 characters, mixing letters and numbers is recommended."
   },
+  "sambaTables": {
+    "open_button": "SambaPOS Tables",
+    "title": "SambaPOS Tables",
+    "subtitle": "Pick the tables you want a QR for.",
+    "summary": "{{selected}} / {{total}} selected",
+    "search_placeholder": "Search table...",
+    "select_all": "Select All",
+    "deselect_all": "Clear",
+    "no_results": "No table matches your search.",
+    "loading": "Loading tables...",
+    "empty_title": "No tables found",
+    "empty_desc": "No tables defined on the SambaPOS side. Try again after the backend creates them.",
+    "error_title": "Couldn't fetch tables",
+    "error_desc": "Something went wrong contacting the server. Check your connection and try again.",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "close": "Close",
+    "cancel": "Cancel",
+    "generate": "Generate QR ({{count}})",
+    "toast_no_selection": "Pick at least one table to generate.",
+    "toast_generated": "Generated QR for {{count}} tables."
+  },
   "qrPage": {
     "header_title": "QR Batch Studio",
-    "header_subtitle": "Professional grade QR generation for Liwamenu tenants.",
+    "header_subtitle": "Professional grade QR generation for LiwaMenu tenants.",
     "clear_all": "Clear All",
     "generate_batch": "Generate Batch",
     "processing": "Processing...",
@@ -1364,6 +1387,11 @@
           "heading": "Currency Symbol",
           "body": "Single character or short symbol shown next to prices. The system doesn't auto-write 'TL' — whatever you enter shows up.",
           "example": "₺ (TR), € (EU), $ (US)"
+        },
+        {
+          "heading": "Decimal Places",
+          "body": "Controls how many digits appear after the decimal point in money figures. Most currencies use 2 (e.g. cents); currencies without a fractional unit (e.g. Japanese Yen) can use 0. This only affects how prices are displayed in the customer menu — the prices you enter aren't changed.",
+          "example": "0 → ₺100, 1 → ₺100.0, 2 → ₺100.00 (default), 3 → ₺100.000"
         },
         {
           "heading": "Google Analytics",

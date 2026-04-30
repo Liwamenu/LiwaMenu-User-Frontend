@@ -1,86 +1,104 @@
-import logo from "../../assets/img/logo.png";
+// Global loading overlay shown by PopupContext while any redux thunk is
+// in flight (counted by middlewares/loadingMiddleware). The popup wraps
+// us in a full-width white card; this component just lays out the
+// LiwaMenu wave-glow brand spinner inside that card.
+//
+// Class names are prefixed with `lwm-` so the keyframes/styles don't
+// leak into other parts of the app — the <style> block is global.
 
 const CustomGeneralLoader = () => {
   return (
-    <main className="relative">
-      <div className="container">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
+    <div className="lwm-loader-wrapper">
+      <div className="lwm-letters-row">
+        {"LiwaMenu".split("").map((ch, i) => (
+          <span key={i} className="lwm-letter">
+            {ch}
+          </span>
+        ))}
       </div>
-
-      <div className="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center">
-        <img
-          src={logo}
-          alt="Pentegrasyon_logo"
-          className="size-6 rounded-full"
-        />
+      <div className="lwm-progress-bar" aria-hidden="true">
+        <div className="lwm-progress-line" />
       </div>
 
       <style>
         {`
-          .container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            border-radius: 50%;
-            height: 96px;
-            width: 96px;
-            animation: rotate_3922 1.2s linear infinite;
-            background-color: #9b59b6;
-            background-image: linear-gradient(#9b59b6, #84cdfa, #5ad1cd);
+          .lwm-loader-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            background: transparent;
+            font-family: 'Conthrax', 'Inter', sans-serif;
           }
 
-          .container span {
+          .lwm-letters-row {
+            display: flex;
+            gap: 0.35rem;
+            position: relative;
+          }
+
+          .lwm-letter {
+            color: darkblue;
+            font-size: 2.1rem;
+            font-weight: 700;
+            display: inline-block;
+            opacity: 0.4;
+            transform: translateY(0);
+            animation: lwm-wave-glow 2s ease-in-out infinite;
+            filter: blur(0.5px);
+          }
+
+          .lwm-letter:nth-child(1) { animation-delay: 0.0s; }
+          .lwm-letter:nth-child(2) { animation-delay: 0.1s; }
+          .lwm-letter:nth-child(3) { animation-delay: 0.2s; }
+          .lwm-letter:nth-child(4) { animation-delay: 0.3s; }
+          .lwm-letter:nth-child(5) { animation-delay: 0.4s; }
+          .lwm-letter:nth-child(6) { animation-delay: 0.5s; }
+          .lwm-letter:nth-child(7) { animation-delay: 0.6s; }
+          .lwm-letter:nth-child(8) { animation-delay: 0.7s; }
+
+          @keyframes lwm-wave-glow {
+            0%, 100% {
+              opacity: 0.4;
+              transform: translateY(0);
+              filter: blur(0.5px);
+              color: darkblue;
+            }
+            50% {
+              opacity: 1;
+              transform: translateY(-10px);
+              filter: blur(0px);
+              color: #bae6fd;
+              text-shadow: 0 0 15px #38bdf8, 0 0 30px #0ea5e9;
+            }
+          }
+
+          .lwm-progress-bar {
+            width: 140px;
+            height: 1.5px;
+            background: rgba(0, 0, 139, 0.2);
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+          }
+
+          .lwm-progress-line {
             position: absolute;
-            border-radius: 50%;
+            width: 50%;
             height: 100%;
-            width: 100%;
-            background-color: #9b59b6;
-            background-image: linear-gradient(#9b59b6, #84cdfa, #5ad1cd);
+            background: #38bdf8;
+            box-shadow: 0 0 10px #38bdf8, 0 0 20px #0284c7;
+            animation: lwm-slide 1.8s ease-in-out infinite;
           }
 
-          .container span:nth-of-type(1) {
-            filter: blur(5px);
-          }
-
-          .container span:nth-of-type(2) {
-            filter: blur(10px);
-          }
-
-          .container span:nth-of-type(3) {
-            filter: blur(25px);
-          }
-
-          .container span:nth-of-type(4) {
-            filter: blur(50px);
-          }
-
-          .container::after {
-            content: "";
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
-            background-color: #fff;
-            border: solid 5px #ffffff;
-            border-radius: 50%;
-          }
-
-          @keyframes rotate_3922 {
-            from {
-              transform: translate(-50%, -50%) rotate(0deg);
-            }
-
-            to {
-              transform: translate(-50%, -50%) rotate(360deg);
-            }
+          @keyframes lwm-slide {
+            0% { left: -50%; }
+            100% { left: 100%; }
           }
         `}
       </style>
-    </main>
+    </div>
   );
 };
 

@@ -108,11 +108,11 @@
     "brand_feature_1": "Anlık sipariş bildirimleri",
     "brand_feature_2": "Saniyeler içinde QR menü",
     "brand_feature_3": "Güvenli ödeme entegrasyonu",
-    "footer_credit": "Liwamenu bir LiwaSoft iştirakidir."
+    "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir."
   },
   "register": {
     "title": "Kayıt ol",
-    "subtitle": "Liwamenu hesabı oluşturun ve restoranınızı yönetmeye başlayın.",
+    "subtitle": "LiwaMenu hesabı oluşturun ve restoranınızı yönetmeye başlayın.",
     "phone_label": "Telefon",
     "email_label": "E-Posta",
     "first_name": "Ad",
@@ -327,7 +327,7 @@
     "bank_payment": "Banka Havale",
     "bank_payment_desc": "EFT/Havale ile manuel ödeme",
     "cart_summary": "Sepet Özeti",
-    "bank_account_title": "Liwamenu Banka Hesabı",
+    "bank_account_title": "LiwaMenu Banka Hesabı",
     "bank_account_subtitle": "Aşağıdaki bilgilerle ödemenizi yapın, sonraki adımda dekontu yükleyebilirsiniz.",
     "bank_name": "Banka Adı",
     "currency": "Döviz",
@@ -446,6 +446,7 @@
     "is_special_price_active": "Özel Fiyatı Aktif Et",
     "money_sign": "Para Birimi Sembolü",
     "money_sign_placeholder": "örn: ₺, $, €",
+    "decimal_places": "Kuruş Hanesi",
     "table_number": "Masa Sayısı",
     "table_number_placeholder": "Masa sayısını giriniz",
     "delivery_fee": "Teslimat Ücreti",
@@ -906,9 +907,31 @@
     "success": "Profiliniz başarıyla güncellendi",
     "no_changes": "Hiç bir değişiklik yapmadınız"
   },
+  "sambaTables": {
+    "open_button": "SambaPOS Masaları",
+    "title": "SambaPOS Masaları",
+    "subtitle": "QR oluşturmak istediğiniz masaları seçin.",
+    "summary": "{{selected}} / {{total}} seçili",
+    "search_placeholder": "Masa ara...",
+    "select_all": "Tümünü Seç",
+    "deselect_all": "Hiçbirini",
+    "no_results": "Aramayla eşleşen masa yok.",
+    "loading": "Masalar yükleniyor...",
+    "empty_title": "Masa bulunamadı",
+    "empty_desc": "SambaPOS tarafında tanımlı bir masa görünmüyor. Backend tarafında masaları oluşturduktan sonra tekrar deneyin.",
+    "error_title": "Masalar alınamadı",
+    "error_desc": "Sunucuya bağlanılırken bir hata oluştu. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+    "retry": "Tekrar Dene",
+    "refresh": "Yenile",
+    "close": "Kapat",
+    "cancel": "Vazgeç",
+    "generate": "QR Oluştur ({{count}})",
+    "toast_no_selection": "QR oluşturmak için en az bir masa seçili olmalı.",
+    "toast_generated": "{{count}} masa için QR oluşturuldu."
+  },
   "qrPage": {
     "header_title": "QR Toplu Üretim Stüdyosu",
-    "header_subtitle": "Liwamenu tenantleri için profesyonel QR üretimi.",
+    "header_subtitle": "LiwaMenu tenantleri için profesyonel QR üretimi.",
     "clear_all": "Tümünü Temizle",
     "generate_batch": "Toplu Oluştur",
     "processing": "İşleniyor...",
@@ -1366,6 +1389,11 @@
           "heading": "Para Birimi",
           "body": "Fiyatların yanında görünecek tek karakter / kısa simge. Ürün kartlarında, sepette, kuryeci ekranında basılır. Sistem otomatik 'TL' yazmaz; ne girerseniz o görünür.",
           "example": "₺, $, €, £, ¥"
+        },
+        {
+          "heading": "Kuruş Hanesi (Decimal)",
+          "body": "Fiyatların virgülden sonra kaç hane gösterileceğini belirler. Türkiye için klasik 2 hane (kuruş) kullanılır; Japon Yeni gibi alt birimi olmayan para birimleri için 0 seçilebilir. Bu ayar yalnızca müşteri menüsündeki görünümü etkiler — girdiğiniz fiyatların kendisi değişmez.",
+          "example": "0 → ₺100, 1 → ₺100,0, 2 → ₺100,00 (varsayılan), 3 → ₺100,000"
         },
         {
           "heading": "Google Analytics",
