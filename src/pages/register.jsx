@@ -57,6 +57,25 @@ const Register = () => {
   const confirmRegister = (e) => {
     e.preventDefault();
 
+    // Full required-field check moved to the top so the confirm modal
+    // never opens when any field is empty. Previously only the post-
+    // modal `register()` validated this, which let users get all the
+    // way to the confirmation step on a half-filled form and then see
+    // a quiet toast — they thought registration was succeeding when
+    // nothing was actually being dispatched. The form's `noValidate`
+    // attribute disables HTML5 `required`, so this JS gate is the
+    // only thing actually blocking empty submissions.
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !phoneNumber ||
+      !email.trim() ||
+      !password ||
+      !password2
+    ) {
+      toast.error(t("register.fill_all_fields"));
+      return;
+    }
     if (password !== password2) {
       toast.error(t("register.passwords_not_match"));
       return;

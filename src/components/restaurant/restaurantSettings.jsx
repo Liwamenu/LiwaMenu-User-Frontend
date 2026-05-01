@@ -79,9 +79,15 @@ const NumberWithSuffix = ({
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
       />
-      <span className="bg-[--white-2] text-[--gr-1] text-xs font-semibold px-3 grid place-items-center border-l border-[--border-1]">
-        {suffix}
-      </span>
+      {/* Hide the pill entirely when suffix is empty — the currency-
+          backed inputs feed `moneySign` here, which is "" when the
+          user hasn't picked a Para Birimi Sembolü. Rendering an empty
+          gray box looked like a broken UI element. */}
+      {suffix ? (
+        <span className="bg-[--white-2] text-[--gr-1] text-xs font-semibold px-3 grid place-items-center border-l border-[--border-1]">
+          {suffix}
+        </span>
+      ) : null}
     </div>
   </div>
 );
@@ -298,7 +304,11 @@ const RestaurantSettings = ({ data: inData }) => {
     dispatch(resetCheckTenantAvailability());
   }, [tenantCheckSuccess, tenantCheckData, tenantCheckError, dispatch, t]);
 
-  const moneySign = restaurantData?.moneySign || "₺";
+  // Use the user's saved Para Birimi Sembolü literally — no ₺ fallback,
+  // since defaulting to ₺ misled users who left the symbol blank into
+  // thinking the field was locked to TRY. Empty string flows down to
+  // NumberWithSuffix where the suffix pill collapses entirely.
+  const moneySign = restaurantData?.moneySign ?? "";
 
   // Live preview of how money will be rendered for each decimal-places
   // choice. Reads the *raw* input value (no ₺ fallback) so an empty

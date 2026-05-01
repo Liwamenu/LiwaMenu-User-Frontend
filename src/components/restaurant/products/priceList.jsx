@@ -18,21 +18,50 @@ import {
   resetUpdatePriceList,
 } from "../../../redux/products/updatePriceListSlice";
 import { getProducts } from "../../../redux/products/getProductsSlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
-const PriceList = () => {
+const PriceList = ({ data: restaurant }) => {
   const params = useParams();
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const restaurantId = params.id;
   const containerRef = useRef(null);
 
+  // Decimal precision used to format every price input below. Reads
+  // from the restaurant's `decimalPlaces` setting (Genel Ayarlar →
+  // Kuruş Hanesi); falls back to 2 (the TR default ",00") while the
+  // backend hasn't started round-tripping the field yet, so the
+  // format rule stays sensible from day one.
+  const decimals = Number.isFinite(Number(restaurant?.decimalPlaces))
+    ? Number(restaurant.decimalPlaces)
+    : 2;
+
   const { products } = useSelector((s) => s.products.get);
+  // Pull categories so we can hide the Kampanya column / input for any
+  // category that has its `campaign` flag turned off — the price list
+  // shouldn't let the user enter a campaign price for products whose
+  // category isn't running campaigns.
+  const { categories, fetchedFor: catFetchedFor } = useSelector(
+    (s) => s.categories.get,
+  );
   const { success, error, loading } = useSelector(
     (s) => s.products.updatePriceList,
   );
+
+  // categoryId → boolean: does this category have campaigns enabled?
+  // Defaults to `false` for unknown ids (categories that didn't load),
+  // so the campaign UI stays hidden until we have proof it's allowed.
+  const categoryCampaignMap = useMemo(() => {
+    const map = new Map();
+    (categories || []).forEach((c) => {
+      if (!c?.id) return;
+      map.set(c.id, !!c.campaign);
+    });
+    return map;
+  }, [categories]);
 
   const [list, setList] = useState([]);
   const [listBefore, setListBefore] = useState([]);
@@ -56,6 +85,16 @@ const PriceList = () => {
   // forever. Post-save refresh is handled by the success-effect below.
   useEffect(() => {
     dispatch(getProducts({ restaurantId }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantId]);
+
+  // Categories — only fetch when the slice cache doesn't already have a
+  // fresh payload for this restaurant. Used to gate the Kampanya UI
+  // per category.campaign flag.
+  useEffect(() => {
+    if (!categories || catFetchedFor !== restaurantId) {
+      dispatch(getCategories({ restaurantId }));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId]);
 
@@ -291,7 +330,15 @@ const PriceList = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {visibleGroups.map((group) => (
+              {visibleGroups.map((group) => {
+                // Hide both the Kampanya column header and the per-row
+                // emerald input when this category isn't running
+                // campaigns. Defaults to false until categories load,
+                // so the campaign UI doesn't briefly flash on mount.
+                const showCampaign = !!categoryCampaignMap.get(
+                  group.categoryId,
+                );
+                return (
                 <div
                   key={group.categoryId}
                   className="rounded-xl border border-[--border-1] bg-[--white-1] overflow-hidden"
@@ -316,9 +363,11 @@ const PriceList = () => {
                     <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-[--gr-1] shrink-0">
                       {t("priceList.normal_price")}
                     </span>
-                    <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-emerald-600 shrink-0">
-                      {t("priceList.campaign")}
-                    </span>
+                    {showCampaign && (
+                      <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-emerald-600 shrink-0">
+                        {t("priceList.campaign")}
+                      </span>
+                    )}
                   </div>
 
                   {/* Rows */}
@@ -338,7 +387,13 @@ const PriceList = () => {
                             return (
                               <div
                                 key={portion.id || pi}
-                                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 py-2 border-b last:border-b-0 border-[--border-1] hover:bg-[--white-2]/60 transition-colors"
+                                // Single row at every breakpoint — name
+                                // truncates, price inputs stay compact
+                                // and grow with content via field-sizing
+                                // on PriceInput. Was flex-col on mobile,
+                                // which forced the user to scroll past
+                                // the name before reaching the price.
+                                className="flex items-center gap-2 sm:gap-3 px-3 py-2 border-b last:border-b-0 border-[--border-1] hover:bg-[--white-2]/60 transition-colors"
                               >
                                 {/* Name + portion */}
                                 <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
@@ -363,22 +418,26 @@ const PriceList = () => {
                                     onKeyDown={handleKeyDown}
                                     dataAttr="data-edit"
                                     tone="slate"
+                                    decimals={decimals}
                                   />
-                                  <PriceInput
-                                    label={t("priceList.campaign")}
-                                    value={portion.campaignPrice ?? ""}
-                                    onChange={(v) =>
-                                      updatePortion(
-                                        i,
-                                        pi,
-                                        "campaignPrice",
-                                        Number(v),
-                                      )
-                                    }
-                                    onKeyDown={handleKeyDown}
-                                    dataAttr="data-edit-second"
-                                    tone="emerald"
-                                  />
+                                  {showCampaign && (
+                                    <PriceInput
+                                      label={t("priceList.campaign")}
+                                      value={portion.campaignPrice ?? ""}
+                                      onChange={(v) =>
+                                        updatePortion(
+                                          i,
+                                          pi,
+                                          "campaignPrice",
+                                          Number(v),
+                                        )
+                                      }
+                                      onKeyDown={handleKeyDown}
+                                      dataAttr="data-edit-second"
+                                      tone="emerald"
+                                      decimals={decimals}
+                                    />
+                                  )}
                                 </div>
                               </div>
                             );
@@ -388,7 +447,8 @@ const PriceList = () => {
                     })}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -397,10 +457,28 @@ const PriceList = () => {
   );
 };
 
-// Single bare input — column labels live in the category header to keep each
-// row visually compact. `aria-label` is still set so screen readers know which
-// price they are editing.
-const PriceInput = ({ label, value, onChange, onKeyDown, dataAttr, tone }) => {
+// Currency-formatted price input. While not focused, the value is
+// rendered with `Intl.NumberFormat("tr-TR")` so a saved 12500 reads
+// as "12.500,00"; on focus we swap to a raw editable string ("12500"
+// / "12500.5") so the user can type without fighting the locale's
+// thousand separator. `decimals` comes from the restaurant's
+// `decimalPlaces` setting (Genel Ayarlar → Kuruş Hanesi); both
+// fraction-digit limits use it so users with a 0-decimal currency
+// (e.g. JPY) get a clean integer display.
+//
+// Width is computed from the displayed string so a long price like
+// "999.999,00" pushes the input wider instead of clipping. The old
+// `field-sizing: content` style proved unreliable on type="number"
+// in production browsers, hence the manual width calc.
+const PriceInput = ({
+  label,
+  value,
+  onChange,
+  onKeyDown,
+  dataAttr,
+  tone,
+  decimals = 2,
+}) => {
   const tones = {
     slate:
       "border-[--border-1] bg-[--white-1] text-[--black-1] focus:border-indigo-500 focus:ring-indigo-100",
@@ -411,16 +489,68 @@ const PriceInput = ({ label, value, onChange, onKeyDown, dataAttr, tone }) => {
     emerald:
       "border-emerald-200 bg-emerald-50/40 text-emerald-700 focus:border-emerald-500 focus:ring-emerald-100 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/20",
   };
+
+  const numericValue = Number.isFinite(Number(value)) ? Number(value) : 0;
+  const formatter = useMemo(
+    () =>
+      new Intl.NumberFormat("tr-TR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }),
+    [decimals],
+  );
+
+  const [focused, setFocused] = useState(false);
+  const [editStr, setEditStr] = useState("");
+
+  const display = focused ? editStr : formatter.format(numericValue);
+
+  const handleFocus = (e) => {
+    // Show the raw number while editing so TR thousand separators
+    // don't trip up keyboard input. Empty for zero so users don't
+    // have to backspace before typing the new amount.
+    setEditStr(numericValue ? String(numericValue) : "");
+    setFocused(true);
+    // Auto-select so a fresh number replaces the existing one.
+    e.target.select();
+  };
+
+  const handleChange = (e) => {
+    // Only allow digit / dot / comma; comma is the TR decimal sep
+    // (mapped to `.` for parseFloat). Discarding other chars stops
+    // the user from typing locale separators that would corrupt the
+    // parsed value.
+    const raw = e.target.value.replace(/[^0-9.,]/g, "");
+    setEditStr(raw);
+    const normalized = raw.replace(",", ".");
+    const n = parseFloat(normalized);
+    onChange(Number.isFinite(n) ? n : 0);
+  };
+
+  const handleBlur = () => setFocused(false);
+
+  // Width = content + padding + breathing. The `px-2` className adds
+  // 1rem of horizontal padding inside the input; without folding that
+  // into the explicit `width` the last digit gets clipped (because
+  // `width` covers the entire box, not just the text). +1ch on top
+  // gives a single character of breathing room on the right edge.
+  const contentCh = Math.max(4, display.length); // 4 = "0,00"
+  const widthValue = `calc(${contentCh + 1}ch + 1rem)`;
+
   return (
     <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      type="text"
+      inputMode="decimal"
+      value={display}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       onKeyDown={onKeyDown}
       aria-label={label}
       placeholder={label}
       {...{ [dataAttr]: true }}
-      className={`w-24 sm:w-28 h-9 px-2 text-right text-sm font-semibold tabular-nums rounded-md border outline-none transition focus:ring-4 shrink-0 ${tones[tone] || tones.slate}`}
+      style={{ width: widthValue }}
+      className={`h-9 px-2 text-right text-sm font-semibold tabular-nums rounded-md border outline-none transition focus:ring-4 shrink-0 ${tones[tone] || tones.slate}`}
     />
   );
 };

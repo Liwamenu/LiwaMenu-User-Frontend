@@ -401,7 +401,8 @@ const AddProduct = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-[1fr_80px_80px_80px_30px] gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2">
+                {/* Column header — desktop only; mobile rows label inline. */}
+                <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_30px] gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2">
                   <div>{t("editProduct.portion_column_name")}</div>
                   <div className="text-center">
                     {t("editProduct.portion_column_price")}
@@ -417,9 +418,15 @@ const AddProduct = () => {
 
                 <div className="space-y-3">
                   {productData.portions.map((portion, idx) => (
+                    // Mobile: 2-row layout — name (+ delete at right) on
+                    // top, 3 price inputs in a 3-col row below. Desktop:
+                    // back to the original 5-col grid via `md:contents`,
+                    // which lifts the inner price wrapper's children
+                    // straight into the outer grid so we don't have to
+                    // duplicate input components.
                     <div
                       key={idx}
-                      className="grid grid-cols-[1fr_80px_80px_80px_30px] gap-2 items-center"
+                      className="grid grid-cols-[1fr_30px] gap-2 items-center md:grid-cols-[1fr_80px_80px_80px_30px]"
                     >
                       <CustomInput
                         required
@@ -428,33 +435,9 @@ const AddProduct = () => {
                         value={portion.name}
                         onChange={(v) => handlePortionChange(idx, "name", v)}
                       />
-                      <CustomInput
-                        required
-                        type="number"
-                        placeholder="Fiyat"
-                        className="py-[6px] text-sm text-center bg-[--white-2]"
-                        value={formatToPrice(portion.price) || "0"}
-                        onChange={(v) => handlePortionChange(idx, "price", v)}
-                      />
-                      <CustomInput
-                        type="number"
-                        placeholder="Kampanya"
-                        className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
-                        value={formatToPrice(portion.campaignPrice) || "0"}
-                        onChange={(v) =>
-                          handlePortionChange(idx, "campaignPrice", v)
-                        }
-                      />
-                      <CustomInput
-                        type="number"
-                        placeholder={t("addProduct.special_price_short")}
-                        className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
-                        value={formatToPrice(portion.specialPrice) || "0"}
-                        onChange={(v) =>
-                          handlePortionChange(idx, "specialPrice", v)
-                        }
-                      />
-                      <div className="flex items-center justify-center">
+                      {/* Delete sits next to the name on mobile (col 2)
+                          and jumps to the last column on desktop. */}
+                      <div className="flex items-center justify-center md:col-start-5 md:row-start-1">
                         {productData.portions.length > 1 && (
                           <button
                             type="button"
@@ -468,6 +451,55 @@ const AddProduct = () => {
                             />
                           </button>
                         )}
+                      </div>
+                      <div className="col-span-2 grid grid-cols-3 gap-2 md:contents">
+                        {/* Each price gets a tiny inline label above it
+                            on mobile (md:hidden span) — desktop already
+                            has the column header above the row, so the
+                            wrapper collapses there via md:contents. */}
+                        <div className="flex flex-col gap-1 md:contents">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] md:hidden">
+                            {t("editProduct.portion_column_price")}
+                          </span>
+                          <CustomInput
+                            required
+                            type="number"
+                            placeholder="Fiyat"
+                            className="py-[6px] text-sm text-center bg-[--white-2]"
+                            value={formatToPrice(portion.price) || "0"}
+                            onChange={(v) =>
+                              handlePortionChange(idx, "price", v)
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1 md:contents">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[--green-1] md:hidden">
+                            {t("editProduct.portion_column_campaign")}
+                          </span>
+                          <CustomInput
+                            type="number"
+                            placeholder="Kampanya"
+                            className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
+                            value={formatToPrice(portion.campaignPrice) || "0"}
+                            onChange={(v) =>
+                              handlePortionChange(idx, "campaignPrice", v)
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1 md:contents">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
+                            {t("editProduct.portion_column_special")}
+                          </span>
+                          <CustomInput
+                            type="number"
+                            placeholder={t("addProduct.special_price_short")}
+                            className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
+                            value={formatToPrice(portion.specialPrice) || "0"}
+                            onChange={(v) =>
+                              handlePortionChange(idx, "specialPrice", v)
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
