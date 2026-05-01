@@ -76,6 +76,23 @@ const Register = () => {
       toast.error(t("register.fill_all_fields"));
       return;
     }
+    // Lightweight email syntax check: must contain `@`, with at
+    // least one character before it and a domain part of 3+ chars
+    // that includes a dot ("a@b.c" passes, "x@y" / "x@yz" fail).
+    // Backend still does the authoritative validation; this just
+    // catches obvious typos before we open the confirm modal.
+    {
+      const at = email.indexOf("@");
+      const domain = at >= 0 ? email.slice(at + 1) : "";
+      if (at < 1 || domain.length < 3 || !domain.includes(".")) {
+        toast.error(t("register.invalid_email"));
+        return;
+      }
+    }
+    if (password.length < 5) {
+      toast.error(t("register.password_too_short", { min: 5 }));
+      return;
+    }
     if (password !== password2) {
       toast.error(t("register.passwords_not_match"));
       return;
@@ -217,7 +234,7 @@ const Register = () => {
             required
             placeholder={t("register.password_placeholder")}
             autoComplete="new-password"
-            minLength={6}
+            minLength={5}
             maxLength={20}
           />
           <AuthField
@@ -230,7 +247,7 @@ const Register = () => {
             required
             placeholder={t("register.password_confirm_placeholder")}
             autoComplete="new-password"
-            minLength={6}
+            minLength={5}
             maxLength={20}
           />
         </div>

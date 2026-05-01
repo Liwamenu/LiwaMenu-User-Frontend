@@ -139,6 +139,8 @@
     "terms_accept": "Accept and Continue",
     "passwords_not_match": "Passwords do not match",
     "phone_incomplete": "Please complete your phone number",
+    "invalid_email": "Please enter a valid email address",
+    "password_too_short": "Password must be at least {{min}} characters",
     "accept_terms": "Please accept the terms of use",
     "fill_all_fields": "Please fill in all fields",
     "processing": "Processing...",

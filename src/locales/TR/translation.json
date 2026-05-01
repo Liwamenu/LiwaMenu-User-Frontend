@@ -139,6 +139,8 @@
     "terms_accept": "Kabul Et ve Devam",
     "passwords_not_match": "Şifreler aynı değil",
     "phone_incomplete": "Lütfen telefon numaranızı tamamlayın",
+    "invalid_email": "Lütfen geçerli bir e-posta adresi girin",
+    "password_too_short": "Şifre en az {{min}} karakter olmalı",
     "accept_terms": "Lütfen kullanım şartılarını kabul edin",
     "fill_all_fields": "Tüm alanları doldurunuz",
     "processing": "İşleniyor...",
