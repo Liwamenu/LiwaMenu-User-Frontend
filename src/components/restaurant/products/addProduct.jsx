@@ -70,10 +70,45 @@ const AddProduct = () => {
   const { categories } = useSelector((s) => s.categories.get);
   const { success, error, loading } = useSelector((s) => s.products.add);
   const { subCategories } = useSelector((s) => s.subCategories.get);
+  // Restaurant powers the "Özel Fiyat" gate — only visible when the
+  // restaurant has the special-price feature enabled in Genel Ayarlar.
+  const restaurant = useSelector(
+    (s) => s.restaurants.getRestaurant?.restaurant,
+  );
 
   const [preview, setPreview] = useState(null);
   const [productData, setProductData] = useState(defaultProduct);
   const [categoryOptions, setCategoryOptions] = useState([]);
+
+  // Per-row column visibility:
+  //   • Kampanya — only when the SELECTED category has campaign on
+  //   • Özel    — only when the restaurant's isSpecialPriceActive is true
+  // Both default to hidden when their gating flag is missing/false,
+  // so the inputs stay out of the user's way until the underlying
+  // feature is actually enabled.
+  const selectedCategory = (categories || []).find(
+    (c) => c.id === productData.categoryId,
+  );
+  const showCampaign = !!selectedCategory?.campaign;
+  const showSpecial = !!restaurant?.isSpecialPriceActive;
+  const priceCount = 1 + (showCampaign ? 1 : 0) + (showSpecial ? 1 : 0);
+  // Tailwind needs the full class string at build time, so the
+  // permutations are spelled out as a lookup instead of composed.
+  const desktopGridClass = {
+    1: "md:grid-cols-[1fr_80px_30px]",
+    2: "md:grid-cols-[1fr_80px_80px_30px]",
+    3: "md:grid-cols-[1fr_80px_80px_80px_30px]",
+  }[priceCount];
+  const deleteColStartClass = {
+    1: "md:col-start-3",
+    2: "md:col-start-4",
+    3: "md:col-start-5",
+  }[priceCount];
+  const mobilePriceGridClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+  }[priceCount];
 
   function setCategoryOptionsFunc() {
     const options = (categories || []).map((c) => ({
@@ -401,32 +436,41 @@ const AddProduct = () => {
                   </button>
                 </div>
 
-                {/* Column header — desktop only; mobile rows label inline. */}
-                <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_30px] gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2">
+                {/* Column header — desktop only; mobile rows label inline.
+                    Adapts to whichever price columns are actually visible
+                    (Kampanya / Özel can both be off). */}
+                <div
+                  className={`hidden md:grid ${desktopGridClass} gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2`}
+                >
                   <div>{t("editProduct.portion_column_name")}</div>
                   <div className="text-center">
                     {t("editProduct.portion_column_price")}
                   </div>
-                  <div className="text-center text-[--green-1]">
-                    {t("editProduct.portion_column_campaign")}
-                  </div>
-                  <div className="text-center text-[--orange-1]">
-                    {t("editProduct.portion_column_special")}
-                  </div>
+                  {showCampaign && (
+                    <div className="text-center text-[--green-1]">
+                      {t("editProduct.portion_column_campaign")}
+                    </div>
+                  )}
+                  {showSpecial && (
+                    <div className="text-center text-[--orange-1]">
+                      {t("editProduct.portion_column_special")}
+                    </div>
+                  )}
                   <div />
                 </div>
 
                 <div className="space-y-3">
                   {productData.portions.map((portion, idx) => (
                     // Mobile: 2-row layout — name (+ delete at right) on
-                    // top, 3 price inputs in a 3-col row below. Desktop:
-                    // back to the original 5-col grid via `md:contents`,
-                    // which lifts the inner price wrapper's children
-                    // straight into the outer grid so we don't have to
-                    // duplicate input components.
+                    // top, 1-3 price inputs in a row below. Desktop: dynamic
+                    // grid via `desktopGridClass` (Kampanya / Özel cols
+                    // collapse when their feature flags are off). The
+                    // inner price wrapper uses `md:contents` to lift its
+                    // children straight into the outer grid — no input
+                    // duplication or extra event wiring.
                     <div
                       key={idx}
-                      className="grid grid-cols-[1fr_30px] gap-2 items-center md:grid-cols-[1fr_80px_80px_80px_30px]"
+                      className={`grid grid-cols-[1fr_30px] gap-2 items-center ${desktopGridClass}`}
                     >
                       <CustomInput
                         required
@@ -436,8 +480,12 @@ const AddProduct = () => {
                         onChange={(v) => handlePortionChange(idx, "name", v)}
                       />
                       {/* Delete sits next to the name on mobile (col 2)
-                          and jumps to the last column on desktop. */}
-                      <div className="flex items-center justify-center md:col-start-5 md:row-start-1">
+                          and jumps to the last column on desktop. The
+                          target col index depends on how many price
+                          columns are actually visible. */}
+                      <div
+                        className={`flex items-center justify-center ${deleteColStartClass} md:row-start-1`}
+                      >
                         {productData.portions.length > 1 && (
                           <button
                             type="button"
@@ -452,7 +500,9 @@ const AddProduct = () => {
                           </button>
                         )}
                       </div>
-                      <div className="col-span-2 grid grid-cols-3 gap-2 md:contents">
+                      <div
+                        className={`col-span-2 grid ${mobilePriceGridClass} gap-2 md:contents`}
+                      >
                         {/* Each price gets a tiny inline label above it
                             on mobile (md:hidden span) — desktop already
                             has the column header above the row, so the
@@ -472,34 +522,38 @@ const AddProduct = () => {
                             }
                           />
                         </div>
-                        <div className="flex flex-col gap-1 md:contents">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[--green-1] md:hidden">
-                            {t("editProduct.portion_column_campaign")}
-                          </span>
-                          <CustomInput
-                            type="number"
-                            placeholder="Kampanya"
-                            className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
-                            value={formatToPrice(portion.campaignPrice) || "0"}
-                            onChange={(v) =>
-                              handlePortionChange(idx, "campaignPrice", v)
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1 md:contents">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
-                            {t("editProduct.portion_column_special")}
-                          </span>
-                          <CustomInput
-                            type="number"
-                            placeholder={t("addProduct.special_price_short")}
-                            className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
-                            value={formatToPrice(portion.specialPrice) || "0"}
-                            onChange={(v) =>
-                              handlePortionChange(idx, "specialPrice", v)
-                            }
-                          />
-                        </div>
+                        {showCampaign && (
+                          <div className="flex flex-col gap-1 md:contents">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--green-1] md:hidden">
+                              {t("editProduct.portion_column_campaign")}
+                            </span>
+                            <CustomInput
+                              type="number"
+                              placeholder="Kampanya"
+                              className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
+                              value={formatToPrice(portion.campaignPrice) || "0"}
+                              onChange={(v) =>
+                                handlePortionChange(idx, "campaignPrice", v)
+                              }
+                            />
+                          </div>
+                        )}
+                        {showSpecial && (
+                          <div className="flex flex-col gap-1 md:contents">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
+                              {t("editProduct.portion_column_special")}
+                            </span>
+                            <CustomInput
+                              type="number"
+                              placeholder={t("addProduct.special_price_short")}
+                              className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
+                              value={formatToPrice(portion.specialPrice) || "0"}
+                              onChange={(v) =>
+                                handlePortionChange(idx, "specialPrice", v)
+                              }
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

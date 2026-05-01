@@ -48,6 +48,11 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const { categories } = useSelector((s) => s.categories.get);
   const { success, error } = useSelector((s) => s.products.edit);
   const { subCategories } = useSelector((s) => s.subCategories.get);
+  // Restaurant powers the "Özel Fiyat" gate — only visible when the
+  // restaurant has the special-price feature enabled in Genel Ayarlar.
+  const restaurant = useSelector(
+    (s) => s.restaurants.getRestaurant?.restaurant,
+  );
 
   const { setSecondPopupContent } = usePopup();
   const { product } = location?.state || {};
@@ -57,6 +62,36 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const initialProduct = prodToPopup || product;
   const [preview, setPreview] = useState(initialProduct?.imageURL || null);
   const [productData, setProductData] = useState(initialProduct);
+  // Tracks the case where the user explicitly cleared a previously
+  // saved photo. Without this we can't tell "user did nothing" from
+  // "user removed the image" — both leave productData.image as null.
+  // On save the flag turns into removal signals for the backend.
+  const [imageRemoved, setImageRemoved] = useState(false);
+
+  // Per-row column visibility — Kampanya tied to the SELECTED category's
+  // campaign flag, Özel tied to the restaurant's isSpecialPriceActive.
+  // Mirrors AddProduct so both forms behave identically.
+  const selectedCategory = (categories || []).find(
+    (c) => c.id === productData?.categoryId,
+  );
+  const showCampaign = !!selectedCategory?.campaign;
+  const showSpecial = !!restaurant?.isSpecialPriceActive;
+  const priceCount = 1 + (showCampaign ? 1 : 0) + (showSpecial ? 1 : 0);
+  const desktopGridClass = {
+    1: "md:grid-cols-[1fr_80px_30px]",
+    2: "md:grid-cols-[1fr_80px_80px_30px]",
+    3: "md:grid-cols-[1fr_80px_80px_80px_30px]",
+  }[priceCount];
+  const deleteColStartClass = {
+    1: "md:col-start-3",
+    2: "md:col-start-4",
+    3: "md:col-start-5",
+  }[priceCount];
+  const mobilePriceGridClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+  }[priceCount];
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [subCategoryOptions, setSubCategoryOptions] = useState([]);
 
@@ -135,6 +170,15 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
       ...prev,
       image: file || null,
     }));
+    if (file) {
+      // Picking a new file replaces the existing one — no removal
+      // signal needed (the file upload itself overrides the URL).
+      setImageRemoved(false);
+    } else if (initialProduct?.imageURL) {
+      // Clearing a slot that previously had a saved photo → mark
+      // for backend removal on save.
+      setImageRemoved(true);
+    }
   };
 
   const handleSave = () => {
@@ -157,9 +201,22 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     // Forward sambaId so the backend keeps the existing value on update.
     formData.append("sambaId", productData.sambaId ?? "");
 
-    // Append image file if present
+    // Image handling: 3 mutually exclusive cases.
+    //   1. User picked a new file → upload it (replaces existing)
+    //   2. User cleared a previously saved photo → send removal
+    //      signals so the backend deletes the imageURL instead of
+    //      preserving it. The backend's image contract isn't in the
+    //      swagger so we send several common markers (image="",
+    //      imageURL/imageUrl="", removeImage="true") and trust the
+    //      controller to pick up whichever it expects.
+    //   3. Untouched → send nothing, backend keeps the existing URL.
     if (productData.image instanceof File) {
       formData.append("image", productData.image);
+    } else if (imageRemoved) {
+      formData.append("image", "");
+      formData.append("imageURL", "");
+      formData.append("imageUrl", "");
+      formData.append("removeImage", "true");
     }
 
     // Append portions if changed
@@ -445,32 +502,41 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                     </button>
                   </div>
 
-                  {/* Column header — desktop only; mobile rows label inline. */}
-                  <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_30px] gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2">
+                  {/* Column header — desktop only; mobile rows label inline.
+                      Adapts to whichever price columns are actually visible
+                      (Kampanya / Özel can both be off). */}
+                  <div
+                    className={`hidden md:grid ${desktopGridClass} gap-2 text-[10px] text-[--gr-1] uppercase font-semibold mb-2`}
+                  >
                     <div>{t("editProduct.portion_column_name")}</div>
                     <div className="text-center">
                       {t("editProduct.portion_column_price")}
                     </div>
-                    <div className="text-center text-[--green-1]">
-                      {t("editProduct.portion_column_campaign")}
-                    </div>
-                    <div className="text-center text-[--orange-1]">
-                      {t("editProduct.portion_column_special")}
-                    </div>
+                    {showCampaign && (
+                      <div className="text-center text-[--green-1]">
+                        {t("editProduct.portion_column_campaign")}
+                      </div>
+                    )}
+                    {showSpecial && (
+                      <div className="text-center text-[--orange-1]">
+                        {t("editProduct.portion_column_special")}
+                      </div>
+                    )}
                     <div />
                   </div>
 
                   <div className="space-y-3">
                     {productData.portions.map((portion, idx) => (
-                      // Mobile: name (+ delete) on top, 3 prices in a
-                      // 3-col row below. Desktop falls back to the
-                      // original 5-col grid via `md:contents` (the
-                      // inner price wrapper is invisible to grid on
-                      // md+, so its 3 children become direct children
-                      // of the outer grid in cols 2/3/4).
+                      // Mobile: name (+ delete) on top, 1-3 price inputs
+                      // in a row below. Desktop: dynamic grid via
+                      // `desktopGridClass` (Kampanya / Özel cols
+                      // collapse when their feature flags are off).
+                      // The inner price wrapper uses `md:contents` so
+                      // its visible children become direct grid
+                      // children on md+ — no input duplication.
                       <div
                         key={idx}
-                        className="grid grid-cols-[1fr_30px] gap-2 items-center md:grid-cols-[1fr_80px_80px_80px_30px]"
+                        className={`grid grid-cols-[1fr_30px] gap-2 items-center ${desktopGridClass}`}
                       >
                         <CustomInput
                           required
@@ -481,7 +547,9 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                           value={portion.name}
                           onChange={(v) => handlePortionChange(idx, "name", v)}
                         />
-                        <div className="flex items-center justify-center md:col-start-5 md:row-start-1">
+                        <div
+                          className={`flex items-center justify-center ${deleteColStartClass} md:row-start-1`}
+                        >
                           {productData.portions.length > 1 && (
                             <button
                               type="button"
@@ -496,7 +564,9 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                             </button>
                           )}
                         </div>
-                        <div className="col-span-2 grid grid-cols-3 gap-2 md:contents">
+                        <div
+                          className={`col-span-2 grid ${mobilePriceGridClass} gap-2 md:contents`}
+                        >
                           {/* Inline mobile labels above each input —
                               hidden on desktop where the column header
                               already labels them. md:contents keeps the
@@ -516,34 +586,38 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                               }
                             />
                           </div>
-                          <div className="flex flex-col gap-1 md:contents">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--green-1] md:hidden">
-                              {t("editProduct.portion_column_campaign")}
-                            </span>
-                            <CustomInput
-                              type="number"
-                              placeholder="Kampanya"
-                              className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
-                              value={formatToPrice(portion.campaignPrice) || "0"}
-                              onChange={(v) =>
-                                handlePortionChange(idx, "campaignPrice", v)
-                              }
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1 md:contents">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
-                              {t("editProduct.portion_column_special")}
-                            </span>
-                            <CustomInput
-                              type="number"
-                              placeholder={t("addProduct.special_price_short")}
-                              className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
-                              value={formatToPrice(portion.specialPrice) || "0"}
-                              onChange={(v) =>
-                                handlePortionChange(idx, "specialPrice", v)
-                              }
-                            />
-                          </div>
+                          {showCampaign && (
+                            <div className="flex flex-col gap-1 md:contents">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[--green-1] md:hidden">
+                                {t("editProduct.portion_column_campaign")}
+                              </span>
+                              <CustomInput
+                                type="number"
+                                placeholder="Kampanya"
+                                className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
+                                value={formatToPrice(portion.campaignPrice) || "0"}
+                                onChange={(v) =>
+                                  handlePortionChange(idx, "campaignPrice", v)
+                                }
+                              />
+                            </div>
+                          )}
+                          {showSpecial && (
+                            <div className="flex flex-col gap-1 md:contents">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
+                                {t("editProduct.portion_column_special")}
+                              </span>
+                              <CustomInput
+                                type="number"
+                                placeholder={t("addProduct.special_price_short")}
+                                className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
+                                value={formatToPrice(portion.specialPrice) || "0"}
+                                onChange={(v) =>
+                                  handlePortionChange(idx, "specialPrice", v)
+                                }
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

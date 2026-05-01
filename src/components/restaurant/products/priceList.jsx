@@ -63,6 +63,12 @@ const PriceList = ({ data: restaurant }) => {
     return map;
   }, [categories]);
 
+  // Özel Fiyat column visibility — driven by the restaurant's
+  // isSpecialPriceActive flag in Genel Ayarlar. Mirrors how Kampanya
+  // is gated per category, but here it's a single restaurant-wide
+  // boolean since the special-price feature isn't per-category.
+  const showSpecial = !!restaurant?.isSpecialPriceActive;
+
   const [list, setList] = useState([]);
   const [listBefore, setListBefore] = useState([]);
   // null = "Tüm Ürünler"; otherwise the selected categoryId
@@ -107,6 +113,10 @@ const PriceList = ({ data: restaurant }) => {
         ...pt,
         name: pt.name ?? "",
         price: pt.price ?? "",
+        // Default null/undefined specialPrice to 0 so the input
+        // renders "0,00" instead of empty when the special-price
+        // feature is later turned on for the restaurant.
+        specialPrice: pt.specialPrice ?? 0,
       })),
     }));
     setList(initialList);
@@ -180,6 +190,13 @@ const PriceList = ({ data: restaurant }) => {
             id: pt.id,
             price: pt.price,
             campaignPrice: pt.campaignPrice,
+            // Always include specialPrice in the payload — even when
+            // the column is hidden in the UI, the backend keeps the
+            // existing value untouched. Sending a stale 0 here would
+            // wipe a previously-set special price; the slice
+            // normalizer turns 0/empty into null so the backend
+            // records "no special price".
+            specialPrice: pt.specialPrice,
           })),
         };
       });
@@ -197,7 +214,9 @@ const PriceList = ({ data: restaurant }) => {
       ? "data-edit"
       : target.getAttribute("data-edit-second")
         ? "data-edit-second"
-        : null;
+        : target.getAttribute("data-edit-third")
+          ? "data-edit-third"
+          : null;
     if (!dataAttr) return;
     const inputs = containerRef.current?.querySelectorAll(`input[${dataAttr}]`);
     if (!inputs?.length) return;
@@ -368,6 +387,11 @@ const PriceList = ({ data: restaurant }) => {
                         {t("priceList.campaign")}
                       </span>
                     )}
+                    {showSpecial && (
+                      <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-orange-600 shrink-0">
+                        {t("priceList.special")}
+                      </span>
+                    )}
                   </div>
 
                   {/* Rows */}
@@ -438,6 +462,24 @@ const PriceList = ({ data: restaurant }) => {
                                       decimals={decimals}
                                     />
                                   )}
+                                  {showSpecial && (
+                                    <PriceInput
+                                      label={t("priceList.special")}
+                                      value={portion.specialPrice ?? ""}
+                                      onChange={(v) =>
+                                        updatePortion(
+                                          i,
+                                          pi,
+                                          "specialPrice",
+                                          Number(v),
+                                        )
+                                      }
+                                      onKeyDown={handleKeyDown}
+                                      dataAttr="data-edit-third"
+                                      tone="orange"
+                                      decimals={decimals}
+                                    />
+                                  )}
                                 </div>
                               </div>
                             );
@@ -488,6 +530,10 @@ const PriceInput = ({
     // tinted wash + light emerald text in dark mode.
     emerald:
       "border-emerald-200 bg-emerald-50/40 text-emerald-700 focus:border-emerald-500 focus:ring-emerald-100 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/20",
+    // Orange — Özel Fiyat. Same dark-variant treatment as emerald so
+    // the input stays readable on either theme.
+    orange:
+      "border-orange-200 bg-orange-50/40 text-orange-700 focus:border-orange-500 focus:ring-orange-100 dark:border-orange-400/30 dark:bg-orange-500/15 dark:text-orange-200 dark:focus:border-orange-400 dark:focus:ring-orange-400/20",
   };
 
   const numericValue = Number.isFinite(Number(value)) ? Number(value) : 0;

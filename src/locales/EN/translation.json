@@ -843,6 +843,7 @@
     "save_changes": "Save Changes",
     "normal_price": "Regular Price",
     "campaign": "Campaign",
+    "special": "Special",
     "bulk_title": "Bulk Price Update",
     "bulk_description": "Apply price changes that will affect all products here.",
     "bulk_type_label": "Operation Type",

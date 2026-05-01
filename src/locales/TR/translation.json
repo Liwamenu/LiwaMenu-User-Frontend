@@ -844,6 +844,7 @@
     "save_changes": "Değişiklikleri Kaydet",
     "normal_price": "Normal Fiyatı",
     "campaign": "Kampanya",
+    "special": "Özel",
     "bulk_title": "Toplu Fiyat Güncelleme",
     "bulk_description": "Tüm ürünlerde geçerli olacak değişiklikleri buradan yapabilirsiniz.",
     "bulk_type_label": "İşlem Türü",

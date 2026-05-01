@@ -46,11 +46,16 @@ const updatePriceListSlice = createSlice({
 });
 
 // Walk the products → portions tree and convert any portion's
-// `campaignPrice` of 0 (number, "0", "0.00", null, undefined,
-// non-numeric, …) into a true null so the backend records it as
-// "no campaign" rather than "0 TL campaign". Both call sites
-// (PriceList save + PriceListApplyBulk's bulk math) feed this
-// thunk, so normalizing here keeps the rule in one place.
+// `campaignPrice` / `specialPrice` of 0 (number, "0", "0.00", null,
+// undefined, non-numeric, …) into a true null so the backend records
+// it as "no campaign / no special price" rather than "0 TL …". Both
+// call sites (PriceList save + PriceListApplyBulk's bulk math) feed
+// this thunk, so normalizing here keeps the rule in one place.
+const isZeroish = (v) => {
+  const n = Number(v);
+  return !Number.isFinite(n) || n === 0;
+};
+
 const normalizeCampaignZeros = (products) => {
   if (!Array.isArray(products)) return products;
   return products.map((product) => {
@@ -59,9 +64,14 @@ const normalizeCampaignZeros = (products) => {
       ...product,
       portions: product.portions.map((portion) => {
         if (!portion) return portion;
-        const n = Number(portion.campaignPrice);
-        const isZeroish = !Number.isFinite(n) || n === 0;
-        return isZeroish ? { ...portion, campaignPrice: null } : portion;
+        const next = { ...portion };
+        if ("campaignPrice" in portion && isZeroish(portion.campaignPrice)) {
+          next.campaignPrice = null;
+        }
+        if ("specialPrice" in portion && isZeroish(portion.specialPrice)) {
+          next.specialPrice = null;
+        }
+        return next;
       }),
     };
   });
