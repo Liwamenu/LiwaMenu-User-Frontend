@@ -4,10 +4,17 @@ import { useTranslation } from "react-i18next";
 import {
   ChevronDown,
   Globe,
+  MessageCircle,
   ShieldCheck,
   Sparkles,
   Zap,
 } from "lucide-react";
+
+// Brand contact number rendered as a click-to-WhatsApp link. Strip
+// the leading 0 from the local format and prepend +90 so wa.me opens
+// a chat with our line on every platform that has WhatsApp installed.
+const WHATSAPP_HREF = "https://wa.me/908508407807";
+const WHATSAPP_DISPLAY = "0850 840 78 07";
 
 import i18n from "../../config/i18n";
 import LanguagesEnums from "../../enums/languagesEnums";
@@ -125,10 +132,13 @@ const AuthShell = ({
         <div className="relative z-10 text-xs text-white/70">
           {t("auth.footer_credit")} ·{" "}
           <a
-            href="tel:08508407807"
-            className="text-white underline-offset-2 hover:underline"
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-white underline-offset-2 hover:underline"
           >
-            0850 840 78 07
+            <MessageCircle className="size-3.5 text-emerald-300" />
+            {WHATSAPP_DISPLAY}
           </a>
         </div>
       </aside>
@@ -136,9 +146,17 @@ const AuthShell = ({
       {/* RIGHT — FORM PANEL */}
       <main className="relative flex-1 flex flex-col w-full lg:w-1/2 min-h-[100dvh] bg-white">
         <header className="flex items-center justify-between px-5 sm:px-8 lg:px-10 py-5">
+          {/* Mobile / tablet brand badge — desktop hides this and shows
+              the brand pill in the left aside instead. Same gradient
+              the app uses for primary surfaces, so the brand reads as
+              "the app", not just a label. */}
           <Link
             to="/"
-            className="lg:hidden font-[conthrax] text-2xl text-[--primary-1]"
+            className="lg:hidden inline-flex items-center font-[conthrax] text-2xl tracking-wide text-white px-5 py-1.5 rounded-full shadow-md shadow-indigo-500/25 ring-1 ring-white/15"
+            style={{
+              background:
+                "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)",
+            }}
           >
             LiwaMenu
           </Link>
@@ -208,8 +226,14 @@ const AuthShell = ({
 
         <footer className="lg:hidden border-t border-slate-100 px-5 sm:px-8 py-4 text-center text-[11px] text-slate-500">
           {t("auth.footer_credit")} ·{" "}
-          <a href="tel:08508407807" className="text-[--primary-1] font-medium">
-            0850 840 78 07
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[--primary-1] font-medium"
+          >
+            <MessageCircle className="size-3.5 text-emerald-500" />
+            {WHATSAPP_DISPLAY}
           </a>
         </footer>
       </main>

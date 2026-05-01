@@ -14,11 +14,18 @@ import {
   Globe,
   Lock,
   Mail,
+  MessageCircle,
   RefreshCw,
   ShieldCheck,
   Sparkles,
   Zap,
 } from "lucide-react";
+
+// Brand WhatsApp link reused from the AuthShell pattern — Login keeps
+// its own custom auth shell so the constants are duplicated here
+// rather than imported from AuthShell to avoid a back-edge.
+const WHATSAPP_HREF = "https://wa.me/908508407807";
+const WHATSAPP_DISPLAY = "0850 840 78 07";
 
 //REDUX
 import { getAuth } from "../redux/api";
@@ -202,10 +209,13 @@ function Login() {
           {t("auth.footer_credit")}
           <span className="text-white/50 mx-2">-</span>
           <a
-            href="tel:08508407807"
-            className="text-white underline-offset-2 hover:underline"
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-white underline-offset-2 hover:underline"
           >
-            0850 840 78 07
+            <MessageCircle className="size-3.5 text-emerald-300" />
+            {WHATSAPP_DISPLAY}
           </a>
           <span className="text-white/50 mx-2">-</span>
           <a
@@ -223,9 +233,16 @@ function Login() {
       <main className="relative flex-1 flex flex-col w-full lg:w-1/2 min-h-[100dvh] bg-white">
         {/* Top bar */}
         <header className="flex items-center justify-between px-5 sm:px-8 lg:px-10 py-5">
+          {/* Mobile / tablet brand badge — same styled pill AuthShell
+              uses on its non-Login auth screens, so Login matches the
+              Register / ForgotPassword treatment on small viewports. */}
           <Link
             to="/"
-            className="lg:hidden font-[conthrax] text-2xl text-[--primary-1]"
+            className="lg:hidden inline-flex items-center font-[conthrax] text-2xl tracking-wide text-white px-5 py-1.5 rounded-full shadow-md shadow-indigo-500/25 ring-1 ring-white/15"
+            style={{
+              background:
+                "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)",
+            }}
           >
             LiwaMenu
           </Link>
@@ -471,10 +488,13 @@ function Login() {
         <footer className="lg:hidden border-t border-slate-100 px-5 sm:px-8 py-4 text-center text-[11px] text-slate-500">
           {t("auth.footer_credit")} ·{" "}
           <a
-            href="tel:08508407807"
-            className="text-[--primary-1] font-medium"
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[--primary-1] font-medium"
           >
-            0850 840 78 07
+            <MessageCircle className="size-3.5 text-emerald-500" />
+            {WHATSAPP_DISPLAY}
           </a>
         </footer>
       </main>
