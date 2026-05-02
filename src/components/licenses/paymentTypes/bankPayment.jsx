@@ -153,7 +153,7 @@ const BankPayment = ({ step, setStep, setPaymentStatus, userInvData }) => {
                 </p>
                 <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 pl-5">
                   {pkg.map((item, j) => {
-                    const isYearly = item.timeId == 0;
+                    const isYearly = item.timeId == 1;
                     const { label, Icon } = getLicenseMeta(item);
                     return (
                       <li

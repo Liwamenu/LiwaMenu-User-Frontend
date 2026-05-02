@@ -314,7 +314,7 @@ const PackageGroup = ({ group, cartItems, onSelect, t }) => {
       <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-2 p-2">
         {group.map((pkg) => {
           const isSelected = cartItems.some((item) => item.id === pkg.id);
-          const isYearly = pkg.timeId == 0;
+          const isYearly = pkg.timeId == 1;
           return (
             <button
               key={pkg.id}

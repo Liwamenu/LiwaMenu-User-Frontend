@@ -182,7 +182,7 @@ const FirstStep = ({
       t("addLicense.added_to_cart", {
         time: pkg.time,
         period:
-          pkg.timeId == 0 ? t("addLicense.yearly") : t("addLicense.monthly"),
+          pkg.timeId == 1 ? t("addLicense.yearly") : t("addLicense.monthly"),
       }),
       { id: "add-licese" },
     );
@@ -293,7 +293,7 @@ const PackageGroup = ({ group, cartItems, restaurantData, onSelect, t }) => {
             (item) =>
               item.id === pkg.id && item.restaurantId === restaurantData?.id,
           );
-          const isYearly = pkg.timeId == 0;
+          const isYearly = pkg.timeId == 1;
           return (
             <button
               key={pkg.id}

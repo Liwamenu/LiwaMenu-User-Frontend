@@ -1,5 +1,0 @@
-logoImageUrl
-isReservationActive
-is missing in Restaurants field
- 
-isActive is missing in Reservations field

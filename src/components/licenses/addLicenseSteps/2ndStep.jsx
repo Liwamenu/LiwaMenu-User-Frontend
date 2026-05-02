@@ -168,7 +168,7 @@ const SecondStep = ({
                 </div>
                 <ul className="divide-y divide-[--border-1]">
                   {group.map((pkg) => {
-                    const isYearly = pkg.timeId == 0;
+                    const isYearly = pkg.timeId == 1;
                     return (
                       <li
                         key={`${pkg.id}-${pkg.restaurantId}`}
