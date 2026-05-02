@@ -1120,7 +1120,8 @@
     "tag_modern": "Modern & mor",
     "tag_natural": "Doğal & yeşil",
     "tag_sunny": "Güneşli & sarı",
-    "tag_fresh": "Taze & yeşil"
+    "tag_fresh": "Taze & yeşil",
+    "tag_elegant": "Zarif & sıcak"
   },
   "tvThemeSelector": {
     "title": "{{name}} için TV Tema Ayarları",

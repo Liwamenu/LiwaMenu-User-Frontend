@@ -1119,7 +1119,8 @@
     "tag_modern": "Modern & purple",
     "tag_natural": "Natural & green",
     "tag_sunny": "Sunny & yellow",
-    "tag_fresh": "Fresh & green"
+    "tag_fresh": "Fresh & green",
+    "tag_elegant": "Elegant & warm"
   },
   "tvThemeSelector": {
     "title": "TV Theme Settings for {{name}}",

@@ -55,6 +55,12 @@ const THEMES = [
     color: "hsl(120 100% 25%)",
     tagKey: "qrThemeSelector.tag_fresh",
   },
+  {
+    id: 5,
+    name: "Tema 6",
+    color: "hsl(38 75% 52%)",
+    tagKey: "qrThemeSelector.tag_elegant",
+  },
 ];
 
 // Build the tenant-facing live URL — used both as the public link and as the
@@ -428,8 +434,7 @@ const ThemeSelector = ({ data }) => {
   );
 };
 
-// Renders the iframe at 80% zoom and clips the iframe's own scrollbars
-// by extending its size past the container's visible area.
+// Renders the iframe at 80% zoom so the menu fits inside the device frame.
 const ScaledIframe = ({ iframeRef, src, onLoad }) => (
   <iframe
     ref={iframeRef}
@@ -438,10 +443,9 @@ const ScaledIframe = ({ iframeRef, src, onLoad }) => (
     onLoad={onLoad}
     scrolling="auto"
     style={{
-      // Iframe is 1/0.8 = 125% of container, then scaled 80% → fills visually.
-      // Extra ~24px pushes the iframe's native scrollbar past the clipped edge.
-      width: "calc(100% / 0.8 + 24px)",
-      height: "calc(100% / 0.8 + 24px)",
+      // Iframe is 1/0.8 = 125% of container, then scaled 80% → fills exactly.
+      width: "calc(100% / 0.8)",
+      height: "calc(100% / 0.8)",
       transform: "scale(0.8)",
       transformOrigin: "0 0",
       border: 0,
