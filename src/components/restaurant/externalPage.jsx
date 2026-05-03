@@ -40,15 +40,38 @@ import {
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
-// Backend may serialize the saved external-page image URL under any of
-// these keys depending on which serializer/DTO it picked. Try them in
-// order so the form always lights up the existing image preview when
-// there is one.
+// The backend stores externalPageImage as a bare filename
+// (e.g. "abc-123.png") instead of pre-resolving it to a full URL like it
+// does for imageAbsoluteUrl. Build the prefix from the API origin so this
+// works in dev / staging / prod without a hardcode. Convention: image
+// files live at <origin>/images/restaurants/.
+const IMAGES_BASE = (() => {
+  try {
+    const apiOrigin = new URL(import.meta.env.VITE_BASE_URL).origin;
+    return `${apiOrigin}/images/restaurants/`;
+  } catch {
+    return "/images/restaurants/";
+  }
+})();
+
+const resolveImageUrl = (raw) => {
+  if (!raw || typeof raw !== "string") return "";
+  // Already an absolute URL or root-relative path — leave as-is.
+  if (/^(https?:)?\/\//i.test(raw) || raw.startsWith("/")) return raw;
+  return `${IMAGES_BASE}${raw}`;
+};
+
+// Backend may serialize the saved external-page image under any of these
+// keys depending on which serializer/DTO it picked. Try them in order,
+// then resolve through the prefix helper so a bare filename becomes a
+// usable URL.
 const readSavedImageUrl = (data) =>
-  data?.externalPageImageUrl ??
-  data?.externalPageImageAbsoluteUrl ??
-  data?.externalPageImage ??
-  "";
+  resolveImageUrl(
+    data?.externalPageImageUrl ??
+      data?.externalPageImageAbsoluteUrl ??
+      data?.externalPageImage ??
+      "",
+  );
 
 const ExternalPage = ({ data }) => {
   const { t } = useTranslation();
