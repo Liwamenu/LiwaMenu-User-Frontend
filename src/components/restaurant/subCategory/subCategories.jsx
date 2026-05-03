@@ -270,12 +270,10 @@ const SubCategories = ({ data: restaurant }) => {
       const orig = beforeFlat.find((b) => b.id === a.id);
       return orig && orig.sortOrder !== a.sortOrder;
     });
-    // Forward sambaId (if present) so the backend doesn't null it out on save.
-    const dataToSend = changedOnes.map(({ id, categoryId, sortOrder, sambaId }) => ({
+    const dataToSend = changedOnes.map(({ id, categoryId, sortOrder }) => ({
       id,
       categoryId,
       sortOrder,
-      sambaId: sambaId ?? null,
     }));
     const formData = new FormData();
     formData.append("restaurantId", restaurant?.id);

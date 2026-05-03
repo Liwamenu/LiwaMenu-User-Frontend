@@ -11,8 +11,11 @@
 // extraction logic.
 
 const PATCH_THUNK_PREFIXES = new Set([
+  // Note: SetRestaurantTheme handles both QR theme and TV menu saves —
+  // the backend endpoint accepts { themeId, tvMenuId } in one body, and
+  // tvMenuSelector dispatches setRestaurantTheme with arg.tvMenuId. The
+  // patch logic merges whatever fields are in arg, so both flows work.
   "Restaurants/SetRestaurantTheme",
-  "Restaurants/SetRestaurantTvMenu",
   "Restaurants/SetRestaurantSettings",
   "Restaurants/SetRestaurantReservationSettings",
   "Restaurants/SetAnnouncementSettings",

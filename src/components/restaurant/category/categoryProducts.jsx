@@ -155,15 +155,8 @@ const CategoryProducts = ({ categoryId, categoryName, onClose }) => {
     fd.append("hide", String(p.hide ?? false));
     fd.append("freeTagging", String(p.freeTagging ?? false));
     fd.append("sortOrder", String(newSortOrder));
-    // Forward sambaId so the backend keeps the existing value on update.
-    fd.append("sambaId", p.sambaId ?? "");
     if (Array.isArray(p.portions)) {
-      // Preserve each portion's sambaId too.
-      const portions = p.portions.map((pt) => ({
-        ...pt,
-        sambaId: pt.sambaId ?? null,
-      }));
-      fd.append("portions", JSON.stringify(portions));
+      fd.append("portions", JSON.stringify(p.portions));
     }
     if (p.image && typeof p.image === "string") {
       fd.append("imageUrl", p.image);
