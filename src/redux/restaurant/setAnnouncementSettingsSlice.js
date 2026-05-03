@@ -1,71 +1,17 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { privateApi } from "../api";
+import { createApiSlice } from "../createApiSlice";
 
-const api = privateApi();
-const baseURL = import.meta.env.VITE_BASE_URL;
-
-const initialState = {
-  loading: false,
-  success: false,
-  error: null,
-  data: null,
-};
-
-const setAnnouncementSettingsSlice = createSlice({
+const slice = createApiSlice({
   name: "setAnnouncementSettings",
-  initialState: initialState,
-  reducers: {
-    resetSetAnnouncementSettingsSlice: (state) => {
-      state.loading = false;
-      state.success = false;
-      state.error = null;
-      state.data = null;
-    },
-  },
-  extraReducers: (build) => {
-    build
-      .addCase(setAnnouncementSettings.pending, (state) => {
-        state.loading = true;
-        state.success = false;
-        state.error = null;
-        state.data = null;
-      })
-      .addCase(setAnnouncementSettings.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = true;
-        state.error = null;
-        state.data = action.payload;
-      })
-      .addCase(setAnnouncementSettings.rejected, (state, action) => {
-        state.loading = false;
-        state.success = false;
-        state.error = action.payload;
-        state.data = null;
-      });
-  },
+  thunkType: "Restaurants/SetAnnouncementSettings",
+  url: "Restaurants/SetAnnouncementSettings",
+  method: "put",
+  errorIdle: null,
+  clearOnPending: true,
 });
 
-export const setAnnouncementSettings = createAsyncThunk(
-  "Restaurants/SetAnnouncementSettings",
-  async (data, { rejectWithValue }) => {
-    try {
-      const res = await api.put(
-        `${baseURL}Restaurants/SetAnnouncementSettings`,
-        data,
-      );
-
-      // console.log(res);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      if (err?.response?.data) {
-        throw rejectWithValue(err.response.data);
-      }
-      throw rejectWithValue({ message_TR: err.message });
-    }
-  },
-);
-
-export const { resetSetAnnouncementSettingsSlice } =
-  setAnnouncementSettingsSlice.actions;
-export default setAnnouncementSettingsSlice.reducer;
+export const setAnnouncementSettings = slice.thunk;
+// Original slice exported a "...Slice"-suffixed reset action — keep the alias.
+export const {
+  resetSetAnnouncementSettings: resetSetAnnouncementSettingsSlice,
+} = slice.actions;
+export default slice.reducer;

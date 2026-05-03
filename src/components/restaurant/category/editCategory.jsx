@@ -90,8 +90,6 @@ const EditCategory = ({
 
       const { id, restaurantId, menuIds, name, isActive, featured, campaign } =
         categoryData;
-      // Include sambaId so the backend keeps the existing value instead of
-      // nulling it on update. Add flow doesn't need it (no value yet).
       const payloadCategory = [
         {
           id,
@@ -101,7 +99,6 @@ const EditCategory = ({
           isActive,
           featured,
           campaign,
-          sambaId: categoryData?.sambaId ?? null,
         },
       ];
 

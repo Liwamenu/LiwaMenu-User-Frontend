@@ -53,6 +53,7 @@
     "reservation": "Reservation",
     "announcement": "Announcement",
     "survey": "Survey",
+    "external_page": "External Page",
     "hours": "Working Hours",
     "social": "Social Media",
     "payments": "Payment Methods"
@@ -474,6 +475,25 @@
     "end_time_label": "Reservation End Time",
     "save": "Save",
     "is_active_label": "Activate Reservations"
+  },
+  "externalPage": {
+    "title": "External Page for {{name}}",
+    "subtitle": "Add an extra HTML/image page reachable from a button in your customer-facing menu.",
+    "button_name_label": "Button Name",
+    "button_name_placeholder": "e.g. About Us, Gallery, Story",
+    "button_name_hint": "The label your customers will see on the button that opens this page.",
+    "image_label": "Image",
+    "image_hint": "Optional. Shown alongside or above your HTML content.",
+    "pick_image": "Pick image",
+    "change_image": "Change image",
+    "remove_image": "Remove",
+    "html_label": "HTML Content",
+    "html_placeholder": "Paste your HTML here. Tailwind classes are supported.",
+    "save": "Save Changes",
+    "success": "External page updated.",
+    "missing_restaurant": "Restaurant not loaded yet.",
+    "invalid_image": "Please pick an image file.",
+    "image_too_large": "Image must be under {{mb}} MB."
   },
   "announcementSettings": {
     "title": "Announcement Settings for {{name}}",

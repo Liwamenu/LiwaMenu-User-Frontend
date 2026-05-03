@@ -17,7 +17,6 @@ import setAnnouncementSettingsSlice from "./setAnnouncementSettingsSlice";
 import getSurveySettingsSlice from "./getSurveySettingsSlice";
 import setSurveySettingsSlice from "./setSurveySettingsSlice";
 import setRestaurantThemeSlice from "./setRestaurantThemeSlice";
-import setRestaurantTvMenuSlice from "./setRestaurantTvMenuSlice";
 import checkTenantAvailabilitySlice from "./checkTenantAvailabilitySlice";
 
 const restaurantSlice = combineReducers({
@@ -37,7 +36,6 @@ const restaurantSlice = combineReducers({
   getSurveySettings: getSurveySettingsSlice,
   setSurveySettings: setSurveySettingsSlice,
   setRestaurantTheme: setRestaurantThemeSlice,
-  setRestaurantTvMenu: setRestaurantTvMenuSlice,
   checkTenantAvailability: checkTenantAvailabilitySlice,
 });
 

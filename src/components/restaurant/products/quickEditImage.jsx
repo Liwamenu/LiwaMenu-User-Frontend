@@ -80,7 +80,6 @@ const QuickEditImage = ({ product, onSaved }) => {
     formData.append("categoryId", product.categoryId || "");
     formData.append("subCategoryId", product.subCategoryId || "");
     formData.append("freeTagging", !!product.freeTagging);
-    formData.append("sambaId", product.sambaId ?? "");
     formData.append("image", file);
 
     const portions = (product.portions || []).map((p) => ({
@@ -90,7 +89,6 @@ const QuickEditImage = ({ product, onSaved }) => {
       price: Number(p.price) || 0,
       campaignPrice: Number(p.campaignPrice) || 0,
       specialPrice: Number(p.specialPrice) || 0,
-      sambaId: p.sambaId ?? null,
     }));
     formData.append("portions", JSON.stringify(portions));
 

@@ -2,6 +2,10 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import {
+  isRestaurantPatchAction,
+  restaurantPatchFromAction,
+} from "./restaurantEntityPatchers";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -45,6 +49,21 @@ const getRestaurantsSlice = createSlice({
         state.success = false;
         state.error = action.payload;
         state.restaurants = null;
+      })
+      // Cross-slice: when any restaurant-entity-patching settings save
+      // succeeds, mutate the cached entry by id so the UI doesn't go stale
+      // on tab switch + return. See restaurantEntityPatchers.js.
+      .addMatcher(isRestaurantPatchAction, (state, action) => {
+        const result = restaurantPatchFromAction(action);
+        if (!result || !state.restaurants?.data) return;
+        const idx = state.restaurants.data.findIndex(
+          (r) => r.id === result.restaurantId,
+        );
+        if (idx === -1) return;
+        state.restaurants.data[idx] = {
+          ...state.restaurants.data[idx],
+          ...result.patch,
+        };
       });
   },
 });

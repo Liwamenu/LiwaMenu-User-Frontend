@@ -3,7 +3,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { Toaster } from "react-hot-toast";
 import { createRoot } from "react-dom/client";
-import toastOptions from "../config/toast.js";
+import toastOptions from "./config/toast.js";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store.js";

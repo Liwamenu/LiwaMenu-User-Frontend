@@ -198,8 +198,6 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     formData.append("categoryId", productData.categoryId || "");
     formData.append("subCategoryId", productData.subCategoryId || "");
     formData.append("freeTagging", productData.freeTagging);
-    // Forward sambaId so the backend keeps the existing value on update.
-    formData.append("sambaId", productData.sambaId ?? "");
 
     // Image handling: 3 mutually exclusive cases.
     //   1. User picked a new file → upload it (replaces existing)
@@ -228,8 +226,6 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
       price: Number(p.price) || 0,
       campaignPrice: Number(p.campaignPrice) || 0,
       specialPrice: Number(p.specialPrice) || 0,
-      // Each portion has its own sambaId — preserve it on update.
-      sambaId: p.sambaId ?? null,
     }));
     formData.append("portions", JSON.stringify(portions));
 

@@ -1,75 +1,19 @@
-import { privateApi } from "../api";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiSlice } from "../createApiSlice";
 
-const api = privateApi();
-const baseURL = import.meta.env.VITE_BASE_URL;
-
-const initialState = {
-  loading: false,
-  success: false,
-  error: false,
-  data: null,
-};
-
-const getAnnouncementSettingsSlice = createSlice({
+const slice = createApiSlice({
   name: "getAnnouncementSettings",
-  initialState: initialState,
-  reducers: {
-    resetGetAnnouncementSettingsSlice: (state) => {
-      state.loading = false;
-      state.success = false;
-      state.error = null;
-      state.data = null;
-    },
-  },
-  extraReducers: (build) => {
-    build
-      .addCase(getAnnouncementSettings.pending, (state) => {
-        state.loading = true;
-        state.success = false;
-        state.error = false;
-        state.data = null;
-      })
-      .addCase(getAnnouncementSettings.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = true;
-        state.error = false;
-        state.data = action.payload;
-      })
-      .addCase(getAnnouncementSettings.rejected, (state, action) => {
-        state.loading = false;
-        state.success = false;
-        state.error = action.payload;
-        state.data = null;
-      });
-  },
+  thunkType: "Restaurants/GetAnnouncementSettings",
+  url: "Restaurants/GetAnnouncementSettings",
+  method: "get",
+  transform: (res) => res?.data?.data,
+  errorIdle: null,
+  clearOnPending: true,
 });
 
-export const getAnnouncementSettings = createAsyncThunk(
-  "Restaurants/GetAnnouncementSettings",
-  async ({ restaurantId }, { rejectWithValue }) => {
-    try {
-      const res = await api.get(
-        `${baseURL}Restaurants/GetAnnouncementSettings`,
-        {
-          params: {
-            restaurantId,
-          },
-        },
-      );
-
-      // console.log(res.data.data);
-      return res.data.data;
-    } catch (err) {
-      console.log(err);
-      if (err?.response?.data) {
-        return rejectWithValue(err.response.data);
-      }
-      return rejectWithValue({ message_TR: err.message });
-    }
-  },
-);
-
-export const { resetGetAnnouncementSettingsSlice } =
-  getAnnouncementSettingsSlice.actions;
-export default getAnnouncementSettingsSlice.reducer;
+export const getAnnouncementSettings = slice.thunk;
+// Original slice exported a "...Slice"-suffixed reset action — keep the
+// alias so callers (`dispatch(resetGetAnnouncementSettingsSlice())`) work.
+export const {
+  resetGetAnnouncementSettings: resetGetAnnouncementSettingsSlice,
+} = slice.actions;
+export default slice.reducer;

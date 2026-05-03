@@ -1,5 +1,5 @@
 //MODULES
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Route, Routes, useLocation, useParams } from "react-router-dom";
 
@@ -7,14 +7,10 @@ import { Route, Routes, useLocation, useParams } from "react-router-dom";
 import Sidebar from "../components/subSidebar/subSidebar";
 
 //REDUX
-import {
-  getRestaurant,
-  resetGetRestaurantState,
-} from "../redux/restaurants/getRestaurantSlice";
+import { getRestaurant } from "../redux/restaurants/getRestaurantSlice";
 
 //PAGES
 import NotFound from "./404";
-import TestPage from "./test";
 import EditRestaurant from "../components/restaurant/editRestaurant";
 import WorkingHours from "../components/restaurant/workingHours";
 import SocialMedias from "../components/restaurant/socialMedias";
@@ -22,6 +18,7 @@ import PaymentMethods from "../components/restaurant/paymentMethods";
 import ReservationSett from "../components/restaurant/reservationSettings";
 import RestaurantSettings from "../components/restaurant/restaurantSettings";
 import AnnouncementSett from "../components/restaurant/announcementSettings";
+import ExternalPage from "../components/restaurant/externalPage";
 
 //PRODUCTS
 import Products from "../components/restaurant/products/products";
@@ -60,38 +57,36 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const { restaurants } = useSelector(
     (state) => state.restaurants.getRestaurants,
   );
-  const { restaurant: stateRest, success } = useSelector(
+  const { restaurant: stateRest } = useSelector(
     (state) => state.restaurants.getRestaurant,
   );
   const { restaurant } = location?.state || {};
-  const myRestaurant = restaurants?.data?.filter((r) => r.id === id)[0];
-  const [data, setData] = useState(restaurant || myRestaurant);
 
-  // Fetch restaurant only if we don't already have it. We deliberately do
-  // NOT re-fetch on setRestaurantSettings success — `GetRestaurantById` is
-  // slow (~2.7s) and would keep the global spinner up long after the toast
-  // has already confirmed the save. Each sub-tab fetches its own slice.
+  // Derive `data` reactively so settings saves that patch the cached
+  // restaurant entity (see redux/restaurants/restaurantEntityPatchers.js)
+  // immediately propagate to children — no local snapshot to go stale on
+  // tab switch + return. We deliberately do NOT re-fetch GetRestaurantById
+  // after a save (it's ~2.7s and would freeze the global spinner); the
+  // cross-slice patch matchers keep state.restaurants.data in sync.
+  const myRestaurant = useMemo(
+    () => restaurants?.data?.find((r) => r.id === id),
+    [restaurants, id],
+  );
+  const data = restaurant || myRestaurant || stateRest;
+
+  // Fetch restaurant only if we don't already have it (deep-link case).
   useEffect(() => {
-    if (!restaurant && !data) {
+    if (!data) {
       dispatch(getRestaurant({ restaurantId: id }));
     }
-  }, [data, dispatch, id, restaurant]);
+  }, [data, dispatch, id]);
 
   useEffect(() => {
     setShowS1(false);
-
     return () => {
       setShowS1(true);
     };
   }, []);
-
-  // Update data when fetched
-  useEffect(() => {
-    if (success) {
-      setData(stateRest);
-      dispatch(resetGetRestaurantState());
-    }
-  }, [success]);
 
   const P = {
     // paths
@@ -105,6 +100,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
       rsrv: "reservationSettings/:id",
       ann: "announcementSettings/:id",
       surv: "surveySettings/:id",
+      ext: "externalPage/:id",
     },
     cat: {
       add: "/categories/:id/add",
@@ -144,6 +140,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           <Route path={P.R.rsrv} element={<ReservationSett data={data} />} />
           <Route path={P.R.ann} element={<AnnouncementSett data={data} />} />
           <Route path={P.R.surv} element={<SurveySettings data={data} />} />
+          <Route path={P.R.ext} element={<ExternalPage data={data} />} />
 
           {/* CATEGORIES */}
           <Route path={P.cat.list} element={<Categories data={data} />} />
@@ -179,7 +176,6 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           {/* QR */}
           <Route path="/qr/:id" element={<QRPage data={data} />} />
 
-          <Route path="/test" element={<TestPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </section>
