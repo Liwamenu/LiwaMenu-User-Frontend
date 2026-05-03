@@ -64,9 +64,12 @@ const DEVICES = [
 ];
 
 // Build the tenant-facing live URL — used as the iframe preview source.
+// TV menus live on the dedicated *.liwamenu.tv domain (separate from the
+// QR menu's *.liwamenu.com domain — TV themes are rendered by a different
+// theme app served from .tv).
 const buildTenantUrl = (tenant, fallback = "demo") => {
   const t = (tenant || fallback).trim();
-  return `https://${t}.liwamenu.com`;
+  return `https://${t}.liwamenu.tv`;
 };
 
 const ThemeSelector = ({ data }) => {
