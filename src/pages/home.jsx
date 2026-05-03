@@ -8,7 +8,6 @@ import Sidebar from "../components/sidebar/sidebar";
 
 //PAGES
 import NotFound from "./404";
-import TestPage from "./test";
 import Profile from "./profile";
 import Licenses from "./licenses";
 import Restourants from "./restourants";
@@ -48,7 +47,6 @@ const Home = () => {
         <Route path="/licenses/*" element={<Licenses />} />
         <Route path="/orders/*" element={<Orders />} />
         <Route path="/profile/*" element={<Profile />} />
-        <Route path="/test" element={<TestPage />} />
         <Route path="/*" element={<Restourants />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

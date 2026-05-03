@@ -38,12 +38,18 @@ The store (`src/store.js`) registers one reducer per domain. Inside `src/redux/<
 
 - **One file per endpoint.** Each file defines a `createAsyncThunk` and a `createSlice` with `loading/success/error` plus the payload (e.g. `products`, `categories`).
 - **`<domain>/index.js`** uses `combineReducers` to assemble the slices into one reducer keyed by short names (`get`, `add`, `edit`, `delete`, `getLite`, ...). The store registers that combined reducer.
-- **Cache contract:** list slices use a stale-while-revalidate pattern — keep the previous payload visible during refetch and stamp `fetchedFor` with a cache key (restaurantId, or for paginated endpoints a composite key built by an exported helper like `productsCacheKey` in `redux/products/getProductsSlice.js`). Call sites compute the same key and skip dispatch when it matches.
+- **Use `createApiSlice` for new endpoints.** `src/redux/createApiSlice.js` is a factory that captures the standard `{loading, success, error, payloadKey}` shape in ~10 lines per slice instead of ~80. Pass `name`, `thunkType`, `url`, `method`, plus optional `transform` (e.g. `(res) => res?.data?.data` for endpoints with a wrapper envelope), `errorIdle: null` if the slice uses `null` instead of `false` for the error idle value, and `clearOnPending: true` if pending should clear the payload (vs stale-while-revalidate). The factory also auto-exports `resetXxx` and `resetXxxState` actions. Slices in `src/redux/restaurant/` are mostly migrated; the rest follow the legacy verbose pattern and can be migrated incrementally. **Keep `thunkType` exactly as the original** — many cross-slice matchers and the `restaurantEntityPatchers` rely on stable action-type strings.
+- **Cache contract:** list slices use a stale-while-revalidate pattern — keep the previous payload visible during refetch and stamp `fetchedFor` with a cache key (restaurantId, or for paginated endpoints a composite key built by an exported helper like `productsCacheKey` in `redux/products/getProductsSlice.js`). Call sites compute the same key and skip dispatch when it matches. Slices with caching extend `createApiSlice` via `initialExtra` and `extraCases` (or stay verbose).
 - **Cross-slice invalidation** is done via `addMatcher` on action-type strings, not via thunks calling other thunks. Example: `getProductsLiteSlice` clears its cache when it sees `Products/AddProduct/fulfilled`, `Products/EditProduct/fulfilled`, or `Products/DeleteProduct/fulfilled`. The thunk type prefix is the **first arg to `createAsyncThunk`** — keep matcher strings in sync with those prefixes (a typo silently disables invalidation).
+- **Restaurant entity sync after settings saves:** `src/redux/restaurants/restaurantEntityPatchers.js` lists thunk type prefixes whose dispatched arg shape is `{ restaurantId, ...patch }`. When any of those fulfills, `getRestaurantsSlice` and `getRestaurantSlice` automatically merge the patch into the cached restaurant entry — no callback wiring or extra fetch. Add a thunk to `PATCH_THUNK_PREFIXES` when its save updates fields directly on the restaurant entity.
 
 ### Global loading middleware
 
-`middlewares/loadingMiddleware.js` (note: lives at the **repo root**, not `src/`) counts every `/pending` thunk and toggles `state.isLoading` true until the count returns to zero. `PopupContext` watches this and renders a full-screen `CustomGeneralLoader` overlay. Consequence: **any slow thunk blocks the entire UI**. When adding a long-running fetch (background polling, optimistic prefetch), consider whether it should bypass this — the project's pattern is to lean on slice-level caching to avoid redundant dispatches rather than to bypass the middleware.
+`src/middlewares/loadingMiddleware.js` counts every `/pending` thunk and toggles `state.isLoading` true until the count returns to zero. `PopupContext` watches this and renders a full-screen `CustomGeneralLoader` overlay. Default: any pending thunk shows the spinner.
+
+**Opt-out two ways** when a thunk shouldn't freeze the UI (background polling, prefetch, FCM-driven refresh):
+1. **Static allowlist:** add the thunk type prefix to `SILENT_THUNKS` at the top of the middleware. No call-site changes.
+2. **Per-call:** dispatch with `{ ..., __silent: true }` in the arg. Caveat — slices that forward the whole arg to axios (e.g. `params: data`) will leak `__silent` to the backend as a query param; either destructure it out or just use the static allowlist.
 
 ### API layer (`src/redux/api.js`)
 
@@ -82,6 +88,6 @@ Tailwind 3 with `darkMode: ['class']` driven by a class set on `<body>` (`utils/
 ## Notable quirks
 
 - The dev script is `start`, not `dev`. The README is wrong about this.
-- `Products/getProductsByRestaurantId` historically capped `pageSize` at 100; the lite endpoint `Products/GetProductsByRestaurantIdLite` was added for dropdown use cases. See `BACKEND_PERFORMANCE_REQUEST.md` for the full story (kept as historical context — backend has shipped both fixes).
-- The loading middleware lives at the repo root in `middlewares/`, not in `src/`. Same for `hooks/` and `config/toast.js` (imported as `../../config/toast.js` from `src/main.jsx`).
+- `Products/getProductsByRestaurantId` historically capped `pageSize` at 100; the lite endpoint `Products/GetProductsByRestaurantIdLite` was added for dropdown use cases.
 - `MenuJson.json` (~800 KB) is sample/seed data, not loaded at runtime.
+- `privateApi()` returns a process-singleton — interceptors are registered once at module load, not per call. Old call sites that do `const api = privateApi();` at module top still work and now share the same instance.

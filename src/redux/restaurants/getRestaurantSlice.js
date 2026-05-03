@@ -2,6 +2,10 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import {
+  isRestaurantPatchAction,
+  restaurantPatchFromAction,
+} from "./restaurantEntityPatchers";
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -74,6 +78,15 @@ const getRestaurantSlice = createSlice({
         state.licensesRestaurant.success = false;
         state.licensesRestaurant.error = action.payload;
         state.licensesRestaurant.licenses = null;
+      })
+      // Cross-slice: when any restaurant-entity-patching settings save
+      // succeeds for THIS cached restaurant, merge the patch in. See
+      // restaurantEntityPatchers.js for the thunk list.
+      .addMatcher(isRestaurantPatchAction, (state, action) => {
+        const result = restaurantPatchFromAction(action);
+        if (!result || !state.restaurant) return;
+        if (state.restaurant.id !== result.restaurantId) return;
+        state.restaurant = { ...state.restaurant, ...result.patch };
       });
   },
 });

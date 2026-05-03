@@ -46,87 +46,89 @@ export const clearAuth = () => {
   localStorage.removeItem(KEY);
 };
 
-export const privateApi = () => {
-  axiosPrivate.interceptors.request.use(
-    (config) => {
-      const token = getAuth()?.token;
-      if (token) {
-        config.headers["Authorization"] = `Bearer ${token}`;
-      } else {
-        return Promise.reject({
-          response: {
-            status: 401,
-            message: "No token provided. Unauthorized.",
-          },
-        });
-      }
-      return config;
-    },
-    (error) => {
-      console.log(error);
-      return Promise.reject({ ...error });
+// Register the auth + error interceptors ONCE at module load. Previously
+// each slice called `privateApi()` at its own module top, which re-registered
+// the same interceptors per slice (~100 stacks). Idempotent but wasteful.
+// `privateApi()` now just returns the configured singleton.
+axiosPrivate.interceptors.request.use(
+  (config) => {
+    const token = getAuth()?.token;
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      return Promise.reject({
+        response: {
+          status: 401,
+          message: "No token provided. Unauthorized.",
+        },
+      });
     }
-  );
+    return config;
+  },
+  (error) => {
+    console.log(error);
+    return Promise.reject({ ...error });
+  },
+);
 
-  axiosPrivate.interceptors.response.use(
-    (response) => response,
-    async (error, response) => {
-      // Use the live i18n function so messages follow the user's current
-      // language. `i18n.t` is bound at evaluation time, no need for a hook.
-      const t = i18n.t.bind(i18n);
-      let errorMessage = "";
-      toast.dismiss();
+axiosPrivate.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // Use the live i18n function so messages follow the user's current
+    // language. `i18n.t` is bound at evaluation time, no need for a hook.
+    const t = i18n.t.bind(i18n);
+    let errorMessage = "";
+    toast.dismiss();
 
-      if (error.response?.status === 401) {
-        clearAuth();
-        errorMessage = t("apiErrors.unauthorized");
-        window.location.href = "/login";
-      }
-
-      if (error.response?.status === 403) {
-        errorMessage = t("apiErrors.inactive_account");
-        toast.error(errorMessage, { id: "403" });
-      } else if (error.response) {
-        const resErr = pickBackendMessage(error?.response?.data);
-        if (resErr) {
-          errorMessage = resErr;
-        } else {
-          switch (error.response.status) {
-            case 400:
-              errorMessage = t("apiErrors.bad_request");
-              break;
-            case 404:
-              errorMessage = t("apiErrors.not_found");
-              break;
-            case 500:
-              errorMessage = t("apiErrors.server_error");
-              break;
-            default:
-              errorMessage = t("apiErrors.unexpected_status", {
-                status: error.response.status,
-              });
-          }
-        }
-        toast.error(errorMessage, { id: "api-error" });
-      } else if (error.request) {
-        errorMessage = t("apiErrors.no_response");
-        toast.error(errorMessage, { id: "no-server-error" });
-      } else {
-        // Avoid stacking the prefix when the message already carries it.
-        const prefix = t("apiErrors.generic", { message: "" }).trim();
-        if (!error.message.includes(prefix.replace(/[:：]\s*$/, ""))) {
-          errorMessage = t("apiErrors.generic", { message: error.message });
-        } else {
-          errorMessage = error.message;
-        }
-        toast.error(errorMessage, { id: "random-error" });
-      }
-
-      return Promise.reject({ ...error, message: errorMessage });
+    if (error.response?.status === 401) {
+      clearAuth();
+      errorMessage = t("apiErrors.unauthorized");
+      window.location.href = "/login";
     }
-  );
 
-  return axiosPrivate;
-};
+    if (error.response?.status === 403) {
+      errorMessage = t("apiErrors.inactive_account");
+      toast.error(errorMessage, { id: "403" });
+    } else if (error.response) {
+      const resErr = pickBackendMessage(error?.response?.data);
+      if (resErr) {
+        errorMessage = resErr;
+      } else {
+        switch (error.response.status) {
+          case 400:
+            errorMessage = t("apiErrors.bad_request");
+            break;
+          case 404:
+            errorMessage = t("apiErrors.not_found");
+            break;
+          case 500:
+            errorMessage = t("apiErrors.server_error");
+            break;
+          default:
+            errorMessage = t("apiErrors.unexpected_status", {
+              status: error.response.status,
+            });
+        }
+      }
+      toast.error(errorMessage, { id: "api-error" });
+    } else if (error.request) {
+      errorMessage = t("apiErrors.no_response");
+      toast.error(errorMessage, { id: "no-server-error" });
+    } else {
+      // Avoid stacking the prefix when the message already carries it.
+      const prefix = t("apiErrors.generic", { message: "" }).trim();
+      if (!error.message.includes(prefix.replace(/[:：]\s*$/, ""))) {
+        errorMessage = t("apiErrors.generic", { message: error.message });
+      } else {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage, { id: "random-error" });
+    }
+
+    return Promise.reject({ ...error, message: errorMessage });
+  },
+);
+
+export const privateApi = () => axiosPrivate;
 
 export default api;

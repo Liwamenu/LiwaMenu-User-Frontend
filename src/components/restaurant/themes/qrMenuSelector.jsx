@@ -162,7 +162,9 @@ const ThemeSelector = ({ data }) => {
   }, []);
 
   // Toast on success + commit active theme. Guarded by `pendingThemeId` so a
-  // stale `success` state from another page can't fake a save here.
+  // stale `success` state from another page can't fake a save here. The
+  // parent's cached restaurant.themeId is kept in sync centrally via the
+  // restaurantEntityPatchers matcher — no callback needed.
   useEffect(() => {
     if (success && pendingThemeId !== null) {
       toast.success(t("qrThemeSelector.success_updated"), {

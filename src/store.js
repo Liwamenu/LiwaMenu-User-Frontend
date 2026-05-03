@@ -22,7 +22,7 @@ import paymentsSlice from "./redux/payments";
 // import rolesSlice from "./redux/roles";
 // import managersSlice from "./redux/managers";
 import loadingSlice from "./redux/loadingSlice";
-import loadingMiddleware from "../middlewares/loadingMiddleware";
+import loadingMiddleware from "./middlewares/loadingMiddleware";
 import restaurantSlice from "./redux/restaurant";
 import categoriesSlice from "./redux/categories";
 import subCategoriesSlice from "./redux/subCategories";
