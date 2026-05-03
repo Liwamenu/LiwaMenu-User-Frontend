@@ -18,10 +18,7 @@ import {
 } from "lucide-react";
 
 //FUNC
-import {
-  formatToPrice,
-  groupedLicensePackages,
-} from "../../../utils/utils";
+import { formatPrice, groupedLicensePackages } from "../../../utils/utils";
 import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
 // REDUX
@@ -276,7 +273,7 @@ const FirstStep = ({
             {t("addLicense.total")}
           </p>
           <p className="text-lg sm:text-xl font-black text-[--black-1] tabular-nums">
-            {formatToPrice(total.toFixed(2).replace(".", ","))} ₺
+            {formatPrice(total)} ₺
           </p>
         </div>
         <button

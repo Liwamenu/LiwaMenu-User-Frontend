@@ -33,7 +33,7 @@ import {
 import { PaymentLoader } from "../stepsAssets/paymentLoader";
 
 // FUNC
-import { formatToPrice, isValidCardNumber } from "../../../utils/utils";
+import { formatPrice, isValidCardNumber } from "../../../utils/utils";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -354,7 +354,7 @@ const OnlinePayment = ({
               {t("addLicense.total")}
             </p>
             <p className="text-lg sm:text-xl font-black text-[--black-1] tabular-nums">
-              {formatToPrice(total.toFixed(2).replace(".", ","))} ₺
+              {formatPrice(total)} ₺
             </p>
           </div>
         </div>

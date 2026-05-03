@@ -15,7 +15,7 @@ import CustomTextarea from "../../common/customTextarea";
 import CustomFileInput from "../../common/customFileInput";
 
 // UTILS
-import { formatToPrice } from "../../../utils/utils";
+import { parsePrice } from "../../../utils/utils";
 import { usePopup } from "../../../context/PopupContext";
 import { CancelI, CloudUI, DeleteI } from "../../../assets/icon";
 
@@ -78,9 +78,12 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const showSpecial = !!restaurant?.isSpecialPriceActive;
   const priceCount = 1 + (showCampaign ? 1 : 0) + (showSpecial ? 1 : 0);
   const desktopGridClass = {
-    1: "md:grid-cols-[1fr_80px_30px]",
-    2: "md:grid-cols-[1fr_80px_80px_30px]",
-    3: "md:grid-cols-[1fr_80px_80px_80px_30px]",
+    // Portion name and price columns now share equal `1fr`s instead of
+    // letting the name swallow all remaining space — keeps the price/
+    // campaign/special inputs comfortably wide.
+    1: "md:grid-cols-[1fr_1fr_30px]",
+    2: "md:grid-cols-[1fr_1fr_1fr_30px]",
+    3: "md:grid-cols-[1fr_1fr_1fr_1fr_30px]",
   }[priceCount];
   const deleteColStartClass = {
     1: "md:col-start-3",
@@ -223,9 +226,9 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
       id: p.id,
       productId: p.productId,
       name: p.name,
-      price: Number(p.price) || 0,
-      campaignPrice: Number(p.campaignPrice) || 0,
-      specialPrice: Number(p.specialPrice) || 0,
+      price: parsePrice(p.price),
+      campaignPrice: parsePrice(p.campaignPrice),
+      specialPrice: parsePrice(p.specialPrice),
     }));
     formData.append("portions", JSON.stringify(portions));
 
@@ -573,10 +576,12 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                             </span>
                             <CustomInput
                               required
-                              type="number"
+                              type="text"
+                              inputMode="decimal"
+                              name="price"
                               placeholder="Fiyat"
                               className="py-[6px] text-sm text-center bg-[--white-2]"
-                              value={formatToPrice(portion.price) || "0"}
+                              value={portion.price ?? ""}
                               onChange={(v) =>
                                 handlePortionChange(idx, "price", v)
                               }
@@ -588,10 +593,12 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                                 {t("editProduct.portion_column_campaign")}
                               </span>
                               <CustomInput
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
+                                name="price"
                                 placeholder="Kampanya"
                                 className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
-                                value={formatToPrice(portion.campaignPrice) || "0"}
+                                value={portion.campaignPrice ?? ""}
                                 onChange={(v) =>
                                   handlePortionChange(idx, "campaignPrice", v)
                                 }
@@ -604,10 +611,12 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                                 {t("editProduct.portion_column_special")}
                               </span>
                               <CustomInput
-                                type="number"
+                                type="text"
+                                inputMode="decimal"
+                                name="price"
                                 placeholder={t("addProduct.special_price_short")}
                                 className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
-                                value={formatToPrice(portion.specialPrice) || "0"}
+                                value={portion.specialPrice ?? ""}
                                 onChange={(v) =>
                                   handlePortionChange(idx, "specialPrice", v)
                                 }

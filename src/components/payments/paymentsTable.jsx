@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import {
   copyToClipboard,
   formatDateString,
-  formatToPrice,
+  formatPrice,
 } from "../../utils/utils";
 
 const PRIMARY_GRADIENT =
@@ -116,8 +116,7 @@ const PaymentRow = ({ p, t }) => {
   const MethodIcon = method.icon;
 
   const items = parseBasket(p.basketItems);
-  const formattedAmount =
-    formatToPrice((p.amount ?? 0).toFixed(2).replace(".", ",")) || "0,00";
+  const formattedAmount = formatPrice(p.amount ?? 0);
 
   return (
     <li className="rounded-2xl border border-[--border-1] bg-[--white-1] hover:border-[--primary-1]/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all">

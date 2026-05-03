@@ -17,7 +17,7 @@ import CustomSelect from "../../common/customSelector";
 
 //UTILS
 import {
-  formatToPrice,
+  formatPrice,
   formatSelectorData,
   groupedLicensePackages,
 } from "../../../utils/utils";
@@ -70,7 +70,7 @@ const FirstStep = ({
       (acc, item) => acc + parseFloat(item.price),
       0,
     );
-    return formatToPrice(result);
+    return formatPrice(result);
   }
 
   // GET LICENSE PACKAGES

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 //FUNC
-import { formatToPrice, groupedLicensePackages } from "../../../utils/utils";
+import { formatPrice, groupedLicensePackages } from "../../../utils/utils";
 import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
 const PRIMARY_GRADIENT =
@@ -190,7 +190,7 @@ const SecondStep = ({
                           </p>
                         </div>
                         <p className="text-sm font-bold text-[--black-1] tabular-nums shrink-0">
-                          {formatToPrice(pkg.price.toFixed(2).replace(".", ","))} ₺
+                          {formatPrice(pkg.price)} ₺
                         </p>
                       </li>
                     );
@@ -209,7 +209,7 @@ const SecondStep = ({
             {t("addLicense.total")}
           </p>
           <p className="text-lg sm:text-xl font-black text-[--black-1] tabular-nums">
-            {formatToPrice(total.toFixed(2).replace(".", ","))} ₺
+            {formatPrice(total)} ₺
           </p>
         </div>
         <div className="flex gap-2">

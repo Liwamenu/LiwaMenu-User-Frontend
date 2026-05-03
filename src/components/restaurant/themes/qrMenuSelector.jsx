@@ -61,6 +61,20 @@ const THEMES = [
     color: "hsl(38 75% 52%)",
     tagKey: "qrThemeSelector.tag_elegant",
   },
+  // Placeholders 7-15 — the theme app project still ships these slots one
+  // by one. Names/colors are temporary so owners can switch the saved
+  // themeId and preview from the customer-facing app while the actual
+  // theme is being built. Replace each entry once the corresponding
+  // theme ships (see Tema 6 above as the template).
+  { id: 6, name: "Tema 7", color: "hsl(186 80% 45%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 7, name: "Tema 8", color: "hsl(330 75% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 8, name: "Tema 9", color: "hsl(160 65% 40%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 9, name: "Tema 10", color: "hsl(0 70% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 10, name: "Tema 11", color: "hsl(150 60% 35%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 11, name: "Tema 12", color: "hsl(250 60% 60%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 12, name: "Tema 13", color: "hsl(210 75% 50%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 13, name: "Tema 14", color: "hsl(20 50% 35%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  { id: 14, name: "Tema 15", color: "hsl(290 65% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
 ];
 
 // Build the tenant-facing live URL — used both as the public link and as the

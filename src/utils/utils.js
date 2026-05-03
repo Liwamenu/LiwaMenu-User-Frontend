@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import i18n from "../config/i18n";
 // import licenseTypeIds from "../enums/licenseTypeIds";
 
 export function formatDateString({
@@ -96,51 +97,103 @@ export const maxInput = (e) => {
 
   let useVal = value;
 
+  // Live sanitization for price inputs: digits + at most one '.' and one ','.
+  // Always runs (regardless of maxLength) so the user can never type more
+  // than one of each separator. Display is intentionally NOT formatted with
+  // thousands separators while typing — the cursor jumping users can't keep
+  // up. Locale-aware formatted display is only used in read-only cells via
+  // formatPrice() below.
+  if (name === "price") {
+    useVal = sanitizePriceInput(useVal);
+  }
+
   // Enforce max length
   if (maxAllowed && maxAllowed !== -1 && useVal?.length > maxAllowed) {
-    // Handle different input types
     if (type === "number" || name === "digit") {
-      useVal = value.replace(/[^\d]/g, ""); // Only allow digits
+      useVal = useVal.replace(/[^\d]/g, "");
     }
-    // Handle the "price" input type
-    if (name === "price") {
-      useVal = formatToPrice(value);
-    }
-
     return useVal.slice(0, maxAllowed);
   }
 
   return useVal;
 };
 
-export function formatToPrice(value) {
-  if (!value) return;
+// Allow only digits, at most one '.' and at most one ','. First occurrence
+// of each separator wins; subsequent ones are dropped. Letters / currency
+// symbols are stripped. Empty input passes through as "".
+export function sanitizePriceInput(value) {
+  if (value === null || value === undefined) return "";
+  const s = String(value);
+  let dotSeen = false;
+  let commaSeen = false;
+  let out = "";
+  for (const ch of s) {
+    if (ch >= "0" && ch <= "9") {
+      out += ch;
+    } else if (ch === ".") {
+      if (!dotSeen) {
+        out += ch;
+        dotSeen = true;
+      }
+    } else if (ch === ",") {
+      if (!commaSeen) {
+        out += ch;
+        commaSeen = true;
+      }
+    }
+  }
+  return out;
+}
 
-  // Convert value to a string to ensure replace method works
-  let useVal = String(value).replace(/[^0-9,]/g, ""); // Allow only digits and a comma
+// Parse a user-entered price string to a canonical Number. Accepts any
+// combination of '.' and ',' as decimal/thousands separators using the
+// "last separator wins" heuristic — same approach as Stripe / Shopify:
+//   "12,50"     → 12.5     (single comma → decimal, common in TR/EU)
+//   "12.50"     → 12.5     (single dot → decimal, common in US)
+//   "1,234.56"  → 1234.56  (US: comma thousands, dot decimal)
+//   "1.234,56"  → 1234.56  (TR: dot thousands, comma decimal)
+//   "1.234.56"  → 1234.56  (ambiguous → last separator is decimal)
+//   ""          → 0
+export function parsePrice(input) {
+  if (input === null || input === undefined || input === "") return 0;
+  if (typeof input === "number") return Number.isFinite(input) ? input : 0;
+  const s = String(input).trim().replace(/[^\d.,-]/g, "");
+  if (!s) return 0;
 
-  // Ensure there's only one comma
-  const commaIndex = useVal.indexOf(",");
-  if (commaIndex !== -1) {
-    // If there is a comma, ensure all other commas are removed
-    useVal =
-      useVal.slice(0, commaIndex + 1) +
-      useVal.slice(commaIndex + 1).replace(/,/g, "");
+  const lastDot = s.lastIndexOf(".");
+  const lastComma = s.lastIndexOf(",");
+  const decimalIdx =
+    lastDot < 0 && lastComma < 0
+      ? -1
+      : Math.max(lastDot, lastComma);
+
+  let normalized;
+  if (decimalIdx === -1) {
+    normalized = s.replace(/[.,]/g, "");
+  } else {
+    const intPart = s.slice(0, decimalIdx).replace(/[.,]/g, "");
+    const decPart = s.slice(decimalIdx + 1).replace(/[.,]/g, "");
+    normalized = `${intPart}.${decPart}`;
   }
 
-  // Split the value into integer and decimal parts
-  const parts = useVal.split(",");
+  const n = parseFloat(normalized);
+  return Number.isFinite(n) ? n : 0;
+}
 
-  // Format the integer part
-  let formattedValue = new Intl.NumberFormat("tr-TR").format(parts[0]);
-
-  // Add the decimal part back, if it exists
-  if (parts[1] !== undefined) {
-    formattedValue += "," + parts[1].slice(0, 2); // Keep only two decimal places
-  }
-
-  // console.log(formattedValue);
-  return formattedValue;
+// Format a price for read-only display in the user's active i18n locale.
+// Always shows 2 decimal places. Pass `locale` to override the active one.
+//   formatPrice(1234.5)            → "1.234,50" (tr) / "1,234.50" (en)
+//   formatPrice("12,50")           → "12,50"   (tr) / "12.50"   (en)
+//   formatPrice(null)              → "0,00"    (tr) / "0.00"    (en)
+export function formatPrice(amount, locale) {
+  const n = typeof amount === "number" ? amount : parsePrice(amount);
+  const lang = locale || i18n?.language || "tr";
+  const intlLocale =
+    lang === "en" ? "en-US" : lang === "tr" ? "tr-TR" : lang;
+  return new Intl.NumberFormat(intlLocale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
 }
 
 export function spacePhoneNumber(phoneNumber) {
@@ -549,9 +602,6 @@ export function sortByCreatedDateTime(data, direction = "asc") {
   return sorted;
 }
 
-export function validPrice(price) {
-  return parseFloat(price.replace(/\./g, "").replace(",", "."));
-}
 
 export function isValidCardNumber(cardNumber) {
   const cleaned = cardNumber.replace(/\D/g, "");

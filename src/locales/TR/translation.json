@@ -1150,7 +1150,8 @@
     "tag_natural": "Doğal & yeşil",
     "tag_sunny": "Güneşli & sarı",
     "tag_fresh": "Taze & yeşil",
-    "tag_elegant": "Zarif & sıcak"
+    "tag_elegant": "Zarif & sıcak",
+    "tag_placeholder": "Yer tutucu · yakında"
   },
   "tvThemeSelector": {
     "title": "{{name}} için TV Tema Ayarları",
@@ -1179,7 +1180,8 @@
     "tag_modern": "Modern & mor",
     "tag_natural": "Doğal & yeşil",
     "tag_sunny": "Güneşli & sarı",
-    "tag_fresh": "Taze & yeşil"
+    "tag_fresh": "Taze & yeşil",
+    "tag_placeholder": "Yer tutucu · yakında"
   },
   "orders": {
     "subtitle": "Gelen siparişleri canlı olarak takip edin",

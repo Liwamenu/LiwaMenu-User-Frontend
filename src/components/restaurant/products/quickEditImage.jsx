@@ -13,6 +13,7 @@ import { Image as ImageIcon, X, Save, Loader2, Camera } from "lucide-react";
 
 import CustomFileInput from "../../common/customFileInput";
 import { usePopup } from "../../../context/PopupContext";
+import { parsePrice } from "../../../utils/utils";
 import {
   editProduct,
   resetEditProduct,
@@ -86,9 +87,9 @@ const QuickEditImage = ({ product, onSaved }) => {
       id: p.id,
       productId: p.productId,
       name: p.name,
-      price: Number(p.price) || 0,
-      campaignPrice: Number(p.campaignPrice) || 0,
-      specialPrice: Number(p.specialPrice) || 0,
+      price: parsePrice(p.price),
+      campaignPrice: parsePrice(p.campaignPrice),
+      specialPrice: parsePrice(p.specialPrice),
     }));
     formData.append("portions", JSON.stringify(portions));
 

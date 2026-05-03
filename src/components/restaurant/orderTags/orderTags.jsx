@@ -25,6 +25,20 @@ import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { resetEditOrderTags } from "../../../redux/orderTags/editOrderTagsSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
 
+// UTILS
+import { parsePrice } from "../../../utils/utils";
+
+// Items hold price as a raw string during editing — convert to Number at
+// the dispatch boundary. Mirrors _orderTagGroupCard's per-group save.
+const normalizeGroupsForSave = (groups) =>
+  (groups || []).map((g) => ({
+    ...g,
+    items: (g.items || []).map((it) => ({
+      ...it,
+      price: parsePrice(it.price),
+    })),
+  }));
+
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
@@ -133,10 +147,20 @@ const OrderTags = () => {
       (g) => !g.isNew && g.isDirty,
     );
     if (dataToBeEdited.length > 0) {
-      dispatch(editOrderTags({ data: dataToBeEdited, restaurantId }));
+      dispatch(
+        editOrderTags({
+          data: normalizeGroupsForSave(dataToBeEdited),
+          restaurantId,
+        }),
+      );
     }
     if (dataToBeAdded.length > 0) {
-      dispatch(addOrderTag({ data: dataToBeAdded, restaurantId }));
+      dispatch(
+        addOrderTag({
+          data: normalizeGroupsForSave(dataToBeAdded),
+          restaurantId,
+        }),
+      );
     }
   };
 

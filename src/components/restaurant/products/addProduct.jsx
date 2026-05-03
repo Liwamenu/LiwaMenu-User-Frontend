@@ -18,7 +18,7 @@ import categoriesJSON from "../../../assets/js/Categories.json";
 import subCategories from "../../../assets/js/SubCategories.json";
 
 // UTILS
-import { formatToPrice } from "../../../utils/utils";
+import { parsePrice } from "../../../utils/utils";
 import ProductsHeader from "./header";
 import { CloudUI, DeleteI } from "../../../assets/icon";
 import { Loader2 } from "lucide-react";
@@ -95,9 +95,12 @@ const AddProduct = () => {
   // Tailwind needs the full class string at build time, so the
   // permutations are spelled out as a lookup instead of composed.
   const desktopGridClass = {
-    1: "md:grid-cols-[1fr_80px_30px]",
-    2: "md:grid-cols-[1fr_80px_80px_30px]",
-    3: "md:grid-cols-[1fr_80px_80px_80px_30px]",
+    // Portion name and price columns now share equal `1fr`s instead of
+    // letting the name swallow all remaining space — keeps the price/
+    // campaign/special inputs comfortably wide.
+    1: "md:grid-cols-[1fr_1fr_30px]",
+    2: "md:grid-cols-[1fr_1fr_1fr_30px]",
+    3: "md:grid-cols-[1fr_1fr_1fr_1fr_30px]",
   }[priceCount];
   const deleteColStartClass = {
     1: "md:col-start-3",
@@ -204,9 +207,9 @@ const AddProduct = () => {
       id: p.id,
       productId: p.productId,
       name: p.name,
-      price: Number(p.price) || 0,
-      campaignPrice: Number(p.campaignPrice) || 0,
-      specialPrice: Number(p.specialPrice) || 0,
+      price: parsePrice(p.price),
+      campaignPrice: parsePrice(p.campaignPrice),
+      specialPrice: parsePrice(p.specialPrice),
     }));
     formData.append("portions", JSON.stringify(portions));
 
@@ -513,10 +516,12 @@ const AddProduct = () => {
                           </span>
                           <CustomInput
                             required
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
+                            name="price"
                             placeholder="Fiyat"
                             className="py-[6px] text-sm text-center bg-[--white-2]"
-                            value={formatToPrice(portion.price) || "0"}
+                            value={portion.price ?? ""}
                             onChange={(v) =>
                               handlePortionChange(idx, "price", v)
                             }
@@ -528,10 +533,12 @@ const AddProduct = () => {
                               {t("editProduct.portion_column_campaign")}
                             </span>
                             <CustomInput
-                              type="number"
+                              type="text"
+                              inputMode="decimal"
+                              name="price"
                               placeholder="Kampanya"
                               className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
-                              value={formatToPrice(portion.campaignPrice) || "0"}
+                              value={portion.campaignPrice ?? ""}
                               onChange={(v) =>
                                 handlePortionChange(idx, "campaignPrice", v)
                               }
@@ -544,10 +551,12 @@ const AddProduct = () => {
                               {t("editProduct.portion_column_special")}
                             </span>
                             <CustomInput
-                              type="number"
+                              type="text"
+                              inputMode="decimal"
+                              name="price"
                               placeholder={t("addProduct.special_price_short")}
                               className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
-                              value={formatToPrice(portion.specialPrice) || "0"}
+                              value={portion.specialPrice ?? ""}
                               onChange={(v) =>
                                 handlePortionChange(idx, "specialPrice", v)
                               }

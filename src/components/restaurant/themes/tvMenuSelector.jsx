@@ -55,6 +55,20 @@ const THEMES = [
     color: "hsl(120 100% 25%)",
     tagKey: "tvThemeSelector.tag_fresh",
   },
+  // Placeholders 6-14 (themes 7-15) — temporary slots so owners can save
+  // a TV themeId in the database and preview it from the TV theme app
+  // while the real theme is being built. Replace each entry once the
+  // matching theme ships.
+  { id: 5, name: "Tema 6", color: "hsl(38 75% 52%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 6, name: "Tema 7", color: "hsl(186 80% 45%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 7, name: "Tema 8", color: "hsl(330 75% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 8, name: "Tema 9", color: "hsl(160 65% 40%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 9, name: "Tema 10", color: "hsl(0 70% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 10, name: "Tema 11", color: "hsl(150 60% 35%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 11, name: "Tema 12", color: "hsl(250 60% 60%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 12, name: "Tema 13", color: "hsl(210 75% 50%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 13, name: "Tema 14", color: "hsl(20 50% 35%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  { id: 14, name: "Tema 15", color: "hsl(290 65% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
 ];
 
 const DEVICES = [

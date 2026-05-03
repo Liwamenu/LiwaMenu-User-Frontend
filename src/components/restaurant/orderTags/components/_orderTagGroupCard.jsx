@@ -30,6 +30,15 @@ import {
 } from "../../../../redux/orderTags/editOrderTagSlice";
 import { addOrderTag } from "../../../../redux/orderTags/addOrderTagSlice";
 
+// UTILS
+import { parsePrice } from "../../../../utils/utils";
+
+// Items hold price as a raw user-typed string while editing (so backspace
+// works and "12,50" doesn't get mangled). Convert to a Number once at the
+// dispatch boundary, mirroring the products portion-save pattern.
+const normalizeItemsForSave = (items) =>
+  (items || []).map((it) => ({ ...it, price: parsePrice(it.price) }));
+
 const OrderTagGroupCard = ({
   group,
   products,
@@ -114,9 +123,12 @@ const OrderTagGroupCard = ({
       toast.error(t("orderTags.no_relations_warning"));
       return;
     }
-    group?.isNew
-      ? dispatch(addOrderTag({ ...group, restaurantId }))
-      : dispatch(editOrderTag({ ...group, restaurantId }));
+    const payload = {
+      ...group,
+      items: normalizeItemsForSave(group.items),
+      restaurantId,
+    };
+    group?.isNew ? dispatch(addOrderTag(payload)) : dispatch(editOrderTag(payload));
   }
 
   useEffect(() => {

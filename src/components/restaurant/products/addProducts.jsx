@@ -10,7 +10,7 @@ import CustomSelect from "../../common/customSelector";
 import CustomFileInput from "../../common/customFileInput";
 
 //FUNC
-import { formatToPrice } from "../../../utils/utils";
+import { parsePrice } from "../../../utils/utils";
 
 //DUMMy DATA
 import categories from "../../../assets/js/Categories.json";
@@ -189,7 +189,7 @@ const AddProducts = ({ data: restaurant }) => {
           id: pt.id,
           productId: pt.productId,
           name: pt.name,
-          price: Number(pt.price) || 0,
+          price: parsePrice(pt.price),
           orderTags: pt.orderTags || [],
         }));
 
@@ -414,12 +414,14 @@ const AddProducts = ({ data: restaurant }) => {
 
                       <CustomInput
                         required
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
+                        name="price"
                         label="Porsiyon Fiyatı"
                         placeholder="Porsiyon Fiyatı"
                         className="py-[.45rem] text-sm "
                         className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
-                        value={formatToPrice(portion.price) || "0"}
+                        value={portion.price ?? ""}
                         onChange={(e) => {
                           const updated = [...prodsData];
                           updated[index].portions[pIndex].price = e;
@@ -570,12 +572,14 @@ const AddProducts = ({ data: restaurant }) => {
                                 <div className="w-full flex gap-2 max-sm:flex-col">
                                   <CustomInput
                                     readOnly
-                                    type="number"
+                                    type="text"
+                                    inputMode="decimal"
+                                    name="price"
                                     label={iIndex === 0 ? "Fiyat" : ""}
                                     placeholder="Fiyat"
                                     className="py-[.45rem] text-sm mt-[0] sm:mt-[0] border-none cursor-not-allowed"
                                     className2="py-[0] text-sm mt-[0] sm:mt-[0]"
-                                    value={formatToPrice(item.price) || "0.00"}
+                                    value={item.price ?? ""}
                                     onChange={(e) => {
                                       const updated = [...prodsData];
                                       updated[index].portions[pIndex].orderTags[
