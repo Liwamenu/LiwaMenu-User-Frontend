@@ -19,6 +19,7 @@ import {
   Clock,
   Share2,
   CreditCard,
+  Layout,
 } from "lucide-react";
 
 import PageHelp from "../common/pageHelp";
@@ -30,6 +31,7 @@ const SLUG_TO_HELP_KEY = {
   reservationSettings: "reservationSettings",
   announcementSettings: "announcementSettings",
   surveySettings: "surveySettings",
+  externalPage: "externalPage",
   hours: "workingHours",
   social: "socialMedias",
   payments: "paymentMethods",
@@ -73,6 +75,12 @@ const SettingsTabs = () => {
       to: `/restaurant/surveySettings/${id}`,
       icon: ClipboardList,
       label: t("settingsTabs.survey", "Anket"),
+    },
+    {
+      slug: "externalPage",
+      to: `/restaurant/externalPage/${id}`,
+      icon: Layout,
+      label: t("settingsTabs.external_page", "Harici Sayfa"),
     },
     {
       slug: "hours",

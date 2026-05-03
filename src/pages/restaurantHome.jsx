@@ -18,6 +18,7 @@ import PaymentMethods from "../components/restaurant/paymentMethods";
 import ReservationSett from "../components/restaurant/reservationSettings";
 import RestaurantSettings from "../components/restaurant/restaurantSettings";
 import AnnouncementSett from "../components/restaurant/announcementSettings";
+import ExternalPage from "../components/restaurant/externalPage";
 
 //PRODUCTS
 import Products from "../components/restaurant/products/products";
@@ -99,6 +100,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
       rsrv: "reservationSettings/:id",
       ann: "announcementSettings/:id",
       surv: "surveySettings/:id",
+      ext: "externalPage/:id",
     },
     cat: {
       add: "/categories/:id/add",
@@ -138,6 +140,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           <Route path={P.R.rsrv} element={<ReservationSett data={data} />} />
           <Route path={P.R.ann} element={<AnnouncementSett data={data} />} />
           <Route path={P.R.surv} element={<SurveySettings data={data} />} />
+          <Route path={P.R.ext} element={<ExternalPage data={data} />} />
 
           {/* CATEGORIES */}
           <Route path={P.cat.list} element={<Categories data={data} />} />
