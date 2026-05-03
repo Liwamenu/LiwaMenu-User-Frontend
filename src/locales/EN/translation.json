@@ -1149,7 +1149,8 @@
     "tag_natural": "Natural & green",
     "tag_sunny": "Sunny & yellow",
     "tag_fresh": "Fresh & green",
-    "tag_elegant": "Elegant & warm"
+    "tag_elegant": "Elegant & warm",
+    "tag_placeholder": "Placeholder · coming soon"
   },
   "tvThemeSelector": {
     "title": "TV Theme Settings for {{name}}",
@@ -1178,7 +1179,8 @@
     "tag_modern": "Modern & purple",
     "tag_natural": "Natural & green",
     "tag_sunny": "Sunny & yellow",
-    "tag_fresh": "Fresh & green"
+    "tag_fresh": "Fresh & green",
+    "tag_placeholder": "Placeholder · coming soon"
   },
   "orders": {
     "subtitle": "Track incoming orders in real time",

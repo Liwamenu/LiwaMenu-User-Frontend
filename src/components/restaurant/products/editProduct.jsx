@@ -78,9 +78,12 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const showSpecial = !!restaurant?.isSpecialPriceActive;
   const priceCount = 1 + (showCampaign ? 1 : 0) + (showSpecial ? 1 : 0);
   const desktopGridClass = {
-    1: "md:grid-cols-[1fr_80px_30px]",
-    2: "md:grid-cols-[1fr_80px_80px_30px]",
-    3: "md:grid-cols-[1fr_80px_80px_80px_30px]",
+    // Portion name and price columns now share equal `1fr`s instead of
+    // letting the name swallow all remaining space — keeps the price/
+    // campaign/special inputs comfortably wide.
+    1: "md:grid-cols-[1fr_1fr_30px]",
+    2: "md:grid-cols-[1fr_1fr_1fr_30px]",
+    3: "md:grid-cols-[1fr_1fr_1fr_1fr_30px]",
   }[priceCount];
   const deleteColStartClass = {
     1: "md:col-start-3",

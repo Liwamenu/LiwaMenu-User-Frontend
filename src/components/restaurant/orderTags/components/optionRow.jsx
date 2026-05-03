@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { GripVertical, Trash2 } from "lucide-react";
 import CustomCheckbox from "../../../common/customCheckbox";
+import { maxInput } from "../../../../utils/utils";
 
 const OptionRow = ({
   item,
@@ -41,9 +42,11 @@ const OptionRow = ({
         <div className="col-span-2">
           <input
             required
-            type="number"
-            value={item.price}
-            onChange={(e) => onUpdate({ price: parseFloat(e.target.value) || 0 })}
+            type="text"
+            inputMode="decimal"
+            name="price"
+            value={item.price ?? ""}
+            onChange={(e) => onUpdate({ price: maxInput(e) })}
             placeholder={t("orderTags.price_placeholder")}
             className="w-full h-9 px-2.5 rounded-md border border-[--border-1] bg-[--white-1] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
           />
@@ -125,9 +128,11 @@ const OptionRow = ({
             <Field label={t("orderTags.col_price")}>
               <input
                 required
-                type="number"
-                value={item.price}
-                onChange={(e) => onUpdate({ price: parseFloat(e.target.value) || 0 })}
+                type="text"
+                inputMode="decimal"
+                name="price"
+                value={item.price ?? ""}
+                onChange={(e) => onUpdate({ price: maxInput(e) })}
                 className="w-full h-8 px-2 rounded-md border border-[--border-1] bg-[--white-1] text-sm outline-none transition focus:border-indigo-500"
               />
             </Field>
