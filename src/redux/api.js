@@ -6,7 +6,9 @@ const baseURL = import.meta.env.VITE_BASE_URL;
 const KEY = import.meta.env.VITE_LOCAL_KEY;
 
 // Pick the localized backend message when both are present.
-// Falls back through: <lang>-specific > TR > generic message > undefined.
+// Falls back through: <lang>-specific > TR > generic message >
+// ASP.NET ProblemDetails validation errors > ProblemDetails title >
+// undefined.
 // Exported so public-API slices (login / register / password reset) can
 // pull error text the same way the private interceptor does, instead of
 // reaching into a single hard-coded key.
@@ -16,7 +18,22 @@ export const pickBackendMessage = (data) => {
   if (lang.startsWith("en") && data.message_EN) return data.message_EN;
   if (data.message_TR) return data.message_TR;
   if (data.message_EN) return data.message_EN;
-  return data.message || null;
+  if (data.message) return data.message;
+  // ASP.NET ProblemDetails fallback. The .NET 400 response shape is
+  //   { errors: { FieldName: ["error msg", ...], ... }, title, ... }
+  // Surfacing those messages turns a useless generic "Bad Request 400"
+  // toast into the actual reason ("Tema ID 0-14 aralığında olmalıdır",
+  // "Email zaten kayıtlı", etc.). Field name is dropped — backend
+  // already includes it in the message text where it matters.
+  if (data.errors && typeof data.errors === "object") {
+    const msgs = Object.values(data.errors)
+      .flat()
+      .filter((m) => typeof m === "string" && m.trim().length > 0);
+    if (msgs.length) return msgs.join(" · ");
+  }
+  // Non-validation ProblemDetails (e.g. server errors) usually have a
+  // title — better than nothing.
+  return data.title || null;
 };
 
 // Translate an axios error into a user-readable string. Public-API slices
