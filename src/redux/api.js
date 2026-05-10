@@ -118,6 +118,32 @@ axiosPrivate.interceptors.request.use(
         },
       });
     }
+    // FormData ↔ Content-Type fix.
+    // The axiosPrivate instance is created with a default
+    //   headers: { "Content-Type": "application/json" }
+    // which axios then merges into every request. When the caller passes
+    // a FormData body, that default sticks unless overridden, so axios
+    // sees "application/json" and JSON.stringify's the FormData (the
+    // browser would never send a real multipart body, and ASP.NET's
+    // [FromForm] binder reports every field as missing).
+    //
+    // The clean fix is to DELETE the Content-Type for FormData and let
+    // the browser set "multipart/form-data; boundary=…" with the right
+    // boundary. Existing slices that explicitly pass
+    //   { headers: { "Content-Type": "multipart/form-data" } }
+    // also pass through this branch — we strip their (boundary-less)
+    // header so the browser can supply one.
+    if (
+      typeof FormData !== "undefined" &&
+      config.data instanceof FormData &&
+      config.headers
+    ) {
+      if (typeof config.headers.delete === "function") {
+        config.headers.delete("Content-Type");
+      } else {
+        delete config.headers["Content-Type"];
+      }
+    }
     return config;
   },
   (error) => {
