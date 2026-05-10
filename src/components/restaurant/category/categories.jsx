@@ -40,6 +40,17 @@ import {
   editCategories,
   resetEditCategories,
 } from "../../../redux/categories/editCategoriesSlice";
+import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+
+// Safety net for orphaned products (categoryId pointing at a deleted
+// or missing category). Auto-creates a system "Uncategorized" category
+// and re-homes the orphans there so the admin can see them and move
+// them to a real category. See utils/uncategorizedSafety.js header for
+// the full design rationale.
+import {
+  runUncategorizedSafety,
+  isUncategorizedCategory,
+} from "../../../utils/uncategorizedSafety";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -59,6 +70,12 @@ const Categories = ({ data: restaurant }) => {
   const { success, error, loading } = useSelector(
     (state) => state.categories.edit,
   );
+  // Lite product cache — used by the orphan safety net below to spot
+  // products whose categoryId no longer matches a known category.
+  const {
+    products: liteProducts,
+    fetchedFor: liteFetchedFor,
+  } = useSelector((s) => s.products.getLite);
 
   const [activeTab, setActiveTab] = useState("list"); // "list" | "bulk"
   const [categoriesData, setCategoriesData] = useState(null);
@@ -79,6 +96,55 @@ const Categories = ({ data: restaurant }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id]);
+
+  // LITE PRODUCTS — fetched here ONLY to power the orphan safety net.
+  // Cached per restaurantId, so it costs nothing on revisit. The lite
+  // payload is enough to detect orphans (we only need id + categoryId).
+  useEffect(() => {
+    if (
+      params?.id &&
+      (!liteProducts || liteFetchedFor !== params.id)
+    ) {
+      dispatch(getProductsLite({ restaurantId: params.id }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params?.id]);
+
+  // ORPHAN SAFETY NET — runs at most once per page mount (guarded by
+  // a ref). If any products have a categoryId that no longer matches a
+  // known category, ensure a system "Uncategorized" category exists
+  // and re-home the orphans there. Idempotent — see
+  // utils/uncategorizedSafety.js for the full design notes.
+  const safetyRanRef = useRef(false);
+  useEffect(() => {
+    if (safetyRanRef.current) return;
+    if (!params?.id) return;
+    if (!categories || !liteProducts) return;
+    safetyRanRef.current = true;
+    runUncategorizedSafety({
+      dispatch,
+      restaurantId: params.id,
+      categories,
+      products: liteProducts,
+    }).then((result) => {
+      if (result?.repaired > 0) {
+        toast.success(
+          t("editCategories.uncategorized_repaired", {
+            count: result.repaired,
+            defaultValue:
+              "{{count}} kategorisiz ürün otomatik olarak \"Uncategorized\" kategorisine taşındı.",
+          }),
+          { id: "uncategorizedSafety", duration: 6000 },
+        );
+        // The auto-create + reassignment changed both slices — refetch
+        // so the user sees the new state immediately. (The lite slice
+        // self-invalidates on EditProduct.fulfilled, so just refresh
+        // categories here.)
+        dispatch(getCategories({ restaurantId: params.id }));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories, liteProducts, params?.id]);
 
   // SET CATEGORIES WHEN FETCHED — also runs on remount with cached data,
   // because `categories` will be the cached reference straight from the
@@ -457,6 +523,21 @@ function ListTab({
                                 tone="amber"
                               />
                             )}
+                            {/* System badge for the auto-created
+                                Uncategorized safety category — tells
+                                the admin "this row is special, it's a
+                                bucket for orphan products". */}
+                            {isUncategorizedCategory(cat) && (
+                              <span
+                                className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-700 text-white shadow-sm"
+                                title={t(
+                                  "editCategories.uncategorized_hint",
+                                  "Sistem kategorisi · kategorisini kaybeden ürünler buraya alınır.",
+                                )}
+                              >
+                                {t("editCategories.system_badge", "Sistem")}
+                              </span>
+                            )}
                             <span className="text-[10px] font-medium text-[--gr-1] bg-[--white-2] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md">
                               {t("editCategories.product_count", {
                                 count: cat.productsCount || 0,
@@ -497,21 +578,43 @@ function ListTab({
                         >
                           <Pencil className="size-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setPopupContent(
-                              <DeleteCategory
-                                category={cat}
-                                onSuccess={handleDelete}
-                              />,
-                            )
-                          }
-                          className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
-                          title={t("editCategories.delete")}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
+                        {/* Uncategorized is the safety net for orphan
+                            products — deleting it would re-orphan
+                            anything in it AND remove the auto-recovery
+                            slot, so the next orphan would be invisible
+                            again. Render the trash button as disabled
+                            with an explanatory tooltip instead of
+                            hiding it (so its absence doesn't look like
+                            a layout glitch). */}
+                        {isUncategorizedCategory(cat) ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="grid place-items-center size-8 rounded-md text-[--gr-2] bg-[--white-2]/40 cursor-not-allowed"
+                            title={t(
+                              "editCategories.uncategorized_cant_delete",
+                              "Sistem kategorisi silinemez. İçindeki ürünleri başka kategoriye taşıyın.",
+                            )}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPopupContent(
+                                <DeleteCategory
+                                  category={cat}
+                                  onSuccess={handleDelete}
+                                />,
+                              )
+                            }
+                            className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+                            title={t("editCategories.delete")}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
