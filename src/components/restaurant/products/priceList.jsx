@@ -40,12 +40,12 @@ const PriceList = ({ data: restaurant }) => {
   const containerRef = useRef(null);
 
   // Decimal precision used to format every price input below. Reads
-  // from the restaurant's `decimalPlaces` setting (Genel Ayarlar →
+  // from the restaurant's `decimalPoint` setting (Genel Ayarlar →
   // Kuruş Hanesi); falls back to 2 (the TR default ",00") while the
   // backend hasn't started round-tripping the field yet, so the
   // format rule stays sensible from day one.
-  const decimals = Number.isFinite(Number(restaurant?.decimalPlaces))
-    ? Number(restaurant.decimalPlaces)
+  const decimals = Number.isFinite(Number(restaurant?.decimalPoint))
+    ? Number(restaurant.decimalPoint)
     : 2;
 
   const { products } = useSelector((s) => s.products.get);
@@ -731,7 +731,7 @@ const PriceList = ({ data: restaurant }) => {
 // as "12.500,00"; on focus we swap to a raw editable string ("12500"
 // / "12500.5") so the user can type without fighting the locale's
 // thousand separator. `decimals` comes from the restaurant's
-// `decimalPlaces` setting (Genel Ayarlar → Kuruş Hanesi); both
+// `decimalPoint` setting (Genel Ayarlar → Kuruş Hanesi); both
 // fraction-digit limits use it so users with a 0-decimal currency
 // (e.g. JPY) get a clean integer display.
 //

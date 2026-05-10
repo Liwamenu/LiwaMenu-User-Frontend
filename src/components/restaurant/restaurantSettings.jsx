@@ -298,7 +298,7 @@ const RestaurantSettings = ({ data: inData }) => {
       moneySign: inData?.moneySign,
       // Number of digits shown after the decimal point in money figures
       // (e.g. ₺100,00 → 2). Defaults to 2 (kuruş) for the TR market.
-      decimalPlaces: inData?.decimalPlaces ?? 2,
+      decimalPoint: inData?.decimalPoint ?? 2,
       maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
       minOrderAmount: inData?.minOrderAmount,
@@ -407,6 +407,14 @@ const RestaurantSettings = ({ data: inData }) => {
         const n = parseFloat(v.replace(",", "."));
         normalized[k] = Number.isFinite(n) ? n : 0;
       }
+    }
+
+    // Backend expects `decimalPoint` as a string ("0".."3"), not a
+    // Number. The picker stores it as a Number internally so the option
+    // lookup matches by identity — coerce at the wire boundary.
+    {
+      const n = Number(normalized.decimalPoint);
+      normalized.decimalPoint = String(Number.isFinite(n) ? n : 2);
     }
 
     setRestaurantData(normalized);
@@ -681,19 +689,19 @@ const RestaurantSettings = ({ data: inData }) => {
                       height: "40px",
                     }}
                     value={
-                      decimalOptions.find(
-                        (o) =>
-                          o.value ===
-                          (Number.isFinite(restaurantData?.decimalPlaces)
-                            ? restaurantData.decimalPlaces
-                            : 2),
-                      ) || decimalOptions[2]
+                      // Tolerate both number and string here — the
+                      // backend returns it as a string but the picker
+                      // sets it as a number on change.
+                      decimalOptions.find((o) => {
+                        const v = Number(restaurantData?.decimalPoint);
+                        return o.value === (Number.isFinite(v) ? v : 2);
+                      }) || decimalOptions[2]
                     }
                     options={decimalOptions}
                     onChange={(selected) =>
                       setRestaurantData((prev) => ({
                         ...prev,
-                        decimalPlaces: selected.value,
+                        decimalPoint: selected.value,
                       }))
                     }
                   />
@@ -834,8 +842,8 @@ const RestaurantSettings = ({ data: inData }) => {
                         "restaurantSettings.delivery_fee_placeholder",
                       )}
                       currencyDecimals={
-                        Number.isFinite(Number(restaurantData?.decimalPlaces))
-                          ? Number(restaurantData.decimalPlaces)
+                        Number.isFinite(Number(restaurantData?.decimalPoint))
+                          ? Number(restaurantData.decimalPoint)
                           : 2
                       }
                       maxDigits={9}
@@ -857,10 +865,10 @@ const RestaurantSettings = ({ data: inData }) => {
                       // the restaurant's Kuruş Hanesi (Genel Ayarlar).
                       // Stored as a Number, displayed with locale
                       // separators on blur (e.g. 1500 → "1.500,00" when
-                      // decimalPlaces=2, or "1.500" when 0).
+                      // decimalPoint=2, or "1.500" when 0).
                       currencyDecimals={
-                        Number.isFinite(Number(restaurantData?.decimalPlaces))
-                          ? Number(restaurantData.decimalPlaces)
+                        Number.isFinite(Number(restaurantData?.decimalPoint))
+                          ? Number(restaurantData.decimalPoint)
                           : 2
                       }
                       maxDigits={9}
