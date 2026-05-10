@@ -73,7 +73,18 @@ const MenuList = () => {
   // stays in sync with the source of truth — the slice's `menus` array.
   // This means the cache-skip logic below is safe even after CRUD ops:
   // the next visit doesn't need a refetch to see the new state.
-  const handleAddMenu = (added) => dispatch(addMenuToCache(added));
+  const handleAddMenu = (added) => {
+    if (added?.id) {
+      dispatch(addMenuToCache(added));
+      return;
+    }
+    // Defensive fallback: if the AddMenu response didn't include an id
+    // (older backends, envelope shape we didn't anticipate, etc.) the
+    // cache would otherwise carry a row with id=undefined and later
+    // delete attempts would hit DELETE /Menus/DeleteMenu/undefined →
+    // 404. A full refetch canonicalises ids from the server.
+    if (restaurantId) dispatch(getMenus({ restaurantId }));
+  };
   const handleEditMenu = (edited) => dispatch(updateMenuInCache(edited));
   const handleDeleteMenu = (id) => dispatch(removeMenuFromCache(id));
 
