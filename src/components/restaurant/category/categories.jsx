@@ -629,12 +629,18 @@ function ListTab({
   );
 }
 
+// "Kapalı" (closed) is a meaningful negative state the admin needs
+// to spot at a glance — a neutral grey badge buried in a long list
+// looks identical to an enabled row from arm's length. Switch the
+// inactive variant to the rose palette so it reads as a clear
+// "needs attention / hidden from menu" warning, matching the rose
+// trash icon convention used elsewhere on this row.
 const StatusBadge = ({ active, labelOn, labelOff, tone }) => {
   const cls = active
     ? tone === "amber"
       ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
       : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-    : "bg-[--white-2] text-[--gr-1] ring-1 ring-[--border-1]";
+    : "bg-rose-50 text-rose-700 ring-1 ring-rose-200";
   return (
     <span
       className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md ${cls}`}
