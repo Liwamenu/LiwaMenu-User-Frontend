@@ -692,7 +692,8 @@
     "move_cancel": "İptal",
     "move_confirm": "Taşı",
     "move_success": "{{name}} {{category}} kategorisine taşındı.",
-    "move_failed": "Ürün taşınamadı."
+    "move_failed": "Ürün taşınamadı.",
+    "no_category": "Kategorisiz"
   },
   "listCategoryProducts": {
     "title": "Ürün Seçimi",

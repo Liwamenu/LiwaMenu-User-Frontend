@@ -691,7 +691,8 @@
     "move_cancel": "Cancel",
     "move_confirm": "Move",
     "move_success": "{{name}} moved to {{category}}.",
-    "move_failed": "Could not move the product."
+    "move_failed": "Could not move the product.",
+    "no_category": "Uncategorized"
   },
   "listCategoryProducts": {
     "title": "Product Selection",

@@ -39,6 +39,7 @@ import {
   ArrowRightLeft,
   Check,
   AlertTriangle,
+  Layers,
 } from "lucide-react";
 
 import EditProduct from "../products/editProduct";
@@ -200,12 +201,33 @@ const CategoryProducts = ({
   // Derived: products NOT yet in this category (left column source).
   // Excludes anything already shown on the right so nothing appears in
   // both columns even mid-flight while a refetch is settling.
+  // Sorted alphabetically (Turkish-aware) so the picker stays
+  // predictable as the user scrolls — no shuffling after each add.
   const availableProducts = useMemo(() => {
     if (!liteLocal) return null;
-    if (!items) return liteLocal;
-    const inHere = new Set(items.map((p) => p.id));
-    return liteLocal.filter((p) => !inHere.has(p.id));
+    const inHere = new Set((items || []).map((p) => p.id));
+    return liteLocal
+      .filter((p) => !inHere.has(p.id))
+      .sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "", "tr", {
+          sensitivity: "base",
+        }),
+      );
   }, [liteLocal, items]);
+
+  // Lookup table for resolving a product's `categoryId` to a display
+  // name in the AvailableRow chip ("currently in: …"). The categories
+  // list is loaded by the parent page on mount so we don't need a
+  // separate fetch here. Falls through to an empty string when the id
+  // doesn't match (e.g. a product cached before its category was
+  // deleted).
+  const categoryNameById = useMemo(() => {
+    const map = new Map();
+    (categories || []).forEach((c) => {
+      if (c?.id) map.set(c.id, c.name || "");
+    });
+    return map;
+  }, [categories]);
 
   // Search applies to both columns — same query, independently filtered.
   const q = normalizeSearch(searchVal.trim());
@@ -540,6 +562,7 @@ const CategoryProducts = ({
                 <AvailableRow
                   key={prod.id}
                   prod={prod}
+                  categoryName={categoryNameById.get(prod.categoryId)}
                   t={t}
                   onAdd={handleAddToCategory}
                   adding={mutatingId === prod.id}
@@ -735,8 +758,7 @@ const EmptyState = ({ icon: Icon, title }) => (
 );
 
 // Left-column row — name + portions count + Add button.
-const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
-  const portionsCount = Array.isArray(prod.portions) ? prod.portions.length : 0;
+const AvailableRow = ({ prod, categoryName, t, onAdd, adding, disabled }) => {
   return (
     <div
       className={`flex items-center gap-3 p-2.5 rounded-xl border bg-[--white-1] transition ${
@@ -752,8 +774,24 @@ const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
         <div className="text-sm font-semibold text-[--black-1] truncate">
           {prod.name}
         </div>
-        <div className="text-[11px] text-[--gr-1] mt-0.5">
-          {t("categoryProducts.portions", { count: portionsCount })}
+        {/* Show the product's CURRENT category as a chip — replaces the
+            old portion count line. Helps the author see at a glance
+            "this product is currently in X" before moving it here, so
+            they don't accidentally pull a row out of a category that
+            still needs it. Backend uses a single categoryId per
+            product; if/when many-to-many ships, swap this for a
+            chip-strip rendering each linked category. */}
+        <div className="mt-0.5 flex items-center gap-1 min-w-0">
+          {categoryName ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-700 bg-indigo-50 ring-1 ring-indigo-100 px-1.5 py-0.5 rounded-md max-w-full dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+              <Layers className="size-2.5 shrink-0" strokeWidth={2.25} />
+              <span className="truncate">{categoryName}</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center text-[10px] font-medium text-[--gr-1] bg-[--white-2] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md">
+              {t("categoryProducts.no_category", "Kategorisiz")}
+            </span>
+          )}
         </div>
       </div>
       <button
