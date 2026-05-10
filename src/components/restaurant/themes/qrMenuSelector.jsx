@@ -284,8 +284,15 @@ const ThemeSelector = ({ data }) => {
               )}
             </div>
 
-            {/* Theme list */}
-            <div className="p-3 flex-1 overflow-y-auto space-y-1.5">
+            {/* Theme list — capped so the page doesn't grow with theme
+                count. ~10 cards fit inside ~680px (each card is
+                p-2.5 + size-10 ≈ 60px tall, plus a 6px gap). The
+                `min(...)` guard switches to a viewport-relative cap on
+                short laptop screens so the list never pushes the
+                preview iframe off-screen. `flex-1` is kept so the
+                pane still fills available column space when fewer than
+                10 themes are registered. */}
+            <div className="p-3 flex-1 max-h-[min(680px,75dvh)] overflow-y-auto space-y-1.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] px-1 mb-1.5">
                 {t("qrThemeSelector.select_theme")}
               </p>
