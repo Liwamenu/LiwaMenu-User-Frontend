@@ -896,6 +896,19 @@ function BulkImageTab({
                     : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
                 }`}
               >
+                {/* Card-top header with strong indigo wash so the
+                    category name is the first thing the eye lands on
+                    in a long bulk grid. Was previously buried under
+                    the image as small body text and easy to miss when
+                    scrolling 30+ tiles. */}
+                <div className="px-3 py-2 bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-50/40 border-b border-indigo-200/70 dark:from-indigo-500/20 dark:via-indigo-500/10 dark:to-transparent dark:border-indigo-400/30">
+                  <div
+                    className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-900 truncate dark:text-indigo-100"
+                    title={cat.name}
+                  >
+                    {cat.name}
+                  </div>
+                </div>
                 <div className="relative aspect-square bg-[--white-2]">
                   <img
                     src={previewSrc}
@@ -910,9 +923,6 @@ function BulkImageTab({
                   )}
                 </div>
                 <div className="p-2.5 flex flex-col gap-1.5">
-                  <div className="text-xs font-semibold text-[--black-1] truncate">
-                    {cat.name}
-                  </div>
                   <div className="flex gap-1">
                     <button
                       type="button"
