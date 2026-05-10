@@ -681,7 +681,10 @@
     "add_success": "{{name}} bu kategoriye eklendi.",
     "add_failed": "Ürün bu kategoriye eklenemedi.",
     "no_results": "Aramayla eşleşen ürün yok.",
-    "no_available": "Bu restoranda ekleyebileceğin başka ürün yok."
+    "no_available": "Bu restoranda ekleyebileceğin başka ürün yok.",
+    "remove_from_category": "Bu kategoriden çıkart",
+    "remove_success": "{{name}} bu kategoriden çıkarıldı.",
+    "remove_failed": "Ürün bu kategoriden çıkarılamadı."
   },
   "listCategoryProducts": {
     "title": "Ürün Seçimi",

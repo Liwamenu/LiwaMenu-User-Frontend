@@ -680,7 +680,10 @@
     "add_success": "{{name}} added to this category.",
     "add_failed": "Could not add the product to this category.",
     "no_results": "No products match your search.",
-    "no_available": "No other products in this restaurant to add."
+    "no_available": "No other products in this restaurant to add.",
+    "remove_from_category": "Remove from this category",
+    "remove_success": "{{name}} removed from this category.",
+    "remove_failed": "Could not remove the product from this category."
   },
   "listCategoryProducts": {
     "title": "Product Selection",

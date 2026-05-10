@@ -28,7 +28,6 @@ import {
   Package,
   X,
   Pencil,
-  Trash2,
   Save,
   GripVertical,
   Loader2,
@@ -37,10 +36,10 @@ import {
   PackagePlus,
   PackageCheck,
   Inbox,
+  Unlink,
 } from "lucide-react";
 
 import EditProduct from "../products/editProduct";
-import DeleteProduct from "../products/deleteProduct";
 import { usePopup } from "../../../context/PopupContext";
 
 import {
@@ -106,7 +105,11 @@ const CategoryProducts = ({
   // add" works without re-fetching the entire catalogue. Synced from
   // Redux when the slice payload arrives.
   const [liteLocal, setLiteLocal] = useState(null);
-  const [addingId, setAddingId] = useState(null);
+  // Single id-tracker for either an add-to-category or remove-from-
+  // category operation. Both flows dispatch the same `editProduct`
+  // thunk and have to settle one at a time so the optimistic state
+  // doesn't get clobbered by overlapping rollbacks.
+  const [mutatingId, setMutatingId] = useState(null);
 
   // Single search box, filters both columns.
   const [searchVal, setSearchVal] = useState("");
@@ -209,23 +212,8 @@ const CategoryProducts = ({
     return availableProducts.filter((p) => normalizeSearch(p.name).includes(q));
   }, [availableProducts, q]);
 
-  const handleDeletedProduct = (deletedId) => {
-    setItems((prev) => (prev ? prev.filter((p) => p.id !== deletedId) : prev));
-    setItemsBefore((prev) =>
-      prev ? prev.filter((p) => p.id !== deletedId) : prev,
-    );
-    setLiteLocal((prev) =>
-      prev ? prev.filter((p) => p.id !== deletedId) : prev,
-    );
-  };
-
   const handleEditProduct = (product) =>
     setSecondPopupContent(<EditProduct product={product} />);
-
-  const handleDeleteProduct = (product) =>
-    setSecondPopupContent(
-      <DeleteProduct product={product} onSuccess={handleDeletedProduct} />,
-    );
 
   // Build the bare-minimum FormData payload editProduct expects. We carry
   // the existing values through so the backend doesn't blank them.
@@ -259,8 +247,8 @@ const CategoryProducts = ({
   // immediately moves it across so the user gets feedback before the
   // network round-trip completes. Rolls back on failure.
   const handleAddToCategory = async (prod) => {
-    if (addingId) return; // serialise — keeps the optimistic state simple
-    setAddingId(prod.id);
+    if (mutatingId) return; // serialise — keeps the optimistic state simple
+    setMutatingId(prod.id);
 
     // Snapshot for rollback.
     const prevItems = items ?? [];
@@ -304,7 +292,65 @@ const CategoryProducts = ({
       toast.error(msg, { id: "catProdAdd" });
     } finally {
       dispatch(resetEditProduct());
-      setAddingId(null);
+      setMutatingId(null);
+    }
+  };
+
+  // Remove a right-column product from THIS category (it is NOT deleted —
+  // actual delete still lives on the Products page). Mirrors handle-
+  // AddToCategory in reverse: optimistically pull the row back to the
+  // left list, dispatch editProduct with an empty categoryId, roll
+  // back on failure. Backend must accept an empty categoryId for the
+  // un-categorise to stick; if it rejects with a validation error the
+  // row snaps back and the toast surfaces the message.
+  const handleRemoveFromCategory = async (prod) => {
+    if (mutatingId) return;
+    setMutatingId(prod.id);
+
+    const prevItems = items ?? [];
+    const prevItemsBefore = itemsBefore ?? [];
+    const prevLite = liteLocal ?? [];
+
+    // Optimistic local move: drop from items, push back to lite.
+    setItems(prevItems.filter((p) => p.id !== prod.id));
+    setItemsBefore(prevItemsBefore.filter((p) => p.id !== prod.id));
+    setLiteLocal([
+      ...prevLite,
+      { ...prod, categoryId: "" },
+    ]);
+
+    try {
+      const action = await dispatch(
+        editProduct(
+          buildEditPayload(prod, {
+            categoryId: "",
+            // sortOrder reset so the product doesn't carry its old
+            // position into a future re-categorisation.
+            sortOrder: 0,
+          }),
+        ),
+      );
+      if (action?.error) throw action.payload || action.error;
+      toast.success(
+        t("categoryProducts.remove_success", {
+          name: prod.name,
+          defaultValue: "{{name}} bu kategoriden çıkarıldı.",
+        }),
+        { id: "catProdRemove" },
+      );
+    } catch (err) {
+      // Rollback on backend reject.
+      setItems(prevItems);
+      setItemsBefore(prevItemsBefore);
+      setLiteLocal(prevLite);
+      const msg =
+        err?.message_TR ||
+        err?.message ||
+        t("categoryProducts.remove_failed");
+      toast.error(msg, { id: "catProdRemove" });
+    } finally {
+      dispatch(resetEditProduct());
+      setMutatingId(null);
     }
   };
 
@@ -465,8 +511,8 @@ const CategoryProducts = ({
                   prod={prod}
                   t={t}
                   onAdd={handleAddToCategory}
-                  adding={addingId === prod.id}
-                  disabled={!!addingId && addingId !== prod.id}
+                  adding={mutatingId === prod.id}
+                  disabled={!!mutatingId && mutatingId !== prod.id}
                 />
               ))}
             </div>
@@ -506,7 +552,9 @@ const CategoryProducts = ({
                   prod={prod}
                   t={t}
                   onEdit={handleEditProduct}
-                  onDelete={handleDeleteProduct}
+                  onRemove={handleRemoveFromCategory}
+                  removing={mutatingId === prod.id}
+                  disabled={!!mutatingId && mutatingId !== prod.id}
                   draggable={false}
                 />
               ))}
@@ -535,7 +583,11 @@ const CategoryProducts = ({
                             provided={provided}
                             isDragging={snapshot.isDragging}
                             onEdit={handleEditProduct}
-                            onDelete={handleDeleteProduct}
+                            onRemove={handleRemoveFromCategory}
+                            removing={mutatingId === prod.id}
+                            disabled={
+                              !!mutatingId && mutatingId !== prod.id
+                            }
                             draggable
                           />
                         )}
@@ -693,15 +745,19 @@ const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
   );
 };
 
-// Right-column row — drag handle (when draggable) + name + edit + delete.
-// Without renderClone, rfd uses this very element for the drag avatar.
+// Right-column row — drag handle (when draggable) + name + edit +
+// "remove from this category" (NOT delete — actual delete only lives
+// on the Products page, per UX spec). Without renderClone, rfd uses
+// this very element for the drag avatar.
 const InCategoryRow = ({
   prod,
   t,
   provided,
   isDragging,
   onEdit,
-  onDelete,
+  onRemove,
+  removing,
+  disabled,
   draggable,
 }) => {
   const portionsCount = Array.isArray(prod.portions) ? prod.portions.length : 0;
@@ -714,8 +770,10 @@ const InCategoryRow = ({
       className={`flex items-center gap-2.5 p-2.5 rounded-xl border bg-[--white-1] transition ${
         isDragging
           ? "border-indigo-400 ring-2 ring-indigo-200 shadow-xl"
-          : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
-      }`}
+          : removing
+            ? "border-amber-300 ring-2 ring-amber-100"
+            : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
+      } ${disabled ? "opacity-50" : ""}`}
     >
       {draggable && (
         <button
@@ -744,13 +802,26 @@ const InCategoryRow = ({
         >
           <Pencil className="size-3.5" />
         </button>
+        {/* "Remove from this category" — non-destructive (the product
+            stays in the system; only the category link is broken).
+            Amber tone signals "warning, but recoverable" — distinct
+            from the rose destructive Trash on the Products page. The
+            unlink icon is the visual cue for "break association". */}
         <button
           type="button"
-          onClick={() => onDelete(prod)}
-          title={t("categoryProducts.delete")}
-          className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+          onClick={() => onRemove(prod)}
+          disabled={removing || disabled}
+          title={t(
+            "categoryProducts.remove_from_category",
+            "Bu kategoriden çıkart",
+          )}
+          className="grid place-items-center size-8 rounded-md text-amber-700 hover:bg-amber-50 transition disabled:opacity-60 disabled:cursor-not-allowed dark:text-amber-300 dark:hover:bg-amber-500/15"
         >
-          <Trash2 className="size-3.5" />
+          {removing ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Unlink className="size-3.5" />
+          )}
         </button>
       </div>
     </div>
