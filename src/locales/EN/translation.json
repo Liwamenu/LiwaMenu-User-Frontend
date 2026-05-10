@@ -2280,5 +2280,27 @@
         }
       ]
     }
+  },
+  "filterReservations": {
+    "filter": "Filter",
+    "date_from": "Date From",
+    "date_to": "Date To",
+    "status": "Status",
+    "status_all": "All",
+    "status_pending": "Pending",
+    "status_accepted": "Accepted",
+    "status_rejected": "Rejected",
+    "search": "Search",
+    "search_placeholder": "Search key",
+    "full_name": "Full Name",
+    "full_name_placeholder": "Guest name",
+    "phone": "Phone",
+    "phone_placeholder": "Phone number",
+    "min_guests": "Min Guests",
+    "min_placeholder": "Min",
+    "max_guests": "Max Guests",
+    "max_placeholder": "Max",
+    "clear": "Clear",
+    "apply": "Apply"
   }
 }

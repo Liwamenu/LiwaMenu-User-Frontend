@@ -2084,5 +2084,27 @@
         }
       ]
     }
+  },
+  "filterReservations": {
+    "filter": "Filtrele",
+    "date_from": "Başlangıç Tarihi",
+    "date_to": "Bitiş Tarihi",
+    "status": "Durum",
+    "status_all": "Tümü",
+    "status_pending": "Onay Bekliyor",
+    "status_accepted": "Kabul Edildi",
+    "status_rejected": "Reddedildi",
+    "search": "Ara",
+    "search_placeholder": "Anahtar kelime",
+    "full_name": "Ad Soyad",
+    "full_name_placeholder": "Misafir adı",
+    "phone": "Telefon",
+    "phone_placeholder": "Telefon numarası",
+    "min_guests": "Min. Misafir",
+    "min_placeholder": "Min",
+    "max_guests": "Maks. Misafir",
+    "max_placeholder": "Maks",
+    "clear": "Temizle",
+    "apply": "Uygula"
   }
 }
