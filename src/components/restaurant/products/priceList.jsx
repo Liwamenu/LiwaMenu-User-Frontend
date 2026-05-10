@@ -386,9 +386,12 @@ const PriceList = ({ data: restaurant }) => {
               ) : (
                 <Save className="size-4" />
               )}
-              <span className="hidden sm:inline">
-                {t("priceList.save_changes")}
-              </span>
+              {/* Short "Kaydet" label always visible — the previous
+                  `hidden sm:inline` collapsed to icon-only on mobile,
+                  which made the action ambiguous. The longer
+                  "Değişiklikleri Kaydet" copy moves to the duplicate
+                  button at the bottom of the list where there's room. */}
+              <span>{t("priceList.save_short", "Kaydet")}</span>
             </button>
           )}
         </div>
@@ -691,6 +694,30 @@ const PriceList = ({ data: restaurant }) => {
                 </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Duplicate save bar at the bottom of the list — appears
+              only when there are unsaved changes AND there's at least
+              one category to render. Saves the user from scrolling
+              back up to the hero header after editing prices on a
+              long menu. Bottom button uses the longer
+              "Değişiklikleri Kaydet" copy because it has the room. */}
+          {dirty && groupedByCategory.length > 0 && (
+            <div className="flex justify-end pt-3 border-t border-[--border-1]">
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={loading}
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-lg text-white text-sm font-semibold shadow-md shadow-emerald-500/25 hover:brightness-110 active:brightness-95 transition shrink-0 disabled:opacity-60 bg-gradient-to-r from-emerald-500 to-emerald-600"
+              >
+                {loading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+                {t("priceList.save_changes")}
+              </button>
             </div>
           )}
         </div>

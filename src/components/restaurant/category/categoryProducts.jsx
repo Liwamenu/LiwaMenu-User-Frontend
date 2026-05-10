@@ -28,19 +28,21 @@ import {
   Package,
   X,
   Pencil,
-  Trash2,
   Save,
   GripVertical,
   Loader2,
   Search,
-  Plus,
+  ArrowRight,
   PackagePlus,
   PackageCheck,
   Inbox,
+  ArrowRightLeft,
+  Check,
+  AlertTriangle,
+  Layers,
 } from "lucide-react";
 
 import EditProduct from "../products/editProduct";
-import DeleteProduct from "../products/deleteProduct";
 import { usePopup } from "../../../context/PopupContext";
 
 import {
@@ -94,6 +96,12 @@ const CategoryProducts = ({
     products: liteProducts,
     fetchedFor: liteFetchedFor,
   } = useSelector((s) => s.products.getLite);
+  // Categories list — needed by the move-to-category picker so we can
+  // offer the user a destination category (backend rejects empty
+  // categoryId, so a product can NEVER be uncategorised; "remove from
+  // this category" is therefore really "move to another category"). The
+  // parent page already populates this slice on mount.
+  const { categories } = useSelector((s) => s.categories.get);
 
   // Local state for the category-side list — initialised from the slice
   // and mutated locally so optimistic add / drag-reorder feel snappy
@@ -106,7 +114,11 @@ const CategoryProducts = ({
   // add" works without re-fetching the entire catalogue. Synced from
   // Redux when the slice payload arrives.
   const [liteLocal, setLiteLocal] = useState(null);
-  const [addingId, setAddingId] = useState(null);
+  // Single id-tracker for either an add-to-category or remove-from-
+  // category operation. Both flows dispatch the same `editProduct`
+  // thunk and have to settle one at a time so the optimistic state
+  // doesn't get clobbered by overlapping rollbacks.
+  const [mutatingId, setMutatingId] = useState(null);
 
   // Single search box, filters both columns.
   const [searchVal, setSearchVal] = useState("");
@@ -189,12 +201,33 @@ const CategoryProducts = ({
   // Derived: products NOT yet in this category (left column source).
   // Excludes anything already shown on the right so nothing appears in
   // both columns even mid-flight while a refetch is settling.
+  // Sorted alphabetically (Turkish-aware) so the picker stays
+  // predictable as the user scrolls — no shuffling after each add.
   const availableProducts = useMemo(() => {
     if (!liteLocal) return null;
-    if (!items) return liteLocal;
-    const inHere = new Set(items.map((p) => p.id));
-    return liteLocal.filter((p) => !inHere.has(p.id));
+    const inHere = new Set((items || []).map((p) => p.id));
+    return liteLocal
+      .filter((p) => !inHere.has(p.id))
+      .sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "", "tr", {
+          sensitivity: "base",
+        }),
+      );
   }, [liteLocal, items]);
+
+  // Lookup table for resolving a product's `categoryId` to a display
+  // name in the AvailableRow chip ("currently in: …"). The categories
+  // list is loaded by the parent page on mount so we don't need a
+  // separate fetch here. Falls through to an empty string when the id
+  // doesn't match (e.g. a product cached before its category was
+  // deleted).
+  const categoryNameById = useMemo(() => {
+    const map = new Map();
+    (categories || []).forEach((c) => {
+      if (c?.id) map.set(c.id, c.name || "");
+    });
+    return map;
+  }, [categories]);
 
   // Search applies to both columns — same query, independently filtered.
   const q = normalizeSearch(searchVal.trim());
@@ -209,23 +242,8 @@ const CategoryProducts = ({
     return availableProducts.filter((p) => normalizeSearch(p.name).includes(q));
   }, [availableProducts, q]);
 
-  const handleDeletedProduct = (deletedId) => {
-    setItems((prev) => (prev ? prev.filter((p) => p.id !== deletedId) : prev));
-    setItemsBefore((prev) =>
-      prev ? prev.filter((p) => p.id !== deletedId) : prev,
-    );
-    setLiteLocal((prev) =>
-      prev ? prev.filter((p) => p.id !== deletedId) : prev,
-    );
-  };
-
   const handleEditProduct = (product) =>
     setSecondPopupContent(<EditProduct product={product} />);
-
-  const handleDeleteProduct = (product) =>
-    setSecondPopupContent(
-      <DeleteProduct product={product} onSuccess={handleDeletedProduct} />,
-    );
 
   // Build the bare-minimum FormData payload editProduct expects. We carry
   // the existing values through so the backend doesn't blank them.
@@ -259,8 +277,8 @@ const CategoryProducts = ({
   // immediately moves it across so the user gets feedback before the
   // network round-trip completes. Rolls back on failure.
   const handleAddToCategory = async (prod) => {
-    if (addingId) return; // serialise — keeps the optimistic state simple
-    setAddingId(prod.id);
+    if (mutatingId) return; // serialise — keeps the optimistic state simple
+    setMutatingId(prod.id);
 
     // Snapshot for rollback.
     const prevItems = items ?? [];
@@ -304,7 +322,88 @@ const CategoryProducts = ({
       toast.error(msg, { id: "catProdAdd" });
     } finally {
       dispatch(resetEditProduct());
-      setAddingId(null);
+      setMutatingId(null);
+    }
+  };
+
+  // "Bu kategoriden çıkart" → opens a destination-category picker.
+  // Backend rejects empty categoryId, so a product can never be
+  // truly uncategorised; we therefore frame the action as a MOVE to
+  // another category. The picker only lists categories OTHER than
+  // the current one, plus an empty-state when there's only one
+  // category in the restaurant. Actual product deletion still lives
+  // on the Products page (per UX spec).
+  const handleRequestMove = (prod) => {
+    setSecondPopupContent(
+      <MoveToCategoryPopup
+        product={prod}
+        currentCategoryId={categoryId}
+        categories={categories}
+        t={t}
+        onCancel={() => setSecondPopupContent(null)}
+        onConfirm={(targetCategoryId) => {
+          setSecondPopupContent(null);
+          executeMoveToCategory(prod, targetCategoryId);
+        }}
+      />,
+    );
+  };
+
+  // The actual MOVE — dispatched after the user picks a destination
+  // in the picker. Optimistic UI: drop the row from the right column
+  // and inject it into the lite cache with its new categoryId so it
+  // doesn't disappear from the picker if reopened.
+  const executeMoveToCategory = async (prod, targetCategoryId) => {
+    if (!targetCategoryId || mutatingId) return;
+    setMutatingId(prod.id);
+
+    const prevItems = items ?? [];
+    const prevItemsBefore = itemsBefore ?? [];
+    const prevLite = liteLocal ?? [];
+
+    setItems(prevItems.filter((p) => p.id !== prod.id));
+    setItemsBefore(prevItemsBefore.filter((p) => p.id !== prod.id));
+    setLiteLocal([
+      ...prevLite.filter((p) => p.id !== prod.id),
+      { ...prod, categoryId: targetCategoryId },
+    ]);
+
+    try {
+      const action = await dispatch(
+        editProduct(
+          buildEditPayload(prod, {
+            categoryId: targetCategoryId,
+            // sortOrder reset so the product appears at the bottom of
+            // its new category (avoids inheriting the old position).
+            sortOrder: 0,
+          }),
+        ),
+      );
+      if (action?.error) throw action.payload || action.error;
+      const targetCat = (categories || []).find(
+        (c) => c.id === targetCategoryId,
+      );
+      toast.success(
+        t("categoryProducts.move_success", {
+          name: prod.name,
+          category: targetCat?.name || "",
+          defaultValue: "{{name}} {{category}} kategorisine taşındı.",
+        }),
+        { id: "catProdMove" },
+      );
+    } catch (err) {
+      // Rollback on backend reject.
+      setItems(prevItems);
+      setItemsBefore(prevItemsBefore);
+      setLiteLocal(prevLite);
+      const msg =
+        err?.message_TR ||
+        err?.message ||
+        t("categoryProducts.move_failed");
+      toast.error(msg, { id: "catProdMove" });
+    } finally {
+      dispatch(resetEditProduct());
+      setMutatingId(null);
     }
   };
 
@@ -463,10 +562,11 @@ const CategoryProducts = ({
                 <AvailableRow
                   key={prod.id}
                   prod={prod}
+                  categoryName={categoryNameById.get(prod.categoryId)}
                   t={t}
                   onAdd={handleAddToCategory}
-                  adding={addingId === prod.id}
-                  disabled={!!addingId && addingId !== prod.id}
+                  adding={mutatingId === prod.id}
+                  disabled={!!mutatingId && mutatingId !== prod.id}
                 />
               ))}
             </div>
@@ -480,6 +580,12 @@ const CategoryProducts = ({
             "categoryProducts.in_category_title",
             "Bu Kategorideki Ürünler",
           )}
+          // Strong indigo chip with the current category name — answers
+          // "this column = which category?" at a glance, no menu hop
+          // needed. Only the right pane gets the chip; the left column
+          // title is generic ("Bu Kategoride Olmayan Ürünler") and
+          // doesn't need a name.
+          chip={categoryName}
           count={filteredItems?.length}
           totalCount={items?.length}
           loading={!items}
@@ -506,7 +612,9 @@ const CategoryProducts = ({
                   prod={prod}
                   t={t}
                   onEdit={handleEditProduct}
-                  onDelete={handleDeleteProduct}
+                  onRequestMove={handleRequestMove}
+                  removing={mutatingId === prod.id}
+                  disabled={!!mutatingId && mutatingId !== prod.id}
                   draggable={false}
                 />
               ))}
@@ -535,7 +643,11 @@ const CategoryProducts = ({
                             provided={provided}
                             isDragging={snapshot.isDragging}
                             onEdit={handleEditProduct}
-                            onDelete={handleDeleteProduct}
+                            onRequestMove={handleRequestMove}
+                            removing={mutatingId === prod.id}
+                            disabled={
+                              !!mutatingId && mutatingId !== prod.id
+                            }
                             draggable
                           />
                         )}
@@ -550,14 +662,14 @@ const CategoryProducts = ({
         </ColumnPane>
       </div>
 
-      {/* FOOTER — Save Order shows only when right-column dirty */}
+      {/* FOOTER — Save Order shows only when right-column dirty.
+          Product count was previously shown here too but it duplicated
+          the badge in the right pane header — dropped to keep the
+          footer focused on the only thing that actually changes
+          here (the drag-to-reorder hint). */}
       <div className="px-3 sm:px-5 py-3 border-t border-[--border-1] flex items-center justify-between gap-3 shrink-0 bg-[--white-1]">
         <span className="text-[11px] font-semibold text-[--gr-1] uppercase tracking-wide truncate">
-          {orderDirty
-            ? t("categoryProducts.drag_to_reorder")
-            : items?.length
-              ? t("categoryProducts.summary", { count: items.length })
-              : ""}
+          {orderDirty ? t("categoryProducts.drag_to_reorder") : ""}
         </span>
         <div className="flex gap-2 shrink-0">
           <button
@@ -589,10 +701,15 @@ const CategoryProducts = ({
   );
 };
 
-// One column wrapper — header strip + scrollable body.
+// One column wrapper — header strip + scrollable body. When `chip` is
+// supplied, the header swaps its neutral wash for a tinted indigo
+// background and renders a solid indigo badge carrying the chip text
+// (currently only used by the right pane to surface the active
+// category name; the left pane is generic and skips it).
 const ColumnPane = ({
   icon: Icon,
   title,
+  chip,
   count,
   totalCount,
   loading,
@@ -612,17 +729,40 @@ const ColumnPane = ({
       : typeof totalCount === "number"
         ? `${totalCount}`
         : null;
+  // When a chip is present, tint the entire header row with a soft
+  // indigo wash so the column reads as "scoped to a specific category"
+  // rather than just generic. Falls back to neutral for the left pane.
+  const headerBg = chip
+    ? "bg-indigo-50/60 dark:bg-indigo-500/10"
+    : "bg-[--white-2]/40";
   return (
     <div className="flex flex-col min-h-0 max-h-[60dvh] lg:max-h-none overflow-hidden">
-      <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-[--border-1] bg-[--white-2]/40 shrink-0">
+      <div
+        className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-[--border-1] shrink-0 ${headerBg}`}
+      >
         <span
           className={`grid place-items-center size-7 rounded-md ring-1 shrink-0 ${accentMap[accent]}`}
         >
           <Icon className="size-3.5" />
         </span>
-        <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[--gr-1] truncate flex-1 min-w-0">
+        {/* Generic title shrinks first on narrow widths so the
+            (more important) category chip stays readable. */}
+        <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[--gr-1] truncate min-w-0 hidden sm:block">
           {title}
         </h4>
+        {chip && (
+          <span
+            className="inline-flex items-center text-[11px] sm:text-xs font-bold tracking-wide px-2 py-1 rounded-md text-white shadow-sm shadow-indigo-500/30 truncate min-w-0 max-w-[60%] sm:max-w-[55%]"
+            style={{
+              background:
+                "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)",
+            }}
+            title={chip}
+          >
+            <span className="truncate">{chip}</span>
+          </span>
+        )}
+        <div className="flex-1 min-w-0" />
         {showCount && !loading && (
           <span className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] bg-[--white-1] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md shrink-0 tabular-nums">
             {showCount}
@@ -652,8 +792,7 @@ const EmptyState = ({ icon: Icon, title }) => (
 );
 
 // Left-column row — name + portions count + Add button.
-const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
-  const portionsCount = Array.isArray(prod.portions) ? prod.portions.length : 0;
+const AvailableRow = ({ prod, categoryName, t, onAdd, adding, disabled }) => {
   return (
     <div
       className={`flex items-center gap-3 p-2.5 rounded-xl border bg-[--white-1] transition ${
@@ -669,8 +808,24 @@ const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
         <div className="text-sm font-semibold text-[--black-1] truncate">
           {prod.name}
         </div>
-        <div className="text-[11px] text-[--gr-1] mt-0.5">
-          {t("categoryProducts.portions", { count: portionsCount })}
+        {/* Show the product's CURRENT category as a chip — replaces the
+            old portion count line. Helps the author see at a glance
+            "this product is currently in X" before moving it here, so
+            they don't accidentally pull a row out of a category that
+            still needs it. Backend uses a single categoryId per
+            product; if/when many-to-many ships, swap this for a
+            chip-strip rendering each linked category. */}
+        <div className="mt-0.5 flex items-center gap-1 min-w-0">
+          {categoryName ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-700 bg-indigo-50 ring-1 ring-indigo-100 px-1.5 py-0.5 rounded-md max-w-full dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+              <Layers className="size-2.5 shrink-0" strokeWidth={2.25} />
+              <span className="truncate">{categoryName}</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center text-[10px] font-medium text-[--gr-1] bg-[--white-2] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md">
+              {t("categoryProducts.no_category", "Kategorisiz")}
+            </span>
+          )}
         </div>
       </div>
       <button
@@ -678,30 +833,43 @@ const AvailableRow = ({ prod, t, onAdd, adding, disabled }) => {
         onClick={() => onAdd(prod)}
         disabled={adding || disabled}
         title={t("categoryProducts.add", "Ekle")}
-        className="inline-flex items-center justify-center gap-1 h-9 px-3 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-100 hover:ring-indigo-200 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30 dark:hover:bg-indigo-500/25 shrink-0"
+        className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-100 hover:ring-indigo-200 transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30 dark:hover:bg-indigo-500/25 shrink-0"
       >
-        {adding ? (
-          <Loader2 className="size-3.5 animate-spin" />
-        ) : (
-          <Plus className="size-3.5" strokeWidth={2.5} />
-        )}
+        {/* Label first, then a right-pointing arrow on the right edge —
+            visually reinforces the "send this product across to the
+            right column" gesture. The arrow sits AFTER the label so
+            the eye reads "Ekle →" naturally. The loading spinner
+            replaces the arrow (not the label) so the action stays
+            recognisable mid-dispatch. */}
         <span className="hidden sm:inline">
           {t("categoryProducts.add", "Ekle")}
         </span>
+        {adding ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : (
+          <ArrowRight className="size-3.5" strokeWidth={2.5} />
+        )}
       </button>
     </div>
   );
 };
 
-// Right-column row — drag handle (when draggable) + name + edit + delete.
-// Without renderClone, rfd uses this very element for the drag avatar.
+// Right-column row — drag handle (when draggable) + name + edit +
+// "move to another category". The move button opens a destination-
+// picker popup (handleRequestMove) instead of dispatching directly,
+// because the backend rejects an empty categoryId — every move needs
+// a target. Actual product deletion still lives on the Products page.
+// Without renderClone, rfd uses this very element for the drag
+// avatar.
 const InCategoryRow = ({
   prod,
   t,
   provided,
   isDragging,
   onEdit,
-  onDelete,
+  onRequestMove,
+  removing,
+  disabled,
   draggable,
 }) => {
   const portionsCount = Array.isArray(prod.portions) ? prod.portions.length : 0;
@@ -714,8 +882,10 @@ const InCategoryRow = ({
       className={`flex items-center gap-2.5 p-2.5 rounded-xl border bg-[--white-1] transition ${
         isDragging
           ? "border-indigo-400 ring-2 ring-indigo-200 shadow-xl"
-          : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
-      }`}
+          : removing
+            ? "border-amber-300 ring-2 ring-amber-100"
+            : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
+      } ${disabled ? "opacity-50" : ""}`}
     >
       {draggable && (
         <button
@@ -744,15 +914,175 @@ const InCategoryRow = ({
         >
           <Pencil className="size-3.5" />
         </button>
+        {/* "Başka kategoriye taşı" — non-destructive (the product stays
+            in the system; only its category changes). Amber tone signals
+            "warning, but recoverable" — distinct from the rose
+            destructive Trash on the Products page. The arrow-right-left
+            icon visually says "swap categories". */}
         <button
           type="button"
-          onClick={() => onDelete(prod)}
-          title={t("categoryProducts.delete")}
-          className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+          onClick={() => onRequestMove(prod)}
+          disabled={removing || disabled}
+          title={t(
+            "categoryProducts.move_to_category",
+            "Başka kategoriye taşı",
+          )}
+          className="grid place-items-center size-8 rounded-md text-amber-700 hover:bg-amber-50 transition disabled:opacity-60 disabled:cursor-not-allowed dark:text-amber-300 dark:hover:bg-amber-500/15"
         >
-          <Trash2 className="size-3.5" />
+          {removing ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <ArrowRightLeft className="size-3.5" />
+          )}
         </button>
       </div>
+    </div>
+  );
+};
+
+// Picker modal — lists categories OTHER than the current one so the
+// user can pick a destination for the move. Empty state shown when
+// there's only one category in the restaurant (nothing to move to —
+// the user has to create another category first via the parent page).
+const MoveToCategoryPopup = ({
+  product,
+  currentCategoryId,
+  categories,
+  t,
+  onCancel,
+  onConfirm,
+}) => {
+  const targetOptions = useMemo(
+    () =>
+      (categories || [])
+        .filter((c) => c?.id && c.id !== currentCategoryId)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+    [categories, currentCategoryId],
+  );
+  const [selectedId, setSelectedId] = useState(null);
+  const isEmpty = targetOptions.length === 0;
+  const canConfirm = !!selectedId;
+
+  return (
+    <div className="bg-[--white-1] rounded-2xl shadow-2xl ring-1 ring-[--border-1] w-full max-w-md mx-auto overflow-hidden flex flex-col max-h-[85dvh]">
+      <div
+        className="h-0.5 shrink-0"
+        style={{ background: PRIMARY_GRADIENT }}
+      />
+      <header className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[--border-1] shrink-0">
+        <span
+          className="grid place-items-center size-9 rounded-xl text-white shadow-md shadow-amber-500/25 shrink-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)",
+          }}
+        >
+          <ArrowRightLeft className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm sm:text-base font-bold text-[--black-1] truncate tracking-tight">
+            {t("categoryProducts.move_picker_title", "Kategoriyi Değiştir")}
+          </h3>
+          <p className="text-[11px] text-[--gr-1] truncate mt-0.5">
+            {product?.name}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label={t("categoryProducts.close")}
+          className="grid place-items-center size-8 rounded-md text-[--gr-2] hover:text-[--black-1] hover:bg-[--white-2] transition shrink-0"
+        >
+          <X className="size-4" />
+        </button>
+      </header>
+
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3">
+        {/* Why a destination is required */}
+        <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2 dark:bg-amber-500/10 dark:border-amber-400/30">
+          <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5 dark:text-amber-300" />
+          <p className="text-[12px] text-amber-900 leading-snug dark:text-amber-100">
+            {t(
+              "categoryProducts.move_picker_hint",
+              "Bir ürün kategorisiz kalamaz. Lütfen taşımak istediğiniz hedef kategoriyi seçin.",
+            )}
+          </p>
+        </div>
+
+        {/* Target list — radio-style clickable rows */}
+        {isEmpty ? (
+          <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-6 grid place-items-center text-center">
+            <span className="grid place-items-center size-10 rounded-xl bg-[--white-1] text-[--gr-1] ring-1 ring-[--border-1] mb-2">
+              <Inbox className="size-5" />
+            </span>
+            <p className="text-xs text-[--gr-1]">
+              {t(
+                "categoryProducts.move_picker_no_other",
+                "Taşınabilecek başka kategori yok. Önce yeni bir kategori oluşturun.",
+              )}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {targetOptions.map((cat) => {
+              const active = selectedId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedId(cat.id)}
+                  className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition ${
+                    active
+                      ? "border-indigo-300 bg-indigo-50 ring-1 ring-indigo-200 shadow-sm dark:bg-indigo-500/15 dark:border-indigo-400/40 dark:ring-indigo-400/30"
+                      : "border-[--border-1] bg-[--white-1] hover:border-indigo-200 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/10 dark:hover:border-indigo-400/40"
+                  }`}
+                >
+                  <span
+                    className={`grid place-items-center size-5 rounded-full border-2 transition shrink-0 ${
+                      active
+                        ? "border-indigo-600 bg-indigo-600 text-white"
+                        : "border-[--border-1] bg-[--white-1]"
+                    }`}
+                  >
+                    {active && (
+                      <Check className="size-3" strokeWidth={3.5} />
+                    )}
+                  </span>
+                  <span
+                    className={`text-sm font-semibold truncate flex-1 min-w-0 ${
+                      active
+                        ? "text-indigo-900 dark:text-indigo-100"
+                        : "text-[--black-1]"
+                    }`}
+                  >
+                    {cat.name || "—"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <footer className="px-3 sm:px-5 py-3 border-t border-[--border-1] flex justify-end gap-2 shrink-0 bg-[--white-1]">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-10 px-4 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-2] text-sm font-medium hover:bg-[--white-2] transition"
+        >
+          {t("categoryProducts.move_cancel", "İptal")}
+        </button>
+        <button
+          type="button"
+          onClick={() => canConfirm && onConfirm(selectedId)}
+          disabled={!canConfirm}
+          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: PRIMARY_GRADIENT }}
+        >
+          <ArrowRightLeft className="size-4" />
+          {t("categoryProducts.move_confirm", "Taşı")}
+        </button>
+      </footer>
     </div>
   );
 };
