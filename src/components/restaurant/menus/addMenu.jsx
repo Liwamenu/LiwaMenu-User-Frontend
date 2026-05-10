@@ -27,7 +27,12 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
-  const { success, error } = useSelector((s) => s.menus.add);
+  // `addedMenu` is the backend's response payload — we merge its `id` (and
+  // any other server-assigned fields) into our local form snapshot before
+  // pushing to the parent's cache. Without it the new menu landed with
+  // id=undefined and any subsequent delete hit
+  // DELETE /Menus/DeleteMenu/undefined → 404.
+  const { success, error, data: addedMenu } = useSelector((s) => s.menus.add);
 
   const [menuName, setMenuName] = useState("");
   const [schedules, setSchedules] = useState([]);
@@ -105,11 +110,18 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
   useEffect(() => {
     if (success) {
       toast.success(t("addMenu.success"));
+      // Backend may return either a plain menu object or a `{ data: {...} }`
+      // envelope — accept both. The merged result has the local form
+      // values overlaid by whatever the server returned (so server-assigned
+      // `id` always wins).
+      const fromServer = addedMenu?.data ?? addedMenu;
+      const finalMenu = { ...newMenu, ...(fromServer || {}) };
+      onSave(finalMenu);
       dispatch(resetaddMenu());
-      onSave(newMenu);
       onClose();
     }
     if (error) dispatch(resetaddMenu());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error]);
 
   return (
