@@ -662,14 +662,14 @@ const CategoryProducts = ({
         </ColumnPane>
       </div>
 
-      {/* FOOTER — Save Order shows only when right-column dirty */}
+      {/* FOOTER — Save Order shows only when right-column dirty.
+          Product count was previously shown here too but it duplicated
+          the badge in the right pane header — dropped to keep the
+          footer focused on the only thing that actually changes
+          here (the drag-to-reorder hint). */}
       <div className="px-3 sm:px-5 py-3 border-t border-[--border-1] flex items-center justify-between gap-3 shrink-0 bg-[--white-1]">
         <span className="text-[11px] font-semibold text-[--gr-1] uppercase tracking-wide truncate">
-          {orderDirty
-            ? t("categoryProducts.drag_to_reorder")
-            : items?.length
-              ? t("categoryProducts.summary", { count: items.length })
-              : ""}
+          {orderDirty ? t("categoryProducts.drag_to_reorder") : ""}
         </span>
         <div className="flex gap-2 shrink-0">
           <button
