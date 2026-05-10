@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import CustomInput from "../../common/customInput";
 import CustomSelect from "../../common/customSelector";
@@ -6,14 +7,8 @@ import CustomDatePicker from "../../common/customdatePicker";
 import { usePopup } from "../../../context/PopupContext";
 import { useReservations } from "../../../context/reservationsContext";
 
-const statusOptions = [
-  { label: "All", value: null },
-  { label: "Pending", value: "PendingOwnerDecision" },
-  { label: "Accepted", value: "Accepted" },
-  { label: "Rejected", value: "Rejected" },
-];
-
 const FilterReservations = () => {
+  const { t } = useTranslation();
   const filterReservationsRef = useRef();
   const { contentRef, setContentRef } = usePopup();
   const {
@@ -25,6 +20,23 @@ const FilterReservations = () => {
   } = useReservations();
 
   const [openFilter, setOpenFilter] = useState(false);
+
+  // Status options are translated dynamically so a language switch
+  // updates the dropdown labels in place. The `value` strings stay in
+  // their backend-canonical form (PendingOwnerDecision / Accepted /
+  // Rejected) — only the user-facing labels move with the locale.
+  const statusOptions = useMemo(
+    () => [
+      { label: t("filterReservations.status_all"), value: null },
+      {
+        label: t("filterReservations.status_pending"),
+        value: "PendingOwnerDecision",
+      },
+      { label: t("filterReservations.status_accepted"), value: "Accepted" },
+      { label: t("filterReservations.status_rejected"), value: "Rejected" },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     if (filterReservationsRef) {
@@ -60,7 +72,7 @@ const FilterReservations = () => {
         className="w-full h-11 flex items-center justify-center text-[--primary-1] px-3 rounded-md text-sm font-normal border-[1.5px] border-solid border-[--primary-1]"
         onClick={() => setOpenFilter(!openFilter)}
       >
-        Filter
+        {t("filterReservations.filter")}
       </button>
 
       <div
@@ -70,7 +82,7 @@ const FilterReservations = () => {
       >
         <div className="grid grid-cols-2 gap-4">
           <CustomDatePicker
-            label="Date From"
+            label={t("filterReservations.date_from")}
             className="text-sm sm:mt-1 py-2 sm:py-[0.5rem]"
             value={filter.dateFrom}
             dateOnly
@@ -83,7 +95,7 @@ const FilterReservations = () => {
           />
 
           <CustomDatePicker
-            label="Date To"
+            label={t("filterReservations.date_to")}
             className="text-sm sm:mt-1 py-2 sm:py-[0.5rem]"
             value={filter.dateTo}
             dateOnly
@@ -96,7 +108,7 @@ const FilterReservations = () => {
           />
 
           <CustomSelect
-            label="Status"
+            label={t("filterReservations.status")}
             className="text-sm sm:mt-1"
             className2="sm:mt-3"
             options={statusOptions}
@@ -111,8 +123,8 @@ const FilterReservations = () => {
           />
 
           <CustomInput
-            label="Search"
-            placeholder="Search key"
+            label={t("filterReservations.search")}
+            placeholder={t("filterReservations.search_placeholder")}
             value={filter.searchKey}
             onChange={(value) =>
               setFilter((prev) => ({
@@ -125,8 +137,8 @@ const FilterReservations = () => {
           />
 
           <CustomInput
-            label="Full Name"
-            placeholder="Guest name"
+            label={t("filterReservations.full_name")}
+            placeholder={t("filterReservations.full_name_placeholder")}
             value={filter.fullName}
             onChange={(value) =>
               setFilter((prev) => ({
@@ -138,8 +150,8 @@ const FilterReservations = () => {
           />
 
           <CustomInput
-            label="Phone"
-            placeholder="Phone number"
+            label={t("filterReservations.phone")}
+            placeholder={t("filterReservations.phone_placeholder")}
             value={filter.phoneNumber}
             onChange={(value) =>
               setFilter((prev) => ({
@@ -153,8 +165,8 @@ const FilterReservations = () => {
           <CustomInput
             type="number"
             min={1}
-            label="Min Guests"
-            placeholder="Min"
+            label={t("filterReservations.min_guests")}
+            placeholder={t("filterReservations.min_placeholder")}
             value={filter.minGuestCount}
             onChange={(value) =>
               setFilter((prev) => ({
@@ -168,8 +180,8 @@ const FilterReservations = () => {
           <CustomInput
             type="number"
             min={1}
-            label="Max Guests"
-            placeholder="Max"
+            label={t("filterReservations.max_guests")}
+            placeholder={t("filterReservations.max_placeholder")}
             value={filter.maxGuestCount}
             onChange={(value) =>
               setFilter((prev) => ({
@@ -186,13 +198,13 @@ const FilterReservations = () => {
             className="text-white bg-[--red-1] py-2 px-12 rounded-lg hover:opacity-90"
             onClick={() => handleFilter(false)}
           >
-            Clear
+            {t("filterReservations.clear")}
           </button>
           <button
             className="text-white bg-[--primary-1] py-2 px-12 rounded-lg hover:opacity-90"
             onClick={() => handleFilter(true)}
           >
-            Apply
+            {t("filterReservations.apply")}
           </button>
         </div>
       </div>
