@@ -900,10 +900,11 @@ function BulkImageTab({
                     category name is the first thing the eye lands on
                     in a long bulk grid. Was previously buried under
                     the image as small body text and easy to miss when
-                    scrolling 30+ tiles. */}
+                    scrolling 30+ tiles. Centred so the eye lines up
+                    each tile's title in a clean grid column. */}
                 <div className="px-3 py-2 bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-50/40 border-b border-indigo-200/70 dark:from-indigo-500/20 dark:via-indigo-500/10 dark:to-transparent dark:border-indigo-400/30">
                   <div
-                    className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-900 truncate dark:text-indigo-100"
+                    className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-900 truncate text-center dark:text-indigo-100"
                     title={cat.name}
                   >
                     {cat.name}
