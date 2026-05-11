@@ -49,16 +49,21 @@ export const addByOnlinePay = createAsyncThunk(
         { ...data },
       );
 
-      if (res.data.data.includes("html")) {
-        return res.data.data;
+      // New response shape:
+      //   res.data.data = { paytr: "<html>…</html>", payment: { …record… } }
+      // The `paytr` blob is a self-submitting form that hands the user
+      // off to PayTR's 3D Secure flow — that's what the iframe in
+      // 5thStepOnlinePayment / 4thStepOnlinePayment renders via srcDoc.
+      // We return just the HTML string so the existing consumer doesn't
+      // need to know about the envelope.
+      const payload = res?.data?.data;
+      if (payload && typeof payload === "object" && payload.paytr) {
+        return payload.paytr;
       }
-
-      const parsedData = JSON.parse(res.data.data);
-      if (parsedData.status === "failed") {
-        throw new Error({ message_TR: parsedData.reason });
-      }
-
-      return res.data.data;
+      // Defensive fallback for the old shape, just in case any caller
+      // hits an endpoint that still returns a plain HTML string.
+      if (typeof payload === "string") return payload;
+      return null;
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {
