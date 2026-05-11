@@ -41,12 +41,13 @@ const addByOnlinePaySlice = createSlice({
 });
 
 export const addByOnlinePay = createAsyncThunk(
-  "Licenses/PayTR/add-license",
+  "Licenses/AddLicenseByOnlinePayment",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.post(`${baseURL}PayTR/add-license`, {
-        ...data,
-      });
+      const res = await api.post(
+        `${baseURL}Licenses/AddLicenseByOnlinePayment`,
+        { ...data },
+      );
 
       if (res.data.data.includes("html")) {
         return res.data.data;

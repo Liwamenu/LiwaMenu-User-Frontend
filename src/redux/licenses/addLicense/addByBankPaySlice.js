@@ -41,11 +41,11 @@ const addByBankPaySlice = createSlice({
 });
 
 export const addByBankPay = createAsyncThunk(
-  "Payments/CreateReceiptLicensePayment",
+  "Licenses/AddLicenseByBank",
   async (formData, { rejectWithValue }) => {
     try {
       const res = await api.post(
-        `${baseURL}Payments/CreateReceiptLicensePayment`,
+        `${baseURL}Licenses/AddLicenseByBank`,
         formData,
         {
           headers: {

@@ -41,17 +41,17 @@ const extendByBankPaySlice = createSlice({
 });
 
 export const extendByBankPay = createAsyncThunk(
-  "Licenses/BankTransfers/ExtendLicenseByPayWithAdmin",
+  "Licenses/ExtendLicenseByBank",
   async (formData, { rejectWithValue }) => {
     try {
       const res = await api.post(
-        `${baseURL}BankTransfers/ExtendLicenseByPayWithAdmin`,
+        `${baseURL}Licenses/ExtendLicenseByBank`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       // console.log(res);
