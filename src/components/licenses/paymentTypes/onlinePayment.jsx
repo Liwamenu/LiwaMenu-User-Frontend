@@ -347,7 +347,7 @@ const OnlinePayment = ({
         <div className="flex gap-2 justify-end">
           <button
             type="button"
-            onClick={() => setStep(step - (isPageExtend ? 1 : 2))}
+            onClick={() => setStep(step - 1)}
             disabled={addLoading || extendLoading}
             className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-[--border-1] bg-[--white-1] text-[--black-1] text-sm font-medium hover:bg-[--white-2] transition disabled:opacity-50"
           >

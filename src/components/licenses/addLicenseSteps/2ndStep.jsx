@@ -34,7 +34,10 @@ const SecondStep = ({
 
   function handleSubmit(e) {
     e.preventDefault();
-    setStep(3 + 1);
+    // step 2 → step 3 (Billing/Invoice). Previously this hard-coded
+    // setStep(4) because step 3 was an empty stub; the invoice form is
+    // now live so advance one step at a time.
+    setStep(step + 1);
   }
 
   useEffect(() => {

@@ -90,7 +90,7 @@ const FourthStepBankPayment = ({ step, setStep }) => {
       <div className="border-t border-[--border-1] bg-[--white-2]/40 px-4 sm:px-5 py-3 flex items-center justify-end gap-2">
         <button
           type="button"
-          onClick={() => setStep(step - 2)}
+          onClick={() => setStep(step - 1)}
           className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-[--border-1] bg-[--white-1] text-[--black-1] text-sm font-medium hover:bg-[--white-2] transition"
         >
           <ArrowLeft className="size-4" />
