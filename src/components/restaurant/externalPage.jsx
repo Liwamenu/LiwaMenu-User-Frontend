@@ -697,20 +697,24 @@ const HtmlEditor = ({ t, value, onChange }) => (
         placeholder={t("externalPage.html_placeholder")}
       />
     </div>
-    {/* Sandbox the preview so the user's CSS (especially anything
-        `position: fixed`) can't escape and cover the editor. */}
+    {/* Render the HTML in-document (same approach as Announcement Settings)
+        so the user's content picks up Tailwind, CSS variables and fonts
+        from the host page — matches the editor's preview to what the
+        customer-facing theme app will show. `contain: paint` on the
+        wrapper keeps any `position: fixed` styles in the pasted HTML
+        (WordPress preloaders, modal overlays, etc.) clipped to the
+        preview pane instead of escaping over the whole editor. */}
     <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 flex flex-col min-h-[24rem] shadow-sm overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-1]/70 text-[--gr-1] text-[11px] font-bold uppercase tracking-[0.12em]">
         <Eye className="size-3.5 text-indigo-600" />
         {t("externalPage.live_preview")}
       </div>
-      <div className="flex-1 overflow-hidden bg-white">
+      <div className="flex-1 overflow-y-auto p-5">
         {value ? (
-          <iframe
-            title="HTML preview"
-            srcDoc={value}
-            sandbox=""
-            className="w-full h-full border-0 block"
+          <div
+            className="w-full"
+            style={{ contain: "paint" }}
+            dangerouslySetInnerHTML={{ __html: value }}
           />
         ) : (
           <p className="text-xs text-[--gr-1] italic text-center mt-10 px-4">
