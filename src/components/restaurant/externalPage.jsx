@@ -7,7 +7,7 @@
 // fulfills, so this component never has to manually refetch after a save.
 
 import toast from "react-hot-toast";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -25,10 +25,12 @@ import {
   Image as ImageIcon,
   Layout,
   Loader2,
+  Monitor,
   MousePointerClick,
   Pencil,
   Plus,
   Save,
+  Smartphone,
   Trash2,
   Upload,
   X,
@@ -38,6 +40,17 @@ import CustomTextarea from "../common/customTextarea";
 import EditImageFile from "../common/editImageFile";
 import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
+// Shared with announcementSettings.jsx so both authoring surfaces stay
+// in lockstep — same Tailwind CDN wrapper, same sandbox/permissions
+// contract, same dangerous-content rejection list. If these diverge we
+// reintroduce the "preview works in one spot, breaks in the other"
+// class of bugs.
+import {
+  buildPreviewSrcDoc,
+  detectDangerousContent,
+  PREVIEW_ALLOW,
+  PREVIEW_SANDBOX,
+} from "../../utils/htmlSafety";
 import {
   getExternalPages,
 } from "../../redux/externalPages/getExternalPagesSlice";
@@ -438,6 +451,19 @@ const PageEditorPopup = ({ mode, page, restaurantId }) => {
         toast.error(t("externalPage.html_required"));
         return false;
       }
+      // Block save if the HTML contains XSS- or SQL-injection-shaped
+      // patterns. Surface the offending tokens in the toast so the
+      // author can fix them without guessing. Same contract as the
+      // announcement-settings save path.
+      const dangerous = detectDangerousContent(htmlBody);
+      if (dangerous.length > 0) {
+        toast.error(
+          t("externalPage.dangerous_content_blocked", {
+            items: dangerous.join(", "),
+          }),
+        );
+        return false;
+      }
     }
     return true;
   };
@@ -681,46 +707,107 @@ const ImageEditor = ({ t, preview, onPick, onClear, onFullPreview }) => (
   </div>
 );
 
-const HtmlEditor = ({ t, value, onChange }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr] gap-3">
-    <div className="rounded-xl border border-[--border-1] overflow-hidden bg-slate-900 flex flex-col min-h-[24rem] shadow-sm">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-700/60 bg-slate-800/60 text-slate-200 text-[11px] font-bold uppercase tracking-[0.12em]">
-        <Code2 className="size-3.5 text-cyan-400" />
-        {t("externalPage.html_label")}
+const HtmlEditor = ({ t, value, onChange }) => {
+  // Device-width toggle — same UX as the announcement preview. Most
+  // customers see external pages on a phone; the desktop width is for
+  // the few authors who design wider layouts.
+  const [previewMode, setPreviewMode] = useState("mobile");
+  // Self-contained HTML document for the preview iframe. Shared helper
+  // wraps snippets with Tailwind CDN + sane resets, or passes a full
+  // document through verbatim. Same contract as Announcement Settings
+  // and the customer-side renderer, so what the author sees here is
+  // what their customers will see.
+  const previewSrcDoc = useMemo(() => buildPreviewSrcDoc(value), [value]);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr] gap-3">
+      <div className="rounded-xl border border-[--border-1] overflow-hidden bg-slate-900 flex flex-col min-h-[24rem] shadow-sm">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-700/60 bg-slate-800/60 text-slate-200 text-[11px] font-bold uppercase tracking-[0.12em]">
+          <Code2 className="size-3.5 text-cyan-400" />
+          {t("externalPage.html_label")}
+        </div>
+        <CustomTextarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={20}
+          className2="!flex-1 !min-h-0"
+          className="!w-full !flex-1 !p-4 !font-mono !text-xs !bg-slate-900 !text-slate-200 !border-0 !rounded-none focus:!ring-0 !outline-none !resize-none !shadow-none !min-h-[20rem]"
+          placeholder={t("externalPage.html_placeholder")}
+        />
       </div>
-      <CustomTextarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={20}
-        className2="!flex-1 !min-h-0"
-        className="!w-full !flex-1 !p-4 !font-mono !text-xs !bg-slate-900 !text-slate-200 !border-0 !rounded-none focus:!ring-0 !outline-none !resize-none !shadow-none !min-h-[20rem]"
-        placeholder={t("externalPage.html_placeholder")}
-      />
+
+      {/* PREVIEW — sandboxed iframe centered inside a fixed-width device
+          frame, same contract as announcementSettings.jsx. Full sandbox +
+          Permissions Policy is shared via PREVIEW_SANDBOX/PREVIEW_ALLOW
+          so the admin preview and the customer-side renderer agree on
+          what's allowed (scripts, popups, embedded media, etc.). */}
+      <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 flex flex-col min-h-[24rem] shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-1]/70">
+          <div className="flex items-center gap-2 text-[--gr-1] text-[11px] font-bold uppercase tracking-[0.12em] min-w-0">
+            <Eye className="size-3.5 text-indigo-600 shrink-0" />
+            <span className="truncate">{t("externalPage.live_preview")}</span>
+          </div>
+          <div className="inline-flex items-center rounded-md border border-[--border-1] bg-[--white-1] p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPreviewMode("mobile")}
+              title={t("externalPage.preview_mobile")}
+              aria-pressed={previewMode === "mobile"}
+              className={`inline-flex items-center gap-1 px-2 h-6 rounded text-[10px] font-semibold uppercase tracking-wider transition ${
+                previewMode === "mobile"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-[--gr-1] hover:bg-[--white-2]"
+              }`}
+            >
+              <Smartphone className="size-3" />
+              <span className="hidden sm:inline">
+                {t("externalPage.preview_mobile")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewMode("desktop")}
+              title={t("externalPage.preview_desktop")}
+              aria-pressed={previewMode === "desktop"}
+              className={`inline-flex items-center gap-1 px-2 h-6 rounded text-[10px] font-semibold uppercase tracking-wider transition ${
+                previewMode === "desktop"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-[--gr-1] hover:bg-[--white-2]"
+              }`}
+            >
+              <Monitor className="size-3" />
+              <span className="hidden sm:inline">
+                {t("externalPage.preview_desktop")}
+              </span>
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 relative overflow-auto p-3 grid place-items-start justify-items-center">
+          {value ? (
+            <div
+              className={`bg-white rounded-2xl shadow-lg border border-[--border-1] overflow-hidden transition-all duration-300 mx-auto w-full ${
+                previewMode === "mobile" ? "max-w-[360px]" : "max-w-[768px]"
+              }`}
+              style={{ height: "min(28rem, 70vh)" }}
+            >
+              <iframe
+                title={t("externalPage.live_preview")}
+                className="w-full h-full border-0 bg-white block"
+                sandbox={PREVIEW_SANDBOX}
+                allow={PREVIEW_ALLOW}
+                srcDoc={previewSrcDoc}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-[--gr-1] italic text-center mt-10 px-4">
+              {t("externalPage.preview_empty")}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
-    {/* Sandbox the preview so the user's CSS (especially anything
-        `position: fixed`) can't escape and cover the editor. */}
-    <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 flex flex-col min-h-[24rem] shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-1]/70 text-[--gr-1] text-[11px] font-bold uppercase tracking-[0.12em]">
-        <Eye className="size-3.5 text-indigo-600" />
-        {t("externalPage.live_preview")}
-      </div>
-      <div className="flex-1 overflow-hidden bg-white">
-        {value ? (
-          <iframe
-            title="HTML preview"
-            srcDoc={value}
-            sandbox=""
-            className="w-full h-full border-0 block"
-          />
-        ) : (
-          <p className="text-xs text-[--gr-1] italic text-center mt-10 px-4">
-            {t("externalPage.preview_empty")}
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 // ──────────────────────────────────────────────────────────────────────
 // Delete confirmation popup. Inline so the parent component can keep its

@@ -18,6 +18,7 @@ import {
 import { usePopup } from "../../../context/PopupContext";
 import CustomFileInput from "../../common/customFileInput";
 import { groupByRestaurantId } from "../../../utils/utils";
+import { buildLicenseBasket } from "./buildLicenseBasket";
 import { PaymentLoader } from "../stepsAssets/paymentLoader";
 import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
@@ -65,42 +66,19 @@ const BankPayment = ({ step, setStep, setPaymentStatus, userInvData }) => {
     e.preventDefault();
     if (loading) return;
 
-    const addLicenseBasket = cartItems.reduce((result, item) => {
-      const existingRestaurant = result.find(
-        (restaurant) => restaurant.restaurantId === item.restaurantId,
-      );
-      if (existingRestaurant) {
-        existingRestaurant.licensePackageIds.push(item.id);
-      } else {
-        result.push({
-          restaurantId: item.restaurantId,
-          licensePackageIds: [item.id],
-        });
-      }
-      return result;
-    }, []);
-
-    const { id: licensePackageId, restaurantId } = cartItems[0];
-    const faturaBilgileri = userInvData || {};
-    const extendLicenseBasket = {
-      licensePackageId,
-      restaurantId,
-      licenseId: currentLicense?.id,
-      faturaBilgileri,
-    };
-    const newLicenseBasket = {
-      items: addLicenseBasket,
-      faturaBilgileri,
-    };
+    // Unified basket shape — see buildLicenseBasket.js for the contract.
+    // Both add + extend flows produce the same structure, so adding a
+    // new field is a single-place edit there.
+    const basket = buildLicenseBasket({
+      cartItems,
+      currentLicense,
+      faturaBilgileri: userInvData,
+      isExtend: isPageExtend,
+    });
 
     const formData = new FormData();
-    formData.append(
-      "Basket",
-      isPageExtend
-        ? JSON.stringify(extendLicenseBasket)
-        : JSON.stringify(newLicenseBasket),
-    );
-    formData.append("Type", isPageExtend ? "ExtendLicense" : "NewLicense");
+    formData.append("Basket", JSON.stringify(basket));
+    formData.append("Type", basket.type);
     formData.append("Receipt", doc);
 
     dispatch(createReceiptLicensePayment(formData));

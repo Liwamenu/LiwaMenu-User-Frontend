@@ -34,6 +34,7 @@ import { PaymentLoader } from "../stepsAssets/paymentLoader";
 
 // FUNC
 import { formatPrice, isValidCardNumber } from "../../../utils/utils";
+import { buildLicenseBasket } from "./buildLicenseBasket";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -95,38 +96,23 @@ const OnlinePayment = ({
 
     const { userName, cardNumber, month, year, cvv } = cardData;
 
-    const addLicenseBasket = cartItems.reduce((result, item) => {
-      const existing = result.find(
-        (r) => r.restaurantId === item.restaurantId,
-      );
-      if (existing) {
-        existing.licensePackageIds.push(item.id);
-      } else {
-        result.push({
-          restaurantId: item.restaurantId,
-          licensePackageIds: [item.id],
-        });
-      }
-      return result;
-    }, []);
+    // Unified basket shape — see buildLicenseBasket.js for the contract.
+    // Both add + extend flows produce the same structure, so adding a
+    // new field is a single-place edit there.
+    const basket = buildLicenseBasket({
+      cartItems,
+      currentLicense,
+      faturaBilgileri: userInvData,
+      isExtend: isPageExtend,
+    });
 
-    const { id: licensePackageId, restaurantId } = cartItems[0];
-    const faturaBilgileri = userInvData || {};
-    const extendLicenseBasket = {
-      licensePackageId,
-      restaurantId,
-      licenseId: currentLicense?.id,
-      faturaBilgileri,
-    };
-    const newLicenseBasket = {
-      items: addLicenseBasket,
-      faturaBilgileri,
-    };
-
+    // Send `userBasket` as a nested object (NOT JSON.stringify-ed) so the
+    // backend sees structured JSON rather than a stringified blob that
+    // needs a second JSON.parse pass. Mirrors the shape on disk for the
+    // bank-payment flow (where multipart forces a stringified value) —
+    // both flows now hand the backend the same logical basket value.
     const data = {
-      userBasket: isPageExtend
-        ? JSON.stringify(extendLicenseBasket)
-        : JSON.stringify(newLicenseBasket),
+      userBasket: basket,
       ccOwner: userName,
       cardNumber: cardNumber.replace(/\D/g, ""),
       expiryMonth: month,
