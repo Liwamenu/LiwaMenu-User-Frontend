@@ -293,8 +293,15 @@ const ThemeSelector = ({ data }) => {
               )}
             </div>
 
-            {/* Theme list */}
-            <div className="p-3 flex-1 overflow-y-auto space-y-1.5">
+            {/* Theme list — capped so the page doesn't grow with theme
+                count. ~10 cards fit inside ~680px (each card is
+                p-2.5 + size-10 ≈ 60px tall, plus a 6px gap). The
+                `min(...)` guard switches to a viewport-relative cap on
+                short laptop screens so the list never pushes the
+                preview iframe off-screen. `flex-1` is kept so the
+                pane still fills available column space when fewer than
+                10 themes are registered. */}
+            <div className="p-3 flex-1 max-h-[min(680px,75dvh)] overflow-y-auto space-y-1.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] px-1 mb-1.5">
                 {t("qrThemeSelector.select_theme")}
               </p>
@@ -443,6 +450,12 @@ const ThemeSelector = ({ data }) => {
                       iframeRef={iframeRef}
                       src={iframeUrl}
                       onLoad={() => setIsLoading(false)}
+                      // Tablet renders denser (0.7 → ~143% iframe
+                      // size) so the larger screen still shows
+                      // crisp text. Phones stay at 0.8, which keeps
+                      // the iframe viewport (~425-450px) close to a
+                      // real Pro Max device width.
+                      scale={device === "tablet" ? 0.7 : 0.8}
                     />
                     {/* Loading overlay — covers only the inner screen */}
                     {isLoading && (
@@ -466,8 +479,12 @@ const ThemeSelector = ({ data }) => {
   );
 };
 
-// Renders the iframe at 80% zoom so the menu fits inside the device frame.
-const ScaledIframe = ({ iframeRef, src, onLoad }) => (
+// Renders the iframe at a configurable scale so the menu fits inside the
+// device frame at higher logical resolution. Default 0.8 (renders at
+// 125% of container) gives sharper text than rendering at 1:1 because
+// the browser composites at higher density and downscales. Tablet
+// passes 0.7 to fit a wider menu while still feeling crisp.
+const ScaledIframe = ({ iframeRef, src, onLoad, scale = 0.8 }) => (
   <iframe
     ref={iframeRef}
     src={src}
@@ -475,10 +492,9 @@ const ScaledIframe = ({ iframeRef, src, onLoad }) => (
     onLoad={onLoad}
     scrolling="auto"
     style={{
-      // Iframe is 1/0.8 = 125% of container, then scaled 80% → fills exactly.
-      width: "calc(100% / 0.8)",
-      height: "calc(100% / 0.8)",
-      transform: "scale(0.8)",
+      width: `calc(100% / ${scale})`,
+      height: `calc(100% / ${scale})`,
+      transform: `scale(${scale})`,
       transformOrigin: "0 0",
       border: 0,
       display: "block",
@@ -486,38 +502,213 @@ const ScaledIframe = ({ iframeRef, src, onLoad }) => (
   />
 );
 
+// Glass + 3D mockup frames. The earlier version was a single rounded
+// div with a flat black bezel — fine for a sketch, but the resulting
+// preview looked toy-like next to the slick dashboard around it. The
+// current set rebuilds each device with:
+//   • A multi-stop gradient body (lit from above) for that "milled
+//     metal / titanium" feel rather than a flat slab.
+//   • Layered drop + inset shadows so the frame appears lifted off
+//     the surface AND has its own internal depth.
+//   • A diagonal glass-reflection overlay on the screen, plus a thin
+//     inset white ring, so the screen reads as physical glass instead
+//     of a flat rectangle. Pointer-events-none keeps the iframe
+//     interactive underneath.
+//   • Realistic side buttons (power / volume / action) on the iPhone
+//     and Android, sized + positioned to mirror the real hardware.
+//   • A small ambient glow blob behind the frame, picking up brand
+//     colours, so the device feels embedded in the page rather than
+//     floating against a flat backdrop.
+//
+// Tablet was switched from landscape (560x420) to portrait
+// (420x560+) — the QR menu is fundamentally a portrait UI, and a
+// landscape tablet was forcing the iframe into a viewport size no
+// real customer ever uses, which made the layout look broken.
 const DeviceFrame = ({ variant, children }) => {
   if (variant === "iphone") {
     return (
-      <div className="relative w-[300px] h-[620px] sm:w-[320px] sm:h-[660px] bg-black rounded-[3rem] border-[10px] border-gray-900 shadow-[0_40px_100px_-25px_rgba(0,0,0,0.4)] ring-1 ring-white/10 dark:ring-white/5">
-        {/* Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-3xl z-30" />
-        {/* Camera dot */}
-        <div className="absolute top-2 right-7 w-2 h-2 bg-gray-800 rounded-full z-30" />
-        <div className="absolute inset-0 rounded-[2.4rem] overflow-hidden bg-[--white-1]">
-          {children}
+      <div className="relative w-[340px] h-[700px] sm:w-[360px] sm:h-[740px]">
+        {/* Ambient glow blob — gives the device a sense of depth on
+            the page without using a hard drop shadow. */}
+        <div
+          aria-hidden
+          className="absolute -inset-8 rounded-[4rem] bg-gradient-to-br from-indigo-500/10 via-transparent to-cyan-500/10 blur-3xl pointer-events-none"
+        />
+
+        {/* Hardware buttons — positioned outside the frame edge so
+            they read as physical protrusions. */}
+        <div
+          aria-hidden
+          className="absolute top-[120px] -left-[3px] w-[4px] h-[34px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-l shadow-[-1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+        <div
+          aria-hidden
+          className="absolute top-[180px] -left-[3px] w-[4px] h-[60px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-l shadow-[-1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+        <div
+          aria-hidden
+          className="absolute top-[260px] -left-[3px] w-[4px] h-[60px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-l shadow-[-1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+        <div
+          aria-hidden
+          className="absolute top-[200px] -right-[3px] w-[4px] h-[100px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+
+        {/* Titanium frame body — gradient + multi-layer shadow gives
+            the "lit from above" 3D look. */}
+        <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.6),0_25px_50px_-12px_rgba(0,0,0,0.4),inset_0_2px_0_rgba(255,255,255,0.1),inset_0_-3px_0_rgba(0,0,0,0.45)] ring-1 ring-white/10 dark:ring-white/5">
+          {/* Top edge highlight — fakes a thin chrome-lit edge. */}
+          <div
+            aria-hidden
+            className="absolute top-[3px] left-12 right-12 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full"
+          />
+
+          {/* Screen */}
+          <div className="absolute inset-[10px] rounded-[2.4rem] overflow-hidden bg-[--white-1]">
+            {children}
+
+            {/* Dynamic Island — the floating pill, NOT a wide notch.
+                Sits over the screen so iframe content rolls behind it
+                exactly like the real device. */}
+            <div
+              aria-hidden
+              className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[110px] h-[32px] bg-black rounded-full z-30 shadow-[0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-black/80"
+            />
+            {/* Camera lens — small glassy dot inside the island. */}
+            <div
+              aria-hidden
+              className="absolute top-[18px] left-[calc(50%+30px)] -translate-x-1/2 w-[10px] h-[10px] rounded-full bg-slate-900 z-40 ring-[1.5px] ring-slate-700/40 shadow-inner"
+            >
+              <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-slate-700 via-slate-900 to-black" />
+              <div className="absolute top-[1px] left-[1.5px] w-[2px] h-[2px] rounded-full bg-white/40" />
+            </div>
+
+            {/* Glass reflection — diagonal sheen over the whole
+                screen. Pointer-events-none so iframe stays usable. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none z-[15] rounded-[2.4rem] bg-gradient-to-br from-white/[0.10] via-white/0 to-white/[0.04]"
+            />
+            {/* Inner edge highlight — simulates the thin glass bevel. */}
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none z-[25] rounded-[2.4rem] ring-1 ring-inset ring-white/10"
+            />
+          </div>
         </div>
       </div>
     );
   }
+
   if (variant === "android") {
     return (
-      <div className="relative w-[300px] h-[620px] sm:w-[320px] sm:h-[660px] bg-gray-900 rounded-[1.75rem] border-[8px] border-gray-800 shadow-[0_40px_100px_-25px_rgba(0,0,0,0.4)]">
-        {/* Punch-hole camera */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-3 h-3 bg-black rounded-full z-30 ring-1 ring-white/20" />
-        <div className="absolute inset-0 rounded-[1.25rem] overflow-hidden bg-[--white-1]">
-          {children}
+      <div className="relative w-[340px] h-[700px] sm:w-[360px] sm:h-[740px]">
+        {/* Ambient glow */}
+        <div
+          aria-hidden
+          className="absolute -inset-8 rounded-[3.5rem] bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/10 blur-3xl pointer-events-none"
+        />
+
+        {/* Side buttons — Pixel-style: power + volume on the right. */}
+        <div
+          aria-hidden
+          className="absolute top-[160px] -right-[3px] w-[4px] h-[60px] bg-gradient-to-b from-zinc-500 via-zinc-700 to-zinc-600 rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+        <div
+          aria-hidden
+          className="absolute top-[230px] -right-[3px] w-[4px] h-[100px] bg-gradient-to-b from-zinc-500 via-zinc-700 to-zinc-600 rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.5)]"
+        />
+
+        {/* Frame body — softer corners than iPhone. */}
+        <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-zinc-700 via-zinc-900 to-zinc-800 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.55),0_25px_50px_-12px_rgba(0,0,0,0.4),inset_0_2px_0_rgba(255,255,255,0.06),inset_0_-3px_0_rgba(0,0,0,0.4)] ring-1 ring-white/5">
+          <div
+            aria-hidden
+            className="absolute top-[3px] left-10 right-10 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent rounded-full"
+          />
+
+          {/* Screen — slim bezel for that flagship-Android look. */}
+          <div className="absolute inset-[8px] rounded-[2.1rem] overflow-hidden bg-[--white-1]">
+            {children}
+
+            {/* Punch-hole camera */}
+            <div
+              aria-hidden
+              className="absolute top-3 left-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full bg-black z-30 ring-[1.5px] ring-zinc-800 shadow-md"
+            >
+              <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-zinc-800 via-black to-black" />
+              <div className="absolute top-[1.5px] left-[2px] w-[2px] h-[2px] rounded-full bg-white/35" />
+            </div>
+
+            {/* Glass + edge highlight */}
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none z-[15] rounded-[2.1rem] bg-gradient-to-br from-white/[0.08] via-white/0 to-white/[0.03]"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none z-[25] rounded-[2.1rem] ring-1 ring-inset ring-white/10"
+            />
+          </div>
         </div>
       </div>
     );
   }
-  // tablet
+
+  // Tablet (iPad-Pro inspired) — PORTRAIT. Was landscape before; the
+  // QR menu is a portrait UI and a landscape tablet was forcing the
+  // iframe into an artificial viewport.
   return (
-    <div className="relative w-[560px] h-[420px] sm:w-[640px] sm:h-[480px] bg-gray-900 rounded-[2rem] border-[10px] border-gray-800 shadow-[0_40px_100px_-25px_rgba(0,0,0,0.4)]">
-      {/* Power button hint */}
-      <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-1 h-8 bg-gray-700 rounded-r-sm" />
-      <div className="absolute inset-0 rounded-[1.5rem] overflow-hidden bg-[--white-1]">
-        {children}
+    <div className="relative w-[420px] h-[560px] sm:w-[460px] sm:h-[620px]">
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-violet-500/10 via-transparent to-blue-500/10 blur-3xl pointer-events-none"
+      />
+
+      {/* Top edge: power button (portrait orientation puts it on top). */}
+      <div
+        aria-hidden
+        className="absolute -top-[3px] right-[60px] h-[4px] w-[44px] bg-gradient-to-r from-slate-500 via-slate-700 to-slate-600 rounded-t shadow-[0_-1px_3px_rgba(0,0,0,0.4)]"
+      />
+      {/* Right edge: volume rocker. */}
+      <div
+        aria-hidden
+        className="absolute top-[60px] -right-[3px] w-[4px] h-[40px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.4)]"
+      />
+      <div
+        aria-hidden
+        className="absolute top-[110px] -right-[3px] w-[4px] h-[40px] bg-gradient-to-b from-slate-500 via-slate-700 to-slate-600 rounded-r shadow-[1px_0_3px_rgba(0,0,0,0.4)]"
+      />
+
+      {/* Outer body */}
+      <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.55),0_25px_50px_-12px_rgba(0,0,0,0.4),inset_0_2px_0_rgba(255,255,255,0.08),inset_0_-3px_0_rgba(0,0,0,0.4)] ring-1 ring-white/10">
+        <div
+          aria-hidden
+          className="absolute top-[3px] left-16 right-16 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full"
+        />
+
+        {/* Screen — uniform thin bezel, iPad-style. */}
+        <div className="absolute inset-[14px] rounded-[1.4rem] overflow-hidden bg-[--white-1]">
+          {children}
+
+          {/* Front camera dot — top centre in portrait. */}
+          <div
+            aria-hidden
+            className="absolute top-2 left-1/2 -translate-x-1/2 w-[8px] h-[8px] rounded-full bg-slate-900 z-30 ring-1 ring-slate-700"
+          >
+            <div className="absolute inset-[1.5px] rounded-full bg-gradient-to-br from-slate-700 via-slate-900 to-black" />
+          </div>
+
+          {/* Glass + edge */}
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none z-[15] rounded-[1.4rem] bg-gradient-to-br from-white/[0.08] via-white/0 to-white/[0.03]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none z-[25] rounded-[1.4rem] ring-1 ring-inset ring-white/10"
+          />
+        </div>
       </div>
     </div>
   );
