@@ -106,8 +106,13 @@ const OnlinePayment = ({
       isExtend: isPageExtend,
     });
 
+    // Send `userBasket` as a nested object (NOT JSON.stringify-ed) so the
+    // backend sees structured JSON rather than a stringified blob that
+    // needs a second JSON.parse pass. Mirrors the shape on disk for the
+    // bank-payment flow (where multipart forces a stringified value) —
+    // both flows now hand the backend the same logical basket value.
     const data = {
-      userBasket: JSON.stringify(basket),
+      userBasket: basket,
       ccOwner: userName,
       cardNumber: cardNumber.replace(/\D/g, ""),
       expiryMonth: month,
