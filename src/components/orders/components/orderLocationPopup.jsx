@@ -143,7 +143,13 @@ const OrderLocationPopup = ({ customer, restaurant }) => {
   };
 
   return (
-    <div className="bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-3xl mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col max-h-[92dvh]">
+    <div
+      className="bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-3xl mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col"
+      // Explicit height so the inner `flex-1` map area has space to
+      // grow into. Without this the popup container sizes to content,
+      // flex-1 evaluates to 0, and the map collapses to a sliver.
+      style={{ height: "min(92dvh, 40rem)" }}
+    >
       <div className="h-0.5 shrink-0" style={{ background: PRIMARY_GRADIENT }} />
 
       <header className="px-4 sm:px-5 py-3 border-b border-[--border-1] flex items-center gap-3 shrink-0">
@@ -202,17 +208,16 @@ const OrderLocationPopup = ({ customer, restaurant }) => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative bg-[--white-2]">
+      {/* `min-h-[24rem]` on this relative wrapper guarantees the map
+          stays usable even if the surrounding viewport is short — the
+          absolutely-positioned map div inside fills the wrapper. */}
+      <div className="flex-1 min-h-[24rem] relative bg-[--white-2]">
         {!ready ? (
           <div className="absolute inset-0 grid place-items-center text-[--gr-1] text-xs">
             {t("orders.location_loading")}
           </div>
         ) : null}
-        <div
-          ref={mapDivRef}
-          className="absolute inset-0"
-          style={{ minHeight: "24rem" }}
-        />
+        <div ref={mapDivRef} className="absolute inset-0" />
       </div>
 
       <footer className="px-4 sm:px-5 py-3 border-t border-[--border-1] flex items-center justify-end gap-2 shrink-0">
