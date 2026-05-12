@@ -24,9 +24,13 @@ import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
 //REDUX
 import {
-  createReceiptLicensePayment,
-  resetCreateReceiptLicensePayment,
-} from "../../../redux/payments/createReceiptLicensePaymentSlice";
+  addByBankPay,
+  resetAddByBankPay,
+} from "../../../redux/licenses/addLicense/addByBankPaySlice";
+import {
+  extendByBankPay,
+  resetExtendByBankPay,
+} from "../../../redux/licenses/extendLicense/extendByBankPaySlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -54,9 +58,12 @@ const BankPayment = ({ step, setStep, setPaymentStatus, userInvData }) => {
 
   const cartItems = useSelector((state) => state.cart.items);
 
-  const { error, loading, success } = useSelector(
-    (state) => state.payments.createReceiptLicensePayment,
-  );
+  // Two endpoints, one form. Read state from whichever slice matches the
+  // current flow so the loading spinner / success-toast / failure path
+  // only fires for the request that was actually dispatched.
+  const addState = useSelector((state) => state.licenses.addByBank);
+  const extendState = useSelector((state) => state.licenses.extendByBank);
+  const { error, loading, success } = isPageExtend ? extendState : addState;
 
   const [doc, setDoc] = useState("");
   const [explanation, setExplanation] = useState("");
@@ -76,12 +83,20 @@ const BankPayment = ({ step, setStep, setPaymentStatus, userInvData }) => {
       isExtend: isPageExtend,
     });
 
+    // Multipart body per the Licenses/{Add,Extend}LicenseByBank contract.
+    // `basket` carries the discriminator inside (basket.type), so the
+    // backend no longer needs a separate `Type` field. Field names are
+    // lowercase to match the API spec verbatim — ASP.NET binds case-
+    // insensitively but matching exactly avoids casing-doc drift.
     const formData = new FormData();
-    formData.append("Basket", JSON.stringify(basket));
-    formData.append("Type", basket.type);
-    formData.append("Receipt", doc);
+    formData.append("basket", JSON.stringify(basket));
+    formData.append("receipt", doc);
 
-    dispatch(createReceiptLicensePayment(formData));
+    if (isPageExtend) {
+      dispatch(extendByBankPay(formData));
+    } else {
+      dispatch(addByBankPay(formData));
+    }
   }
 
   useEffect(() => {
@@ -96,13 +111,13 @@ const BankPayment = ({ step, setStep, setPaymentStatus, userInvData }) => {
       }
       toast.remove(toastId.current);
       setPaymentStatus("success");
-      dispatch(resetCreateReceiptLicensePayment());
+      dispatch(isPageExtend ? resetExtendByBankPay() : resetAddByBankPay());
     }
     if (error) {
       setStep(5);
       toast.remove(toastId.current);
       setPaymentStatus("failure");
-      dispatch(resetCreateReceiptLicensePayment());
+      dispatch(isPageExtend ? resetExtendByBankPay() : resetAddByBankPay());
     }
   }, [loading, success, error]);
 

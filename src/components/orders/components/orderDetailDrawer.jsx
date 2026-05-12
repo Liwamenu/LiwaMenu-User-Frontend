@@ -1,5 +1,6 @@
 //MODULES
 import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
   Ban,
@@ -9,6 +10,7 @@ import {
   CreditCard,
   Hash,
   MapPin,
+  Navigation,
   Phone,
   Printer,
   ShoppingBag,
@@ -24,8 +26,34 @@ import {
 import { copyToClipboard, formatDateString } from "../../../utils/utils";
 import { printOrder } from "./printOrder";
 
+//CONTEXT
+import { usePopup } from "../../../context/PopupContext";
+
+//COMP
+import OrderLocationPopup from "./orderLocationPopup";
+
 //ACTIONS
 import { useOrderStatusActions } from "../pages/actions";
+
+// Coerce a {latitude, longitude} pair to finite numbers and reject the
+// "null island" 0,0 plus anything outside Earth's range. Returns either
+// {lat, lng} or null. Centralised so the drawer's "View on map" gate
+// and the popup itself can't drift.
+//
+// The early null/undefined/"" rejection matters: `Number(null) === 0` and
+// `Number("") === 0`, so without those guards a half-filled location
+// `{ latitude: 41, longitude: null }` would coerce to `{lat: 41, lng: 0}`
+// and slip past the rest of the checks.
+const toValidLatLng = (latitude, longitude) => {
+  if (latitude == null || longitude == null) return null;
+  if (latitude === "" || longitude === "") return null;
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat === 0 && lng === 0) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return { lat, lng };
+};
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -185,7 +213,40 @@ const StatusActions = ({ order }) => {
 
 const CustomerSection = ({ order }) => {
   const { t } = useTranslation();
+  const { setPopupContent } = usePopup();
   const isInPerson = order.orderType === "InPerson";
+
+  // Resolve the customer's pinned location from the order payload, and
+  // the restaurant's location from the cached restaurants list (loaded
+  // on first sidebar mount). Both must be valid for the map row to
+  // appear — `toValidLatLng` rejects nulls, NaN, 0,0 (null island),
+  // and out-of-range values so we never open a map showing nothing.
+  const customer = toValidLatLng(
+    order.customerLocation?.latitude,
+    order.customerLocation?.longitude,
+  );
+  const restaurantEntry = useSelector((s) =>
+    (s.restaurants?.getRestaurants?.restaurants?.data || []).find(
+      (r) => r.id === order.restaurantId,
+    ),
+  );
+  const restaurant = restaurantEntry
+    ? toValidLatLng(restaurantEntry.latitude, restaurantEntry.longitude)
+    : null;
+  const canShowMap = !!customer && !!restaurant;
+
+  const openMap = () => {
+    setPopupContent(
+      <OrderLocationPopup
+        customer={customer}
+        restaurant={{
+          ...restaurant,
+          name: restaurantEntry?.name,
+        }}
+      />,
+    );
+  };
+
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-2">
@@ -225,6 +286,14 @@ const CustomerSection = ({ order }) => {
             label="Adres"
             value={order.customerAddress}
             multiline
+          />
+        )}
+        {canShowMap && (
+          <Row
+            icon={Navigation}
+            label={t("orders.location_label")}
+            value={t("orders.location_view_action")}
+            onClick={openMap}
           />
         )}
         {order.paymentMethodName && (

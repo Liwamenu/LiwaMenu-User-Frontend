@@ -106,13 +106,17 @@ const OnlinePayment = ({
       isExtend: isPageExtend,
     });
 
-    // Send `userBasket` as a nested object (NOT JSON.stringify-ed) so the
-    // backend sees structured JSON rather than a stringified blob that
-    // needs a second JSON.parse pass. Mirrors the shape on disk for the
-    // bank-payment flow (where multipart forces a stringified value) —
-    // both flows now hand the backend the same logical basket value.
+    // Backend body for Licenses/{Add,Extend}LicenseByOnlinePayment:
+    //   { basket, ccOwner, cardNumber, expiryMonth, expiryYear, cvv, userAddress }
+    // `basket` is a nested object (not JSON.stringify-ed) so the backend
+    // sees structured JSON instead of a stringified blob that would need
+    // a second JSON.parse pass. The bank flow ships the same logical
+    // value as a multipart string because FormData can't carry objects;
+    // backend reads both into the same parsed envelope.
+    // `userId` is intentionally omitted — self-serve buyers don't supply
+    // it; admin-on-behalf flows do, and that lives in a different surface.
     const data = {
-      userBasket: basket,
+      basket,
       ccOwner: userName,
       cardNumber: cardNumber.replace(/\D/g, ""),
       expiryMonth: month,
@@ -347,7 +351,7 @@ const OnlinePayment = ({
         <div className="flex gap-2 justify-end">
           <button
             type="button"
-            onClick={() => setStep(step - (isPageExtend ? 1 : 2))}
+            onClick={() => setStep(step - 1)}
             disabled={addLoading || extendLoading}
             className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-[--border-1] bg-[--white-1] text-[--black-1] text-sm font-medium hover:bg-[--white-2] transition disabled:opacity-50"
           >

@@ -41,24 +41,23 @@ const extendByOnlinePaySlice = createSlice({
 });
 
 export const extendByOnlinePay = createAsyncThunk(
-  "PayTR/extend-license",
+  "Licenses/ExtendLicenseByOnlinePayment",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.post(`${baseURL}PayTR/extend-license`, {
-        ...data,
-      });
+      const res = await api.post(
+        `${baseURL}Licenses/ExtendLicenseByOnlinePayment`,
+        { ...data },
+      );
 
-      console.log(res.data);
-      if (res.data.data.includes("html")) {
-        return res.data.data;
+      // Same envelope as AddLicenseByOnlinePayment — see that slice's
+      // comment. We extract `paytr` (the self-submitting 3DS form)
+      // so the consumer's iframe srcDoc keeps receiving a string.
+      const payload = res?.data?.data;
+      if (payload && typeof payload === "object" && payload.paytr) {
+        return payload.paytr;
       }
-
-      const parsedData = JSON.parse(res.data.data);
-      if (parsedData.status === "failed") {
-        throw new Error({ message_TR: parsedData.reason });
-      }
-
-      return res.data.data;
+      if (typeof payload === "string") return payload;
+      return null;
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {
