@@ -1,6 +1,6 @@
 //MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,59 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
 
   const currentPath = location.pathname;
 
+  const iframeRef = useRef(null);
+  const settledRef = useRef(false);
   const [htmlResponse, setHtmlResponse] = useState(null);
   const { data } = useSelector((state) => state.licenses.extendByPay);
+
+  // PayTR loads cross-origin for 3DS then redirects back to our merchant
+  // return URL — at that point we can read the iframe's location again,
+  // and that's our signal to advance to the result step. PayTR itself
+  // does not call postMessage. Mirrors addLicenseSteps/5thStepOnlinePayment.
+  const finish = (status) => {
+    if (settledRef.current) return;
+    settledRef.current = true;
+    setStep(5);
+    setPaymentStatus(status);
+    if (status === "success") {
+      toast.success("Ödeme başarılı 😃", { id: "payment_success" });
+    } else {
+      toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
+    }
+  };
+
+  // Reads the iframe URL. While the iframe is on paytr.com, location
+  // access throws and we just return false. Once it lands back on our
+  // origin, we can read the URL and infer success/failure.
+  const tryDetectFromIframe = () => {
+    if (settledRef.current) return true;
+    try {
+      const win = iframeRef.current?.contentWindow;
+      if (!win) return false;
+      const href = win.location.href;
+      if (!href || href === "about:srcdoc" || href === "about:blank") {
+        return false;
+      }
+
+      const url = new URL(href);
+      const p = url.pathname.toLowerCase();
+      const status = (
+        url.searchParams.get("status") ||
+        url.searchParams.get("result") ||
+        ""
+      ).toLowerCase();
+      const failed =
+        status === "failed" ||
+        status === "failure" ||
+        status === "fail" ||
+        p.includes("payment-failed") ||
+        p.includes("payment-fail");
+      finish(failed ? "failure" : "success");
+      return true;
+    } catch {
+      return false; // cross-origin (PayTR domain) — keep waiting.
+    }
+  };
 
   useEffect(() => {
     if (data) {
@@ -26,16 +77,11 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       dispatch(resetExtendByOnlinePay());
     }
 
+    // Backwards-compat: any future callback page that wants to signal
+    // explicitly via postMessage will still be honored.
     const handleMessage = (event) => {
-      if (event.data.status === "success") {
-        setStep(5);
-        setPaymentStatus("success");
-        toast.success("Ödeme başarılı 😃", { id: "payment_success" });
-      } else if (event.data.status === "failed") {
-        setStep(5);
-        setPaymentStatus("failure");
-        toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
-      }
+      if (event.data?.status === "success") finish("success");
+      else if (event.data?.status === "failed") finish("failure");
     };
     window.addEventListener("message", handleMessage);
 
@@ -43,6 +89,18 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       window.removeEventListener("message", handleMessage);
     };
   }, [data, dispatch]);
+
+  // Polling fallback in case the iframe's `onLoad` event fires before
+  // the same-origin navigation is fully visible to us, or doesn't fire
+  // at all on some redirect chains. Cheap (~2/sec) and stops as soon as
+  // we've settled the step or the iframe goes away.
+  useEffect(() => {
+    if (!htmlResponse) return;
+    const id = setInterval(() => {
+      if (tryDetectFromIframe()) clearInterval(id);
+    }, 500);
+    return () => clearInterval(id);
+  }, [htmlResponse]);
 
   return (
     <div className="flex flex-col">
@@ -65,6 +123,8 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       <div className="relative bg-[--white-2]/40 min-h-[28rem]">
         {htmlResponse ? (
           <iframe
+            ref={iframeRef}
+            onLoad={tryDetectFromIframe}
             title="3D Secure Frame"
             width="100%"
             height="500"

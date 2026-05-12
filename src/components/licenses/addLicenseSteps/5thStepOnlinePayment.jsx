@@ -1,6 +1,6 @@
 //MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,64 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
 
   const currentPath = location.pathname;
 
+  const iframeRef = useRef(null);
+  const settledRef = useRef(false);
   const [htmlResponse, setHtmlResponse] = useState(null);
   const { data } = useSelector((state) => state.licenses.addByPay);
+
+  // The iframe loads PayTR's 3DS page (cross-origin), then PayTR redirects
+  // back to a merchant-return URL on our origin. PayTR does NOT call
+  // window.postMessage, so the only reliable cue is the iframe flipping
+  // from cross-origin back to same-origin. Reading contentWindow.location
+  // throws while on paytr.com and succeeds when we're back home.
+  const finish = (status) => {
+    if (settledRef.current) return;
+    settledRef.current = true;
+    setStep(6);
+    setPaymentStatus(status);
+    if (status === "success") {
+      toast.success("Ödeme başarılı 😃", { id: "payment_success" });
+    } else {
+      toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
+    }
+  };
+
+  // Returns true once we've detected a settled state (so the caller can
+  // stop polling). Throws while the iframe is on PayTR — handled by the
+  // try/catch.
+  const tryDetectFromIframe = () => {
+    if (settledRef.current) return true;
+    try {
+      const win = iframeRef.current?.contentWindow;
+      if (!win) return false;
+      const href = win.location.href;
+      // Initial srcDoc render — not a real navigation.
+      if (!href || href === "about:srcdoc" || href === "about:blank") {
+        return false;
+      }
+
+      // We can read the URL → iframe is back on our origin, payment flow
+      // is done. Distinguish success vs failure from URL hints; default to
+      // success since the backend webhook is the authoritative ledger.
+      const url = new URL(href);
+      const p = url.pathname.toLowerCase();
+      const status = (
+        url.searchParams.get("status") ||
+        url.searchParams.get("result") ||
+        ""
+      ).toLowerCase();
+      const failed =
+        status === "failed" ||
+        status === "failure" ||
+        status === "fail" ||
+        p.includes("payment-failed") ||
+        p.includes("payment-fail");
+      finish(failed ? "failure" : "success");
+      return true;
+    } catch {
+      return false; // cross-origin (PayTR domain) — keep waiting.
+    }
+  };
 
   useEffect(() => {
     if (data) {
@@ -26,16 +82,11 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       dispatch(resetAddByOnlinePay());
     }
 
+    // Backwards-compat: if anything ever does postMessage back (e.g. a
+    // future static callback page), honor that signal too.
     const handleMessage = (event) => {
-      if (event.data.status === "success") {
-        setStep(6);
-        setPaymentStatus("success");
-        toast.success("Ödeme başarılı 😃", { id: "payment_success" });
-      } else if (event.data.status === "failed") {
-        setStep(6);
-        setPaymentStatus("failure");
-        toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
-      }
+      if (event.data?.status === "success") finish("success");
+      else if (event.data?.status === "failed") finish("failure");
     };
     window.addEventListener("message", handleMessage);
 
@@ -43,6 +94,17 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       window.removeEventListener("message", handleMessage);
     };
   }, [data, dispatch]);
+
+  // Polling fallback — onLoad alone isn't always enough: some redirect
+  // chains don't surface a load event, or fire it before the URL settles.
+  // ~2/sec is cheap and the interval is cleared on settle or unmount.
+  useEffect(() => {
+    if (!htmlResponse) return;
+    const id = setInterval(() => {
+      if (tryDetectFromIframe()) clearInterval(id);
+    }, 500);
+    return () => clearInterval(id);
+  }, [htmlResponse]);
 
   return (
     <div className="flex flex-col">
@@ -65,6 +127,8 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       <div className="relative bg-[--white-2]/40 min-h-[28rem]">
         {htmlResponse ? (
           <iframe
+            ref={iframeRef}
+            onLoad={tryDetectFromIframe}
             title="3D Secure Frame"
             width="100%"
             height="500"

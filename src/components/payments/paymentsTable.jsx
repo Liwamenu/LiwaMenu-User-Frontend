@@ -58,6 +58,18 @@ const STATUS_META = {
   },
 };
 
+// Backend may emit either the string ("Success") or the numeric id (0)
+// per `src/enums/statuses.js`. Normalize to the string key before the
+// STATUS_META lookup so both shapes render correctly.
+const STATUS_BY_ID = ["Success", "Failed", "Waiting", "Refunded"];
+const resolveStatusKey = (raw) => {
+  if (typeof raw === "number") return STATUS_BY_ID[raw];
+  if (typeof raw === "string" && /^\d+$/.test(raw)) {
+    return STATUS_BY_ID[Number(raw)];
+  }
+  return raw;
+};
+
 const TYPE_META = {
   ExtendLicense: {
     labelKey: "paymentsPage.type_extend_license",
@@ -111,7 +123,8 @@ export default PaymentsTable;
 
 const PaymentRow = ({ p, t }) => {
   const method = METHOD_META[p.paymentMethod] || METHOD_META.Free;
-  const status = STATUS_META[p.status] || STATUS_META.Waiting;
+  const status =
+    STATUS_META[resolveStatusKey(p.status)] || STATUS_META.Waiting;
   const type = TYPE_META[p.licenseType] || TYPE_META.NewLicense;
   const MethodIcon = method.icon;
 
@@ -161,8 +174,13 @@ const PaymentRow = ({ p, t }) => {
               <span className="truncate">{p.orderNumber}</span>
             </button>
             <span className="text-[--border-1]">·</span>
-            <span>
-              {formatDateString({ dateString: p.createdDateTime, joint: "/" })}
+            <span className="tabular-nums">
+              {formatDateString({
+                dateString: p.createdDateTime,
+                joint: "/",
+                hour: true,
+                min: true,
+              })}
             </span>
           </div>
 
@@ -274,7 +292,7 @@ const PaymentRow = ({ p, t }) => {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ring-1 whitespace-nowrap ${status.cls}`}
           >
             <span className={`size-1.5 rounded-full ${status.dot}`} />
-            {status.label}
+            {t(status.labelKey)}
           </span>
           <span className="inline-flex items-center gap-1 text-[10px] text-[--gr-1] whitespace-nowrap">
             <MethodIcon className="size-3" />
