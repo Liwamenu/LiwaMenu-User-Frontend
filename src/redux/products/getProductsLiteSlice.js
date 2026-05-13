@@ -10,6 +10,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { invalidateOn } from "../cacheInvalidation";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -76,18 +77,27 @@ const getProductsLiteSlice = createSlice({
         state.products = null;
         state.fetchedFor = null;
       })
-      // Auto-invalidate on any product mutation, no matter where it
-      // came from. Without this, editing a product on the Products page
-      // would leave Order Tags with stale dropdown labels until the
-      // user manually refreshes. The thunk type strings are matched
-      // exactly so a typo here would silently disable invalidation —
-      // keep them in sync with the createAsyncThunk type prefixes in
-      // addProductSlice / editProductSlice / deleteProductSlice.
+      // Auto-invalidate on any product mutation OR sibling edit that
+      // affects denormalized fields (categoryName, subCategoryName,
+      // sortOrder) the lite payload carries. Without this, editing a
+      // category and revisiting Order Tags shows the old category
+      // names on the relation-row dropdown until a hard refresh. The
+      // strings match the first arg of each `createAsyncThunk` — a
+      // typo silently disables invalidation.
       .addMatcher(
-        (action) =>
-          action.type === "Products/AddProduct/fulfilled" ||
-          action.type === "Products/EditProduct/fulfilled" ||
-          action.type === "Products/DeleteProduct/fulfilled",
+        invalidateOn([
+          // direct product mutations
+          "Products/AddProduct",
+          "Products/EditProduct",
+          "Products/DeleteProduct",
+          // sibling categories / subcategories — denormalized labels
+          "Categories/EditCategory",
+          "Categories/EditCategories",
+          "Categories/DeleteCategory",
+          "SubCategories/EditSubCategory",
+          "SubCategories/EditSubCategories",
+          "SubCategories/DeleteSubCategory",
+        ]),
         (state) => {
           state.products = null;
           state.fetchedFor = null;

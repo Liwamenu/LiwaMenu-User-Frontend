@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { invalidateOn } from "../cacheInvalidation";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -70,7 +71,25 @@ const getMenusSlice = createSlice({
         state.error = action.payload;
         state.menus = null;
         state.fetchedFor = null;
-      });
+      })
+      // Drop the cache on any menu mutation. The page already has
+      // optimistic `addMenuToCache` / `updateMenuInCache` /
+      // `removeMenuFromCache` reducers for instant feedback on its
+      // own surface, but those don't reach OTHER pages that read
+      // `menus` (Edit Category's menu-picker, the QR-theme preview's
+      // active menu). Forcing a refetch when those pages mount keeps
+      // them in sync.
+      .addMatcher(
+        invalidateOn([
+          "Menus/AddMenu",
+          "Menus/EditMenu",
+          "Menus/DeleteMenu",
+        ]),
+        (state) => {
+          state.menus = null;
+          state.fetchedFor = null;
+        },
+      );
   },
 });
 

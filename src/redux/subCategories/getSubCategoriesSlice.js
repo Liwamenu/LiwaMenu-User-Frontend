@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { invalidateOn } from "../cacheInvalidation";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -52,7 +53,26 @@ const getSubCategoriesSlice = createSlice({
         state.error = action.payload;
         state.subCategories = null;
         state.fetchedFor = null;
-      });
+      })
+      // Invalidate on any subcategory mutation. We also invalidate on
+      // `Categories/DeleteCategory` because deleting a parent category
+      // cascades into its subcategories server-side; the cached list
+      // would otherwise still show the orphaned rows.
+      .addMatcher(
+        invalidateOn([
+          "SubCategories/AddSubCategory",
+          "SubCategories/AddSubCategories",
+          "SubCategories/EditSubCategory",
+          "SubCategories/EditSubCategories",
+          "SubCategories/DeleteSubCategory",
+          "SubCategories/UpdateSubCategoriesOrder",
+          "Categories/DeleteCategory",
+        ]),
+        (state) => {
+          state.subCategories = null;
+          state.fetchedFor = null;
+        },
+      );
   },
 });
 

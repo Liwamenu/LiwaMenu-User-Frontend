@@ -454,12 +454,11 @@ const ThemeSelector = ({ data }) => {
                       iframeRef={iframeRef}
                       src={iframeUrl}
                       onLoad={() => setIsLoading(false)}
-                      // Tablet renders denser (0.7 → ~143% iframe
-                      // size) so the larger screen still shows
-                      // crisp text. Phones stay at 0.8, which keeps
-                      // the iframe viewport (~425-450px) close to a
-                      // real Pro Max device width.
-                      scale={device === "tablet" ? 0.7 : 0.8}
+                      // 1:1 — content viewport matches the device
+                      // frame's actual width (340/360px for phones,
+                      // 420/460px for tablet). That's already a
+                      // real mobile/tablet width, no transform
+                      // misalignment.
                     />
                     {/* Loading overlay — covers only the inner screen */}
                     {isLoading && (
@@ -483,28 +482,56 @@ const ThemeSelector = ({ data }) => {
   );
 };
 
-// Renders the iframe at a configurable scale so the menu fits inside the
-// device frame at higher logical resolution. Default 0.8 (renders at
-// 125% of container) gives sharper text than rendering at 1:1 because
-// the browser composites at higher density and downscales. Tablet
-// passes 0.7 to fit a wider menu while still feeling crisp.
-const ScaledIframe = ({ iframeRef, src, onLoad, scale = 0.8 }) => (
-  <iframe
-    ref={iframeRef}
-    src={src}
-    title="Theme preview"
-    onLoad={onLoad}
-    scrolling="auto"
-    style={{
-      width: `calc(100% / ${scale})`,
-      height: `calc(100% / ${scale})`,
-      transform: `scale(${scale})`,
-      transformOrigin: "0 0",
-      border: 0,
-      display: "block",
-    }}
-  />
-);
+// The iframe used to render at `width: 125%; transform: scale(0.8);
+// transform-origin: 0 0` so the menu rendered at a higher logical
+// resolution (~425px viewport) and was visually downscaled to fit
+// the device frame's 340px. In practice that introduced an ~80px
+// horizontal misalignment inside the screen container: the
+// transformed iframe's bounding box ended up shifted left of its
+// static layout position, leaving a vertical white strip on the
+// right of the device frame (and clipping the left edge of the
+// menu). Reproducible on every theme — the gap got worse as the
+// user scrolled the inner CategoryTabs row, because the body
+// became horizontally scrollable too, but the white strip was
+// already there at first paint.
+//
+// Drop the transform and render the iframe 1:1 at its container
+// size. The customer site receives the device's actual width as
+// its viewport (~340-360px for iPhone/Android, ~420-460px for
+// tablet) which is a perfectly real mobile width (iPhone SE is
+// 320, iPhone 13 mini is 375) — content still feels native, just
+// without the artificial extra resolution that was misaligning
+// the frame. `scale` prop is kept on the signature for callers
+// that explicitly want the old behaviour, but defaults to 1.
+const ScaledIframe = ({ iframeRef, src, onLoad, scale = 1 }) => {
+  const useScale = scale !== 1;
+  return (
+    <iframe
+      ref={iframeRef}
+      src={src}
+      title="Theme preview"
+      onLoad={onLoad}
+      scrolling="auto"
+      style={
+        useScale
+          ? {
+              width: `calc(100% / ${scale})`,
+              height: `calc(100% / ${scale})`,
+              transform: `scale(${scale})`,
+              transformOrigin: "0 0",
+              border: 0,
+              display: "block",
+            }
+          : {
+              width: "100%",
+              height: "100%",
+              border: 0,
+              display: "block",
+            }
+      }
+    />
+  );
+};
 
 // Glass + 3D mockup frames. The earlier version was a single rounded
 // div with a flat black bezel — fine for a sketch, but the resulting

@@ -49,6 +49,11 @@ const OrderTagGroupCard = ({
   onCancelNew,
   restaurantId,
   dragHandleProps,
+  // Number of decimal places to format price inputs with (sourced
+  // from the restaurant's `decimalPoint` setting in the parent).
+  // Falls back to 2 when the parent doesn't pass it so older callers
+  // and tests don't break.
+  decimals = 2,
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -431,6 +436,7 @@ const OrderTagGroupCard = ({
                                     onDelete={() => deleteItem(index)}
                                     dragHandleProps={provided.dragHandleProps}
                                     isDragging={snapshot.isDragging}
+                                    decimals={decimals}
                                   />
                                 </div>
                               )}

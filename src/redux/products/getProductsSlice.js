@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { invalidateOn } from "../cacheInvalidation";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -71,7 +72,48 @@ const getProductsSlice = createSlice({
         state.error = action.payload;
         state.products = null;
         state.fetchedFor = null;
-      });
+      })
+      // Auto-invalidate so any direct product mutation OR a sibling
+      // edit that affects products' denormalized fields forces the
+      // next read to refetch. Without this, the Price List / Products
+      // page would render stale Kampanya / category-name / sortOrder
+      // values until a hard refresh.
+      //
+      // Cross-domain dependencies:
+      //   • Categories edits change product.categoryName /
+      //     categoryImage / categorySortOrder + the `campaign` flag
+      //     the Price List checks per row.
+      //   • SubCategories edits change product.subCategoryName /
+      //     subCategorySortOrder.
+      //   • Deleting a category or subcategory cascades into products
+      //     server-side (orphans), so the cache must drop too.
+      .addMatcher(
+        invalidateOn([
+          // direct product mutations
+          "Products/AddProduct",
+          "Products/EditProduct",
+          "Products/DeleteProduct",
+          "Products/UpdatePriceList",
+          "Products/PriceListApplyBulk",
+          // sibling categories — denormalized fields on each product
+          "Categories/AddCategory",
+          "Categories/AddCategories",
+          "Categories/EditCategory",
+          "Categories/EditCategories",
+          "Categories/DeleteCategory",
+          // sibling subcategories — denormalized fields on each product
+          "SubCategories/AddSubCategory",
+          "SubCategories/AddSubCategories",
+          "SubCategories/EditSubCategory",
+          "SubCategories/EditSubCategories",
+          "SubCategories/DeleteSubCategory",
+          "SubCategories/UpdateSubCategoriesOrder",
+        ]),
+        (state) => {
+          state.products = null;
+          state.fetchedFor = null;
+        },
+      );
   },
 });
 

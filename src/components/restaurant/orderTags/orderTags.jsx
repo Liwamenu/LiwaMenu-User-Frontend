@@ -42,12 +42,20 @@ const normalizeGroupsForSave = (groups) =>
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
-const OrderTags = () => {
+const OrderTags = ({ data: restaurant }) => {
   const params = useParams();
   const restaurantId = params.id;
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { setPopupContent } = usePopup();
+
+  // Mirrors the priceList / settings convention: read the restaurant's
+  // configured "Kuruş Hanesi" (decimalPoint) so the OptionRow price
+  // input formats / validates with the right precision instead of
+  // always defaulting to 2.
+  const decimals = Number.isFinite(Number(restaurant?.decimalPoint))
+    ? Number(restaurant.decimalPoint)
+    : 2;
 
   const { orderTags, fetchedFor: tagsFetchedFor } = useSelector(
     (s) => s.orderTags.get,
@@ -314,6 +322,7 @@ const OrderTags = () => {
                               products={state.products}
                               categories={state.categories}
                               restaurantId={restaurantId}
+                              decimals={decimals}
                               onUpdate={(u) => handleUpdateGroup(group.id, u)}
                               onDelete={() => handleDeleteGroup(group)}
                               onCancelNew={() =>

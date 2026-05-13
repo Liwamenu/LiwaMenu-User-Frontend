@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { invalidateOn } from "../cacheInvalidation";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -53,7 +54,31 @@ const getCategoriesSlice = createSlice({
         state.error = action.payload;
         state.categories = null;
         state.fetchedFor = null;
-      });
+      })
+      // Auto-invalidate on any category mutation. Without this,
+      // toggling a category's `campaign` flag and switching to the
+      // Price List page would leave the Kampanya column hidden until
+      // a hard refresh — Price List reads `categories` from this
+      // slice's cache. Same idea for the bulk-image / bulk-edit
+      // endpoints and the dedicated delete endpoint.
+      .addMatcher(
+        invalidateOn([
+          "Categories/AddCategory",
+          "Categories/AddCategories",
+          "Categories/EditCategory",
+          "Categories/EditCategories",
+          "Categories/DeleteCategory",
+          // Product mutations change `category.productsCount` (the
+          // badge rendered next to each row on the Categories page),
+          // so refetch so that counter stays accurate.
+          "Products/AddProduct",
+          "Products/DeleteProduct",
+        ]),
+        (state) => {
+          state.categories = null;
+          state.fetchedFor = null;
+        },
+      );
   },
 });
 
