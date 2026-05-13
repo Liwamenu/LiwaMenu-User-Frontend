@@ -148,7 +148,29 @@ const QRPage = ({ data: restaurant }) => {
     return out.replace(/[^a-zA-Z0-9-_]+/g, "_");
   };
 
-  // Build a QR generator from current config (helper for both preview + batch)
+  // SCANNER-SAFE QR GENERATION
+  // --------------------------
+  // The previous build used `extra-rounded` dots + `dot` corner pips
+  // for a "designer" look. iOS's native camera was lenient about it
+  // but stock Android scanners (Google Lens, Samsung Scanner, every
+  // browser-built-in QR reader I tested) refused to recognise the
+  // payload as a URL — they read the text contents fine, then
+  // treated it as a search query instead of an `intent://` deep link.
+  // The reference user shared (sharp square modules) scanned as a URL
+  // on every device.
+  //
+  // Two settings restore Android-friendly behaviour:
+  //   1. Every shape switches to `square` — no decorative rounding,
+  //      no off-spec corner pips. The library still applies the
+  //      gradient on top, which is safe for scanners as long as
+  //      contrast stays high.
+  //   2. `qrOptions.errorCorrectionLevel: "H"` (30% redundancy) +
+  //      `imageOptions.imageSize: 0.15` (logo / table-number badge
+  //      occupies at most 15% of the QR area). At 15% with level H
+  //      there's headroom to spare; the prior config relied on the
+  //      library's 40% default which routinely punched past the
+  //      error-correction budget on smaller logos and rendered the
+  //      whole code unreadable.
   const buildGenerator = (overrides = {}) =>
     new QRCodeStyling({
       width: 480,
@@ -156,13 +178,20 @@ const QRPage = ({ data: restaurant }) => {
       type: "svg",
       data: getTableUrl(),
       image: config.includeLogo ? config.logo || "" : "",
+      // Highest error-correction level so the centred badge / logo
+      // never eats past the QR's redundancy budget. Pair with
+      // `imageSize: 0.15` below for a comfortable safety margin.
+      qrOptions: { errorCorrectionLevel: "H" },
       imageOptions: {
         crossOrigin: "anonymous",
         margin: 5,
         hideBackgroundDots: true,
+        // 15% of the QR area — fits the brand logo / table-number
+        // disc cleanly inside the H-level error-correction budget.
+        imageSize: 0.15,
       },
       dotsOptions: {
-        type: "extra-rounded",
+        type: "square",
         gradient: {
           type: "linear",
           rotation: 0,
@@ -173,10 +202,10 @@ const QRPage = ({ data: restaurant }) => {
         },
       },
       cornersSquareOptions: {
-        type: "extra-rounded",
+        type: "square",
         color: config.gradientStart,
       },
-      cornersDotOptions: { type: "dot", color: config.gradientStart },
+      cornersDotOptions: { type: "square", color: config.gradientStart },
       backgroundOptions: { color: "#ffffff" },
       ...overrides,
     });
@@ -292,18 +321,24 @@ const QRPage = ({ data: restaurant }) => {
           ? makeTableNumberBadge(badge)
           : "";
 
+      // Same scanner-safe config as `buildGenerator` above — see the
+      // long comment there for the Android-compatibility rationale.
+      // The duplication here is intentional (different size + per-row
+      // data/image), but the safety settings must stay in lockstep.
       const generator = new QRCodeStyling({
         width: config.size,
         height: config.size,
         data: url,
         image: centerImage,
+        qrOptions: { errorCorrectionLevel: "H" },
         imageOptions: {
           crossOrigin: "anonymous",
           margin: 10,
           hideBackgroundDots: true,
+          imageSize: 0.15,
         },
         dotsOptions: {
-          type: "extra-rounded",
+          type: "square",
           gradient: {
             type: "linear",
             rotation: 0,
@@ -314,10 +349,10 @@ const QRPage = ({ data: restaurant }) => {
           },
         },
         cornersSquareOptions: {
-          type: "extra-rounded",
+          type: "square",
           color: config.gradientStart,
         },
-        cornersDotOptions: { type: "dot", color: config.gradientStart },
+        cornersDotOptions: { type: "square", color: config.gradientStart },
         backgroundOptions: { color: "#ffffff" },
       });
 
@@ -461,18 +496,22 @@ const QRPage = ({ data: restaurant }) => {
   // Generate a high-resolution PNG of the default (tenant root) QR and save it.
   const downloadDefaultQR = async () => {
     try {
+      // Same scanner-safe config as `buildGenerator` above. See the
+      // long comment there for the Android-compatibility rationale.
       const generator = new QRCodeStyling({
         width: config.size,
         height: config.size,
         data: getTableUrl(),
         image: config.includeLogo ? config.logo || "" : "",
+        qrOptions: { errorCorrectionLevel: "H" },
         imageOptions: {
           crossOrigin: "anonymous",
           margin: 10,
           hideBackgroundDots: true,
+          imageSize: 0.15,
         },
         dotsOptions: {
-          type: "extra-rounded",
+          type: "square",
           gradient: {
             type: "linear",
             rotation: 0,
@@ -483,10 +522,10 @@ const QRPage = ({ data: restaurant }) => {
           },
         },
         cornersSquareOptions: {
-          type: "extra-rounded",
+          type: "square",
           color: config.gradientStart,
         },
-        cornersDotOptions: { type: "dot", color: config.gradientStart },
+        cornersDotOptions: { type: "square", color: config.gradientStart },
         backgroundOptions: { color: "#ffffff" },
       });
       const blob = await generator.getRawData("png");
