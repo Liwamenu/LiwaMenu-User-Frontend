@@ -75,18 +75,22 @@ const THEMES = [
   { id: 15, name: "Tema 16", color: "hsl(140 40% 55%)", tagKey: "qrThemeSelector.tag_tropical_trio" },
   { id: 16, name: "Tema 17", color: "hsl(30 60% 30%)", tagKey: "qrThemeSelector.tag_cafe_pro" },
   { id: 17, name: "Tema 18", color: "hsl(40 70% 45%)", tagKey: "qrThemeSelector.tag_vintage_gold" },
-  // Placeholders 19-30 — temporary slots so owners can save a future
+  // Tema 19-26 — additional real themes shipped in the customer
+  // themes repo (D:\LiwaMenu Temalar\Qr Menu/src/themes/theme-19..26).
+  // Each accent colour is sampled from the theme's CSS `--primary`
+  // so the swatch in the picker matches the iframe preview.
+  { id: 18, name: "Tema 19", color: "hsl(36 95% 55%)", tagKey: "qrThemeSelector.tag_midnight_plum_amber" },
+  { id: 19, name: "Tema 20", color: "hsl(36 95% 45%)", tagKey: "qrThemeSelector.tag_charcoal_gold" },
+  { id: 20, name: "Tema 21", color: "hsl(36 80% 42%)", tagKey: "qrThemeSelector.tag_black_amber_dining" },
+  { id: 21, name: "Tema 22", color: "hsl(0 75% 47%)", tagKey: "qrThemeSelector.tag_sakura_sushi" },
+  { id: 22, name: "Tema 23", color: "hsl(110 65% 45%)", tagKey: "qrThemeSelector.tag_green_border" },
+  { id: 23, name: "Tema 24", color: "hsl(340 75% 75%)", tagKey: "qrThemeSelector.tag_pink_bubblegum" },
+  { id: 24, name: "Tema 25", color: "hsl(22 92% 52%)", tagKey: "qrThemeSelector.tag_orange_fresh" },
+  { id: 25, name: "Tema 26", color: "hsl(25 48% 35%)", tagKey: "qrThemeSelector.tag_parchment_scroll" },
+  // Placeholders 27-30 — temporary slots so owners can save a future
   // themeId and preview from the customer-facing app while the actual
   // theme is being built. Replace each entry once the corresponding
-  // theme ships (see Tema 7-18 above as the template).
-  { id: 18, name: "Tema 19", color: "hsl(186 80% 45%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 19, name: "Tema 20", color: "hsl(330 75% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 20, name: "Tema 21", color: "hsl(160 65% 40%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 21, name: "Tema 22", color: "hsl(0 70% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 22, name: "Tema 23", color: "hsl(150 60% 35%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 23, name: "Tema 24", color: "hsl(250 60% 60%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 24, name: "Tema 25", color: "hsl(210 75% 50%)", tagKey: "qrThemeSelector.tag_placeholder" },
-  { id: 25, name: "Tema 26", color: "hsl(20 50% 35%)", tagKey: "qrThemeSelector.tag_placeholder" },
+  // theme ships in the customer repo.
   { id: 26, name: "Tema 27", color: "hsl(290 65% 55%)", tagKey: "qrThemeSelector.tag_placeholder" },
   { id: 27, name: "Tema 28", color: "hsl(195 70% 50%)", tagKey: "qrThemeSelector.tag_placeholder" },
   { id: 28, name: "Tema 29", color: "hsl(50 65% 45%)", tagKey: "qrThemeSelector.tag_placeholder" },
