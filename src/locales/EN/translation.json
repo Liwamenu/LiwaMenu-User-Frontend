@@ -668,6 +668,8 @@
     "uncategorized_hint": "System category · products that lose their category land here.",
     "uncategorized_cant_delete": "System category cannot be deleted. Move its products to another category.",
     "uncategorized_repaired": "{{count}} orphaned product(s) were automatically moved to \"Uncategorized\".",
+    "no_menu_warning": "No menu is assigned to this category. Categories without an assigned menu are not visible on the customer menu.",
+    "no_menu_confirm": "This category has no menu assigned. Categories without a menu are not visible on the customer menu. Save anyway?",
     "tab_list": "Categories",
     "tab_bulk_images": "Bulk Edit Categories",
     "summary": "{{count}} categories",

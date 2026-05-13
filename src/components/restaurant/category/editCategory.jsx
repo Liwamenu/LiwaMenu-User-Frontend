@@ -86,6 +86,19 @@ const EditCategory = ({
       toast.error(t("editCategories.not_changed"), { id: "categories" });
       return;
     }
+    // Heads-up before saving a category that's not attached to any
+    // menu: the customer-facing app filters categories by the menu
+    // currently active for the time slot, so a category with an
+    // empty `menuIds` array is invisible in production even though
+    // the admin list shows it. Only prompt when menus actually
+    // exist (no point asking when the restaurant has no menus to
+    // pick from). User can still proceed — explicit opt-in.
+    const hasMenus = (menusData || []).length > 0;
+    const noMenuSelected = !(categoryData.menuIds || []).length;
+    if (hasMenus && noMenuSelected) {
+      const ok = window.confirm(t("editCategories.no_menu_confirm"));
+      if (!ok) return;
+    }
     try {
       const formData = new FormData();
 
@@ -265,6 +278,22 @@ const EditCategory = ({
               <p className="text-xs text-[--gr-1] mt-2">
                 {t("addCategory.menus_help")}
               </p>
+              {/* Surface the "no menu = hidden in customer app"
+                  consequence while the user is still configuring,
+                  not just at save time. Only shown when menus exist
+                  AND none are selected. */}
+              {menusData?.length > 0 &&
+                !(categoryData.menuIds || []).length && (
+                  <div
+                    role="alert"
+                    className="mt-2 flex items-start gap-2 p-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-amber-900 dark:bg-amber-500/15 dark:border-amber-400/30 dark:text-amber-100"
+                  >
+                    <WarnI className="text-amber-600 dark:text-amber-300 mr-1 size-[1rem] shrink-0 mt-0.5" />
+                    <p className="text-[11px] leading-snug">
+                      {t("editCategories.no_menu_warning")}
+                    </p>
+                  </div>
+                )}
             </div>
 
             {/* Toggle'lar */}

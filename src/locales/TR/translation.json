@@ -668,6 +668,8 @@
     "uncategorized_hint": "Sistem kategorisi · kategorisini kaybeden ürünler buraya alınır.",
     "uncategorized_cant_delete": "Sistem kategorisi silinemez. İçindeki ürünleri başka kategoriye taşıyın.",
     "uncategorized_repaired": "{{count}} kategorisiz ürün otomatik olarak \"Uncategorized\" kategorisine taşındı.",
+    "no_menu_warning": "Bu kategoriye hiçbir menü atanmadı. Menüsüz kategoriler müşteri menüsünde görüntülenmez.",
+    "no_menu_confirm": "Bu kategoriye hiçbir menü atanmamış. Menüsüz kategoriler müşteri menüsünde görünmez. Yine de kaydetmek ister misiniz?",
     "category_image_optional": "Kategori Görseli (Opsiyonel)",
     "tab_list": "Kategoriler",
     "tab_bulk_images": "Toplu Kategori Düzenle",

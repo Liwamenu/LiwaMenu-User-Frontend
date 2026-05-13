@@ -79,6 +79,16 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
   };
 
   const handleSave = () => {
+    // Same heads-up as editCategory: a category not attached to any
+    // menu is hidden on the customer side, so warn the user before
+    // saving. Only when menus actually exist — if there are no
+    // menus to pick from, the question is meaningless.
+    const hasMenus = (menusData || []).length > 0;
+    const noMenuSelected = !(category.menuIds || []).length;
+    if (hasMenus && noMenuSelected) {
+      const ok = window.confirm(t("editCategories.no_menu_confirm"));
+      if (!ok) return;
+    }
     try {
       const formData = new FormData();
 
@@ -234,6 +244,21 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
               <p className="text-xs text-[--gr-1] mt-2">
                 {t("addCategory.menus_help")}
               </p>
+              {/* Inline reminder while no menu is selected — same
+                  pattern as editCategory. Suppressed when no menus
+                  exist at all (menus_empty already covers that). */}
+              {menusData?.length > 0 &&
+                !(category.menuIds || []).length && (
+                  <div
+                    role="alert"
+                    className="mt-2 flex items-start gap-2 p-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-amber-900 dark:bg-amber-500/15 dark:border-amber-400/30 dark:text-amber-100"
+                  >
+                    <WarnI className="text-amber-600 dark:text-amber-300 mr-1 size-[1rem] shrink-0 mt-0.5" />
+                    <p className="text-[11px] leading-snug">
+                      {t("editCategories.no_menu_warning")}
+                    </p>
+                  </div>
+                )}
             </div>
 
             {/* Toggle'lar */}
