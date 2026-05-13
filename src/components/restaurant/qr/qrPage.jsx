@@ -117,9 +117,29 @@ const QRPage = ({ data: restaurant }) => {
   const getTableId = (tableNumber) =>
     `${config.tablePrefix || ""}${tableNumber}${config.tableSuffix || ""}`;
 
+  // Build the tenant URL the QR encodes. Two real-world quirks:
+  //
+  //   1. Per-table URLs MUST include the explicit "/" between the
+  //      host and the query string — i.e. `host.com/?q=…`, not
+  //      `host.com?q=…`. The bare-host form is technically valid
+  //      per RFC 3986 (path-empty + query), but Android's stock QR
+  //      scanners (Google Lens, Samsung Camera, Chrome's built-in
+  //      reader) match against a stricter URL regex that REQUIRES a
+  //      path segment when a query string is present — without the
+  //      slash they classify the payload as plain text and route
+  //      guests to a search engine instead of opening the menu.
+  //      The plain root QR `https://host.com` opens fine without
+  //      the slash because there's no `?` to trigger the regex's
+  //      path check. The customer site reads `tableNumber` off
+  //      `window.location.search` the same way regardless of slash,
+  //      so this change is invisible to backend logic.
+  //
+  //   2. `encodeURIComponent` leaves hyphens / digits alone, so
+  //      `Masa-11` round-trips cleanly without surprising scanners
+  //      that re-decode the value.
   const getTableUrl = (tableNumber) => {
     if (tableNumber !== undefined && tableNumber !== null) {
-      return `https://${config.tenant}.liwamenu.com?tableNumber=${encodeURIComponent(getTableId(tableNumber))}`;
+      return `https://${config.tenant}.liwamenu.com/?tableNumber=${encodeURIComponent(getTableId(tableNumber))}`;
     }
     return `https://${config.tenant}.liwamenu.com`;
   };
@@ -328,7 +348,9 @@ const QRPage = ({ data: restaurant }) => {
 
     const newItems = [];
     for (const entry of plan) {
-      const url = `https://${config.tenant}.liwamenu.com?tableNumber=${encodeURIComponent(entry.tableId)}`;
+      // Explicit "/" before the query string — see the long comment
+      // on `getTableUrl` for the Android-scanner rationale.
+      const url = `https://${config.tenant}.liwamenu.com/?tableNumber=${encodeURIComponent(entry.tableId)}`;
       const badge =
         entry.badge !== undefined
           ? entry.badge
