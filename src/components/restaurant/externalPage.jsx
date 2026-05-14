@@ -506,10 +506,14 @@ const PageEditorPopup = ({ mode, page, restaurantId }) => {
     "block text-[11px] font-semibold text-[--gr-1] mb-1 tracking-wide uppercase";
 
   return (
-    <div className="bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-[920px] mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col max-h-[92dvh]">
-      {/* Width: 920px = the previous max-w-3xl (768px) bumped ~20% so
-          the HTML editor + live preview pane can breathe side-by-side
-          without the textarea wrapping to half a line per row. */}
+    <div className="bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-[1104px] mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col max-h-[92dvh]">
+      {/* Width: 1104px = the original max-w-3xl (768px) bumped ~44% in
+          two passes (768 → 920 → 1104). The 2x2 grid (Button Name +
+          HTML editor on the left, phone-frame preview on the right)
+          needed the extra room — the HTML textarea was wrapping
+          markup awkwardly at 920px even with the preview docked
+          alongside instead of below. mx-auto + max-h:92dvh keep the
+          modal centred and scrollable on smaller screens. */}
       <div className="h-0.5 shrink-0" style={{ background: PRIMARY_GRADIENT }} />
 
       {/* HEADER */}
