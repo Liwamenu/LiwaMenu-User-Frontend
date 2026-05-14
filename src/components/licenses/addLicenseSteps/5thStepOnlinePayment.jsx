@@ -82,11 +82,17 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       dispatch(resetAddByOnlinePay());
     }
 
-    // Backwards-compat: if anything ever does postMessage back (e.g. a
-    // future static callback page), honor that signal too.
+    // Primary signal: the backend's PayTR return endpoints
+    // (/api/PayTR/PaymentSuccessReturn|PaymentFailReturn) post
+    // { status, source: 'paytr' } to window.top. Filter on `source` to
+    // ignore any unrelated postMessage traffic on the page.
     const handleMessage = (event) => {
-      if (event.data?.status === "success") finish("success");
-      else if (event.data?.status === "failed") finish("failure");
+      if (event.data?.source !== "paytr") return;
+      const s = event.data?.status;
+      if (s === "success") finish("success");
+      else if (s === "fail" || s === "failed" || s === "failure") {
+        finish("failure");
+      }
     };
     window.addEventListener("message", handleMessage);
 

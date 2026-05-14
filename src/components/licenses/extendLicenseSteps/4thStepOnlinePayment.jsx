@@ -77,11 +77,17 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
       dispatch(resetExtendByOnlinePay());
     }
 
-    // Backwards-compat: any future callback page that wants to signal
-    // explicitly via postMessage will still be honored.
+    // Primary signal: the backend's PayTR return endpoints
+    // (/api/PayTR/PaymentSuccessReturn|PaymentFailReturn) post
+    // { status, source: 'paytr' } to window.top. Filter on `source` to
+    // ignore any unrelated postMessage traffic on the page.
     const handleMessage = (event) => {
-      if (event.data?.status === "success") finish("success");
-      else if (event.data?.status === "failed") finish("failure");
+      if (event.data?.source !== "paytr") return;
+      const s = event.data?.status;
+      if (s === "success") finish("success");
+      else if (s === "fail" || s === "failed" || s === "failure") {
+        finish("failure");
+      }
     };
     window.addEventListener("message", handleMessage);
 
