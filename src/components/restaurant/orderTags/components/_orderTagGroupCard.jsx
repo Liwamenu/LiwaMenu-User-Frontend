@@ -50,39 +50,82 @@ const normalizeItemsForSave = (items) =>
     return out;
   });
 
-// Two normalizations needed for relations to actually persist:
+// Wildcard expansion for relations.
 //
-//   (1) Strip the "New-..." temp id off freshly-added rows so the
-//       backend treats them as inserts. Same trap as items / menus:
-//       sending an unparseable id makes the .NET endpoint silently
-//       drop the row while still returning 200 OK.
+// The backend stores ONE relation row per portion — confirmed by
+// inspecting the live response, where every relation's `id` field
+// equals its `portionId`. There's no server-side notion of a
+// wildcard; "this tag applies to all DÜRÜMLER portions" must be
+// expanded client-side into N concrete `{categoryId, productId,
+// portionId}` rows before the PUT lands. Without expansion, the
+// dropdown's `"*"` sentinel (or my prior null-conversion attempt)
+// arrives at the backend's required-Guid slots and gets dropped,
+// so the user sees a 200 OK and the old relation untouched on next
+// refetch — exactly the bug the user reported with İÇECEK SEÇ /
+// DÜRÜMLER / Tüm Ürünler / Tüm Porsiyonlar.
 //
-//   (2) Convert the "*" wildcard sentinel to `null` for category /
-//       product / portion ids. The dropdowns store `"*"` to mean
-//       "all categories" / "all products" / "all portions", but the
-//       backend's nullable Guid fields can't parse the string `"*"`
-//       — same silent-drop pattern. The READ endpoint returns null
-//       in those slots and our `_relationRow.jsx` already falls back
-//       to the "* Tümü" option when `find(value === relation.X)`
-//       misses. So on the wire the contract is: real Guid OR null.
+// Expansion rules per UI relation row:
+//   - Pick candidate products: specific id wins, else all products
+//     in the chosen category, else every product the restaurant
+//     has.
+//   - For each candidate product, pick candidate portions: specific
+//     id wins (and only kept if it actually belongs to this
+//     product), else every portion of that product.
+//   - Emit one row per (product, portion) pair with concrete ids
+//     resolved from the lite product list.
 //
-// Without (2) a relation like
-// `{categoryId:"real-cat-uuid", productId:"*", portionId:"*"}`
-// arrives at the backend with two unparseable strings, gets dropped,
-// and on the next refetch the user sees the old relation untouched.
-const wildcardOrId = (v) => (v === "*" ? null : v);
+// Output rows omit the `id` field on purpose. Backend identifies
+// relations by `(orderTagId, portionId)` natural key — preserving
+// the row's old id would prevent it from being replaced when the
+// user reshuffled wildcards. Duplicates are filtered by
+// (categoryId|productId|portionId) so two overlapping wildcard
+// rows (e.g. "all DÜRÜMLER" + "Tavuk Dürüm 1 Lavaş") don't send
+// two copies of the same portion.
+const isWildcard = (v) => v == null || v === "*";
 
-const normalizeRelationsForSave = (relations) =>
-  (relations || []).map((rel) => {
-    const out = {
-      ...rel,
-      categoryId: wildcardOrId(rel.categoryId),
-      productId: wildcardOrId(rel.productId),
-      portionId: wildcardOrId(rel.portionId),
-    };
-    if (isClientId(out.id)) delete out.id;
-    return out;
+const expandRelations = (relations, lite) => {
+  const productList = lite?.data || [];
+  const out = [];
+  for (const rel of relations || []) {
+    const allCats = isWildcard(rel.categoryId);
+    const allProds = isWildcard(rel.productId);
+    const allPortions = isWildcard(rel.portionId);
+
+    let productCandidates;
+    if (!allProds) {
+      const p = productList.find((p) => p.id === rel.productId);
+      productCandidates = p ? [p] : [];
+    } else if (!allCats) {
+      productCandidates = productList.filter(
+        (p) => p.categoryId === rel.categoryId,
+      );
+    } else {
+      productCandidates = productList;
+    }
+
+    for (const product of productCandidates) {
+      const portionCandidates = allPortions
+        ? product.portions || []
+        : (product.portions || []).filter((pt) => pt.id === rel.portionId);
+
+      for (const portion of portionCandidates) {
+        out.push({
+          categoryId: product.categoryId,
+          productId: product.id,
+          portionId: portion.id,
+        });
+      }
+    }
+  }
+
+  const seen = new Set();
+  return out.filter((rel) => {
+    const key = `${rel.categoryId}|${rel.productId}|${rel.portionId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
+};
 
 const OrderTagGroupCard = ({
   group,
@@ -173,14 +216,26 @@ const OrderTagGroupCard = ({
       toast.error(t("orderTags.no_relations_warning"));
       return;
     }
+    const expandedRelations = expandRelations(group.relations, products);
+    if (expandedRelations.length === 0) {
+      // The user picked wildcards (or specific ids that don't match
+      // any portion in the lite product list) and we ended up with
+      // nothing to send. Better to surface that than silently submit
+      // an empty list — backend would treat it as "delete all
+      // relations" which is almost certainly not what they meant.
+      toast.error(t("orderTags.no_relations_warning"));
+      return;
+    }
     const payload = {
       ...group,
       items: normalizeItemsForSave(group.items),
-      relations: normalizeRelationsForSave(group.relations),
+      relations: expandedRelations,
       restaurantId,
     };
-    // Strip the group's own temp id too on first save — same
-    // reason as items / relations above.
+    // Strip the group's own temp id on first save so the backend
+    // assigns its real UUID. Same reason as items / relations:
+    // sending an unparseable id makes the .NET endpoint silently
+    // drop the row while still returning 200 OK.
     if (isClientId(payload.id)) delete payload.id;
     group?.isNew ? dispatch(addOrderTag(payload)) : dispatch(editOrderTag(payload));
   }
