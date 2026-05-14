@@ -782,12 +782,31 @@ const HtmlEditorPane = ({ t, value, onChange }) => (
 // of a 2x2 grid — it now sits at the same vertical position as the
 // Button Name input AND extends down past the HTML textarea, giving
 // the iframe ~50% more vertical room without growing the modal.
+//
+// Sizing chain — fragile, easy to break, so spelled out explicitly:
+//   1. Outer wrapper has an explicit `min-h-[70dvh]` so even when the
+//      grid row's intrinsic height collapses (no parent flex chain
+//      with a real height to distribute), the pane still claims a
+//      meaningful vertical area for the iframe to fill. Using `dvh`
+//      not `vh` so it follows the visible viewport on mobile when the
+//      browser chrome animates in/out.
+//   2. Outer wrapper is `flex flex-col` and the body div uses
+//      `flex-1 min-h-0` so it grabs the leftover height inside the
+//      pane (header subtracted automatically).
+//   3. Body switches from `grid place-items-start` to
+//      `flex flex-col items-center` — the previous grid alignment
+//      kept the phone frame at its min-height instead of stretching.
+//   4. Phone frame uses `flex-1 min-h-0` to fill the body's height,
+//      not `minHeight: 28rem` (which left the iframe's `h-full` with
+//      no defined height to be 100% of, collapsing it to content).
+//   5. Iframe inside the phone frame uses `flex-1` so it fills the
+//      frame's full height instead of guessing.
 const HtmlPreviewPane = ({ t, value }) => {
   const previewSrcDoc = useMemo(() => buildPreviewSrcDoc(value), [value]);
 
   return (
-    <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 flex flex-col h-full min-h-[24rem] shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-1]/70">
+    <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 flex flex-col min-h-[70dvh] shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-1]/70 shrink-0">
         <div className="flex items-center gap-2 text-[--gr-1] text-[11px] font-bold uppercase tracking-[0.12em] min-w-0">
           <Eye className="size-3.5 text-indigo-600 shrink-0" />
           <span className="truncate">{t("externalPage.live_preview")}</span>
@@ -804,20 +823,16 @@ const HtmlPreviewPane = ({ t, value }) => {
           </span>
         </span>
       </div>
-      <div className="flex-1 relative overflow-auto p-3 grid place-items-start justify-items-center">
+      <div className="flex-1 min-h-0 p-3 flex flex-col items-center">
         {value ? (
           <div
-            // Fixed mobile width — the desktop preview was removed
-            // because external pages are always consumed on a phone.
-            // Height auto-grows to the parent's available space (the
-            // grid spans both rows on lg screens, so the device frame
-            // can stretch tall).
-            className="bg-white rounded-2xl shadow-lg border border-[--border-1] overflow-hidden mx-auto w-full max-w-[360px] flex"
-            style={{ minHeight: "min(28rem, 70vh)" }}
+            // Fixed mobile width on the horizontal axis; vertical axis
+            // stretches to fill the body via flex-1.
+            className="bg-white rounded-2xl shadow-lg border border-[--border-1] overflow-hidden w-full max-w-[360px] flex flex-col flex-1 min-h-0"
           >
             <iframe
               title={t("externalPage.live_preview")}
-              className="w-full h-full border-0 bg-white block"
+              className="w-full flex-1 min-h-0 border-0 bg-white block"
               sandbox={PREVIEW_SANDBOX}
               allow={PREVIEW_ALLOW}
               srcDoc={previewSrcDoc}
