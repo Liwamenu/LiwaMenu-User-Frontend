@@ -227,32 +227,45 @@ const PriceList = ({ data: restaurant }) => {
     return set;
   }, [orderTags, list]);
 
+  // The zero-price filter must NOT react to in-progress edits.
+  // Otherwise typing the first digit into a price input flips the
+  // portion's price > 0 and the row disappears mid-keystroke before
+  // the user can hit Save. Build the inclusion set from `listBefore`
+  // — the last-saved snapshot — so the row stays visible while
+  // editing, and only re-evaluates after a successful save (which
+  // refreshes both `list` and `listBefore`).
+  const zeroPriceProductIds = useMemo(() => {
+    if (!showZeroPriceOnly) return null;
+    const ids = new Set();
+    for (const p of listBefore) {
+      const hasZero = (p.portions || []).some(
+        (pt) => !Number.isFinite(Number(pt.price)) || Number(pt.price) <= 0,
+      );
+      if (hasZero) ids.add(p.id);
+    }
+    return ids;
+  }, [listBefore, showZeroPriceOnly]);
+
   // Apply the active filters to what's rendered. We don't filter `list`
   // itself so that bulk-edit + save-changes still target the entire
   // dataset. Order: category filter narrows by group, then the zero-
-  // price toggle narrows products inside each surviving group.
+  // price ID set (computed from listBefore above) narrows products
+  // inside each surviving group.
   const visibleGroups = useMemo(() => {
     let groups =
       categoryFilter == null
         ? groupedByCategory
         : groupedByCategory.filter((g) => g.categoryId === categoryFilter);
-    if (showZeroPriceOnly) {
+    if (zeroPriceProductIds) {
       groups = groups
         .map((g) => ({
           ...g,
-          // Keep a product if ANY portion has price <= 0 — that's the
-          // signal that the row needs the author's attention regardless
-          // of whether tag pricing covers it.
-          products: g.products.filter((p) =>
-            (p.portions || []).some(
-              (pt) => !Number.isFinite(Number(pt.price)) || Number(pt.price) <= 0,
-            ),
-          ),
+          products: g.products.filter((p) => zeroPriceProductIds.has(p.id)),
         }))
         .filter((g) => g.products.length > 0);
     }
     return groups;
-  }, [groupedByCategory, categoryFilter, showZeroPriceOnly]);
+  }, [groupedByCategory, categoryFilter, zeroPriceProductIds]);
 
   const selectedOption =
     categoryOptions.find((o) => o.value === categoryFilter) ||
