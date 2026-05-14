@@ -84,12 +84,18 @@ const getCategoriesSlice = createSlice({
 
 export const getCategories = createAsyncThunk(
   "Categories/GetCategoriesByRestaurantId",
-  async (data, { rejectWithValue }) => {
+  // Destructure `restaurantId` explicitly rather than forwarding the
+  // whole arg as `params` — call sites may pass loading-middleware
+  // control flags (e.g. `__silent: true` from the subSidebar
+  // onboarding prefetch) that must not leak to the backend as query
+  // params. `action.meta.arg` still carries the full arg, so the
+  // `fetchedFor` stamp below is unaffected.
+  async ({ restaurantId }, { rejectWithValue }) => {
     try {
       const res = await api.get(
         `${baseURL}Categories/GetCategoriesByRestaurantId`,
         {
-          params: data,
+          params: { restaurantId },
         },
       );
 

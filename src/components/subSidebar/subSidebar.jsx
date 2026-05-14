@@ -1,7 +1,7 @@
 //MODULES
 import toast from "react-hot-toast";
 import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,26 +23,36 @@ import {
 import UserProfile from "./userProfile";
 import { usePopup } from "../../context/PopupContext";
 
+//REDUX
+import { getMenus } from "../../redux/menus/getMenusSlice";
+import { getCategories } from "../../redux/categories/getCategoriesSlice";
+import { getProductsLite } from "../../redux/products/getProductsLiteSlice";
+
 // Paths that stay reachable even before the tenant is saved (Genel
 // Ayarlar). The "edit" + "settings" entries cover the onboarding
 // flow so a new owner can land on Restoranı Düzenle, fill in basic
 // info, then tenant in Genel Ayarlar.
 const ALWAYS_ALLOWED_PATHS = new Set(["restaurants", "edit", "settings"]);
 
-// Once the tenant is saved we still want the Menus page reachable
-// next — the menu is the gating asset for everything below
-// (Categories / SubCategories / Products / Tags / QR pages all
-// derive from menu structure). When at least one menu exists, the
-// rest of the sidebar unlocks. Until then, only the entries above
-// AND `menus` are clickable.
-const MENU_GATED_PATHS = new Set([
-  ...ALWAYS_ALLOWED_PATHS,
-  "menus",
-]);
+// Progressive onboarding gate. Each setup page unlocks the NEXT one
+// only once its own required asset exists, so a manual-setup owner
+// is walked stage by stage instead of being handed every page at
+// once:
+//
+//   Restoranı Düzenle / Genel Ayarlar  → always reachable
+//   Menüler        → needs a saved `tenant`
+//   Kategoriler    → needs ≥1 menu
+//   Alt Kategoriler / Ürünler → needs ≥1 category
+//   Etiketler / QR Menü / TV Menü / QR Kod → needs ≥1 product
+//
+// `sub_categories` rides the ≥1-category gate alongside `products`
+// because a sub-category is, by definition, a child of a category.
+const NEEDS_CATEGORY_PATHS = new Set(["sub_categories", "products"]);
 
 function Sidebar({ openSidebar, setOpenSidebar }) {
   const { t } = useTranslation();
   const param = useParams();
+  const dispatch = useDispatch();
   const sidebarRef = useRef();
   const id = param["*"].split("/")[1];
   const { popupContent, contentRef, setContentRef } = usePopup();
@@ -59,19 +69,88 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       ? fetchedRestaurant
       : restaurantsList?.find?.((r) => r.id === id);
   const isTenantLocked = !currentRestaurant?.tenant;
-  // Second-stage lock: once the tenant is saved, the Menus page
-  // becomes the next required step. Anything past Menus
-  // (Categories / Sub Categories / Products / Tags / QR pages)
-  // stays disabled until the restaurant has at least one menu —
-  // either added manually on the Menüler page or imported via
-  // the SambaPOS / LiwaPOS Sync Tool. Reads `menus.get` to avoid a
-  // dedicated count endpoint; the same slice already powers the
-  // Menüler list, so this is free.
+
+  // Read the three onboarding-asset slices to drive the progressive
+  // gate. Each is stamped with a `fetchedFor` cache key, so we only
+  // trust the count once it was fetched for THIS restaurant. The
+  // `has*` flags are PESSIMISTIC — false while the count is unknown
+  // — so a fresh login resumes at the correct locked stage instead
+  // of flash-unlocking the whole tree before the slices populate.
+  // The staged proactive fetch below resolves them within a few
+  // hundred ms.
   const cachedMenus = useSelector((s) => s.menus.get?.menus);
   const cachedMenusFor = useSelector((s) => s.menus.get?.fetchedFor);
-  const menusCountKnown = cachedMenusFor === id && Array.isArray(cachedMenus);
-  const isMenuLocked =
-    !isTenantLocked && menusCountKnown && cachedMenus.length === 0;
+  const menusKnown = cachedMenusFor === id && Array.isArray(cachedMenus);
+  const hasMenus = menusKnown && cachedMenus.length > 0;
+
+  const cachedCategories = useSelector((s) => s.categories.get?.categories);
+  const cachedCategoriesFor = useSelector(
+    (s) => s.categories.get?.fetchedFor,
+  );
+  const categoriesKnown =
+    cachedCategoriesFor === id && Array.isArray(cachedCategories);
+  const hasCategories = categoriesKnown && cachedCategories.length > 0;
+
+  const cachedProducts = useSelector((s) => s.products.getLite?.products);
+  const cachedProductsFor = useSelector((s) => s.products.getLite?.fetchedFor);
+  const productsKnown =
+    cachedProductsFor === id && Array.isArray(cachedProducts);
+  const hasProducts = productsKnown && cachedProducts.length > 0;
+
+  // Why a given sidebar path is locked, or null if it's reachable.
+  // Drives both the disabled styling and the click-time toast so the
+  // message always names the actual missing step. Mirrors the gate
+  // chain documented on NEEDS_CATEGORY_PATHS above.
+  const pathLockReason = (path) => {
+    if (ALWAYS_ALLOWED_PATHS.has(path)) return null;
+    if (isTenantLocked) return "subSidebar.tenant_locked";
+    if (path === "menus") return null;
+    if (!hasMenus) return "subSidebar.menu_locked";
+    if (path === "categories") return null;
+    if (NEEDS_CATEGORY_PATHS.has(path)) {
+      return hasCategories ? null : "subSidebar.category_locked";
+    }
+    // tags / qrthemes / tvthemes / qr — the final tier.
+    return hasProducts ? null : "subSidebar.product_locked";
+  };
+
+  // Staged proactive fetch so the gate above resolves without the
+  // user having to visit each page first. Silent (`__silent: true`)
+  // so it never flashes the global loading overlay — every one of
+  // these thunks destructures only `restaurantId`, so the flag can't
+  // leak to the backend as a query param. Each stage is gated on the
+  // PRIOR asset existing: no point pulling categories for a
+  // restaurant with no menus, or products for one with no
+  // categories. Each `cached*For !== id` guard makes it fire once
+  // per restaurant; the cross-slice mutation invalidation nulls the
+  // `fetchedFor` keys after add/delete, which re-arms the fetch so
+  // the gate re-resolves (e.g. unlocks Ürünler the moment the first
+  // category is saved).
+  useEffect(() => {
+    if (!id || isTenantLocked) return;
+    if (cachedMenusFor !== id) {
+      dispatch(getMenus({ restaurantId: id, __silent: true }));
+      return;
+    }
+    if (!hasMenus) return;
+    if (cachedCategoriesFor !== id) {
+      dispatch(getCategories({ restaurantId: id, __silent: true }));
+      return;
+    }
+    if (!hasCategories) return;
+    if (cachedProductsFor !== id) {
+      dispatch(getProductsLite({ restaurantId: id, __silent: true }));
+    }
+  }, [
+    id,
+    isTenantLocked,
+    cachedMenusFor,
+    hasMenus,
+    cachedCategoriesFor,
+    hasCategories,
+    cachedProductsFor,
+    dispatch,
+  ]);
   const ICON_CLS = "size-[18px]";
   const ICON_STROKE = 2;
   const sidebarItems = [
@@ -210,17 +289,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
               const active = item.paths
                 ? item.paths.includes(path)
                 : path === item.path;
-              // Two-stage lock:
-              //   1. No tenant yet → only the onboarding entries
-              //      (back / edit / settings) are clickable.
-              //   2. Tenant saved but no menus yet → the Menüler
-              //      entry unlocks too, but everything past it stays
-              //      disabled until at least one menu exists.
-              //      `MENU_GATED_PATHS` lists exactly the entries
-              //      that survive stage 2.
-              const locked = isTenantLocked
-                ? !ALWAYS_ALLOWED_PATHS.has(item.path)
-                : isMenuLocked && !MENU_GATED_PATHS.has(item.path);
+              // Progressive onboarding lock — `pathLockReason`
+              // returns the i18n key for the missing step, or null
+              // when the path is reachable. See the gate chain on
+              // NEEDS_CATEGORY_PATHS / pathLockReason above.
+              const lockReason = pathLockReason(item.path);
+              const locked = !!lockReason;
 
               // The "Go Back" item (path === "restaurants") gets a
               // dedicated 3D-button treatment so it reads as a primary
@@ -267,17 +341,11 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
                   onClick={(e) => {
                     if (locked) {
                       e.preventDefault();
-                      // Different copy depending on which stage of
-                      // onboarding the user is stuck on so the toast
-                      // names the actual missing step.
-                      toast.error(
-                        isTenantLocked
-                          ? t("subSidebar.tenant_locked")
-                          : t("subSidebar.menu_locked"),
-                        {
-                          id: "sidebar-locked",
-                        },
-                      );
+                      // `lockReason` is the i18n key for whichever
+                      // onboarding stage is still missing (tenant /
+                      // menu / category / product), so the toast
+                      // always names the actual blocking step.
+                      toast.error(t(lockReason), { id: "sidebar-locked" });
                       return;
                     }
                     setOpenSidebar(!openSidebar);

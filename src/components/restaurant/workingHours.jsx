@@ -21,9 +21,12 @@ import { getWorkingHours } from "../../redux/restaurant/getWorkingHoursSlice";
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
-// Default open/close used when a day is toggled to "Açık" without saved values.
+// Default open/close used when a day is toggled to "Açık" without saved
+// values. 08:00–22:00 is the same starting week `addRestaurant.jsx`
+// seeds at creation, so toggling a previously-closed day open lands on
+// the same realistic default rather than a 24h 08:00–23:59 span.
 const DEFAULT_OPEN_HHMM = "08:00";
-const DEFAULT_CLOSE_HHMM = "23:59";
+const DEFAULT_CLOSE_HHMM = "22:00";
 
 function parseTimeToDate(str) {
   if (!str) return null;

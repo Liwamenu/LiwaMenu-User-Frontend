@@ -6,6 +6,40 @@ import {
   isRestaurantPatchAction,
   restaurantPatchFromAction,
 } from "./restaurantEntityPatchers";
+import { invalidateOn } from "../cacheInvalidation";
+
+// Mutations whose effect on the restaurant LIST can't be expressed as
+// an in-place `{ restaurantId, ...patch }` merge (that's what
+// `restaurantEntityPatchers` handles for settings saves). License
+// purchases change `licenseIsActive` / `hasQrLicense` / the license
+// end date — fields the dispatched arg doesn't carry (it's a payment
+// basket, not a restaurant patch). Add/Delete/Transfer change which
+// rows exist at all. For every one of these the only correct move is
+// to drop the cache and let the page refetch. Keep these strings in
+// sync with the `createAsyncThunk` first-arg in each slice — a typo
+// silently disables the invalidation.
+const RESTAURANT_LIST_INVALIDATORS = [
+  // License lifecycle — all of these flip license fields on the
+  // restaurant entity the list renders.
+  "Licenses/AddLicense",
+  "Licenses/AddLicenseByBank",
+  "Licenses/AddLicenseByOnlinePayment",
+  "Licenses/ExtendLicenseByBank",
+  "Licenses/ExtendLicenseByOnlinePayment",
+  "Licenses/DeleteLicenseById",
+  "Licenses/LicenseTransfer",
+  "Licenses/UpdateLicenseActive",
+  "Licenses/UpdateLicenseDate",
+  "Licenses/UpdateLicenseDay",
+  // Restaurant add / delete / transfer / full update — row set or
+  // entity fields change. `UpdateRestaurant` is a FormData thunk so
+  // it's deliberately excluded from `restaurantEntityPatchers`;
+  // invalidating here is the simplest way to keep the list honest.
+  "Restaurants/AddRestaurant",
+  "Restaurants/DeleteRestaurantById",
+  "Restaurants/RestaurantTransfer",
+  "Restaurants/UpdateRestaurant",
+];
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -64,6 +98,15 @@ const getRestaurantsSlice = createSlice({
           ...state.restaurants.data[idx],
           ...result.patch,
         };
+      })
+      // Cross-slice: license purchases + restaurant add/delete/transfer
+      // can't be expressed as an in-place patch (see the
+      // RESTAURANT_LIST_INVALIDATORS comment above), so drop the whole
+      // cache. The restaurants page's fetch effect watches `restaurants`
+      // and refetches the current page when it goes null — so the user
+      // sees the new license / new row without a hard reload.
+      .addMatcher(invalidateOn(RESTAURANT_LIST_INVALIDATORS), (state) => {
+        state.restaurants = null;
       });
   },
 });

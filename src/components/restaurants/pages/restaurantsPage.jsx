@@ -91,15 +91,34 @@ const RestaurantsPage = () => {
     fetchPage({ pageNumber: number });
   }
 
-  // GET RESTAURANTS — initial. The Sidebar also fetches this list on mount
-  // (with pageSize=50) for license-gating; if its fetch is already in
-  // flight (`loading`), we wait so we don't fire a duplicate. When that
-  // fetch lands the second effect picks it up.
+  // GET RESTAURANTS — fires on initial mount AND whenever the slice
+  // cache is invalidated. The cross-slice matcher in
+  // getRestaurantsSlice nulls `restaurants` after any license
+  // purchase / restaurant add-delete-transfer, so gating only on
+  // `!restaurants` (NOT the stale `restaurantsData` local mirror)
+  // makes this effect re-fire and pull fresh data. Previously the
+  // `!restaurantsData` guard blocked that refetch — a bought license
+  // wouldn't show until a hard reload.
+  //
+  // The Sidebar also fetches this list on mount (pageSize=50) for
+  // license-gating; the `!loading` guard means if its fetch is
+  // already in flight we wait instead of firing a duplicate, and the
+  // second effect below picks up whatever lands. Refetch uses the
+  // CURRENT page + search + filter so an invalidation mid-session
+  // doesn't silently reset the user back to page 1.
   useEffect(() => {
-    if (!restaurantsData && !restaurants && !loading) {
-      dispatch(getRestaurants({ pageNumber, pageSize: itemsPerPage }));
+    if (!restaurants && !loading) {
+      dispatch(
+        getRestaurants({
+          pageNumber,
+          pageSize: itemsPerPage,
+          searchKey: searchVal || null,
+          active: filter?.status?.value ?? null,
+        }),
+      );
     }
-  }, [restaurantsData, restaurants, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurants, loading]);
 
   // SET RESTAURANTS / clear errors
   useEffect(() => {

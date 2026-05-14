@@ -35,9 +35,23 @@ import {
   addRestaurant,
   resetAddRestaurantState,
 } from "../../redux/restaurants/addRestaurantSlice";
+import { setWorkingHours } from "../../redux/restaurant/setWorkingHoursSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
+// Working-hours seed for a brand-new restaurant: all 7 days open,
+// 08:00–22:00. The backend's own default is "every day 00:00–23:59"
+// (a 24h week) which surprised owners; this one-shot SetWorkingHours
+// right after AddRestaurant gives them a realistic starting point.
+// Done as a separate dispatch — working hours are their own entity
+// with their own endpoint, not part of the AddRestaurant FormData.
+const DEFAULT_WORKING_HOURS_DAYS = [1, 2, 3, 4, 5, 6, 7].map((day) => ({
+  day,
+  isClosed: false,
+  open: "08:00",
+  close: "22:00",
+}));
 
 const AddRestaurant = ({ onSuccess }) => {
   const { t } = useTranslation();
@@ -71,7 +85,7 @@ function AddRestaurantPopup({ onSuccess }) {
 
   const { setPopupContent } = usePopup();
 
-  const { loading, success, error } = useSelector(
+  const { loading, success, error, data } = useSelector(
     (state) => state.restaurants.addRestaurant,
   );
 
@@ -122,6 +136,22 @@ function AddRestaurantPopup({ onSuccess }) {
     // RestaurantSettings once they're ready.
     fd.append("OnlineOrder", false);
     fd.append("InPersonOrder", false);
+    // Seed the Genel Ayarlar → Genel tab defaults at creation time so
+    // the form opens with sensible values instead of the backend's
+    // raw 0/null. The owner can change every one of these later:
+    //   • MenuLang "tr" — the menu-language picker can't be empty.
+    //   • DecimalPoint "2" — TR kuruş precision (₺100,00).
+    //   • MaxDistance 5 (km) — delivery radius. OnlineOrder still
+    //     ships disabled; this just means the field isn't blank when
+    //     the owner flips it on.
+    //   • MaxTableOrderDistanceMeter 500 — same idea for table orders
+    //     (InPersonOrder also ships disabled).
+    // MoneySign is intentionally NOT seeded — the owner picks their
+    // own currency symbol.
+    fd.append("MenuLang", "tr");
+    fd.append("DecimalPoint", "2");
+    fd.append("MaxDistance", 5);
+    fd.append("MaxTableOrderDistanceMeter", 500);
     fd.append("Image", doc);
     if (doc2) fd.append("LogoImage", doc2);
     dispatch(addRestaurant(fd));
@@ -221,6 +251,22 @@ function AddRestaurantPopup({ onSuccess }) {
       toast.dismiss(toastId.current);
       dispatch(resetAddRestaurantState());
     } else if (success) {
+      // Seed the new restaurant's working hours (7 days, 08:00–22:00).
+      // The AddRestaurant response is a ResponsBase envelope, so the
+      // created entity is under `.data`; fall back through a couple of
+      // shapes in case the backend ever returns it flat. Best-effort —
+      // if the id can't be resolved the owner just edits hours
+      // manually, no worse than the previous behaviour.
+      const newId =
+        data?.data?.id ?? data?.data?.restaurantId ?? data?.id ?? null;
+      if (newId) {
+        dispatch(
+          setWorkingHours({
+            restaurantId: newId,
+            days: DEFAULT_WORKING_HOURS_DAYS,
+          }),
+        );
+      }
       onSuccess?.();
       setPopupContent(null);
       toast.dismiss(toastId.current);

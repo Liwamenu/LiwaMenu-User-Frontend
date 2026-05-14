@@ -80,7 +80,9 @@
     "announcement_settings": "Announcement Settings",
     "survey_settings": "Survey Settings",
     "tenant_locked": "Please set and save your tenant in the Settings page first.",
-    "menu_locked": "Please add at least one menu — manually or via integration import — on the Menus page first."
+    "menu_locked": "Please add at least one menu — manually or via integration import — on the Menus page first.",
+    "category_locked": "Please add at least one category on the Categories page first.",
+    "product_locked": "Please add at least one product on the Products page first."
   },
   "userProfile": {
     "admin": "Admin",
@@ -864,7 +866,15 @@
     "integration_open_docs": "Integration Docs",
     "integration_sync_done": "Sync Completed",
     "integration_sync_done_hint": "The menu list reloads; menus created by SambaPOS / LiwaPOS / 3rd-party apps will appear below within seconds.",
-    "integration_sync_refresh": "Menu list refreshed."
+    "integration_sync_found": "Sync verified: {{menus}} menus, {{categories}} categories, {{products}} products found. You can move on to the other tabs.",
+    "integration_sync_error": "Something went wrong while checking the sync. Please try again.",
+    "sync_not_done_title": "No sync has been done with the Sync Tool yet!",
+    "sync_not_done_check": "Check that the sync completed SUCCESSFULLY under the Restaurant settings section inside the Sync Tool.",
+    "sync_not_done_manual": "If you'd like to continue manually, you can create a new Menu and add your categories and products. However, we don't recommend this method if you want price changes and product updates to stay in sync.",
+    "sync_not_done_support": "You can also open a topic on the support portal.",
+    "sync_not_done_support_label": "Support Portal",
+    "sync_not_done_close": "OK",
+    "sync_not_done_create_menu": "Create New Menu"
   },
   "addMenu": {
     "title": "New Menu",

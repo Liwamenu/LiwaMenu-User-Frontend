@@ -279,11 +279,22 @@ const RestaurantSettings = ({ data: inData }) => {
       restaurantId: inData?.id,
       name: inData?.name,
       tenant: inData?.tenant,
-      maxDistance: inData?.maxDistance,
+      // New-restaurant defaults below use `??` (null/undefined only) so
+      // an existing owner's deliberately-saved value — including 0 or
+      // false — is never clobbered. `addRestaurant.jsx` already seeds
+      // these at creation; the fallbacks here just cover the case
+      // where the backend hands back a raw null for an unconfigured
+      // field. See the user-facing default spec: menuLang "tr",
+      // moneySign null, decimalPoint 2, maxDistance 5 km,
+      // maxTableOrderDistanceMeter 500 m.
+      maxDistance: inData?.maxDistance ?? 5,
       googleAnalytics: inData?.googleAnalytics,
-      menuLang: inData?.menuLang,
-      onlineOrder: inData?.onlineOrder,
-      inPersonOrder: inData?.inPersonOrder,
+      // `||` not `??` for menuLang — the language picker can't render
+      // an empty string, and "" is a meaningless value here (unlike a
+      // numeric 0). null / undefined / "" all fall back to "tr".
+      menuLang: inData?.menuLang || "tr",
+      onlineOrder: inData?.onlineOrder ?? false,
+      inPersonOrder: inData?.inPersonOrder ?? false,
       hide: inData?.hide,
       slogan1: inData?.slogan1,
       slogan2: inData?.slogan2,
@@ -295,11 +306,14 @@ const RestaurantSettings = ({ data: inData }) => {
       // Additional fields
       deliveryFee: inData?.deliveryFee,
       tableNumber: inData?.tableNumber,
-      moneySign: inData?.moneySign,
+      // Currency symbol — explicitly null for a fresh restaurant so
+      // the owner picks their own (₺, $, €, …). `?? null` just
+      // normalises `undefined` → `null`; a saved symbol passes through.
+      moneySign: inData?.moneySign ?? null,
       // Number of digits shown after the decimal point in money figures
       // (e.g. ₺100,00 → 2). Defaults to 2 (kuruş) for the TR market.
       decimalPoint: inData?.decimalPoint ?? 2,
-      maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter,
+      maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter ?? 500,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
       minOrderAmount: inData?.minOrderAmount,
     }),

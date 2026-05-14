@@ -21,6 +21,8 @@ import {
   Loader2,
   ArrowRight,
   CheckCircle2,
+  AlertTriangle,
+  LifeBuoy,
 } from "lucide-react";
 
 // COMP
@@ -38,6 +40,8 @@ import {
   updateMenuInCache,
   removeMenuFromCache,
 } from "../../../redux/menus/getMenusSlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -48,10 +52,15 @@ const PRIMARY_GRADIENT =
 // working in dev / preview when the env vars aren't set yet.
 const SYNC_TOOL_URL =
   import.meta.env.VITE_SYNC_TOOL_URL ||
-  "https://cdn.liwamenu.com/tools/LiwaSyncTool-Setup.exe";
+  "https://liwamenu.pentegrasyon.net/liwamenusetup/LiwaMenuSync_Tool.exe";
 const INTEGRATION_DOCS_URL =
   import.meta.env.VITE_INTEGRATION_DOCS_URL ||
   "https://docs.liwamenu.com/integrations/sync-tool";
+// Support forum surfaced in the "sync not done yet" modal so an owner
+// who's stuck can open a topic instead of guessing. Env-overridable
+// like the other two external links.
+const SUPPORT_PORTAL_URL =
+  import.meta.env.VITE_SUPPORT_PORTAL_URL || "https://forum.liwasoft.com";
 
 const DAY_KEYS = [
   "monday",
@@ -241,13 +250,86 @@ const MenuList = () => {
             <IntegrationPanel
               t={t}
               restaurantId={restaurantId}
-              onSyncCompleted={() => {
-                // Drop the cache + refetch. If the Sync Tool ran
-                // successfully there will now be menus, and the
-                // first-time welcome card flips to the list view.
-                dispatch(getMenus({ restaurantId }));
-                toast.success(t("menuList.integration_sync_refresh"));
-                setActiveTab("list");
+              onSyncCompleted={async () => {
+                // "Senkronizasyon Tamamlandı" — actually VERIFY the
+                // Sync Tool produced data instead of optimistically
+                // assuming success. Refetch menus + categories +
+                // products and branch:
+                //   • menus found → the restaurant has its gating
+                //     asset. The sidebar's `isMenuLocked` keys off
+                //     the menus cache, so it unlocks automatically
+                //     once getMenus lands a non-empty list. Report
+                //     the counts and flip to the list tab.
+                //   • no menus → the tool may still be running, or
+                //     the sign-in/selection step was skipped. Tell
+                //     the user, and leave them on the Integration
+                //     tab — they can retry, or add a menu manually
+                //     from the list tab's first-time chooser.
+                //
+                // `Promise.allSettled` (not `all`) on purpose: menus
+                // is the only gating asset. If the categories or
+                // products fetch hiccups we still want to act on a
+                // successful menus result instead of throwing the
+                // whole verification away — those two counts are
+                // purely informational in the success toast.
+                const [menusRes, categoriesRes, productsRes] =
+                  await Promise.allSettled([
+                    dispatch(getMenus({ restaurantId })).unwrap(),
+                    dispatch(getCategories({ restaurantId })).unwrap(),
+                    dispatch(getProductsLite({ restaurantId })).unwrap(),
+                  ]);
+
+                // Only the menus fetch failing is a hard error — it's
+                // the asset we branch on. A failed categories/products
+                // fetch just degrades the count to 0 in the toast.
+                if (menusRes.status === "rejected") {
+                  toast.error(t("menuList.integration_sync_error"), {
+                    id: "integration-sync",
+                  });
+                  return;
+                }
+
+                const countOf = (res) =>
+                  res.status === "fulfilled" && Array.isArray(res.value)
+                    ? res.value.length
+                    : 0;
+                const menuCount = countOf(menusRes);
+                const categoryCount = countOf(categoriesRes);
+                const productCount = countOf(productsRes);
+
+                if (menuCount > 0) {
+                  toast.success(
+                    t("menuList.integration_sync_found", {
+                      menus: menuCount,
+                      categories: categoryCount,
+                      products: productCount,
+                    }),
+                    { id: "integration-sync", duration: 6000 },
+                  );
+                  setActiveTab("list");
+                } else {
+                  // No menus came through — surface this as a modal
+                  // (not a toast). The "not synced yet" message has
+                  // real instructions (check the Sync Tool's
+                  // Restaurant settings, the manual fallback caveat,
+                  // a support-portal link) that a 7s toast can't
+                  // carry. The modal also offers a direct "create a
+                  // menu manually" action. The user stays on the
+                  // Integration tab behind the modal so retry +
+                  // download stay in reach after dismissing it.
+                  setPopupContent(
+                    <SyncNotDoneModal
+                      t={t}
+                      onClose={() => setPopupContent(null)}
+                      onCreateMenu={() => {
+                        setActiveTab("list");
+                        // onAddMenu swaps the popup content from this
+                        // modal straight to the AddMenu dialog.
+                        onAddMenu();
+                      }}
+                    />,
+                  );
+                }
               }}
             />
           ) : !menusData ? null : isFirstTime ? (
@@ -361,6 +443,65 @@ const ChoiceCard = ({
     </button>
   );
 };
+
+// =================== SYNC-NOT-DONE MODAL ===================
+// Shown (via PopupContext) when "Senkronizasyon Tamamlandı" verifies
+// and finds zero menus. Was a toast, but the message carries real
+// instructions — check the Sync Tool's Restaurant-settings screen,
+// the manual-fallback caveat, a support-portal link — that don't
+// fit a transient toast. Two actions: dismiss (back to the
+// Integration tab to retry) or jump straight into manual menu
+// creation.
+const SyncNotDoneModal = ({ t, onClose, onCreateMenu }) => (
+  <main className="flex justify-center">
+    <div className="bg-[--white-1] text-[--black-1] rounded-2xl p-6 sm:p-7 w-full max-w-[480px] shadow-2xl ring-1 ring-[--border-1] animate-[fadeIn_0.2s_ease-out]">
+      <div className="flex items-start gap-3 mb-4">
+        <span className="grid place-items-center size-11 rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-200 shrink-0 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30">
+          <AlertTriangle className="size-5" />
+        </span>
+        <h2 className="text-base sm:text-lg font-bold leading-snug pt-1.5">
+          {t("menuList.sync_not_done_title")}
+        </h2>
+      </div>
+
+      <div className="space-y-3 text-[13px] text-[--gr-1] leading-relaxed">
+        <p>{t("menuList.sync_not_done_check")}</p>
+        <p>{t("menuList.sync_not_done_manual")}</p>
+        <p className="flex flex-wrap items-center gap-1.5">
+          {t("menuList.sync_not_done_support")}
+          <a
+            href={SUPPORT_PORTAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-700 hover:underline underline-offset-2 transition"
+          >
+            <LifeBuoy className="size-3.5" />
+            {t("menuList.sync_not_done_support_label")}
+          </a>
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 mt-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 h-10 px-4 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-2] text-sm font-semibold hover:bg-[--white-2] transition"
+        >
+          {t("menuList.sync_not_done_close")}
+        </button>
+        <button
+          type="button"
+          onClick={onCreateMenu}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-lg text-white text-sm font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition"
+          style={{ background: PRIMARY_GRADIENT }}
+        >
+          <Plus className="size-4" />
+          {t("menuList.sync_not_done_create_menu")}
+        </button>
+      </div>
+    </div>
+  </main>
+);
 
 // =================== INTEGRATION PANEL ===================
 // Permanent tab — always reachable, even after the restaurant has

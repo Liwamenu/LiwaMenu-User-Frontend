@@ -29,11 +29,17 @@ const initialState = {
 
 export const getProductsLite = createAsyncThunk(
   "Products/GetProductsByRestaurantIdLite",
-  async (data, { rejectWithValue }) => {
+  // Destructure `restaurantId` explicitly rather than forwarding the
+  // whole arg as `params` — call sites may pass loading-middleware
+  // control flags (e.g. `__silent: true` from the subSidebar
+  // onboarding prefetch) that must not leak to the backend as query
+  // params. `action.meta.arg` still carries the full arg, so the
+  // `fetchedFor` stamp below is unaffected.
+  async ({ restaurantId }, { rejectWithValue }) => {
     try {
       const res = await api.get(
         `${baseURL}Products/GetProductsByRestaurantIdLite`,
-        { params: data },
+        { params: { restaurantId } },
       );
       // Endpoint returns { data: ProductLite[], totalCount }. Some
       // backends omit the wrapper for unpaged endpoints; tolerate both.
