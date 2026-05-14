@@ -70,6 +70,15 @@ const normalizeSearch = (s) => {
 const byName = (a, b) =>
   (a.name || "").localeCompare(b.name || "", "tr", { sensitivity: "base" });
 
+// A product counts as "has a sub-category" only when subCategoryId is a
+// real id. The .NET backend isn't consistent about the unassigned
+// case — it may return null, "", or the all-zero GUID sentinel
+// (default(Guid)). Treating the empty GUID as a real id would wrongly
+// classify a sub-category-less product as "in another sub-category"
+// and hide it from the left column, so fold all three to "none".
+const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
+const hasSubCategory = (id) => !!id && id !== EMPTY_GUID;
+
 const SubCategoryProducts = ({
   subCategoryId,
   subCategoryName,
@@ -128,11 +137,15 @@ const SubCategoryProducts = ({
   // Products eligible for this modal: those with NO sub-category, or
   // already in THIS one. A product sitting in a DIFFERENT sub-category
   // is excluded entirely — it can't be assigned here until it's removed
-  // from its current sub-category first.
+  // from its current sub-category first. `hasSubCategory` folds the
+  // empty-GUID / "" / null variants so a genuinely unassigned product
+  // always lands in the left column.
   const relevant = useMemo(
     () =>
       (allItems || []).filter(
-        (p) => !p.subCategoryId || p.subCategoryId === subCategoryId,
+        (p) =>
+          !hasSubCategory(p.subCategoryId) ||
+          p.subCategoryId === subCategoryId,
       ),
     [allItems, subCategoryId],
   );
