@@ -38,6 +38,8 @@ import {
   updateMenuInCache,
   removeMenuFromCache,
 } from "../../../redux/menus/getMenusSlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -241,13 +243,71 @@ const MenuList = () => {
             <IntegrationPanel
               t={t}
               restaurantId={restaurantId}
-              onSyncCompleted={() => {
-                // Drop the cache + refetch. If the Sync Tool ran
-                // successfully there will now be menus, and the
-                // first-time welcome card flips to the list view.
-                dispatch(getMenus({ restaurantId }));
-                toast.success(t("menuList.integration_sync_refresh"));
-                setActiveTab("list");
+              onSyncCompleted={async () => {
+                // "Senkronizasyon Tamamlandı" — actually VERIFY the
+                // Sync Tool produced data instead of optimistically
+                // assuming success. Refetch menus + categories +
+                // products and branch:
+                //   • menus found → the restaurant has its gating
+                //     asset. The sidebar's `isMenuLocked` keys off
+                //     the menus cache, so it unlocks automatically
+                //     once getMenus lands a non-empty list. Report
+                //     the counts and flip to the list tab.
+                //   • no menus → the tool may still be running, or
+                //     the sign-in/selection step was skipped. Tell
+                //     the user, and leave them on the Integration
+                //     tab — they can retry, or add a menu manually
+                //     from the list tab's first-time chooser.
+                //
+                // `Promise.allSettled` (not `all`) on purpose: menus
+                // is the only gating asset. If the categories or
+                // products fetch hiccups we still want to act on a
+                // successful menus result instead of throwing the
+                // whole verification away — those two counts are
+                // purely informational in the success toast.
+                const [menusRes, categoriesRes, productsRes] =
+                  await Promise.allSettled([
+                    dispatch(getMenus({ restaurantId })).unwrap(),
+                    dispatch(getCategories({ restaurantId })).unwrap(),
+                    dispatch(getProductsLite({ restaurantId })).unwrap(),
+                  ]);
+
+                // Only the menus fetch failing is a hard error — it's
+                // the asset we branch on. A failed categories/products
+                // fetch just degrades the count to 0 in the toast.
+                if (menusRes.status === "rejected") {
+                  toast.error(t("menuList.integration_sync_error"), {
+                    id: "integration-sync",
+                  });
+                  return;
+                }
+
+                const countOf = (res) =>
+                  res.status === "fulfilled" && Array.isArray(res.value)
+                    ? res.value.length
+                    : 0;
+                const menuCount = countOf(menusRes);
+                const categoryCount = countOf(categoriesRes);
+                const productCount = countOf(productsRes);
+
+                if (menuCount > 0) {
+                  toast.success(
+                    t("menuList.integration_sync_found", {
+                      menus: menuCount,
+                      categories: categoryCount,
+                      products: productCount,
+                    }),
+                    { id: "integration-sync", duration: 6000 },
+                  );
+                  setActiveTab("list");
+                } else {
+                  toast.error(t("menuList.integration_sync_empty"), {
+                    id: "integration-sync",
+                    duration: 7000,
+                  });
+                  // Stay on the Integration tab so the retry +
+                  // download buttons are still in reach.
+                }
               }}
             />
           ) : !menusData ? null : isFirstTime ? (

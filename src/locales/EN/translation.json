@@ -864,7 +864,9 @@
     "integration_open_docs": "Integration Docs",
     "integration_sync_done": "Sync Completed",
     "integration_sync_done_hint": "The menu list reloads; menus created by SambaPOS / LiwaPOS / 3rd-party apps will appear below within seconds.",
-    "integration_sync_refresh": "Menu list refreshed."
+    "integration_sync_found": "Sync verified: {{menus}} menus, {{categories}} categories, {{products}} products found. You can move on to the other tabs.",
+    "integration_sync_empty": "No synced menus found yet. The Sync Tool may still be running — try again in a few minutes, or add a menu manually from the Menus tab.",
+    "integration_sync_error": "Something went wrong while checking the sync. Please try again."
   },
   "addMenu": {
     "title": "New Menu",

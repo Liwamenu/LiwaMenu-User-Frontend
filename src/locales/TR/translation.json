@@ -865,7 +865,9 @@
     "integration_open_docs": "Entegrasyon Dökümanı",
     "integration_sync_done": "Senkronizasyon Tamamlandı",
     "integration_sync_done_hint": "Menü listesi yenilenir; SambaPOS / LiwaPOS / harici uygulama tarafından oluşturulan menüler birkaç saniye içinde aşağıda görünür.",
-    "integration_sync_refresh": "Menü listesi yenilendi."
+    "integration_sync_found": "Senkronizasyon doğrulandı: {{menus}} menü, {{categories}} kategori, {{products}} ürün bulundu. Diğer sekmelere geçebilirsiniz.",
+    "integration_sync_empty": "Henüz senkronize edilmiş menü bulunamadı. Sync Tool hâlâ çalışıyor olabilir — birkaç dakika sonra tekrar deneyin ya da Menüler sekmesinden manuel olarak bir menü ekleyin.",
+    "integration_sync_error": "Senkronizasyon kontrolü sırasında bir hata oluştu. Lütfen tekrar deneyin."
   },
   "addMenu": {
     "title": "Yeni Menü",
