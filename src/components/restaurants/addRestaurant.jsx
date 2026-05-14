@@ -122,6 +122,22 @@ function AddRestaurantPopup({ onSuccess }) {
     // RestaurantSettings once they're ready.
     fd.append("OnlineOrder", false);
     fd.append("InPersonOrder", false);
+    // Seed the Genel Ayarlar → Genel tab defaults at creation time so
+    // the form opens with sensible values instead of the backend's
+    // raw 0/null. The owner can change every one of these later:
+    //   • MenuLang "tr" — the menu-language picker can't be empty.
+    //   • DecimalPoint "2" — TR kuruş precision (₺100,00).
+    //   • MaxDistance 5 (km) — delivery radius. OnlineOrder still
+    //     ships disabled; this just means the field isn't blank when
+    //     the owner flips it on.
+    //   • MaxTableOrderDistanceMeter 500 — same idea for table orders
+    //     (InPersonOrder also ships disabled).
+    // MoneySign is intentionally NOT seeded — the owner picks their
+    // own currency symbol.
+    fd.append("MenuLang", "tr");
+    fd.append("DecimalPoint", "2");
+    fd.append("MaxDistance", 5);
+    fd.append("MaxTableOrderDistanceMeter", 500);
     fd.append("Image", doc);
     if (doc2) fd.append("LogoImage", doc2);
     dispatch(addRestaurant(fd));
