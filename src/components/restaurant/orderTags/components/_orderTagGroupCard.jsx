@@ -50,14 +50,36 @@ const normalizeItemsForSave = (items) =>
     return out;
   });
 
-// Same temp-id strip for relations. Without it, a freshly added
-// relation goes to the backend with id "New-1734567890" — which the
-// .NET endpoint can't parse as a UUID, so it silently drops the row
-// while still returning 200 OK. The user sees a success toast but on
-// the next refetch the relation is gone.
+// Two normalizations needed for relations to actually persist:
+//
+//   (1) Strip the "New-..." temp id off freshly-added rows so the
+//       backend treats them as inserts. Same trap as items / menus:
+//       sending an unparseable id makes the .NET endpoint silently
+//       drop the row while still returning 200 OK.
+//
+//   (2) Convert the "*" wildcard sentinel to `null` for category /
+//       product / portion ids. The dropdowns store `"*"` to mean
+//       "all categories" / "all products" / "all portions", but the
+//       backend's nullable Guid fields can't parse the string `"*"`
+//       — same silent-drop pattern. The READ endpoint returns null
+//       in those slots and our `_relationRow.jsx` already falls back
+//       to the "* Tümü" option when `find(value === relation.X)`
+//       misses. So on the wire the contract is: real Guid OR null.
+//
+// Without (2) a relation like
+// `{categoryId:"real-cat-uuid", productId:"*", portionId:"*"}`
+// arrives at the backend with two unparseable strings, gets dropped,
+// and on the next refetch the user sees the old relation untouched.
+const wildcardOrId = (v) => (v === "*" ? null : v);
+
 const normalizeRelationsForSave = (relations) =>
   (relations || []).map((rel) => {
-    const out = { ...rel };
+    const out = {
+      ...rel,
+      categoryId: wildcardOrId(rel.categoryId),
+      productId: wildcardOrId(rel.productId),
+      portionId: wildcardOrId(rel.portionId),
+    };
     if (isClientId(out.id)) delete out.id;
     return out;
   });
