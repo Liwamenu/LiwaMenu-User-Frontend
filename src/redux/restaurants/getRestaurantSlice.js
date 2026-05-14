@@ -6,6 +6,31 @@ import {
   isRestaurantPatchAction,
   restaurantPatchFromAction,
 } from "./restaurantEntityPatchers";
+import { invalidateOn } from "../cacheInvalidation";
+
+// Same invalidator set as getRestaurantsSlice — license lifecycle +
+// restaurant add/delete/transfer/update flip fields on the entity
+// (licenseIsActive, hasQrLicense, end date, ...) that the dispatched
+// arg doesn't carry, so the single-restaurant cache must drop and
+// refetch rather than patch. Kept as its own list (not imported from
+// the list slice) so each slice's invalidation contract is readable
+// in one place.
+const RESTAURANT_INVALIDATORS = [
+  "Licenses/AddLicense",
+  "Licenses/AddLicenseByBank",
+  "Licenses/AddLicenseByOnlinePayment",
+  "Licenses/ExtendLicenseByBank",
+  "Licenses/ExtendLicenseByOnlinePayment",
+  "Licenses/DeleteLicenseById",
+  "Licenses/LicenseTransfer",
+  "Licenses/UpdateLicenseActive",
+  "Licenses/UpdateLicenseDate",
+  "Licenses/UpdateLicenseDay",
+  "Restaurants/DeleteRestaurantById",
+  "Restaurants/RestaurantTransfer",
+  "Restaurants/UpdateRestaurant",
+];
+
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -87,6 +112,15 @@ const getRestaurantSlice = createSlice({
         if (!result || !state.restaurant) return;
         if (state.restaurant.id !== result.restaurantId) return;
         state.restaurant = { ...state.restaurant, ...result.patch };
+      })
+      // Cross-slice: license lifecycle + restaurant delete/transfer/
+      // update can't be merged as a patch (the dispatched arg isn't a
+      // restaurant patch shape), so drop the cached restaurant. The
+      // per-restaurant pages re-fetch via getRestaurant on next mount.
+      // Note: `Restaurants/AddRestaurant` is intentionally NOT here —
+      // adding a restaurant doesn't change the one currently cached.
+      .addMatcher(invalidateOn(RESTAURANT_INVALIDATORS), (state) => {
+        state.restaurant = null;
       });
   },
 });
