@@ -13,6 +13,8 @@ import {
   Filter,
   CircleDollarSign,
   Tag,
+  Search,
+  X,
 } from "lucide-react";
 
 // COMP
@@ -31,6 +33,23 @@ import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
+// Turkish-aware diacritic folding for client-side product search —
+// mirror of the helper in products.jsx ("ızgara" matches "izgara").
+const TR_FOLD = {
+  ı: "i", İ: "i", i: "i", I: "i",
+  ş: "s", Ş: "s",
+  ğ: "g", Ğ: "g",
+  ç: "c", Ç: "c",
+  ü: "u", Ü: "u",
+  ö: "o", Ö: "o",
+};
+const normalizeSearch = (s) => {
+  if (!s) return "";
+  let out = "";
+  for (const ch of String(s)) out += TR_FOLD[ch] ?? ch.toLowerCase();
+  return out.normalize("NFD").replace(/\p{M}+/gu, "");
+};
 
 const PriceList = ({ data: restaurant }) => {
   const params = useParams();
@@ -93,6 +112,10 @@ const PriceList = ({ data: restaurant }) => {
   // portion already has a non-zero price. Combined with the category
   // filter (both must pass for a row to render).
   const [showZeroPriceOnly, setShowZeroPriceOnly] = useState(false);
+  // Product-name search — narrows the visible rows (Turkish-aware
+  // folding) without touching `list`, same as the category /
+  // zero-price filters, so bulk apply + Save still target everything.
+  const [searchVal, setSearchVal] = useState("");
 
   const updatePortion = (pIndex, portionIndex, key, value) => {
     setList((prev) => {
@@ -250,7 +273,7 @@ const PriceList = ({ data: restaurant }) => {
   // itself so that bulk-edit + save-changes still target the entire
   // dataset. Order: category filter narrows by group, then the zero-
   // price ID set (computed from listBefore above) narrows products
-  // inside each surviving group.
+  // inside each surviving group, then the name search narrows further.
   const visibleGroups = useMemo(() => {
     let groups =
       categoryFilter == null
@@ -264,8 +287,19 @@ const PriceList = ({ data: restaurant }) => {
         }))
         .filter((g) => g.products.length > 0);
     }
+    const q = normalizeSearch(searchVal.trim());
+    if (q) {
+      groups = groups
+        .map((g) => ({
+          ...g,
+          products: g.products.filter((p) =>
+            normalizeSearch(p.name).includes(q),
+          ),
+        }))
+        .filter((g) => g.products.length > 0);
+    }
     return groups;
-  }, [groupedByCategory, categoryFilter, zeroPriceProductIds]);
+  }, [groupedByCategory, categoryFilter, zeroPriceProductIds, searchVal]);
 
   const selectedOption =
     categoryOptions.find((o) => o.value === categoryFilter) ||
@@ -411,6 +445,35 @@ const PriceList = ({ data: restaurant }) => {
 
         <div className="p-3 sm:p-5 space-y-4">
           <PriceListApplyBulk list={list} setList={setList} />
+
+          {/* Product search — always available when there are products
+              (unlike the category/zero-price filters row below, which
+              is conditional). Narrows the visible rows by name without
+              touching `list`, so bulk apply + Save still target all. */}
+          {groupedByCategory.length > 0 && (
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[--gr-2]">
+                <Search className="size-4" />
+              </span>
+              <input
+                type="text"
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                placeholder={t("priceList.search_placeholder")}
+                className="block w-full pl-9 pr-9 h-10 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+              {searchVal && (
+                <button
+                  type="button"
+                  onClick={() => setSearchVal("")}
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[--gr-2] hover:text-[--gr-1]"
+                  aria-label={t("priceList.clear_search")}
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Filters row — category dropdown (only when there's more than
               one category) + "Sıfır Fiyatlı Ürünler" toggle. Both narrow
