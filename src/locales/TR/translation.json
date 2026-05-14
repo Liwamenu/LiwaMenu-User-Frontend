@@ -727,6 +727,26 @@
     "move_failed": "Ürün taşınamadı.",
     "no_category": "Kategorisiz"
   },
+  "subCategoryProducts": {
+    "title": "Alt Kategori Ürünleri",
+    "subtitle": "Ana kategori: {{category}}",
+    "close": "Kapat",
+    "search_placeholder": "Her iki sütunda da ürün ara...",
+    "clear_search": "Aramayı temizle",
+    "available_title": "Bu Alt Kategoride Olmayan Ürünler",
+    "in_subcategory_title": "Bu Alt Kategorideki Ürünler",
+    "add": "Ekle",
+    "remove": "Çıkart",
+    "add_success": "{{name}} bu alt kategoriye eklendi.",
+    "remove_success": "{{name}} bu alt kategoriden çıkarıldı.",
+    "save_failed": "İşlem kaydedilemedi.",
+    "no_results": "Aramayla eşleşen ürün yok.",
+    "no_available": "Bu kategorideki tüm ürünler zaten bu alt kategoride.",
+    "no_products": "Bu alt kategoride henüz ürün yok.",
+    "empty_category": "Bu ana kategoride henüz ürün yok.",
+    "no_subcategory": "Alt kategorisiz",
+    "portions": "{{count}} porsiyon"
+  },
   "listCategoryProducts": {
     "title": "Ürün Seçimi",
     "close": "Kapat",
@@ -791,7 +811,8 @@
     "subcategory_count": "{{count}} Alt Kategori",
     "no_subcategories_in_category": "Bu kategoride alt kategori bulunmuyor.",
     "summary": "{{groups}} kategori · {{count}} alt kategori",
-    "save_order": "Sıralamayı Kaydet"
+    "save_order": "Sıralamayı Kaydet",
+    "manage_products": "Ürünler"
   },
   "addSubCategories": {
     "title": "{{name}} Restoranı için Alt Kategori Ekle",

@@ -58,6 +58,15 @@ const getSubCategoriesSlice = createSlice({
       // `Categories/DeleteCategory` because deleting a parent category
       // cascades into its subcategories server-side; the cached list
       // would otherwise still show the orphaned rows.
+      //
+      // Product mutations are in the list too: each subcategory row
+      // carries a `productsCount` badge, and the SubCategoryProducts
+      // picker (plus the Add/Edit Product forms) changes which products
+      // point at a subcategory via Products/EditProduct. Without this,
+      // assigning a product to a subcategory and revisiting the
+      // SubCategories page would show a stale count until a hard
+      // refresh — same rationale as getCategoriesSlice invalidating on
+      // product add/delete.
       .addMatcher(
         invalidateOn([
           "SubCategories/AddSubCategory",
@@ -67,6 +76,9 @@ const getSubCategoriesSlice = createSlice({
           "SubCategories/DeleteSubCategory",
           "SubCategories/UpdateSubCategoriesOrder",
           "Categories/DeleteCategory",
+          "Products/AddProduct",
+          "Products/EditProduct",
+          "Products/DeleteProduct",
         ]),
         (state) => {
           state.subCategories = null;

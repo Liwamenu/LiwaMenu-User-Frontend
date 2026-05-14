@@ -726,6 +726,26 @@
     "move_failed": "Could not move the product.",
     "no_category": "Uncategorized"
   },
+  "subCategoryProducts": {
+    "title": "Sub-category Products",
+    "subtitle": "Main category: {{category}}",
+    "close": "Close",
+    "search_placeholder": "Search products across both columns...",
+    "clear_search": "Clear search",
+    "available_title": "Products Not in This Sub-category",
+    "in_subcategory_title": "Products in This Sub-category",
+    "add": "Add",
+    "remove": "Remove",
+    "add_success": "{{name}} added to this sub-category.",
+    "remove_success": "{{name}} removed from this sub-category.",
+    "save_failed": "Could not save the change.",
+    "no_results": "No products match your search.",
+    "no_available": "All products in this category are already in this sub-category.",
+    "no_products": "No products in this sub-category yet.",
+    "empty_category": "No products in this main category yet.",
+    "no_subcategory": "No sub-category",
+    "portions": "{{count}} portions"
+  },
   "listCategoryProducts": {
     "title": "Product Selection",
     "close": "Close",
@@ -790,7 +810,8 @@
     "subcategory_count": "{{count}} Subcategories",
     "no_subcategories_in_category": "There are no subcategories in this category.",
     "summary": "{{groups}} categories · {{count}} subcategories",
-    "save_order": "Save Order"
+    "save_order": "Save Order",
+    "manage_products": "Products"
   },
   "addSubCategories": {
     "title": "Add Subcategory for {{name}} Restaurant",

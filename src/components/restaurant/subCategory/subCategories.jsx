@@ -14,12 +14,14 @@ import {
   Trash2,
   Save,
   Loader2,
+  Package,
 } from "lucide-react";
 
 // COMP
 import EditSubCategory from "./editSubCategory";
 import DeleteSubCategory from "./deleteSubCategory";
 import AddSubCategory from "./addSubCategory";
+import SubCategoryProducts from "./subCategoryProducts";
 import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 import fallbackImg from "../../../assets/img/No_Img.svg";
@@ -268,6 +270,29 @@ const SubCategories = ({ data: restaurant }) => {
     );
   };
 
+  // "Ürünler" — opens the two-column picker that assigns the parent
+  // category's products to / removes them from this sub-category.
+  // `onChanged` only fires when an assignment actually persisted, so a
+  // look-and-close doesn't trigger the (slow) getSubCategories refetch;
+  // when it does fire we refresh so the `productsCount` badges update.
+  const openManageProductsPopup = (subCat, parentCategoryName) => {
+    setPopupContent(
+      <SubCategoryProducts
+        subCategoryId={subCat.id}
+        subCategoryName={subCat.name}
+        categoryId={subCat.categoryId}
+        categoryName={parentCategoryName}
+        restaurantId={restaurant?.id}
+        onClose={() => setPopupContent(null)}
+        onChanged={() => {
+          if (restaurant?.id) {
+            dispatch(getSubCategories({ restaurantId: restaurant.id }));
+          }
+        }}
+      />,
+    );
+  };
+
   // SAVE NEW ORDER — only push items whose sortOrder changed.
   const saveNewOrder = (e) => {
     e?.preventDefault();
@@ -475,6 +500,26 @@ const SubCategories = ({ data: restaurant }) => {
                                       </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          openManageProductsPopup(
+                                            subCat,
+                                            group.category.name,
+                                          )
+                                        }
+                                        title={t(
+                                          "editSubCategories.manage_products",
+                                        )}
+                                        className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition"
+                                      >
+                                        <Package className="size-3.5" />
+                                        <span className="hidden md:inline">
+                                          {t(
+                                            "editSubCategories.manage_products",
+                                          )}
+                                        </span>
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() =>
