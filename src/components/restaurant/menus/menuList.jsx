@@ -140,17 +140,28 @@ const MenuList = () => {
     );
   };
 
-  // GET menus — only fetch when redux doesn't already have a fresh payload
-  // for THIS restaurant. The backend GetMenusByRestaurantId is slow and the
-  // global loadingMiddleware blocks the whole UI while it's in flight, so
-  // we lean on the slice cache to make revisits feel instant.
+  // GET menus — only fetch when redux doesn't already have a fresh
+  // payload for THIS restaurant. The backend GetMenusByRestaurantId
+  // is slow and the global loadingMiddleware blocks the whole UI
+  // while it's in flight, so we lean on the slice cache to make
+  // revisits feel instant.
+  //
+  // `menus` + `fetchedFor` are deliberately in the dep list (not
+  // just `restaurantId`): the slice's cross-domain invalidation
+  // matcher clears the cache to null after any Menus/Add|Edit|Delete
+  // fulfills. The page's own optimistic mutation reducers
+  // (`addMenuToCache` / `updateMenuInCache` / `removeMenuFromCache`)
+  // bail out when `state.menus` is null, so without re-running this
+  // effect on cache clear the list would render blank until a hard
+  // reload. The condition still prevents a refetch loop — once a
+  // fresh payload lands, `menus` is truthy and `fetchedFor` matches,
+  // so the next tick is a no-op.
   useEffect(() => {
     if (!restaurantId) return;
     if (!menus || fetchedFor !== restaurantId) {
       dispatch(getMenus({ restaurantId }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurantId]);
+  }, [restaurantId, menus, fetchedFor, dispatch]);
 
   const totalCount = menusData?.length || 0;
 
