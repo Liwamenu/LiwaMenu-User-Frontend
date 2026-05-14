@@ -116,7 +116,7 @@ const OrderTags = ({ data: restaurant }) => {
       ...prev,
       tagGroups: [
         ...prev.tagGroups,
-        { ...NewOrderTagGroup, sortOrder: prev.tagGroups.length - 1 },
+        { ...NewOrderTagGroup(), sortOrder: prev.tagGroups.length - 1 },
       ],
     }));
     setTimeout(
@@ -172,10 +172,21 @@ const OrderTags = ({ data: restaurant }) => {
     }
   };
 
-  // GET data — three parallel slice-cached fetches. Each guards on its
-  // own `fetchedFor === restaurantId` check so revisits within the same
-  // restaurant skip the network entirely. All three hit the global
-  // loadingMiddleware, so cache hits also collapse the global spinner.
+  // GET data — three parallel slice-cached fetches. Each guards on
+  // its own `fetchedFor === restaurantId` check so revisits within
+  // the same restaurant skip the network entirely. All three hit the
+  // global loadingMiddleware, so cache hits also collapse the global
+  // spinner.
+  //
+  // Dep list intentionally includes the slices' `xxxFetchedFor` keys
+  // (and `orderTags` itself for the post-mutation invalidation case):
+  // the cross-domain matchers in `getOrderTagsSlice` /
+  // `getProductsLiteSlice` / `getCategoriesSlice` clear those caches
+  // to null after Add/Edit/Delete fulfills, and without re-running
+  // this effect the page would render stale data until a hard reload.
+  // The per-line guards keep this loop-safe — once a fresh payload
+  // lands, the matching condition flips false and dispatch is
+  // skipped on the next tick.
   useEffect(() => {
     if (!restaurantId) return;
     if (!categories || catFetchedFor !== restaurantId) {
@@ -187,8 +198,16 @@ const OrderTags = ({ data: restaurant }) => {
     if (!orderTags || tagsFetchedFor !== restaurantId) {
       dispatch(getOrderTags({ restaurantId }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurantId]);
+  }, [
+    restaurantId,
+    categories,
+    catFetchedFor,
+    liteProducts,
+    liteFetchedFor,
+    orderTags,
+    tagsFetchedFor,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (categories) setState((prev) => ({ ...prev, categories }));

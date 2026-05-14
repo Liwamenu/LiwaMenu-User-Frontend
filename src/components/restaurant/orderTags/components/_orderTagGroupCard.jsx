@@ -33,11 +33,34 @@ import { addOrderTag } from "../../../../redux/orderTags/addOrderTagSlice";
 // UTILS
 import { parsePrice } from "../../../../utils/utils";
 
+// Frontend-generated row IDs (used as React keys) start with "New-".
+// The backend rejects those — only existing rows should round-trip
+// their id back to the server. Mirrors the addMenu/editMenu
+// `isClientId` helper.
+const isClientId = (id) => !id || String(id).startsWith("New-");
+
 // Items hold price as a raw user-typed string while editing (so backspace
 // works and "12,50" doesn't get mangled). Convert to a Number once at the
 // dispatch boundary, mirroring the products portion-save pattern.
+// Also strip temp ids so the backend can insert new options correctly.
 const normalizeItemsForSave = (items) =>
-  (items || []).map((it) => ({ ...it, price: parsePrice(it.price) }));
+  (items || []).map((it) => {
+    const out = { ...it, price: parsePrice(it.price) };
+    if (isClientId(out.id)) delete out.id;
+    return out;
+  });
+
+// Same temp-id strip for relations. Without it, a freshly added
+// relation goes to the backend with id "New-1734567890" — which the
+// .NET endpoint can't parse as a UUID, so it silently drops the row
+// while still returning 200 OK. The user sees a success toast but on
+// the next refetch the relation is gone.
+const normalizeRelationsForSave = (relations) =>
+  (relations || []).map((rel) => {
+    const out = { ...rel };
+    if (isClientId(out.id)) delete out.id;
+    return out;
+  });
 
 const OrderTagGroupCard = ({
   group,
@@ -85,7 +108,7 @@ const OrderTagGroupCard = ({
     onUpdate({
       items: [
         ...group.items,
-        { ...NewOption, sortOrder: group.items.length - 1 },
+        { ...NewOption(), sortOrder: group.items.length - 1 },
       ],
       isDirty: true,
     });
@@ -93,7 +116,7 @@ const OrderTagGroupCard = ({
   };
 
   const addRelation = () => {
-    onUpdate({ relations: [...group.relations, NewRelation], isDirty: true });
+    onUpdate({ relations: [...group.relations, NewRelation()], isDirty: true });
     if (isCollapsed) setIsCollapsed(false);
     setActiveTab("relations");
   };
@@ -131,8 +154,12 @@ const OrderTagGroupCard = ({
     const payload = {
       ...group,
       items: normalizeItemsForSave(group.items),
+      relations: normalizeRelationsForSave(group.relations),
       restaurantId,
     };
+    // Strip the group's own temp id too on first save — same
+    // reason as items / relations above.
+    if (isClientId(payload.id)) delete payload.id;
     group?.isNew ? dispatch(addOrderTag(payload)) : dispatch(editOrderTag(payload));
   }
 
