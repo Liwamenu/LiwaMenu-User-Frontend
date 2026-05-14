@@ -32,6 +32,9 @@ import { resetGetProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
 
+const PRIMARY_GRADIENT =
+  "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
 const emptyPortion = () => ({
   id: undefined,
   productId: undefined,
@@ -259,20 +262,23 @@ const AddProduct = () => {
   }, [success, error, dispatch]);
 
   return (
-    <form
-      className="w-full mt-1 bg-[--white-1] rounded-lg text-[--black-2] shadow-2xl relative max-h-[97dvh] overflow-hidden"
-      onSubmit={handleSave}
-    >
-      <div className="px-4 max-w-6xl mx-auto max-h-[90dvh] overflow-y-auto pb-20">
-        {/* <h1 className="text-2xl font-bold bg-indigo-800 text-white py-4 -mx-4 px-4 sm:px-14 rounded-t-lg">
-          Fiyat Listesi {restaurant?.name} Restoranı
-        </h1> */}
+    // Full-width page form. This screen used to render as a centred,
+    // popup-style card (max-w-6xl mx-auto + shadow-2xl + max-h /
+    // overflow-hidden + an absolute footer) — which made the content
+    // visibly jump toward the centre when switching here from the
+    // full-width Ürünler / Fiyat Listesi tabs. It now uses the same
+    // page shell as products.jsx / priceList.jsx so the tab bar and
+    // content stay put across tab switches.
+    <form className="w-full pb-8 mt-1 text-[--black-2]" onSubmit={handleSave}>
+      {/* Top tabs (Manage / Price List / Add) */}
+      <div className="flex flex-wrap gap-2 mb-3 text-sm">
+        <ProductsHeader />
+      </div>
 
-        <div className="flex flex-wrap gap-2 my-3 text-sm">
-          <ProductsHeader />
-        </div>
+      <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
+        <div className="h-0.5" style={{ background: PRIMARY_GRADIENT }} />
 
-        <div className="w-full py-8 relative flex flex-col sm:px-8">
+        <div className="w-full py-8 relative flex flex-col px-4 sm:px-8">
           <div className="flex justify-between items-center mb-6 border-b border-[--border-1] pb-4">
             <h3 className="text-2xl font-bold text-[--black-2]">
               {t("addProduct.title")}
@@ -576,10 +582,11 @@ const AddProduct = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="w-full flex items-center  absolute bottom-0 right-0 left-0">
-        <div className="w-full flex justify-end space-x-3 max-w-6xl mx-auto bg-[--white-1] py-4 px-6 border-t border-[--border-1] rounded-b-lg">
+        {/* Footer — normal flow inside the card. Was `absolute
+            bottom-0` in the old popup layout, which on a full-height
+            page floated over the content or sat off-screen. */}
+        <div className="w-full flex justify-end gap-3 bg-[--white-1] py-4 px-4 sm:px-6 border-t border-[--border-1]">
           <button
             type="button"
             onClick={() => navigate(-1)}
