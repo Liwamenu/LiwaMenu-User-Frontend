@@ -79,7 +79,8 @@
     "qr_code": "QR Kod Oluştur",
     "announcement_settings": "Duyuru Ayarları",
     "survey_settings": "Anket Ayarları",
-    "tenant_locked": "Önce Ayarlar sayfasından alan adınızı (tenant) belirleyip kaydedin."
+    "tenant_locked": "Önce Ayarlar sayfasından alan adınızı (tenant) belirleyip kaydedin.",
+    "menu_locked": "Önce Menüler sayfasından en az bir menü ekleyin veya entegrasyonla içe aktarın."
   },
   "userProfile": {
     "admin": "Yetkili",
@@ -844,7 +845,27 @@
     "no_menus": "Henüz menü yok",
     "no_menus_info": "İlk menünüzü ekleyerek başlayın — kategorileri menülere bağlayıp gün ve saat planlamasıyla aktifleştirebilirsiniz.",
     "schedule_count": "{{count}} plan",
-    "category_count": "{{count}} kategori"
+    "category_count": "{{count}} kategori",
+    "tab_list": "Menüler",
+    "tab_integration": "Entegrasyon",
+    "choice_manual_title": "Manuel Kurulum Yapacağım",
+    "choice_manual_desc": "Menüleri kendiniz oluşturmak istiyorsanız bu seçeneği kullanın. Yeni bir menü ekleyerek kategoriler ve ürünleri kendi elinizle düzenleyebilirsiniz.",
+    "choice_manual_cta": "Yeni Menü Ekle",
+    "choice_integration_title": "SambaPOS / LiwaPOS / Harici Entegrasyon",
+    "choice_integration_desc": "POS sisteminiz veya başka bir uygulamayla menünüzü otomatik olarak içe aktarın. Sync Tool'u indirip çalıştırdıktan sonra menüleriniz otomatik olarak buraya gelir.",
+    "choice_integration_cta": "Entegrasyon Sekmesini Aç",
+    "integration_title": "POS / Harici Uygulama Entegrasyonu",
+    "integration_subtitle": "SambaPOS, LiwaPOS veya başka bir POS uygulamanızdan menülerinizi LiwaMenu'ye otomatik aktarın. Bu sekme her zaman erişilebilir — sonradan da Sync Tool'un yeni sürümünü indirebilir veya entegrasyon dökümanına bakabilirsiniz.",
+    "integration_step_1": "Sync Tool kurulum dosyasını indirin ve POS sunucunuzun çalıştığı bilgisayara kurun.",
+    "integration_step_2": "Sync Tool'u açın ve LiwaMenu kullanıcı bilgilerinizle giriş yapın.",
+    "integration_step_3": "Menüleri / kategorileri / ürünleri seçip \"Senkronize Et\" düğmesine basın. Menüler buradaki listeye otomatik eklenir.",
+    "integration_step_4": "İşlem tamamlandığında aşağıdaki \"Senkronizasyon Tamamlandı\" düğmesine basarak listeyi yenileyin.",
+    "integration_actions": "İndir ve Senkronize Et",
+    "integration_download_tool": "Sync Tool İndir",
+    "integration_open_docs": "Entegrasyon Dökümanı",
+    "integration_sync_done": "Senkronizasyon Tamamlandı",
+    "integration_sync_done_hint": "Menü listesi yenilenir; SambaPOS / LiwaPOS / harici uygulama tarafından oluşturulan menüler birkaç saniye içinde aşağıda görünür.",
+    "integration_sync_refresh": "Menü listesi yenilendi."
   },
   "addMenu": {
     "title": "Yeni Menü",

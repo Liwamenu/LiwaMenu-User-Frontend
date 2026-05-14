@@ -79,7 +79,8 @@
     "qr_code": "Create QR Code",
     "announcement_settings": "Announcement Settings",
     "survey_settings": "Survey Settings",
-    "tenant_locked": "Please set and save your tenant in the Settings page first."
+    "tenant_locked": "Please set and save your tenant in the Settings page first.",
+    "menu_locked": "Please add at least one menu — manually or via integration import — on the Menus page first."
   },
   "userProfile": {
     "admin": "Admin",
@@ -843,7 +844,27 @@
     "no_menus": "No menus yet",
     "no_menus_info": "Start by adding your first menu — link categories to it and activate with day/time scheduling.",
     "schedule_count": "{{count}} schedules",
-    "category_count": "{{count}} categories"
+    "category_count": "{{count}} categories",
+    "tab_list": "Menus",
+    "tab_integration": "Integration",
+    "choice_manual_title": "I'll set things up manually",
+    "choice_manual_desc": "Pick this option if you want to build menus by hand. Add a new menu and organise categories and products yourself.",
+    "choice_manual_cta": "Add New Menu",
+    "choice_integration_title": "SambaPOS / LiwaPOS / 3rd-party Integration",
+    "choice_integration_desc": "Import your menu automatically from your POS or another app. Download and run the Sync Tool — your menus appear here automatically.",
+    "choice_integration_cta": "Open Integration Tab",
+    "integration_title": "POS / 3rd-party Integration",
+    "integration_subtitle": "Sync menus from SambaPOS, LiwaPOS or another POS app into LiwaMenu. This tab is always available — come back later for the latest Sync Tool build or integration docs.",
+    "integration_step_1": "Download the Sync Tool installer and install it on the computer where your POS server runs.",
+    "integration_step_2": "Open the Sync Tool and sign in with your LiwaMenu credentials.",
+    "integration_step_3": "Pick the menus / categories / products to sync and hit \"Sync\". Menus are pushed straight into the list on this page.",
+    "integration_step_4": "When the import finishes, click \"Sync Completed\" below to refresh the list here.",
+    "integration_actions": "Download & Sync",
+    "integration_download_tool": "Download Sync Tool",
+    "integration_open_docs": "Integration Docs",
+    "integration_sync_done": "Sync Completed",
+    "integration_sync_done_hint": "The menu list reloads; menus created by SambaPOS / LiwaPOS / 3rd-party apps will appear below within seconds.",
+    "integration_sync_refresh": "Menu list refreshed."
   },
   "addMenu": {
     "title": "New Menu",

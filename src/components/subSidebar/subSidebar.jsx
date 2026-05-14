@@ -23,7 +23,22 @@ import {
 import UserProfile from "./userProfile";
 import { usePopup } from "../../context/PopupContext";
 
+// Paths that stay reachable even before the tenant is saved (Genel
+// Ayarlar). The "edit" + "settings" entries cover the onboarding
+// flow so a new owner can land on Restoranı Düzenle, fill in basic
+// info, then tenant in Genel Ayarlar.
 const ALWAYS_ALLOWED_PATHS = new Set(["restaurants", "edit", "settings"]);
+
+// Once the tenant is saved we still want the Menus page reachable
+// next — the menu is the gating asset for everything below
+// (Categories / SubCategories / Products / Tags / QR pages all
+// derive from menu structure). When at least one menu exists, the
+// rest of the sidebar unlocks. Until then, only the entries above
+// AND `menus` are clickable.
+const MENU_GATED_PATHS = new Set([
+  ...ALWAYS_ALLOWED_PATHS,
+  "menus",
+]);
 
 function Sidebar({ openSidebar, setOpenSidebar }) {
   const { t } = useTranslation();
@@ -44,6 +59,19 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       ? fetchedRestaurant
       : restaurantsList?.find?.((r) => r.id === id);
   const isTenantLocked = !currentRestaurant?.tenant;
+  // Second-stage lock: once the tenant is saved, the Menus page
+  // becomes the next required step. Anything past Menus
+  // (Categories / Sub Categories / Products / Tags / QR pages)
+  // stays disabled until the restaurant has at least one menu —
+  // either added manually on the Menüler page or imported via
+  // the SambaPOS / LiwaPOS Sync Tool. Reads `menus.get` to avoid a
+  // dedicated count endpoint; the same slice already powers the
+  // Menüler list, so this is free.
+  const cachedMenus = useSelector((s) => s.menus.get?.menus);
+  const cachedMenusFor = useSelector((s) => s.menus.get?.fetchedFor);
+  const menusCountKnown = cachedMenusFor === id && Array.isArray(cachedMenus);
+  const isMenuLocked =
+    !isTenantLocked && menusCountKnown && cachedMenus.length === 0;
   const ICON_CLS = "size-[18px]";
   const ICON_STROKE = 2;
   const sidebarItems = [
@@ -77,20 +105,27 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       ],
       path: "settings",
     },
+    // Order is the canonical setup flow:
+    //   Menüler  → owners must define at least one menu first; every
+    //              category/product downstream lives inside a menu.
+    //   Kategoriler → defined inside the menu, group products.
+    //   Alt Kategoriler → optional further breakdown of a category.
+    //   Ürünler → the leaf entities.
+    //   Etiketler → product-level extras (tags, options).
+    // The previous order put Categories before Menus, which made the
+    // first-time flow surface entries the user couldn't actually
+    // populate yet (a category needs a menu to live in).
+    {
+      icon: <BookOpen className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.menus"),
+      to: `/restaurant/menus/${id}/list`,
+      path: "menus",
+    },
     {
       icon: <LayoutGrid className={ICON_CLS} strokeWidth={ICON_STROKE} />,
       text: t("subSidebar.categories"),
       to: `/restaurant/categories/${id}/list`,
       path: "categories",
-    },
-    // Ürünler kategorilerin hemen altında — kullanıcılar günlük menü
-    // bakımının büyük kısmını "kategori → o kategorideki ürünler" sırasıyla
-    // yapıyor, dolayısıyla iki giriş yan yana olunca akış doğal hissediyor.
-    {
-      icon: <Package className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.products"),
-      to: `/restaurant/products/${id}`,
-      path: "products",
     },
     {
       icon: <LayoutList className={ICON_CLS} strokeWidth={ICON_STROKE} />,
@@ -99,10 +134,10 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       path: "sub_categories",
     },
     {
-      icon: <BookOpen className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-      text: t("subSidebar.menus"),
-      to: `/restaurant/menus/${id}/list`,
-      path: "menus",
+      icon: <Package className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.products"),
+      to: `/restaurant/products/${id}`,
+      path: "products",
     },
     {
       icon: <Tag className={ICON_CLS} strokeWidth={ICON_STROKE} />,
@@ -175,8 +210,17 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
               const active = item.paths
                 ? item.paths.includes(path)
                 : path === item.path;
-              const locked =
-                isTenantLocked && !ALWAYS_ALLOWED_PATHS.has(item.path);
+              // Two-stage lock:
+              //   1. No tenant yet → only the onboarding entries
+              //      (back / edit / settings) are clickable.
+              //   2. Tenant saved but no menus yet → the Menüler
+              //      entry unlocks too, but everything past it stays
+              //      disabled until at least one menu exists.
+              //      `MENU_GATED_PATHS` lists exactly the entries
+              //      that survive stage 2.
+              const locked = isTenantLocked
+                ? !ALWAYS_ALLOWED_PATHS.has(item.path)
+                : isMenuLocked && !MENU_GATED_PATHS.has(item.path);
 
               // The "Go Back" item (path === "restaurants") gets a
               // dedicated 3D-button treatment so it reads as a primary
@@ -223,9 +267,17 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
                   onClick={(e) => {
                     if (locked) {
                       e.preventDefault();
-                      toast.error(t("subSidebar.tenant_locked"), {
-                        id: "tenant-locked",
-                      });
+                      // Different copy depending on which stage of
+                      // onboarding the user is stuck on so the toast
+                      // names the actual missing step.
+                      toast.error(
+                        isTenantLocked
+                          ? t("subSidebar.tenant_locked")
+                          : t("subSidebar.menu_locked"),
+                        {
+                          id: "sidebar-locked",
+                        },
+                      );
                       return;
                     }
                     setOpenSidebar(!openSidebar);

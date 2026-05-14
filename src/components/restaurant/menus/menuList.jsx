@@ -1,5 +1,6 @@
 // MODULES
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -11,6 +12,15 @@ import {
   Clock,
   Calendar,
   Layers,
+  Plug,
+  ListOrdered,
+  Hand,
+  Download,
+  FileText,
+  RefreshCw,
+  Loader2,
+  ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 
 // COMP
@@ -31,6 +41,17 @@ import {
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
+// External links surfaced on the Integration tab. Read from env so
+// the binary URL can be rotated without a redeploy of this app.
+// Falls back to the public Liwa CDN paths so the buttons keep
+// working in dev / preview when the env vars aren't set yet.
+const SYNC_TOOL_URL =
+  import.meta.env.VITE_SYNC_TOOL_URL ||
+  "https://cdn.liwamenu.com/tools/LiwaSyncTool-Setup.exe";
+const INTEGRATION_DOCS_URL =
+  import.meta.env.VITE_INTEGRATION_DOCS_URL ||
+  "https://docs.liwamenu.com/integrations/sync-tool";
 
 const DAY_KEYS = [
   "monday",
@@ -133,6 +154,19 @@ const MenuList = () => {
 
   const totalCount = menusData?.length || 0;
 
+  // Two-tab layout: the existing menu list, plus a permanent
+  // Integration tab that hosts the SambaPOS / LiwaPOS / 3rd-party
+  // Sync Tool docs + download. The integration tab stays available
+  // forever (not just during onboarding) so owners who already have
+  // menus can come back, grab a fresh Sync Tool build, or read the
+  // docs without leaving the admin.
+  const [activeTab, setActiveTab] = useState("list"); // "list" | "integration"
+  // First-time users (no menus yet) see a welcome card on the list
+  // tab with two routes: "Manuel Kurulum" (opens Add Menu dialog)
+  // or "Entegrasyon" (jumps to the Integration tab). Once at least
+  // one menu exists, the welcome card stays out of the way.
+  const isFirstTime = menusData?.length === 0;
+
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
       <div className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden">
@@ -157,32 +191,60 @@ const MenuList = () => {
             </p>
           </div>
           <PageHelp pageKey="menus" />
-          <button
-            type="button"
-            onClick={onAddMenu}
-            className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition shrink-0"
-            style={{ background: PRIMARY_GRADIENT }}
-          >
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">
-              {t("menuList.add_menu")}
-            </span>
-          </button>
+          {/* Add Menu only on the list tab — out of place on the
+              Integration tab where the action is "import via tool". */}
+          {activeTab === "list" && (
+            <button
+              type="button"
+              onClick={onAddMenu}
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition shrink-0"
+              style={{ background: PRIMARY_GRADIENT }}
+            >
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">
+                {t("menuList.add_menu")}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* TABS */}
+        <div className="px-3 sm:px-4 pt-3 border-b border-[--border-1] flex gap-1 overflow-x-auto">
+          <TabButton
+            active={activeTab === "list"}
+            onClick={() => setActiveTab("list")}
+            icon={ListOrdered}
+            label={t("menuList.tab_list")}
+            badge={totalCount > 0 ? totalCount : null}
+          />
+          <TabButton
+            active={activeTab === "integration"}
+            onClick={() => setActiveTab("integration")}
+            icon={Plug}
+            label={t("menuList.tab_integration")}
+          />
         </div>
 
         <div className="p-3 sm:p-5">
-          {!menusData ? null : menusData.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-8 grid place-items-center text-center">
-              <span className="grid place-items-center size-12 rounded-xl bg-indigo-50 text-indigo-600 mb-3">
-                <BookOpen className="size-6" />
-              </span>
-              <h3 className="text-sm font-semibold text-[--black-1]">
-                {t("menuList.no_menus")}
-              </h3>
-              <p className="text-xs text-[--gr-1] mt-1 max-w-sm">
-                {t("menuList.no_menus_info")}
-              </p>
-            </div>
+          {activeTab === "integration" ? (
+            <IntegrationPanel
+              t={t}
+              restaurantId={restaurantId}
+              onSyncCompleted={() => {
+                // Drop the cache + refetch. If the Sync Tool ran
+                // successfully there will now be menus, and the
+                // first-time welcome card flips to the list view.
+                dispatch(getMenus({ restaurantId }));
+                toast.success(t("menuList.integration_sync_refresh"));
+                setActiveTab("list");
+              }}
+            />
+          ) : !menusData ? null : isFirstTime ? (
+            <FirstTimeChooser
+              t={t}
+              onManual={onAddMenu}
+              onIntegration={() => setActiveTab("integration")}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {menusData.map((menu) => (
@@ -197,6 +259,205 @@ const MenuList = () => {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+};
+
+// =================== TAB BUTTON ===================
+const TabButton = ({ active, onClick, icon: Icon, label, badge }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`relative inline-flex items-center gap-1.5 px-3 py-2 rounded-t-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition border-b-2 ${
+      active
+        ? "text-indigo-700 border-indigo-600 bg-indigo-50/40"
+        : "text-[--gr-1] border-transparent hover:text-[--black-2] hover:bg-[--white-2]"
+    }`}
+  >
+    <Icon className="size-4" />
+    {label}
+    {badge != null && (
+      <span className="ml-0.5 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold">
+        {badge}
+      </span>
+    )}
+  </button>
+);
+
+// =================== FIRST-TIME CHOOSER ===================
+// Shown when the restaurant has zero menus. Two big cards: pick the
+// manual route (opens the existing Add Menu dialog) or jump to the
+// Integration tab to download the Sync Tool. Mirrors the wizard step
+// the user is being guided through; once any menu exists the chooser
+// is hidden and the standard list takes over.
+const FirstTimeChooser = ({ t, onManual, onIntegration }) => (
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+    <ChoiceCard
+      icon={Hand}
+      iconClass="bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30"
+      title={t("menuList.choice_manual_title")}
+      description={t("menuList.choice_manual_desc")}
+      cta={t("menuList.choice_manual_cta")}
+      onClick={onManual}
+    />
+    <ChoiceCard
+      icon={Plug}
+      iconClass="bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30"
+      title={t("menuList.choice_integration_title")}
+      description={t("menuList.choice_integration_desc")}
+      cta={t("menuList.choice_integration_cta")}
+      ctaTone="emerald"
+      onClick={onIntegration}
+    />
+  </div>
+);
+
+const ChoiceCard = ({
+  icon: Icon,
+  iconClass,
+  title,
+  description,
+  cta,
+  ctaTone = "indigo",
+  onClick,
+}) => {
+  const ctaClasses =
+    ctaTone === "emerald"
+      ? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/25"
+      : "bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-indigo-500/25";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group text-left rounded-2xl border border-[--border-1] bg-[--white-1] p-5 sm:p-6 hover:border-indigo-200 hover:shadow-md transition-all flex flex-col gap-3"
+    >
+      <span className={`grid place-items-center size-12 rounded-xl ${iconClass}`}>
+        <Icon className="size-6" strokeWidth={1.8} />
+      </span>
+      <h3 className="text-sm sm:text-base font-bold text-[--black-1]">
+        {title}
+      </h3>
+      <p className="text-xs text-[--gr-1] leading-relaxed flex-1">
+        {description}
+      </p>
+      <span
+        className={`inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md transition group-hover:brightness-110 self-start ${ctaClasses}`}
+      >
+        {cta}
+        <ArrowRight className="size-3.5" />
+      </span>
+    </button>
+  );
+};
+
+// =================== INTEGRATION PANEL ===================
+// Permanent tab — always reachable, even after the restaurant has
+// menus. Hosts the Sync Tool download, a docs link, and a
+// "Senkronizasyon Tamamlandı" button that triggers a menus refetch
+// so newly-imported menus appear without a hard reload.
+const IntegrationPanel = ({ t, restaurantId, onSyncCompleted }) => {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleSyncComplete = async () => {
+    if (!restaurantId) return;
+    setRefreshing(true);
+    try {
+      await onSyncCompleted();
+    } finally {
+      // Brief delay so the spinner is perceivable on fast networks.
+      setTimeout(() => setRefreshing(false), 500);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-3 sm:gap-4">
+      {/* Left — explanatory copy + step-by-step */}
+      <div className="rounded-2xl border border-[--border-1] bg-[--white-2]/40 p-4 sm:p-5 flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <span className="grid place-items-center size-10 rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30 shrink-0">
+            <Plug className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base font-bold text-[--black-1]">
+              {t("menuList.integration_title")}
+            </h3>
+            <p className="text-xs text-[--gr-1] mt-1 leading-relaxed">
+              {t("menuList.integration_subtitle")}
+            </p>
+          </div>
+        </div>
+
+        <ol className="space-y-2.5">
+          {[1, 2, 3, 4].map((n) => (
+            <li
+              key={n}
+              className="flex items-start gap-3 p-3 rounded-xl border border-[--border-1] bg-[--white-1]"
+            >
+              <span className="grid place-items-center size-7 rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 text-xs font-bold shrink-0 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                {n}
+              </span>
+              <p className="text-xs sm:text-[13px] text-[--black-2] leading-relaxed">
+                {t(`menuList.integration_step_${n}`)}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Right — actions panel */}
+      <div className="rounded-2xl border border-[--border-1] bg-[--white-1] p-4 sm:p-5 flex flex-col gap-3 self-start">
+        <div className="flex items-center gap-2">
+          <Download className="size-4 text-indigo-600" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[--gr-1]">
+            {t("menuList.integration_actions")}
+          </h4>
+        </div>
+
+        <a
+          href={SYNC_TOOL_URL}
+          download
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-indigo-500/25 hover:brightness-110 active:brightness-95 transition"
+          style={{ background: PRIMARY_GRADIENT }}
+        >
+          <Download className="size-3.5" />
+          {t("menuList.integration_download_tool")}
+        </a>
+
+        <a
+          href={INTEGRATION_DOCS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-lg text-xs font-semibold border border-[--border-1] bg-[--white-1] text-[--black-2] hover:border-indigo-300 hover:text-indigo-700 hover:bg-indigo-50 transition"
+        >
+          <FileText className="size-3.5" />
+          {t("menuList.integration_open_docs")}
+        </a>
+
+        <div className="my-1 border-t border-dashed border-[--border-1]" />
+
+        <button
+          type="button"
+          onClick={handleSyncComplete}
+          disabled={refreshing}
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-lg text-white text-xs font-semibold shadow-md shadow-emerald-500/25 hover:brightness-110 active:brightness-95 transition disabled:opacity-60"
+          style={{
+            background:
+              "linear-gradient(135deg, #059669 0%, #10b981 50%, #0d9488 100%)",
+          }}
+        >
+          {refreshing ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <CheckCircle2 className="size-3.5" />
+          )}
+          {t("menuList.integration_sync_done")}
+        </button>
+
+        <p className="text-[11px] text-[--gr-1] leading-snug flex items-start gap-1.5">
+          <RefreshCw className="size-3 mt-0.5 shrink-0 text-[--gr-2]" />
+          {t("menuList.integration_sync_done_hint")}
+        </p>
       </div>
     </div>
   );
