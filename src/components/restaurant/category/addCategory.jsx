@@ -340,9 +340,9 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
 
             {/* Kampanya Uyarısı */}
             {showCampaignWarning && (
-              <div className="p-4 bg-[--status-orange] text-[--orange-1] rounded-xl border border-[--border-orange] text-sm font-medium transition-all duration-300 ease-in-out">
+              <div className="p-4 bg-[--status-orange] text-[--orange-1] dark:text-white rounded-xl border border-[--border-orange] text-sm font-medium transition-all duration-300 ease-in-out">
                 <div className="flex items-center">
-                  <WarnI className="text-[--orange-1] mr-3 size-[1.5rem]" />
+                  <WarnI className="text-[--orange-1] dark:text-white mr-3 size-[1.5rem]" />
                   <span>
                     {t("addCategory.campaign_warning", {
                       tab: t("addCategory.campaign_warning_tab"),
