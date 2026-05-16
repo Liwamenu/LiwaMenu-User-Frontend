@@ -96,6 +96,11 @@ const getProductsLiteSlice = createSlice({
           "Products/AddProduct",
           "Products/EditProduct",
           "Products/DeleteProduct",
+          // Allergen assignment runs through its own endpoint; the
+          // lite payload doesn't carry allergens today, but other
+          // consumers (Order Tags row, future ones) may grow to read
+          // them — keep the cache eventually consistent either way.
+          "Products/UpdateProductAllergens",
           // sibling categories / subcategories — denormalized labels
           "Categories/EditCategory",
           "Categories/EditCategories",

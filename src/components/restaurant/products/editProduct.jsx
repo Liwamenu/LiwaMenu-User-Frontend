@@ -27,6 +27,9 @@ import {
 import { getProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
+import { updateProductAllergens } from "../../../redux/allergens/updateProductAllergensSlice";
+
+import AllergensPicker from "./allergensPicker";
 
 const emptyPortion = () => ({
   id: undefined,
@@ -36,6 +39,17 @@ const emptyPortion = () => ({
   campaignPrice: 0,
   specialPrice: 0, // local optional “Özel” price
 });
+
+// Stable key for the allergens array — order-insensitive so the
+// dirty-check doesn't trip when the backend returns the list in a
+// different order than the user touched the toggles in.
+const allergensKey = (arr) =>
+  JSON.stringify(
+    [...(arr || [])]
+      .filter((a) => a?.code)
+      .map((a) => [a.code, a.presence])
+      .sort((a, b) => a[0].localeCompare(b[0])),
+  );
 
 const EditProduct = ({ product: prodToPopup, onSaved }) => {
   const dispatch = useDispatch();
@@ -76,6 +90,23 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   // "user removed the image" — both leave productData.image as null.
   // On save the flag turns into removal signals for the backend.
   const [imageRemoved, setImageRemoved] = useState(false);
+  // Allergens have their own save endpoint (Products/{id}/Allergens)
+  // and don't go through editProduct's FormData, so they live in
+  // their own slice of state. Seed from the loaded product; the
+  // originalAllergensKey captures the as-fetched value so the success
+  // effect can decide whether to dispatch the PUT (only when dirty).
+  const initialAllergens = Array.isArray(initialProduct?.allergens)
+    ? initialProduct.allergens
+        .filter((a) => a?.code)
+        .map((a) => ({ code: a.code, presence: a.presence }))
+    : [];
+  const [allergens, setAllergens] = useState(initialAllergens);
+  const originalAllergensKey = useMemo(
+    () => allergensKey(initialAllergens),
+    // initialAllergens is derived from the prop product, snapshot once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // Per-row column visibility — Kampanya tied to the SELECTED category's
   // campaign flag, Özel tied to the restaurant's isSpecialPriceActive.
@@ -200,7 +231,15 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
   };
 
   const handleSave = () => {
-    if (isEqual(productData, product || prodToPopup)) {
+    // Allergens live in their own state slice (saved via a separate
+    // endpoint), so the "no changes" guard has to consider both:
+    // touching only allergens would otherwise look like an unchanged
+    // form and short-circuit before the success effect could fire
+    // the allergens PUT.
+    const productUnchanged = isEqual(productData, product || prodToPopup);
+    const allergensUnchanged =
+      allergensKey(allergens) === originalAllergensKey;
+    if (productUnchanged && allergensUnchanged) {
       toast.error(t("editProduct.no_changes"));
       return;
     }
@@ -284,6 +323,16 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     if (success) {
       toast.success(t("editProduct.success"));
       dispatch(resetEditProduct());
+      // Allergens have their own write endpoint — fire-and-forget
+      // after the main save lands, only when the user actually
+      // touched the selection. The response interceptor surfaces a
+      // toast if the PUT fails; the cache invalidation matchers on
+      // getProducts / getProductsLite pick up the fresh allergens
+      // on the next read.
+      const productId = initialProduct?.id;
+      if (productId && allergensKey(allergens) !== originalAllergensKey) {
+        dispatch(updateProductAllergens({ productId, allergens }));
+      }
       if (prodToPopup) {
         // Opened as a popup → close it. Prefer the parent-supplied
         // `onSaved` callback so the host list refetches with its current
@@ -648,6 +697,13 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Alerjenler — saves through a dedicated endpoint
+                  (Products/{id}/Allergens). Lives inside the form so
+                  the user sees + edits it inline, but the actual PUT
+                  fires from the success effect once editProduct
+                  lands, only when the user touched the selection. */}
+              <AllergensPicker value={allergens} onChange={setAllergens} />
             </div>
           </div>
         </div>
