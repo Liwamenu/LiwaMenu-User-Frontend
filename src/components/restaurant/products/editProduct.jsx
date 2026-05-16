@@ -323,39 +323,51 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     if (success) {
       toast.success(t("editProduct.success"));
       dispatch(resetEditProduct());
-      // Allergens have their own write endpoint — fire-and-forget
-      // after the main save lands, only when the user actually
-      // touched the selection. The response interceptor surfaces a
-      // toast if the PUT fails; the cache invalidation matchers on
-      // getProducts / getProductsLite pick up the fresh allergens
-      // on the next read.
-      const productId = initialProduct?.id;
-      if (productId && allergensKey(allergens) !== originalAllergensKey) {
-        dispatch(updateProductAllergens({ productId, allergens }));
-      }
+      // Close the popup / navigate back immediately for snappy UX —
+      // the allergens PUT + list refetch chain runs in the background
+      // (the host list re-fetches once the PUT actually persists; see
+      // the IIFE below for the rationale).
       if (prodToPopup) {
-        // Opened as a popup → close it. Prefer the parent-supplied
-        // `onSaved` callback so the host list refetches with its current
-        // filters and page intact (e.g. Products page stays on page 12
-        // with the chosen category filter); only fall back to a generic
-        // `getProducts` for legacy callers that don't pass `onSaved` and
-        // would otherwise see stale data after save.
         setSecondPopupContent(null);
-        if (onSaved) {
-          onSaved();
-        } else {
-          dispatch(
-            getProducts({
-              restaurantId: restaurantId || productData.restaurantId,
-            }),
-          );
-        }
       } else {
-        // Opened as a full page → go back to the products list. navigate(-1)
-        // preserves the list's URL search params (page=N) so the user lands
-        // on the exact page they came from.
+        // Full-page mode — go back to the products list. navigate(-1)
+        // preserves ?page=N so the user lands on the exact page.
         navigate(-1);
       }
+      // Allergens save through a separate endpoint. Sequence the two
+      // network calls so the list refetch sees fresh allergens — if
+      // we just fired both in parallel, the GET typically races the
+      // PUT and the products list captures the old selection, which
+      // then surfaces as "I saved allergens but reopening the modal
+      // shows nothing until a hard reload" (the popup reads from the
+      // stale list snapshot).
+      (async () => {
+        const productId = initialProduct?.id;
+        if (productId && allergensKey(allergens) !== originalAllergensKey) {
+          try {
+            await dispatch(
+              updateProductAllergens({ productId, allergens }),
+            ).unwrap();
+          } catch {
+            // The api response interceptor already toasted the error;
+            // fall through so the list still gets a refresh attempt.
+          }
+        }
+        if (prodToPopup) {
+          // Prefer the parent-supplied callback so the list keeps its
+          // current filters + page; only fall back to a generic refetch
+          // for legacy callers that don't pass one.
+          if (onSaved) {
+            onSaved();
+          } else {
+            dispatch(
+              getProducts({
+                restaurantId: restaurantId || productData.restaurantId,
+              }),
+            );
+          }
+        }
+      })();
     }
     if (error) dispatch(resetEditProduct());
     // eslint-disable-next-line react-hooks/exhaustive-deps
