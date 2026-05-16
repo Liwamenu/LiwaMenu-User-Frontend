@@ -75,9 +75,19 @@ const AddProduct = () => {
   const { subCategories } = useSelector((s) => s.subCategories.get);
   // Restaurant powers the "Özel Fiyat" gate — only visible when the
   // restaurant has the special-price feature enabled in Genel Ayarlar.
-  const restaurant = useSelector(
-    (s) => s.restaurants.getRestaurant?.restaurant,
-  );
+  // Robust lookup: depending on how the user reached this screen the
+  // entity may sit in either restaurant slice (single-fetch from a
+  // deep link, or the list cache from /restaurants → click). The old
+  // `getRestaurant?.restaurant` only branch missed the common list-
+  // cache case, which left the Özel column hidden even when the
+  // feature was on.
+  const restaurant = useSelector((s) => {
+    const fetched = s.restaurants.getRestaurant?.restaurant;
+    if (fetched?.id === restaurantId) return fetched;
+    return s.restaurants.getRestaurants?.restaurants?.data?.find(
+      (r) => r.id === restaurantId,
+    );
+  });
 
   const [preview, setPreview] = useState(null);
   const [productData, setProductData] = useState(defaultProduct);
@@ -94,6 +104,12 @@ const AddProduct = () => {
   );
   const showCampaign = !!selectedCategory?.campaign;
   const showSpecial = !!restaurant?.isSpecialPriceActive;
+  // Owner-supplied label for the special-price column (Genel Ayarlar
+  // → "Özel Fiyat Tanımı"). Falls back to the generic "Özel" header
+  // when no name is set, so existing flows keep their old wording.
+  const specialLabel =
+    restaurant?.specialPriceName?.trim() ||
+    t("editProduct.portion_column_special");
   const priceCount = 1 + (showCampaign ? 1 : 0) + (showSpecial ? 1 : 0);
   // Tailwind needs the full class string at build time, so the
   // permutations are spelled out as a lookup instead of composed.
@@ -466,8 +482,8 @@ const AddProduct = () => {
                     </div>
                   )}
                   {showSpecial && (
-                    <div className="text-center text-[--orange-1]">
-                      {t("editProduct.portion_column_special")}
+                    <div className="text-center text-[--orange-1] truncate" title={specialLabel}>
+                      {specialLabel}
                     </div>
                   )}
                   <div />
@@ -558,14 +574,14 @@ const AddProduct = () => {
                         )}
                         {showSpecial && (
                           <div className="flex flex-col gap-1 md:contents">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden">
-                              {t("editProduct.portion_column_special")}
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[--orange-1] md:hidden truncate" title={specialLabel}>
+                              {specialLabel}
                             </span>
                             <CustomInput
                               type="text"
                               inputMode="decimal"
                               name="price"
-                              placeholder={t("addProduct.special_price_short")}
+                              placeholder={specialLabel}
                               className="py-[6px] text-sm text-end text-[--black-2] bg-orange-400/30 border-orange-300"
                               value={portion.specialPrice ?? ""}
                               onChange={(v) =>

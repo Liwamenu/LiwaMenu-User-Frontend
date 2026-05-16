@@ -47,17 +47,18 @@ const updateSubOrdersSlice = createSlice({
 
 export const updateSubOrders = createAsyncThunk(
   "SubCategories/UpdateSubCategoriesOrder",
+  // Backend now expects a plain JSON object:
+  //   { restaurantId, subCategories: [{ subCategoryId, sortOrder }, …] }
+  // It used to accept the legacy FormData payload (restaurantId +
+  // subCategoriesData JSON-stringified) — that path now returns 415
+  // Unsupported Media Type. Drop the multipart header override so
+  // axios uses its default application/json.
   async (data, { rejectWithValue }) => {
     try {
       const res = await api.put(
         `${baseURL}SubCategories/UpdateSubCategoriesOrder`,
         data,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
       );
-
-      console.log(res);
       return res.data;
     } catch (err) {
       console.log(err);

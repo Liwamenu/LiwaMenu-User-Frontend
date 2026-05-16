@@ -103,6 +103,11 @@ const PriceList = ({ data: restaurant }) => {
   // is gated per category, but here it's a single restaurant-wide
   // boolean since the special-price feature isn't per-category.
   const showSpecial = !!restaurant?.isSpecialPriceActive;
+  // The owner can rename the special-price column in Genel Ayarlar
+  // (e.g. "Personel", "Happy Hours"). Use whatever they set, fall
+  // back to the generic "Özel" label only when no name is configured.
+  const specialLabel =
+    restaurant?.specialPriceName?.trim() || t("priceList.special");
 
   const [list, setList] = useState([]);
   const [listBefore, setListBefore] = useState([]);
@@ -444,7 +449,11 @@ const PriceList = ({ data: restaurant }) => {
         </div>
 
         <div className="p-3 sm:p-5 space-y-4">
-          <PriceListApplyBulk list={list} setList={setList} />
+          <PriceListApplyBulk
+            list={list}
+            setList={setList}
+            restaurant={restaurant}
+          />
 
           {/* Product search — always available when there are products
               (unlike the category/zero-price filters row below, which
@@ -651,8 +660,8 @@ const PriceList = ({ data: restaurant }) => {
                       </span>
                     )}
                     {showSpecial && (
-                      <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-orange-600 shrink-0">
-                        {t("priceList.special")}
+                      <span className="hidden sm:block w-24 sm:w-28 text-right text-[10px] font-bold uppercase tracking-wider text-orange-600 shrink-0 truncate" title={specialLabel}>
+                        {specialLabel}
                       </span>
                     )}
                   </div>
@@ -694,70 +703,83 @@ const PriceList = ({ data: restaurant }) => {
                                   )}
                                 </div>
 
-                                {/* Price inputs */}
+                                {/* Price inputs — each input lives in a
+                                    fixed sm:w-28 cell with its content
+                                    right-justified, so each column lines
+                                    up vertically with the matching header
+                                    above (which uses the same w-28 +
+                                    text-right). On mobile the wrappers
+                                    shrink to content (headers are hidden
+                                    there anyway). */}
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <PriceInput
-                                    label={t("priceList.normal_price")}
-                                    value={portion.price ?? ""}
-                                    onChange={(v) =>
-                                      updatePortion(i, pi, "price", Number(v))
-                                    }
-                                    onKeyDown={handleKeyDown}
-                                    dataAttr="data-edit"
-                                    tone="slate"
-                                    decimals={decimals}
-                                    // Drives the zero-price warning tone
-                                    // and the hover tooltip — only the
-                                    // Normal price column gets this; an
-                                    // empty Kampanya/Özel column is
-                                    // expected, not a problem.
-                                    isZeroPriceTagged={tagPricedKeys.has(
-                                      `${currentProd.id}|${portion.id}`,
-                                    )}
-                                    zeroPriceTaggedHint={t(
-                                      "priceList.zero_priced_via_tag",
-                                      "Bu fiyat 0 ama etiket seçimleriyle belirleniyor.",
-                                    )}
-                                    zeroPriceMissingHint={t(
-                                      "priceList.zero_price_no_coverage",
-                                      "Fiyat 0 ve hiçbir etiket seçimi de fiyat eklemiyor — bu ürün ücretsiz görünür.",
-                                    )}
-                                  />
-                                  {showCampaign && (
+                                  <div className="flex items-center justify-end shrink-0 sm:w-28">
                                     <PriceInput
-                                      label={t("priceList.campaign")}
-                                      value={portion.campaignPrice ?? ""}
+                                      label={t("priceList.normal_price")}
+                                      value={portion.price ?? ""}
                                       onChange={(v) =>
-                                        updatePortion(
-                                          i,
-                                          pi,
-                                          "campaignPrice",
-                                          Number(v),
-                                        )
+                                        updatePortion(i, pi, "price", Number(v))
                                       }
                                       onKeyDown={handleKeyDown}
-                                      dataAttr="data-edit-second"
-                                      tone="emerald"
+                                      dataAttr="data-edit"
+                                      tone="slate"
                                       decimals={decimals}
+                                      // Drives the zero-price warning tone
+                                      // and the hover tooltip — only the
+                                      // Normal price column gets this; an
+                                      // empty Kampanya/Özel column is
+                                      // expected, not a problem.
+                                      isZeroPriceTagged={tagPricedKeys.has(
+                                        `${currentProd.id}|${portion.id}`,
+                                      )}
+                                      zeroPriceTaggedHint={t(
+                                        "priceList.zero_priced_via_tag",
+                                        "Bu fiyat 0 ama etiket seçimleriyle belirleniyor.",
+                                      )}
+                                      zeroPriceMissingHint={t(
+                                        "priceList.zero_price_no_coverage",
+                                        "Fiyat 0 ve hiçbir etiket seçimi de fiyat eklemiyor — bu ürün ücretsiz görünür.",
+                                      )}
                                     />
+                                  </div>
+                                  {showCampaign && (
+                                    <div className="flex items-center justify-end shrink-0 sm:w-28">
+                                      <PriceInput
+                                        label={t("priceList.campaign")}
+                                        value={portion.campaignPrice ?? ""}
+                                        onChange={(v) =>
+                                          updatePortion(
+                                            i,
+                                            pi,
+                                            "campaignPrice",
+                                            Number(v),
+                                          )
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                        dataAttr="data-edit-second"
+                                        tone="emerald"
+                                        decimals={decimals}
+                                      />
+                                    </div>
                                   )}
                                   {showSpecial && (
-                                    <PriceInput
-                                      label={t("priceList.special")}
-                                      value={portion.specialPrice ?? ""}
-                                      onChange={(v) =>
-                                        updatePortion(
-                                          i,
-                                          pi,
-                                          "specialPrice",
-                                          Number(v),
-                                        )
-                                      }
-                                      onKeyDown={handleKeyDown}
-                                      dataAttr="data-edit-third"
-                                      tone="orange"
-                                      decimals={decimals}
-                                    />
+                                    <div className="flex items-center justify-end shrink-0 sm:w-28">
+                                      <PriceInput
+                                        label={specialLabel}
+                                        value={portion.specialPrice ?? ""}
+                                        onChange={(v) =>
+                                          updatePortion(
+                                            i,
+                                            pi,
+                                            "specialPrice",
+                                            Number(v),
+                                          )
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                        dataAttr="data-edit-third"
+                                        tone="orange"
+                                        decimals={decimals}
+                                      />
+                                    </div>
                                   )}
                                 </div>
                               </div>

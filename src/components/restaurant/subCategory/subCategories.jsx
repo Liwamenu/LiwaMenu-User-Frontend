@@ -293,7 +293,12 @@ const SubCategories = ({ data: restaurant }) => {
     );
   };
 
-  // SAVE NEW ORDER — only push items whose sortOrder changed.
+  // SAVE NEW ORDER — only push items whose sortOrder changed. Backend
+  // shape: { restaurantId, subCategories: [{ subCategoryId, sortOrder }] }
+  // (used to be a FormData with restaurantId + subCategoriesData
+  // JSON-stringified — that shape now returns 415 Unsupported Media
+  // Type, the endpoint is JSON-only, and each item's id key is
+  // `subCategoryId`, not `id`).
   const saveNewOrder = (e) => {
     e?.preventDefault();
     if (isEqual(subCategoriesData, subCategoriesDataBefore)) {
@@ -306,15 +311,16 @@ const SubCategories = ({ data: restaurant }) => {
       const orig = beforeFlat.find((b) => b.id === a.id);
       return orig && orig.sortOrder !== a.sortOrder;
     });
-    const dataToSend = changedOnes.map(({ id, categoryId, sortOrder }) => ({
-      id,
-      categoryId,
+    const subCategoriesPayload = changedOnes.map(({ id, sortOrder }) => ({
+      subCategoryId: id,
       sortOrder,
     }));
-    const formData = new FormData();
-    formData.append("restaurantId", restaurant?.id);
-    formData.append("subCategoriesData", JSON.stringify(dataToSend));
-    dispatch(updateSubOrders(formData));
+    dispatch(
+      updateSubOrders({
+        restaurantId: restaurant?.id,
+        subCategories: subCategoriesPayload,
+      }),
+    );
   };
 
   const orderDirty = useMemo(

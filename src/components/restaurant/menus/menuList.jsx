@@ -632,6 +632,25 @@ const MenuCard = ({ menu, t, onEdit, onDelete }) => {
     : DEFAULT_PRICE_LIST_TYPE;
   const { icon: PriceIcon, chipTone } = PRICE_LIST_META[priceListType];
 
+  // For the "special" chip, surface the owner's custom column name
+  // (Genel Ayarlar → "Özel Fiyat Tanımı") so the card matches what
+  // appears on the Price List page. Robust lookup across both
+  // restaurant slices, same pattern as PriceListSelect.
+  const customSpecialName = useSelector((s) => {
+    const fetched = s.restaurants.getRestaurant?.restaurant;
+    const r =
+      fetched?.id === menu.restaurantId
+        ? fetched
+        : s.restaurants.getRestaurants?.restaurants?.data?.find(
+            (x) => x.id === menu.restaurantId,
+          );
+    return r?.specialPriceName?.trim() || null;
+  });
+  const chipLabel =
+    priceListType === "special" && customSpecialName
+      ? customSpecialName
+      : t(`menuForm.price_list_${priceListType}`);
+
   return (
     <div className="group rounded-xl border border-[--border-1] bg-[--white-1] overflow-hidden flex flex-col hover:border-indigo-200 hover:shadow-md transition-all">
       {/* Top accent strip */}
@@ -648,7 +667,7 @@ const MenuCard = ({ menu, t, onEdit, onDelete }) => {
           </h3>
           <div className="flex flex-wrap items-center gap-1 mt-1">
             <Chip icon={PriceIcon} tone={chipTone}>
-              {t(`menuForm.price_list_${priceListType}`)}
+              {chipLabel}
             </Chip>
             <Chip icon={Calendar} tone="indigo">
               {t("menuList.schedule_count", { count: planCount })}

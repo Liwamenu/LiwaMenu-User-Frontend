@@ -1,7 +1,7 @@
 //MODULES
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 
@@ -35,7 +35,7 @@ const BULK_TARGET_OPTIONS = [
   { value: "both", labelKey: "priceList.bulk_target_both" },
 ];
 
-const PriceListApplyBulk = ({ list, setList }) => {
+const PriceListApplyBulk = ({ list, setList, restaurant }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { setSecondPopupContent } = usePopup();
@@ -52,15 +52,46 @@ const PriceListApplyBulk = ({ list, setList }) => {
   // for users who don't touch the new dropdown.
   const [bulkCategory, setBulkCategory] = useState(ALL_CATEGORIES_VALUE);
 
+  // Surface the special-price column as a bulk target only when the
+  // restaurant has the feature on (Genel Ayarlar → Özel Fiyat Tanımı).
+  // Otherwise this target would just touch a column that's hidden
+  // from every other surface, which would confuse the owner.
+  const specialActive = !!restaurant?.isSpecialPriceActive;
+  const specialLabel =
+    restaurant?.specialPriceName?.trim() || t("priceList.special");
+
+  // Defensive: if the feature is toggled off in another tab while the
+  // user had picked "specialPrice" here, snap back to the safe default
+  // so the dropdown doesn't render an option that no longer exists.
+  useEffect(() => {
+    if (!specialActive && bulkTarget === "specialPrice") {
+      setBulkTarget("price");
+    }
+  }, [specialActive, bulkTarget]);
+
   const bulkTypeOptions = BULK_TYPE_OPTIONS.map((opt) => ({
     value: opt.value,
     label: t(opt.labelKey),
   }));
 
-  const bulkTargetOptions = BULK_TARGET_OPTIONS.map((opt) => ({
-    value: opt.value,
-    label: t(opt.labelKey),
-  }));
+  const bulkTargetOptions = useMemo(() => {
+    const opts = BULK_TARGET_OPTIONS.map((opt) => ({
+      value: opt.value,
+      label: t(opt.labelKey),
+    }));
+    if (specialActive) {
+      // Use the owner's custom column name ("Happy Hours", "Personel",
+      // …) wrapped in the "Sadece X" / "X Only" pattern so it lines up
+      // with the existing options ("Sadece Normal Fiyat" etc.).
+      opts.push({
+        value: "specialPrice",
+        label: t("priceList.bulk_target_special_named", {
+          name: specialLabel,
+        }),
+      });
+    }
+    return opts;
+  }, [t, specialActive, specialLabel]);
 
   // Build the category dropdown from the live `list` so it always
   // matches what the user can actually see. De-duplicated by id and
@@ -112,9 +143,11 @@ const PriceListApplyBulk = ({ list, setList }) => {
         const newPortion = { ...portion };
         const currentPrice = parseFloat(newPortion.price) || 0;
         const currentDiscounted = parseFloat(newPortion.campaignPrice) || 0;
+        const currentSpecial = parseFloat(newPortion.specialPrice) || 0;
 
         let newPrice = currentPrice;
         let newDiscountedPrice = currentDiscounted;
+        let newSpecialPrice = currentSpecial;
 
         // Apply to normal price
         if (bulkTarget === "price" || bulkTarget === "both") {
@@ -142,8 +175,30 @@ const PriceListApplyBulk = ({ list, setList }) => {
           }
         }
 
+        // Apply to the special-price column (only target on purpose —
+        // "both" stays Normal + Kampanya so the existing flow doesn't
+        // suddenly start rewriting a third column when the feature
+        // gets turned on).
+        if (bulkTarget === "specialPrice") {
+          if (bulkType === "percent-increase") {
+            newSpecialPrice = currentSpecial * (1 + value / 100);
+          } else if (bulkType === "percent-decrease") {
+            newSpecialPrice = currentSpecial * (1 - value / 100);
+          } else if (bulkType === "amount-add") {
+            newSpecialPrice = currentSpecial + value;
+          } else if (bulkType === "amount-subtract") {
+            newSpecialPrice = currentSpecial - value;
+          }
+        }
+
         newPortion.price = Math.max(0, newPrice).toFixed(2);
         newPortion.campaignPrice = Math.max(0, newDiscountedPrice).toFixed(2);
+        // Only write the special column when it's actually the bulk
+        // target — keeps Normal / Kampanya updates from rewriting
+        // (and reformatting) an unrelated field.
+        if (bulkTarget === "specialPrice") {
+          newPortion.specialPrice = Math.max(0, newSpecialPrice).toFixed(2);
+        }
         return newPortion;
       });
 

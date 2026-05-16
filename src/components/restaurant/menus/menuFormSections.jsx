@@ -84,17 +84,25 @@ const normalizeSearch = (s) => {
 export const PriceListSelect = ({ restaurantId, value, onChange }) => {
   const { t } = useTranslation();
 
-  // Read the restaurant to know whether Special Price is enabled. Check
-  // both restaurant slices — the entity may sit in the list cache (came
-  // from /restaurants) or the single-fetch cache (deep link).
-  const isSpecialPriceActive = useSelector((s) => {
+  // Read the restaurant to know whether Special Price is enabled and
+  // pick up the owner's custom column name (Genel Ayarlar → "Özel
+  // Fiyat Tanımı"). Check both restaurant slices — the entity may sit
+  // in the list cache (came from /restaurants) or the single-fetch
+  // cache (deep link).
+  const { isSpecialPriceActive, specialPriceName } = useSelector((s) => {
     const fetched = s.restaurants.getRestaurant?.restaurant;
-    if (fetched?.id === restaurantId) return !!fetched.isSpecialPriceActive;
-    const fromList = s.restaurants.getRestaurants?.restaurants?.data?.find(
-      (r) => r.id === restaurantId,
-    );
-    return !!fromList?.isSpecialPriceActive;
+    const r =
+      fetched?.id === restaurantId
+        ? fetched
+        : s.restaurants.getRestaurants?.restaurants?.data?.find(
+            (x) => x.id === restaurantId,
+          );
+    return {
+      isSpecialPriceActive: !!r?.isSpecialPriceActive,
+      specialPriceName: r?.specialPriceName,
+    };
   });
+  const customSpecialName = specialPriceName?.trim() || null;
 
   const selected = PRICE_LIST_TYPES.includes(value)
     ? value
@@ -141,7 +149,11 @@ export const PriceListSelect = ({ restaurantId, value, onChange }) => {
                 <Lock className="absolute top-1.5 right-1.5 size-3 text-amber-500" />
               )}
               <Icon className="size-4" />
-              {t(`menuForm.price_list_${type}`)}
+              <span className="truncate max-w-full px-1">
+                {type === "special" && customSpecialName
+                  ? customSpecialName
+                  : t(`menuForm.price_list_${type}`)}
+              </span>
             </button>
           );
         })}

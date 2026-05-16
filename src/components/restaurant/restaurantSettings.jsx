@@ -444,11 +444,30 @@ const RestaurantSettings = ({ data: inData }) => {
   // TOAST SUCCESS
   useEffect(() => {
     if (success) {
+      // Detect "just activated Özel Fiyat" — the previous saved
+      // snapshot had it off, this save flipped it on — and surface a
+      // dedicated toast naming the column that will now show on the
+      // Price List page. Fires alongside the generic "saved" toast.
+      if (
+        restaurantDataBefore?.isSpecialPriceActive === false &&
+        restaurantData?.isSpecialPriceActive === true
+      ) {
+        const colName =
+          restaurantData?.specialPriceName?.trim() ||
+          t("priceList.special");
+        toast.success(
+          t("restaurantSettings.special_price_column_added", {
+            name: colName,
+          }),
+          { id: "special-price-activated", duration: 5000 },
+        );
+      }
       toast.success(t("restaurantSettings.success"));
       setRestaurantDataBefore(restaurantData);
       dispatch(resetSetRestaurantSettings());
     }
     if (error) dispatch(resetSetRestaurantSettings());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error, dispatch, restaurantData]);
 
   useEffect(() => {
