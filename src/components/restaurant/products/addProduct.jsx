@@ -31,6 +31,9 @@ import {
 import { resetGetProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
+import { updateProductAllergens } from "../../../redux/allergens/updateProductAllergensSlice";
+
+import AllergensPicker from "./allergensPicker";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -71,7 +74,14 @@ const AddProduct = () => {
   const { t } = useTranslation();
 
   const { categories } = useSelector((s) => s.categories.get);
-  const { success, error, loading } = useSelector((s) => s.products.add);
+  // `addedProduct` carries the backend's create response — used in
+  // the success effect to grab the new id for the allergens PUT.
+  const {
+    success,
+    error,
+    loading,
+    data: addedProduct,
+  } = useSelector((s) => s.products.add);
   const { subCategories } = useSelector((s) => s.subCategories.get);
   // Restaurant powers the "Özel Fiyat" gate — only visible when the
   // restaurant has the special-price feature enabled in Genel Ayarlar.
@@ -92,6 +102,13 @@ const AddProduct = () => {
   const [preview, setPreview] = useState(null);
   const [productData, setProductData] = useState(defaultProduct);
   const [categoryOptions, setCategoryOptions] = useState([]);
+  // Allergens save through a dedicated endpoint (which needs the
+  // server-assigned product id), so they live in their own slice of
+  // state. After addProduct succeeds, the success effect grabs the
+  // new id from the response and fires the PUT — only when the user
+  // actually selected something. State resets to [] on a successful
+  // submit alongside the rest of the form.
+  const [allergens, setAllergens] = useState([]);
 
   // Per-row column visibility:
   //   • Kampanya — only when the SELECTED category has campaign on
@@ -257,8 +274,20 @@ const AddProduct = () => {
   useEffect(() => {
     if (success) {
       toast.success(t("addProduct.success"));
+      // Allergens save through a separate endpoint, so we need the
+      // server-assigned id from the create response. Different shapes
+      // observed across endpoints: `{ data: { id } }` envelope or a
+      // bare product object — accept both. Only fire when the user
+      // actually picked allergens, an empty array would be
+      // interpreted server-side as "clear all" (no-op here, but no
+      // point wasting a round-trip).
+      const newId = addedProduct?.data?.id || addedProduct?.id;
+      if (newId && allergens.length > 0) {
+        dispatch(updateProductAllergens({ productId: newId, allergens }));
+      }
       setPreview(null);
       setProductData(defaultProduct);
+      setAllergens([]);
       dispatch(resetAddProduct());
       dispatch(resetGetProducts());
     } else if (error) {
@@ -275,6 +304,9 @@ const AddProduct = () => {
       toast.error(msg, { id: "addProductError" });
       dispatch(resetAddProduct());
     }
+    // `addedProduct` + `allergens` referenced inside the success
+    // branch — listed so the captured values are always current.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error, dispatch]);
 
   return (
@@ -596,6 +628,12 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
+
+            {/* Alerjenler — saves through a dedicated endpoint
+                (Products/{id}/Allergens). The PUT fires from the
+                success effect once addProduct lands and we have a
+                server-assigned product id. */}
+            <AllergensPicker value={allergens} onChange={setAllergens} />
           </div>
         </div>
 

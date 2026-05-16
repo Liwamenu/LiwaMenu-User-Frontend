@@ -34,6 +34,7 @@ import waiterCallsSlice from "./redux/waiterCalls";
 import reservationsSlice from "./redux/reservations";
 import sambaTablesSlice from "./redux/sambaTables";
 import externalPagesSlice from "./redux/externalPages";
+import allergensSlice from "./redux/allergens";
 // import emailSlice from "./redux/email";
 // import smsSlice from "./redux/sms";
 // import tempUsersSlice from "./redux/tempUsers";
@@ -75,6 +76,7 @@ const store = configureStore({
     reservations: reservationsSlice,
     sambaTables: sambaTablesSlice,
     externalPages: externalPagesSlice,
+    allergens: allergensSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(loadingMiddleware),

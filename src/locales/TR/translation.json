@@ -953,6 +953,15 @@
     "price_list": "Fiyat Listesi",
     "add_product": "Ürün Ekle"
   },
+  "allergens": {
+    "title": "Alerjenler",
+    "hint": "Bu üründe bulunan veya bulunma ihtimali olan alerjenleri işaretleyin. \"İçerir\" net olarak vardır; \"İçerebilir\" çapraz bulaşma ihtimalini belirtir.",
+    "selected_count": "{{count}} seçili",
+    "empty": "Alerjen listesi şu anda yüklenemiyor.",
+    "presence_contains": "İçerir",
+    "presence_may": "İçerebilir",
+    "clear": "Kaldır"
+  },
   "productsList": {
     "title": "Ürünler",
     "subtitle": "Restoran ürünlerinizi düzenleyin, fiyatlandırın ve durumlarını yönetin.",

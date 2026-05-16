@@ -95,6 +95,10 @@ const getProductsSlice = createSlice({
           "Products/DeleteProduct",
           "Products/UpdatePriceList",
           "Products/PriceListApplyBulk",
+          // Allergens use their own write endpoint; the product DTO
+          // carries them, so the Products page needs to refetch to
+          // surface a fresh selection.
+          "Products/UpdateProductAllergens",
           // sibling categories — denormalized fields on each product
           "Categories/AddCategory",
           "Categories/AddCategories",

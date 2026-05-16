@@ -952,6 +952,15 @@
     "price_list": "Price List",
     "add_product": "Add Product"
   },
+  "allergens": {
+    "title": "Allergens",
+    "hint": "Mark allergens that are present in or may have come into contact with this product. \"Contains\" is definitive; \"May Contain\" flags possible cross-contamination.",
+    "selected_count": "{{count}} selected",
+    "empty": "Allergen list can't be loaded right now.",
+    "presence_contains": "Contains",
+    "presence_may": "May Contain",
+    "clear": "Clear"
+  },
   "productsList": {
     "title": "Products",
     "subtitle": "Edit your products, set prices, and manage their status.",
