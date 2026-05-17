@@ -35,13 +35,23 @@ export const isUncategorizedCategory = (cat) =>
 const findUncategorized = (categories) =>
   (categories || []).find(isUncategorizedCategory);
 
+// m2m: a product is an orphan when NONE of its memberships point at a
+// currently-valid category. An empty `categories` array counts as an
+// orphan too (the post-migration "no parent at all" state — pre-migration
+// products without a categoryId fall through the normalizer with an empty
+// array too, so this catches both).
 const collectOrphans = (products, categories) => {
   const validIds = new Set(
     (categories || []).map((c) => c?.id).filter(Boolean),
   );
-  return (products || []).filter(
-    (p) => p && (!p.categoryId || !validIds.has(p.categoryId)),
-  );
+  return (products || []).filter((p) => {
+    if (!p) return false;
+    const memberships = p.categories || [];
+    if (memberships.length === 0) return true;
+    return !memberships.some(
+      (m) => m.categoryId && validIds.has(m.categoryId),
+    );
+  });
 };
 
 const createUncategorizedCategory = async (dispatch, restaurantId) => {
@@ -73,26 +83,37 @@ const createUncategorizedCategory = async (dispatch, restaurantId) => {
 };
 
 const reassignOrphan = (dispatch, prod, targetCategoryId) => {
-  // Send the full product DTO with only categoryId changed. Without
-  // this, backend defaults could blank out fields like description /
-  // hide / recommendation. The orphan likely already has these set;
-  // we preserve them by re-sending whatever we received in the lite
-  // payload (which carries id / name / categoryId / portions). Other
-  // fields fall back to safe defaults.
+  // Send the full product DTO with the membership rewritten to point
+  // at the Uncategorized category. Without preserving every other
+  // editable field the backend defaults would blank out description /
+  // hide / recommendation; the lite payload carries id / name /
+  // portions / categories, so we round-trip what we have and let safe
+  // defaults cover the rest.
+  //
+  // m2m: collapse the (orphaned) memberships into a single new one
+  // pointing at the Uncategorized target. Carrying the old broken
+  // categoryIds would just hit the same orphan check on next run.
+  // Flat `categoryId` / `subCategoryId` stay on the payload as the
+  // backwards-compat bridge for backend builds still on the old
+  // schema (mirrors editProduct.jsx).
   const fd = new FormData();
   fd.append("id", prod.id);
   if (prod.restaurantId) fd.append("restaurantId", prod.restaurantId);
-  fd.append("categoryId", targetCategoryId);
-  if (prod.subCategoryId) fd.append("subCategoryId", prod.subCategoryId);
   fd.append("name", prod.name ?? "");
   fd.append("description", prod.description ?? "");
   fd.append("recommendation", String(prod.recommendation ?? false));
   fd.append("hide", String(prod.hide ?? false));
   fd.append("freeTagging", String(prod.freeTagging ?? false));
-  fd.append("sortOrder", String(prod.sortOrder ?? 0));
+  fd.append("isCampaign", String(prod.isCampaign ?? false));
   if (Array.isArray(prod.portions)) {
     fd.append("portions", JSON.stringify(prod.portions));
   }
+  fd.append(
+    "categories",
+    JSON.stringify([{ categoryId: targetCategoryId }]),
+  );
+  fd.append("categoryId", targetCategoryId);
+  fd.append("subCategoryId", "");
   return dispatch(editProduct(fd));
 };
 

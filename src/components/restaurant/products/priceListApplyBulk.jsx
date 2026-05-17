@@ -96,12 +96,24 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
   // Build the category dropdown from the live `list` so it always
   // matches what the user can actually see. De-duplicated by id and
   // sorted by name for predictable scrolling.
+  //
+  // m2m: iterate every membership a product carries — a product in
+  // multiple categories should make all of those categories show up
+  // in this picker, otherwise users couldn't bulk-target a category
+  // unless one of its products happened to list it first.
   const categoryOptions = useMemo(() => {
     const seen = new Map();
     for (const p of list || []) {
-      const id = p.categoryId || "uncategorized";
-      if (!seen.has(id)) {
-        seen.set(id, p.categoryName || "—");
+      const memberships = p.categories || [];
+      if (memberships.length === 0) {
+        if (!seen.has("uncategorized")) seen.set("uncategorized", "—");
+        continue;
+      }
+      for (const m of memberships) {
+        const id = m.categoryId || "uncategorized";
+        if (!seen.has(id)) {
+          seen.set(id, m.categoryName || "—");
+        }
       }
     }
     const cats = [...seen.entries()]
@@ -131,12 +143,17 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
 
     const updatedList = list.map((product) => {
       // Skip products outside the selected category — they pass through
-      // unchanged so the rest of the price list stays intact.
-      if (
-        onlyCategoryId !== null &&
-        (product.categoryId || "uncategorized") !== onlyCategoryId
-      ) {
-        return product;
+      // unchanged so the rest of the price list stays intact. m2m: a
+      // product is "in" the target category when any of its memberships
+      // matches (or — special case — the target is "uncategorized" and
+      // the product has no memberships at all).
+      if (onlyCategoryId !== null) {
+        const memberships = product.categories || [];
+        const inTarget =
+          onlyCategoryId === "uncategorized"
+            ? memberships.length === 0
+            : memberships.some((m) => m.categoryId === onlyCategoryId);
+        if (!inTarget) return product;
       }
       const newProduct = { ...product };
       newProduct.portions = (product.portions || []).map((portion) => {

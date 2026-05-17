@@ -115,11 +115,21 @@ const ProductCard = ({
           </div>
 
           <div className="mt-0.5 flex flex-wrap items-center gap-1">
-            {product.categoryName && (
-              <span className="inline-flex items-center text-[10px] font-medium text-indigo-700 bg-indigo-50 ring-1 ring-indigo-100 px-1.5 py-0.5 rounded-md">
-                {product.categoryName}
-              </span>
-            )}
+            {/* One chip per category membership. m2m products can sit
+                under multiple categories; surfacing all of them avoids
+                the misleading "this product is only in X" impression
+                you'd get if we kept reading the flat `categoryName`
+                alias (which is just memberships[0].categoryName). */}
+            {(product.categories || [])
+              .filter((c) => c?.categoryName)
+              .map((c) => (
+                <span
+                  key={c.categoryId || c.categoryName}
+                  className="inline-flex items-center text-[10px] font-medium text-indigo-700 bg-indigo-50 ring-1 ring-indigo-100 px-1.5 py-0.5 rounded-md"
+                >
+                  {c.categoryName}
+                </span>
+              ))}
             {/* Chef's pick — same chip family as the others, amber tone +
                 ChefHat icon. Surfaces the `recommendation` flag the user
                 already sets on the Edit Product form so it's visible at

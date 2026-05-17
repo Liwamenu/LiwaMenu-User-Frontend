@@ -181,18 +181,32 @@ const PriceList = ({ data: restaurant }) => {
     setListBefore(initialList);
   }, [products]);
 
+  // m2m: a product appears in EVERY category it's a member of, not just
+  // the first. The same product object is pushed into multiple groups —
+  // edits flow through because `list` is keyed by id and the inputs
+  // update the (single) source object. Products with no memberships
+  // fall back into the "uncategorized" bucket so they stay editable.
   const groupedByCategory = useMemo(() => {
     const grouped = new Map();
-    list.forEach((product) => {
-      const key = product.categoryId || "uncategorized";
+    const pushInto = (key, name, product) => {
       if (!grouped.has(key)) {
         grouped.set(key, {
           categoryId: key,
-          categoryName: product.categoryName || "",
+          categoryName: name || "",
           products: [],
         });
       }
       grouped.get(key).products.push(product);
+    };
+    list.forEach((product) => {
+      const memberships = product.categories || [];
+      if (memberships.length === 0) {
+        pushInto("uncategorized", "", product);
+        return;
+      }
+      for (const m of memberships) {
+        pushInto(m.categoryId || "uncategorized", m.categoryName, product);
+      }
     });
     return Array.from(grouped.values());
   }, [list]);
@@ -243,7 +257,14 @@ const PriceList = ({ data: restaurant }) => {
               !rel.portionId &&
               !rel.productId &&
               rel.categoryId &&
-              rel.categoryId === product.categoryId
+              // m2m: matches any of the product's memberships, not
+              // just the (flat-alias) first one. Without this, a
+              // product in multiple categories whose category-wide
+              // tag relation references a non-primary membership
+              // would miss the amber "priced via tag" tone.
+              (product.categories || []).some(
+                (c) => c.categoryId === rel.categoryId,
+              )
             )
               return true;
             return false;
