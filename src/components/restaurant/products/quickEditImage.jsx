@@ -91,6 +91,13 @@ const QuickEditImage = ({ product, onSaved }) => {
       ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
     }));
     formData.append("categories", JSON.stringify(categoriesPayload));
+    // Backwards-compat: also send the flat `categoryId` /
+    // `subCategoryId` (first picked category) so backend builds that
+    // haven't deployed the new m2m schema yet keep working. See the
+    // matching note in editProduct.jsx / addProduct.jsx.
+    const firstCat = (product.categories || [])[0];
+    formData.append("categoryId", firstCat?.categoryId || "");
+    formData.append("subCategoryId", firstCat?.subCategoryId || "");
     formData.append("image", file);
 
     const portions = (product.portions || []).map((p) => ({

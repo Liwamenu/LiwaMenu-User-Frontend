@@ -278,11 +278,21 @@ const AddProduct = () => {
     // contract: each entry has `categoryId` (required) and an
     // optional `subCategoryId`. We strip the display-only `*Name`
     // fields to keep the payload minimal.
+    //
+    // Backwards-compat: also send the flat `categoryId` /
+    // `subCategoryId` fields pointing at the FIRST picked category.
+    // Backend builds that haven't deployed the new m2m schema yet
+    // still look for those flat fields and surface
+    // "Kategori bulunamadı." when they're absent. Once every
+    // environment is on the new build this fallback can come out.
     const categoriesPayload = productData.categories.map((c) => ({
       categoryId: c.categoryId,
       ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
     }));
     formData.append("categories", JSON.stringify(categoriesPayload));
+    const firstCat = productData.categories[0];
+    formData.append("categoryId", firstCat?.categoryId || "");
+    formData.append("subCategoryId", firstCat?.subCategoryId || "");
 
     // Append image file if present
     if (productData.image instanceof File) {
