@@ -12,6 +12,10 @@ import {
   resetUpdateReservationStatus,
   updateReservationStatus,
 } from "../redux/reservations/updateReservationStatusSlice";
+import {
+  deleteReservation,
+  resetDeleteReservation,
+} from "../redux/reservations/deleteReservationSlice";
 import { useFirebase } from "./firebase";
 
 import newReservationEnSound from "../assets/sounds/reservations/new-reservation-EN.mp3";
@@ -175,6 +179,35 @@ export const ReservationsProvider = ({ children }) => {
       });
   };
 
+  // Hard-delete a reservation. Optimistic: drop the row + decrement
+  // totalCount immediately, snapshot for rollback, dispatch the
+  // thunk, roll back on failure.
+  const handleDelete = async (id) => {
+    let snapshot;
+    setReservationsData((prev) => {
+      snapshot = prev;
+      return prev.filter((r) => r.id !== id);
+    });
+    setTotalCount((prev) =>
+      typeof prev === "number" ? Math.max(0, prev - 1) : prev,
+    );
+
+    const result = await dispatch(deleteReservation(id));
+    dispatch(resetDeleteReservation());
+
+    if (deleteReservation.fulfilled.match(result)) {
+      toast.success(i18n.t("reservationsPage.delete_success"), {
+        id: "deleteReservationSuccess",
+      });
+      return true;
+    }
+    if (snapshot) setReservationsData(snapshot);
+    setTotalCount((prev) =>
+      typeof prev === "number" ? prev + 1 : prev,
+    );
+    return false;
+  };
+
   const handleApplyFilter = () => {
     setPageNumber(1);
     fetchReservations({ pageNumber: 1 });
@@ -306,6 +339,7 @@ export const ReservationsProvider = ({ children }) => {
       setPageSize,
       pageNumbers,
       handleUpdateStatus,
+      handleDelete,
       handleItemsPerPage,
       handlePageChange,
       handleApplyFilter,

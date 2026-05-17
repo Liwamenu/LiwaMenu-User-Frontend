@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock,
   MessageSquare,
+  Trash2,
   Utensils,
   Hash,
 } from "lucide-react";
@@ -12,7 +13,11 @@ import { useTranslation } from "react-i18next";
 // COMP
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
+import ConfirmDeleteModal from "../../common/confirmDeleteModal";
 import FilterWaiterCalls from "../components/filterWaiterCalls";
+
+// CONTEXT
+import { usePopup } from "../../../context/PopupContext";
 
 // UTILS
 import { formatDateString } from "../../../utils/utils";
@@ -23,6 +28,7 @@ const PRIMARY_GRADIENT =
 
 const WaiterCallsPage = () => {
   const { t } = useTranslation();
+  const { setSecondPopupContent } = usePopup();
   const {
     calls,
     pageNumber,
@@ -31,9 +37,27 @@ const WaiterCallsPage = () => {
     pageSize,
     pageNumbers,
     handleResolve,
+    handleDelete,
     handleItemsPerPage,
     handlePageChange,
   } = useWaiterCalls();
+
+  const openDeleteConfirm = (call) => {
+    setSecondPopupContent(
+      <ConfirmDeleteModal
+        title={t("waiterCalls.delete_title")}
+        targetName={t("waiterCalls.delete_target", {
+          table: call.tableNumber || "—",
+        })}
+        description={t("waiterCalls.delete_description")}
+        confirmLabel={t("waiterCalls.delete_confirm")}
+        onConfirm={async () => {
+          await handleDelete(call.id);
+          setSecondPopupContent(null);
+        }}
+      />,
+    );
+  };
 
   const getTimeAgo = (dateString) => {
     const now = new Date();
@@ -97,6 +121,7 @@ const WaiterCallsPage = () => {
                   call={call}
                   t={t}
                   onResolve={() => handleResolve(call.id)}
+                  onDelete={() => openDeleteConfirm(call)}
                   getTimeAgo={getTimeAgo}
                 />
               ))}
@@ -135,7 +160,7 @@ const WaiterCallsPage = () => {
 };
 
 // =================== CALL CARD ===================
-const WaiterCallCard = ({ call, t, onResolve, getTimeAgo }) => {
+const WaiterCallCard = ({ call, t, onResolve, onDelete, getTimeAgo }) => {
   const resolved = !!call.isResolved;
   return (
     <div
@@ -210,8 +235,10 @@ const WaiterCallCard = ({ call, t, onResolve, getTimeAgo }) => {
         )}
       </div>
 
-      {/* ACTIONS */}
-      <div className="shrink-0 self-end sm:self-center">
+      {/* ACTIONS — Resolve (when active) / Resolved badge (when done),
+          plus a Sil icon button. Sil is always available so the staff
+          can clear out the list after a busy shift. */}
+      <div className="shrink-0 self-end sm:self-center flex items-center gap-1.5">
         {!resolved ? (
           <button
             type="button"
@@ -227,6 +254,17 @@ const WaiterCallCard = ({ call, t, onResolve, getTimeAgo }) => {
             <CheckCircle2 className="size-3.5" />
             {t("waiterCalls.resolved")}
           </span>
+        )}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            title={t("waiterCalls.delete_call")}
+            aria-label={t("waiterCalls.delete_call")}
+            className="grid place-items-center size-9 rounded-lg text-rose-600 bg-rose-50 ring-1 ring-rose-200 hover:bg-rose-100 transition dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/30 dark:hover:bg-rose-500/25"
+          >
+            <Trash2 className="size-3.5" strokeWidth={2.4} />
+          </button>
         )}
       </div>
     </div>

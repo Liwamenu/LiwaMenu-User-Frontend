@@ -6,12 +6,17 @@ import {
   useRef,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import i18n from "../config/i18n";
 import { formatDate } from "../utils/utils";
 import { normalizeKeysDeep } from "../utils/normalizeKeys";
 import { getAuth } from "../redux/api";
 import { getOrders, resetGetOrders } from "../redux/orders/getOrdersSlice";
+import {
+  deleteOrder,
+  resetDeleteOrder,
+} from "../redux/orders/deleteOrderSlice";
 import { useFirebase } from "./firebase";
 import newOrderEnSound from "../assets/sounds/orders/newOrder-EN.mp3";
 import newOrderTrSound from "../assets/sounds/orders/newOrder-TR.mp3";
@@ -266,6 +271,44 @@ export const OrdersProvider = ({ children }) => {
     setPageSize({ label: `${number}`, value: number });
   };
 
+  // Hard-delete an order. Optimistic: drop the row + clear the
+  // drawer selection immediately, snapshot for rollback, dispatch
+  // the thunk, roll back on failure. Backend error toasting is
+  // handled globally by the api response interceptor — we only
+  // toast the success path here.
+  const handleDelete = async (orderId) => {
+    let snapshotList;
+    let snapshotSelected;
+    setOrdersData((prev) => {
+      snapshotList = prev;
+      return prev.filter((o) => o.id !== orderId);
+    });
+    setSelectedOrder((prev) => {
+      snapshotSelected = prev;
+      return prev?.id === orderId ? null : prev;
+    });
+    setTotalCount((prev) =>
+      typeof prev === "number" ? Math.max(0, prev - 1) : prev,
+    );
+
+    const result = await dispatch(deleteOrder(orderId));
+    dispatch(resetDeleteOrder());
+
+    if (deleteOrder.fulfilled.match(result)) {
+      toast.success(i18n.t("orders.delete_success"), {
+        id: "deleteOrderSuccess",
+      });
+      return true;
+    }
+    // Rollback
+    if (snapshotList) setOrdersData(snapshotList);
+    if (snapshotSelected !== undefined) setSelectedOrder(snapshotSelected);
+    setTotalCount((prev) =>
+      typeof prev === "number" ? prev + 1 : prev,
+    );
+    return false;
+  };
+
   const value = useMemo(
     () => ({
       ordersData,
@@ -283,6 +326,7 @@ export const OrdersProvider = ({ children }) => {
       filterInitialState,
       handlePageChange,
       handleItemsPerPage,
+      handleDelete,
     }),
     [ordersData, selectedOrder, totalCount, pageSize, pageNumber, filter],
   );

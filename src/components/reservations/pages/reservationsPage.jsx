@@ -9,13 +9,16 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
+import ConfirmDeleteModal from "../../common/confirmDeleteModal";
 import FilterReservations from "../components/filterReservations";
 import { useReservations } from "../../../context/reservationsContext";
+import { usePopup } from "../../../context/PopupContext";
 
 /**
  * Local YYYY-MM-DD without timezone drift. Backend serializes
@@ -33,6 +36,7 @@ const todayLocalYmd = () => {
 
 const ReservationsPage = () => {
   const { t } = useTranslation();
+  const { setSecondPopupContent } = usePopup();
   const {
     reservationsData,
     totalCount,
@@ -43,8 +47,24 @@ const ReservationsPage = () => {
     handlePageChange,
     handleItemsPerPage,
     handleUpdateStatus,
+    handleDelete,
     updateLoading,
   } = useReservations();
+
+  const openDeleteConfirm = (reservation) => {
+    setSecondPopupContent(
+      <ConfirmDeleteModal
+        title={t("reservationsPage.delete_title")}
+        targetName={reservation.fullName || "—"}
+        description={t("reservationsPage.delete_description")}
+        confirmLabel={t("reservationsPage.delete_confirm")}
+        onConfirm={async () => {
+          await handleDelete(reservation.id);
+          setSecondPopupContent(null);
+        }}
+      />,
+    );
+  };
 
   // ── Bu Gün / Tümü tabs ───────────────────────────────────────────
   // Same split as the staff mobile app:
@@ -404,6 +424,18 @@ const ReservationsPage = () => {
                           </p>
                         </div>
                       )}
+                      {/* Sil — always available regardless of status.
+                          Distinct rose styling so it never collides
+                          with Accept/Reject's primary tones. */}
+                      <button
+                        type="button"
+                        onClick={() => openDeleteConfirm(reservation)}
+                        title={t("reservationsPage.delete_reservation")}
+                        aria-label={t("reservationsPage.delete_reservation")}
+                        className="grid place-items-center size-9 rounded-lg text-rose-600 bg-rose-50 ring-1 ring-rose-200 hover:bg-rose-100 transition dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/30 dark:hover:bg-rose-500/25"
+                      >
+                        <Trash2 className="size-3.5" strokeWidth={2.4} />
+                      </button>
                     </div>
                   </div>
                 </div>

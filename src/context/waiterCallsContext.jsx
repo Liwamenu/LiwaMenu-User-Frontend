@@ -10,6 +10,10 @@ import {
   resetResolveWaiterCall,
   resolveWaiterCall,
 } from "../redux/waiterCalls/resolveWaiterCallSlice";
+import {
+  deleteWaiterCall,
+  resetDeleteWaiterCall,
+} from "../redux/waiterCalls/deleteWaiterCallSlice";
 import { useFirebase } from "./firebase";
 import { formatDate } from "../utils/utils";
 import i18n from "../config/i18n";
@@ -89,6 +93,36 @@ export const WaiterCallsProvider = ({ children }) => {
       .finally(() => {
         dispatch(resetResolveWaiterCall());
       });
+  };
+
+  // Hard-delete a waiter call. Optimistic: drop the row + decrement
+  // totalCount immediately, snapshot for rollback, dispatch the
+  // thunk, roll back on failure. The api response interceptor toasts
+  // backend errors; the success branch shows a confirmation toast.
+  const handleDelete = async (id) => {
+    let snapshot;
+    setCalls((prev) => {
+      snapshot = prev;
+      return (prev || []).filter((c) => c.id !== id);
+    });
+    setTotalCount((prev) =>
+      typeof prev === "number" ? Math.max(0, prev - 1) : prev,
+    );
+
+    const result = await dispatch(deleteWaiterCall(id));
+    dispatch(resetDeleteWaiterCall());
+
+    if (deleteWaiterCall.fulfilled.match(result)) {
+      toast.success(i18n.t("waiterCalls.delete_success"), {
+        id: "deleteWaiterCallSuccess",
+      });
+      return true;
+    }
+    if (snapshot) setCalls(snapshot);
+    setTotalCount((prev) =>
+      typeof prev === "number" ? prev + 1 : prev,
+    );
+    return false;
   };
 
   const handleItemsPerPage = (number) => {
@@ -236,6 +270,7 @@ export const WaiterCallsProvider = ({ children }) => {
       setPageSize,
       pageNumbers,
       handleResolve,
+      handleDelete,
       handleItemsPerPage,
       handlePageChange,
       filterInitialState: waiterCallsFilterInitialState,

@@ -17,6 +17,7 @@ import {
   Sparkles,
   StickyNote,
   Store,
+  Trash2,
   Truck,
   User,
   Utensils,
@@ -32,6 +33,10 @@ import { usePopup } from "../../../context/PopupContext";
 
 //COMP
 import OrderLocationPopup from "./orderLocationPopup";
+import ConfirmDeleteModal from "../../common/confirmDeleteModal";
+
+//CONTEXT
+import { useOrders } from "../../../context/ordersContext";
 
 //ACTIONS
 import { useOrderStatusActions } from "../pages/actions";
@@ -124,6 +129,28 @@ export default OrderDetailDrawer;
 
 const DrawerHeader = ({ order, onClose }) => {
   const { t, i18n } = useTranslation();
+  const { setSecondPopupContent } = usePopup();
+  const { handleDelete } = useOrders();
+
+  const openDeleteConfirm = () => {
+    setSecondPopupContent(
+      <ConfirmDeleteModal
+        title={t("orders.delete_title")}
+        targetName={`#${String(order.id).slice(0, 8)}`}
+        description={t("orders.delete_description")}
+        confirmLabel={t("orders.delete_confirm")}
+        onConfirm={async () => {
+          const ok = await handleDelete(order.id);
+          // Drop the modal first, then close the drawer if delete
+          // actually persisted. On failure the modal closes but the
+          // drawer stays open so the user can retry.
+          setSecondPopupContent(null);
+          if (ok) onClose?.();
+        }}
+      />,
+    );
+  };
+
   return (
     <header className="grid grid-cols-[auto_1fr_auto] gap-3 items-center px-4 sm:px-5 py-4 border-b border-[--border-1]">
       <div
@@ -163,6 +190,20 @@ const DrawerHeader = ({ order, onClose }) => {
         >
           <Printer className="size-3.5" strokeWidth={2.4} />
           <span className="hidden sm:inline">{t("orders.print")}</span>
+        </button>
+        {/* Sil — rose tone so it visually separates from the indigo
+            Print action and clearly reads as destructive. Opens a
+            confirm modal in the second popup slot rather than acting
+            directly. */}
+        <button
+          type="button"
+          onClick={openDeleteConfirm}
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 ring-1 ring-rose-200 hover:bg-rose-100 transition dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/30 dark:hover:bg-rose-500/25"
+          title={t("orders.delete_order")}
+          aria-label={t("orders.delete_order")}
+        >
+          <Trash2 className="size-3.5" strokeWidth={2.4} />
+          <span className="hidden sm:inline">{t("orders.delete")}</span>
         </button>
         <button
           type="button"
