@@ -1506,7 +1506,14 @@
     "reject": "Reddet",
     "decided_on": "Karar Verildi",
     "empty_title": "Rezervasyon bulunamadı",
-    "empty_desc": "Filtre ayarlarınızı değiştirmeyi deneyin."
+    "empty_desc": "Filtre ayarlarınızı değiştirmeyi deneyin.",
+    "tabs_aria": "Rezervasyon listesi filtresi",
+    "tab_today": "Bu Gün",
+    "tab_all": "Tümü",
+    "today_empty_title": "Bugün için rezervasyon yok",
+    "today_empty_desc": "Bugünkü gelen rezervasyonlar burada listelenecek.",
+    "upcoming_empty_title": "Gelecek için onaylanmış rezervasyon yok",
+    "upcoming_empty_desc": "Onaylanmış ileri tarihli rezervasyonlar burada listelenir. Bekleyen rezervasyonlar için \"Bu Gün\" sekmesini veya filtreleri kullanın."
   },
   "waiterCalls": {
     "title": "Garson Çağrı Listesi",

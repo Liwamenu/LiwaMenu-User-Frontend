@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -16,6 +17,20 @@ import CustomPagination from "../../common/pagination";
 import FilterReservations from "../components/filterReservations";
 import { useReservations } from "../../../context/reservationsContext";
 
+/**
+ * Local YYYY-MM-DD without timezone drift. Backend serializes
+ * `reservationDate` in the same format so we can string-compare
+ * directly. Recomputed on every render so a long-open session
+ * sees the date cross over midnight naturally.
+ */
+const todayLocalYmd = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 const ReservationsPage = () => {
   const { t } = useTranslation();
   const {
@@ -30,6 +45,33 @@ const ReservationsPage = () => {
     handleUpdateStatus,
     updateLoading,
   } = useReservations();
+
+  // ── Bu Gün / Tümü tabs ───────────────────────────────────────────
+  // Same split as the staff mobile app:
+  //   • Bu Gün : reservationDate === today (any status — staff
+  //              want pending today's bookings visible too).
+  //   • Tümü   : reservationDate >= today AND status === "Accepted"
+  //              — past dates are never useful, and a "what's
+  //              coming up that's confirmed" planner stays clean.
+  //
+  // Filters apply to the currently-loaded page only. Users wanting
+  // older history can still use FilterReservations above the tabs.
+  const today = useMemo(() => todayLocalYmd(), []);
+  const [activeTab, setActiveTab] = useState("today");
+
+  const todayList = useMemo(
+    () => reservationsData.filter((r) => r.reservationDate === today),
+    [reservationsData, today],
+  );
+  const upcomingAcceptedList = useMemo(
+    () =>
+      reservationsData.filter(
+        (r) => r.reservationDate >= today && r.status === "Accepted",
+      ),
+    [reservationsData, today],
+  );
+  const visibleList =
+    activeTab === "today" ? todayList : upcomingAcceptedList;
 
   const STATUS_LABEL = {
     Accepted: t("reservationsPage.status_accepted"),
@@ -136,8 +178,60 @@ const ReservationsPage = () => {
             ))}
           </div>
 
+          {/* Tabs: Bu Gün / Tümü — filter the loaded page */}
+          <div
+            className="inline-flex p-1 rounded-2xl bg-[--white-1] border border-[--border-1] shadow-sm mb-4"
+            role="tablist"
+            aria-label={t("reservationsPage.tabs_aria")}
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "today"}
+              onClick={() => setActiveTab("today")}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === "today"
+                  ? "bg-[--primary-1] text-white shadow-md shadow-indigo-500/20"
+                  : "text-[--gr-1] hover:text-[--black-1]"
+              }`}
+            >
+              {t("reservationsPage.tab_today")}{" "}
+              <span
+                className={`ml-1 inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === "today"
+                    ? "bg-white/20 text-white"
+                    : "bg-[--light-4] text-[--gr-1]"
+                }`}
+              >
+                {todayList.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "all"}
+              onClick={() => setActiveTab("all")}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === "all"
+                  ? "bg-[--primary-1] text-white shadow-md shadow-indigo-500/20"
+                  : "text-[--gr-1] hover:text-[--black-1]"
+              }`}
+            >
+              {t("reservationsPage.tab_all")}{" "}
+              <span
+                className={`ml-1 inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === "all"
+                    ? "bg-white/20 text-white"
+                    : "bg-[--light-4] text-[--gr-1]"
+                }`}
+              >
+                {upcomingAcceptedList.length}
+              </span>
+            </button>
+          </div>
+
           <div className="space-y-4">
-            {reservationsData.map((reservation) => (
+            {visibleList.map((reservation) => (
               <div
                 key={reservation.id}
                 className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm hover:shadow-md transition-all overflow-hidden group"
@@ -290,14 +384,18 @@ const ReservationsPage = () => {
               </div>
             ))}
 
-            {reservationsData.length === 0 && (
+            {visibleList.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-[--gr-2]">
                 <Calendar size={48} className="mb-4 opacity-20" />
                 <p className="text-lg font-medium">
-                  {t("reservationsPage.empty_title")}
+                  {activeTab === "today"
+                    ? t("reservationsPage.today_empty_title")
+                    : t("reservationsPage.upcoming_empty_title")}
                 </p>
                 <p className="text-sm">
-                  {t("reservationsPage.empty_desc")}
+                  {activeTab === "today"
+                    ? t("reservationsPage.today_empty_desc")
+                    : t("reservationsPage.upcoming_empty_desc")}
                 </p>
               </div>
             )}
