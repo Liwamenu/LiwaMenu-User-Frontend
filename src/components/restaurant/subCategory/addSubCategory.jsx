@@ -193,12 +193,20 @@ const AddSubCategory = ({ restaurant, onSuccess }) => {
               </p>
             </div>
 
-            {/* Alt Kategori Görseli */}
+            {/* Alt Kategori Görseli — see editCategory.jsx; the label
+                IS the dropzone, preview lives inside so clicks trigger
+                the file picker via standard HTML semantics. */}
             <div>
               <span className="text-[--black-2] text-sm font-medium mb-2 block">
                 {t("addSubCategory.image_optional")}
               </span>
-              <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-6 text-center hover:border-[--primary-1] transition-all relative cursor-pointer">
+              <CustomFileInput
+                required={false}
+                value={subCategory.image}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg"
+                className="!group !border-[--border-1] !rounded-xl !p-6 !bg-transparent text-center hover:!border-[--primary-1] transition-all"
+              >
                 {preview ? (
                   <div className="mb-3 max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md">
                     <img
@@ -208,7 +216,7 @@ const AddSubCategory = ({ restaurant, onSuccess }) => {
                     />
                   </div>
                 ) : (
-                  <div className="group-hover:scale-110 transition-transform duration-300 pointer-events-none">
+                  <div className="group-hover:scale-110 transition-transform duration-300">
                     <div className="w-12 h-12 bg-[--status-primary-1] text-[--primary-1] rounded-full flex items-center justify-center mx-auto mb-3">
                       <CloudUI className="size-[1.5rem] pt-1 pl-1" />
                     </div>
@@ -217,16 +225,7 @@ const AddSubCategory = ({ restaurant, onSuccess }) => {
                     </p>
                   </div>
                 )}
-                <div className="absolute inset-0 opacity-0">
-                  <CustomFileInput
-                    required={false}
-                    value={subCategory.image}
-                    onChange={handleFileChange}
-                    accept="image/png, image/jpeg"
-                    className="h-full w-full"
-                  />
-                </div>
-              </div>
+              </CustomFileInput>
             </div>
 
             {/* Durum Toggle */}

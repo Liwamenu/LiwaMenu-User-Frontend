@@ -216,18 +216,27 @@ const EditCategory = ({
               onChange={(v) => handleField("name", toNameCase(v))}
             />
 
-            {/* Kategori Görseli */}
+            {/* Kategori Görseli — the <label> rendered by CustomFileInput
+                IS the dropzone now. Passing the preview as children
+                means clicks anywhere on the image (or the cloud CTA)
+                naturally trigger the file picker via standard
+                label-for-input HTML semantics, and drag-drop fires the
+                label's onDrop handler directly. The earlier overlay/
+                absolute-positioned pattern relied on hit-test stacking
+                and was unreliable in real browsers. */}
             <div>
               <span className="text-[--black-2] text-sm font-medium mb-2 block">
                 {t("editCategories.category_image_optional")}
               </span>
-              <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-4 text-center hover:border-[--primary-1] transition-all relative cursor-pointer">
+              <CustomFileInput
+                required={false}
+                value={categoryData.image}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg"
+                className="!group !border-[--border-1] !rounded-xl !p-4 !bg-transparent text-center hover:!border-[--primary-1] transition-all"
+              >
                 {preview ? (
-                  // pointer-events-none so clicks on the preview fall
-                  // through to the absolute-positioned CustomFileInput
-                  // below — otherwise the <img> swallows the click and
-                  // the file picker (and drag-drop) never open.
-                  <div className="max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md pointer-events-none">
+                  <div className="max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md">
                     <img
                       src={preview}
                       className="max-h-40 w-auto object-cover rounded-md"
@@ -235,7 +244,7 @@ const EditCategory = ({
                     />
                   </div>
                 ) : (
-                  <div className="group-hover:scale-110 transition-transform duration-300 pointer-events-none">
+                  <div className="group-hover:scale-110 transition-transform duration-300">
                     <div className="w-12 h-12 bg-[--status-primary-1] text-[--primary-1] rounded-full flex items-center justify-center mx-auto mb-3">
                       <CloudUI className="size-[1.5rem] pt-1 pl-1" />
                     </div>
@@ -244,16 +253,7 @@ const EditCategory = ({
                     </p>
                   </div>
                 )}
-                <div className="absolute inset-0 opacity-0">
-                  <CustomFileInput
-                    required={false}
-                    value={categoryData.image}
-                    onChange={handleFileChange}
-                    accept="image/png, image/jpeg"
-                    className="h-full w-full"
-                  />
-                </div>
-              </div>
+              </CustomFileInput>
             </div>
 
             {/* Checkbox for Menu IDs */}
