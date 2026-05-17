@@ -96,8 +96,13 @@ const expandRelations = (relations, lite) => {
       const p = productList.find((p) => p.id === rel.productId);
       productCandidates = p ? [p] : [];
     } else if (!allCats) {
-      productCandidates = productList.filter(
-        (p) => p.categoryId === rel.categoryId,
+      // m2m: a product belongs to the relation's category when ANY of
+      // its memberships matches, not just the first one the normalizer
+      // surfaces via the flat alias. Without this, multi-category
+      // products would silently miss wildcards targeting a non-primary
+      // category.
+      productCandidates = productList.filter((p) =>
+        (p.categories || []).some((c) => c.categoryId === rel.categoryId),
       );
     } else {
       productCandidates = productList;
@@ -108,9 +113,18 @@ const expandRelations = (relations, lite) => {
         ? product.portions || []
         : (product.portions || []).filter((pt) => pt.id === rel.portionId);
 
+      // Pick the categoryId to stamp on the emitted relation row.
+      // Prefer the explicit `rel.categoryId` when the wildcard wasn't
+      // an "all categories", since that's the category the user picked
+      // for this relation row. Otherwise fall back to the product's
+      // first membership (m2m: pick one, the relation is keyed by
+      // (productId, portionId) anyway).
+      const emittedCategoryId = !allCats
+        ? rel.categoryId
+        : (product.categories || [])[0]?.categoryId ?? product.categoryId;
       for (const portion of portionCandidates) {
         out.push({
-          categoryId: product.categoryId,
+          categoryId: emittedCategoryId,
           productId: product.id,
           portionId: portion.id,
         });

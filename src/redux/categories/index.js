@@ -7,6 +7,7 @@ import addCategoriesSlice from "./addCategoriesSlice";
 import addCategorySlice from "./addCategorySlice";
 import editCategorySlice from "./editCategorySlice";
 import deleteCategorySlice from "./deleteCategorySlice";
+import reorderCategoryProductsSlice from "./reorderCategoryProductsSlice";
 
 const categoriesSlice = combineReducers({
   get: getCategoriesSlice,
@@ -18,6 +19,9 @@ const categoriesSlice = combineReducers({
   addCategory: addCategorySlice,
   editCategory: editCategorySlice,
   deleteCategory: deleteCategorySlice,
+  // Bulk drag-reorder of products within a category — replaces the
+  // legacy "loop N editProduct PUTs" the modal used to do.
+  reorderProducts: reorderCategoryProductsSlice,
 });
 
 export default categoriesSlice;

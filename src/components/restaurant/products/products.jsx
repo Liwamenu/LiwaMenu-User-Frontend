@@ -473,8 +473,17 @@ const Products = () => {
     const statusVal = statusFilter?.value;
     const recVal = recommendationFilter?.value;
     return allProducts.filter((p) => {
-      // Apply category filter
-      if (catId && p.categoryId !== catId) return false;
+      // Apply category filter — m2m: a product passes when any of its
+      // memberships matches the picked category. The flat `categoryId`
+      // alias surfaces only the first membership, so reading it here
+      // would hide multi-category products from category-scoped
+      // searches.
+      if (
+        catId &&
+        !(p.categories || []).some((c) => c.categoryId === catId)
+      ) {
+        return false;
+      }
       // Apply status filter (true = active, false = closed/hidden)
       if (statusVal === true && p.hide) return false;
       if (statusVal === false && !p.hide) return false;

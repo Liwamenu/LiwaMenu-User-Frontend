@@ -79,6 +79,15 @@ const byName = (a, b) =>
 const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
 const hasSubCategory = (id) => !!id && id !== EMPTY_GUID;
 
+// Pull the m2m membership that ties this product to the modal's
+// PARENT category. The product can carry membership rows for several
+// categories; we only care about the one for `categoryId` here
+// because the subcategory selection is per-junction (a product in
+// "Kebaplar" can be in sub "Et Kebabı" while the SAME product in
+// "Sıcaklar" can be in sub "Ana Yemek" — independent rows).
+const getParentMembership = (product, categoryId) =>
+  (product?.categories || []).find((m) => m.categoryId === categoryId);
+
 const SubCategoryProducts = ({
   subCategoryId,
   subCategoryName,
@@ -113,7 +122,10 @@ const SubCategoryProducts = ({
   // Hydrate the working state when the fetch lands. Depending only on
   // `products` (not success/error) is deliberate: resetGetProductsBy
   // CategoryIdState below flips `success`, and a re-run on that would
-  // wipe the user's pending toggles.
+  // wipe the user's pending toggles. The "is this product in this
+  // sub?" check walks the m2m membership for the modal's PARENT
+  // category — the flat `subCategoryId` alias only sees the first
+  // membership, which would miss every multi-category product.
   useEffect(() => {
     if (!products) return;
     const all = products.data || products || [];
@@ -121,7 +133,10 @@ const SubCategoryProducts = ({
     setAssigned(
       new Set(
         all
-          .filter((p) => p.subCategoryId === subCategoryId)
+          .filter((p) => {
+            const m = getParentMembership(p, categoryId);
+            return m && m.subCategoryId === subCategoryId;
+          })
           .map((p) => p.id),
       ),
     );
@@ -134,30 +149,38 @@ const SubCategoryProducts = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
-  // Products eligible for this modal: those with NO sub-category, or
-  // already in THIS one. A product sitting in a DIFFERENT sub-category
-  // is excluded entirely — it can't be assigned here until it's removed
-  // from its current sub-category first. `hasSubCategory` folds the
-  // empty-GUID / "" / null variants so a genuinely unassigned product
-  // always lands in the left column.
+  // Products eligible for this modal: those with NO sub-category in
+  // the parent membership, or already in THIS one. A product sitting
+  // in a DIFFERENT sub of the same parent is excluded entirely — it
+  // has to be removed from its current sub-category first.
+  // `hasSubCategory` folds the empty-GUID / "" / null variants so a
+  // genuinely unassigned product always lands in the left column.
   const relevant = useMemo(
     () =>
-      (allItems || []).filter(
-        (p) =>
-          !hasSubCategory(p.subCategoryId) ||
-          p.subCategoryId === subCategoryId,
-      ),
-    [allItems, subCategoryId],
+      (allItems || []).filter((p) => {
+        const m = getParentMembership(p, categoryId);
+        // No membership in the parent (shouldn't happen — backend
+        // returns this list by-parent — but defensive). Treat as
+        // "no sub" so it shows up on the left.
+        if (!m) return true;
+        return (
+          !hasSubCategory(m.subCategoryId) || m.subCategoryId === subCategoryId
+        );
+      }),
+    [allItems, subCategoryId, categoryId],
   );
   // Baseline assignment as fetched — used to diff against `assigned`.
   const originalAssigned = useMemo(
     () =>
       new Set(
         (allItems || [])
-          .filter((p) => p.subCategoryId === subCategoryId)
+          .filter((p) => {
+            const m = getParentMembership(p, categoryId);
+            return m && m.subCategoryId === subCategoryId;
+          })
           .map((p) => p.id),
       ),
-    [allItems, subCategoryId],
+    [allItems, subCategoryId, categoryId],
   );
 
   const q = normalizeSearch(searchVal.trim());
@@ -214,26 +237,59 @@ const SubCategoryProducts = ({
     });
 
   // Minimal editProduct payload — carry every editable field through so
-  // the backend doesn't blank them, override only subCategoryId. No
-  // image field is sent: omitting it preserves the existing imageURL
-  // (the same "untouched image" contract editProduct.jsx relies on).
-  // The product DTO from getProductsByCategoryId has no restaurantId of
-  // its own, so the prop is the source of truth for that field.
+  // the backend doesn't blank them, override only the parent-category
+  // membership's `subCategoryId`. No image field is sent: omitting it
+  // preserves the existing imageURL (the same "untouched image"
+  // contract editProduct.jsx relies on). The product DTO from
+  // getProductsByCategoryId has no restaurantId of its own, so the
+  // prop is the source of truth for that field.
+  //
+  // m2m: rebuild the categories[] array so only the membership for the
+  // modal's PARENT category gets its subCategoryId touched — every
+  // other membership round-trips untouched. The flat
+  // `categoryId` / `subCategoryId` fields are still sent for the
+  // backwards-compat window (see editProduct.jsx for the same bridge).
   const buildEditPayload = (p, nextSubCategoryId) => {
+    const existing = Array.isArray(p.categories) ? p.categories : [];
+    const updated = existing.map((m) =>
+      m.categoryId === categoryId
+        ? {
+            categoryId: m.categoryId,
+            ...(nextSubCategoryId ? { subCategoryId: nextSubCategoryId } : {}),
+          }
+        : {
+            categoryId: m.categoryId,
+            ...(m.subCategoryId ? { subCategoryId: m.subCategoryId } : {}),
+          },
+    );
+    // Defensive: backend should always return a parent membership for
+    // a product fetched by-parent-category, but if it doesn't we synth
+    // one so the save doesn't silently drop the row's category link.
+    if (!updated.some((m) => m.categoryId === categoryId)) {
+      updated.push({
+        categoryId,
+        ...(nextSubCategoryId ? { subCategoryId: nextSubCategoryId } : {}),
+      });
+    }
+
     const fd = new FormData();
     fd.append("id", p.id);
     fd.append("restaurantId", p.restaurantId || restaurantId || "");
-    fd.append("categoryId", p.categoryId ?? categoryId ?? "");
-    fd.append("subCategoryId", nextSubCategoryId ?? "");
     fd.append("name", p.name ?? "");
     fd.append("description", p.description ?? "");
     fd.append("recommendation", String(p.recommendation ?? false));
     fd.append("hide", String(p.hide ?? false));
     fd.append("freeTagging", String(p.freeTagging ?? false));
-    fd.append("sortOrder", String(p.sortOrder ?? 0));
+    fd.append("isCampaign", String(p.isCampaign ?? false));
     if (Array.isArray(p.portions)) {
       fd.append("portions", JSON.stringify(p.portions));
     }
+    fd.append("categories", JSON.stringify(updated));
+    // Backwards-compat flat fields — point at the parent membership we
+    // just rewrote so old backends see the new sub assignment.
+    const parent = updated.find((m) => m.categoryId === categoryId);
+    fd.append("categoryId", parent?.categoryId || categoryId || "");
+    fd.append("subCategoryId", parent?.subCategoryId || "");
     return fd;
   };
 

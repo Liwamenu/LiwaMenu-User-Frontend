@@ -11,6 +11,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
 import { invalidateOn } from "../cacheInvalidation";
+import { normalizeProductsPayload } from "../../utils/normalizeProduct";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -43,7 +44,11 @@ export const getProductsLite = createAsyncThunk(
       );
       // Endpoint returns { data: ProductLite[], totalCount }. Some
       // backends omit the wrapper for unpaged endpoints; tolerate both.
-      return res?.data?.data ?? res?.data ?? [];
+      // Then normalize so each product has both the flat
+      // `categoryId` alias AND the new `categories[]` array — see
+      // `utils/normalizeProduct.js` for the migration contract.
+      const raw = res?.data?.data ?? res?.data ?? [];
+      return normalizeProductsPayload(raw);
     } catch (err) {
       if (err?.response?.data) return rejectWithValue(err.response.data);
       return rejectWithValue({ message_TR: err.message });
@@ -101,6 +106,14 @@ const getProductsLiteSlice = createSlice({
           // consumers (Order Tags row, future ones) may grow to read
           // them — keep the cache eventually consistent either way.
           "Products/UpdateProductAllergens",
+          // Many-to-many junction mutations — the lite payload
+          // carries `categoryId`, so adding or removing a
+          // membership has to bust the cache so dropdowns stay
+          // accurate. Reorder doesn't touch the lite shape today
+          // but include it for symmetry / future-proofing.
+          "Products/AddProductToCategory",
+          "Products/RemoveProductFromCategory",
+          "Categories/UpdateProductOrder",
           // sibling categories / subcategories — denormalized labels
           "Categories/EditCategory",
           "Categories/EditCategories",

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { normalizeProductsPayload } from "../../utils/normalizeProduct";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -55,8 +56,9 @@ export const getProductsByCategoryId = createAsyncThunk(
         params: data,
       });
 
-      // console.log(res.data);
-      return res.data;
+      // Same migration shim as getProductsSlice — see
+      // `utils/normalizeProduct.js` for the contract.
+      return normalizeProductsPayload(res.data);
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

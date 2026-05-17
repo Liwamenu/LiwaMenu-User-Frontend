@@ -11,7 +11,16 @@ const Popup = () => {
   } = usePopup();
 
   useEffect(() => {
-    if (popupContent || loadingComponent || cropImgPopup) {
+    // Lock background scroll for every popup slot — including
+    // `secondPopupContent`, which hosts Edit Product, the
+    // categoryProducts picker etc. Without it, scrolling inside the
+    // modal also moved the page underneath.
+    if (
+      popupContent ||
+      secondPopupContent ||
+      loadingComponent ||
+      cropImgPopup
+    ) {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
@@ -20,7 +29,7 @@ const Popup = () => {
     return () => {
       document.body.style.overflowY = "auto";
     };
-  }, [popupContent, loadingComponent, cropImgPopup]);
+  }, [popupContent, secondPopupContent, loadingComponent, cropImgPopup]);
 
   return (
     <>

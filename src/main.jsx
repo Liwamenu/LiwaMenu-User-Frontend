@@ -23,7 +23,16 @@ createRoot(document.getElementById("root")).render(
             <ReservationsProvider>
               <PopupProvider>
                 <App />
-                <Toaster toastOptions={toastOptions} />
+                <Toaster
+                  toastOptions={toastOptions}
+                  // Push the toast container above every popup slot
+                  // in components/common/popup.jsx (z-[99999] for the
+                  // second-popup slot, z-[9999999] for the loading
+                  // overlay) so success/error feedback fired from
+                  // inside an open modal — e.g. the AI buttons in
+                  // Edit Product — isn't trapped behind the dialog.
+                  containerStyle={{ zIndex: 10000000 }}
+                />
               </PopupProvider>
             </ReservationsProvider>
           </WaiterCallsProvider>

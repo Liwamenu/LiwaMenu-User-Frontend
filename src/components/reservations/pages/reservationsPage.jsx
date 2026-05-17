@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -16,6 +17,20 @@ import CustomPagination from "../../common/pagination";
 import FilterReservations from "../components/filterReservations";
 import { useReservations } from "../../../context/reservationsContext";
 
+/**
+ * Local YYYY-MM-DD without timezone drift. Backend serializes
+ * `reservationDate` in the same format so we can string-compare
+ * directly. Recomputed on every render so a long-open session
+ * sees the date cross over midnight naturally.
+ */
+const todayLocalYmd = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 const ReservationsPage = () => {
   const { t } = useTranslation();
   const {
@@ -31,9 +46,63 @@ const ReservationsPage = () => {
     updateLoading,
   } = useReservations();
 
+  // ── Bu Gün / Tümü tabs ───────────────────────────────────────────
+  // Same split as the staff mobile app:
+  //   • Bu Gün : reservationDate === today (any status — staff
+  //              want pending today's bookings visible too).
+  //   • Tümü   : reservationDate >= today AND status === "Accepted"
+  //              — past dates are never useful, and a "what's
+  //              coming up that's confirmed" planner stays clean.
+  //
+  // Filters apply to the currently-loaded page only. Users wanting
+  // older history can still use FilterReservations above the tabs.
+  const today = useMemo(() => todayLocalYmd(), []);
+  const [activeTab, setActiveTab] = useState("today");
+
+  const todayList = useMemo(
+    () => reservationsData.filter((r) => r.reservationDate === today),
+    [reservationsData, today],
+  );
+  const upcomingAcceptedList = useMemo(
+    () =>
+      reservationsData.filter(
+        (r) => r.reservationDate >= today && r.status === "Accepted",
+      ),
+    [reservationsData, today],
+  );
+  const visibleList =
+    activeTab === "today" ? todayList : upcomingAcceptedList;
+
+  // Stats reflect "what's still actionable" — today's + future
+  // reservations, regardless of status. Past reservations are
+  // excluded everywhere so the counts on the dashboard match the
+  // mental model "what's coming up".
+  const activeReservations = useMemo(
+    () => reservationsData.filter((r) => r.reservationDate >= today),
+    [reservationsData, today],
+  );
+  const pendingCount = useMemo(
+    () =>
+      activeReservations.filter((r) => r.status === "PendingOwnerDecision")
+        .length,
+    [activeReservations],
+  );
+  const acceptedGuestsSum = useMemo(
+    () =>
+      activeReservations
+        .filter((r) => r.status === "Accepted")
+        .reduce((acc, r) => acc + (r.guestCount || 0), 0),
+    [activeReservations],
+  );
+
+  // Backend's reject value is "Denied" (per the write endpoint's
+  // enum check). Older code paths and the existing filter dropdown
+  // still surface "Rejected" as a label, so both map to the same
+  // user-visible TR/EN string.
   const STATUS_LABEL = {
     Accepted: t("reservationsPage.status_accepted"),
     PendingOwnerDecision: t("reservationsPage.status_pending"),
+    Denied: t("reservationsPage.status_rejected"),
     Rejected: t("reservationsPage.status_rejected"),
   };
 
@@ -43,6 +112,7 @@ const ReservationsPage = () => {
         return "bg-[--status-green] text-[--green-2] border-[--green-2]";
       case "PendingOwnerDecision":
         return "bg-[--status-yellow] text-[--yellow-1] border-[--yellow-1]";
+      case "Denied":
       case "Rejected":
         return "bg-[--status-red] text-[--red-2] border-[--red-2]";
       default:
@@ -56,6 +126,7 @@ const ReservationsPage = () => {
         return <CheckCircle size={14} />;
       case "PendingOwnerDecision":
         return <AlertCircle size={14} />;
+      case "Denied":
       case "Rejected":
         return <XCircle size={14} />;
       default:
@@ -86,30 +157,21 @@ const ReservationsPage = () => {
             {[
               {
                 label: t("reservationsPage.stat_total"),
-                value: reservationsData.length,
+                value: activeReservations.length,
                 icon: Calendar,
                 color: "text-[--primary-1]",
                 bg: "bg-[--status-primary-1]",
               },
               {
                 label: t("reservationsPage.stat_pending"),
-                value: reservationsData.filter(
-                  (reservation) =>
-                    reservation.status === "PendingOwnerDecision",
-                ).length,
+                value: pendingCount,
                 icon: Clock,
                 color: "text-[--yellow-1]",
                 bg: "bg-[--status-yellow]",
               },
               {
                 label: t("reservationsPage.stat_confirmed_guests"),
-                value: reservationsData
-                  .filter((reservation) => reservation.status === "Accepted")
-                  .reduce(
-                    (accumulator, currentItem) =>
-                      accumulator + currentItem.guestCount,
-                    0,
-                  ),
+                value: acceptedGuestsSum,
                 icon: Users,
                 color: "text-[--green-2]",
                 bg: "bg-[--status-green]",
@@ -136,8 +198,60 @@ const ReservationsPage = () => {
             ))}
           </div>
 
+          {/* Tabs: Bu Gün / Tümü — filter the loaded page */}
+          <div
+            className="inline-flex p-1 rounded-2xl bg-[--white-1] border border-[--border-1] shadow-sm mb-4"
+            role="tablist"
+            aria-label={t("reservationsPage.tabs_aria")}
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "today"}
+              onClick={() => setActiveTab("today")}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === "today"
+                  ? "bg-[--primary-1] text-white shadow-md shadow-indigo-500/20"
+                  : "text-[--gr-1] hover:text-[--black-1]"
+              }`}
+            >
+              {t("reservationsPage.tab_today")}{" "}
+              <span
+                className={`ml-1 inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === "today"
+                    ? "bg-white/20 text-white"
+                    : "bg-[--light-4] text-[--gr-1]"
+                }`}
+              >
+                {todayList.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "all"}
+              onClick={() => setActiveTab("all")}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                activeTab === "all"
+                  ? "bg-[--primary-1] text-white shadow-md shadow-indigo-500/20"
+                  : "text-[--gr-1] hover:text-[--black-1]"
+              }`}
+            >
+              {t("reservationsPage.tab_all")}{" "}
+              <span
+                className={`ml-1 inline-flex items-center justify-center text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === "all"
+                    ? "bg-white/20 text-white"
+                    : "bg-[--light-4] text-[--gr-1]"
+                }`}
+              >
+                {upcomingAcceptedList.length}
+              </span>
+            </button>
+          </div>
+
           <div className="space-y-4">
-            {reservationsData.map((reservation) => (
+            {visibleList.map((reservation) => (
               <div
                 key={reservation.id}
                 className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm hover:shadow-md transition-all overflow-hidden group"
@@ -262,7 +376,13 @@ const ReservationsPage = () => {
                           </button>
                           <button
                             onClick={() =>
-                              handleUpdateStatus(reservation.id, "Rejected", "")
+                              // Backend's PUT Reservations/OwnerUpdateStatus
+                              // returns 400 "Sadece Accepted veya Denied
+                              // gönderilebilir" if we send "Rejected" —
+                              // verified live. The display label is still
+                              // "Reddedildi" / "Rejected", only the wire
+                              // value changes.
+                              handleUpdateStatus(reservation.id, "Denied", "")
                             }
                             disabled={updateLoading}
                             className="flex-1 lg:w-full px-4 py-2 bg-[--white-1] hover:bg-[--light-4] text-[--red-2] border border-[--red-1] rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -290,14 +410,18 @@ const ReservationsPage = () => {
               </div>
             ))}
 
-            {reservationsData.length === 0 && (
+            {visibleList.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-[--gr-2]">
                 <Calendar size={48} className="mb-4 opacity-20" />
                 <p className="text-lg font-medium">
-                  {t("reservationsPage.empty_title")}
+                  {activeTab === "today"
+                    ? t("reservationsPage.today_empty_title")
+                    : t("reservationsPage.upcoming_empty_title")}
                 </p>
                 <p className="text-sm">
-                  {t("reservationsPage.empty_desc")}
+                  {activeTab === "today"
+                    ? t("reservationsPage.today_empty_desc")
+                    : t("reservationsPage.upcoming_empty_desc")}
                 </p>
               </div>
             )}

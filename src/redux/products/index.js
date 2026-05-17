@@ -9,6 +9,8 @@ import addProductSlice from "./addProductSlice";
 import editProductSlice from "./editProductSlice";
 import deleteProductSlice from "./deleteProductSlice";
 import priceListApplyBulkSlice from "./priceListApplyBulkSlice";
+import addProductToCategorySlice from "./addProductToCategorySlice";
+import removeProductFromCategorySlice from "./removeProductFromCategorySlice";
 
 const productsSlice = combineReducers({
   get: getProductsSlice,
@@ -22,6 +24,10 @@ const productsSlice = combineReducers({
   getByCategoryId: getProductsByCategoryIdSlice,
   updatePriceList: updatePriceListSlice,
   applyPriceListBulk: priceListApplyBulkSlice,
+  // Per-product, per-category junction mutations — the many-to-many
+  // counterparts of the single-cat editProduct overload.
+  addToCategory: addProductToCategorySlice,
+  removeFromCategory: removeProductFromCategorySlice,
 });
 
 export default productsSlice;

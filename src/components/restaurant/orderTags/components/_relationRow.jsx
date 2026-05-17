@@ -11,7 +11,13 @@ const RelationRow = ({
 }) => {
   const filteredProducts = useMemo(() => {
     if (relation.categoryId === "*") return products;
-    return products.filter((p) => p.categoryId === relation.categoryId);
+    // m2m: a product belongs to the picked category when ANY of its
+    // memberships matches. The flat `categoryId` alias only surfaces
+    // memberships[0], which would hide multi-category products from
+    // the second-tier dropdown.
+    return products.filter((p) =>
+      (p.categories || []).some((c) => c.categoryId === relation.categoryId),
+    );
   }, [relation.categoryId, products]);
 
   const selectedProduct = useMemo(() => {

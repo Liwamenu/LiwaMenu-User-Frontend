@@ -1,19 +1,23 @@
 // "Ürünleri Yönet" modal — restructured into a two-column picker:
 //   • LEFT  — every product in the restaurant that is NOT currently in
-//             this category. Clicking "Ekle" assigns that product to
-//             this category.
+//             this category. Clicking "Ekle" links that product to
+//             this category WITHOUT touching its other category
+//             memberships (true many-to-many).
 //   • RIGHT — products that ARE in this category. Drag-drop reorder is
-//             supported here, plus inline edit / delete.
+//             supported here, plus inline edit / "move to another
+//             category" (= add to target + remove from this).
 // A single search box at the top filters BOTH columns by product name
 // (Turkish-aware diacritic folding so "ızgara" matches "izgara", etc.).
 //
-// Backend contract caveat: the current `editProduct` endpoint only takes
-// a single `categoryId`, so "Ekle" is technically a *move* — it sets the
-// product's categoryId to this one, removing it from wherever it
-// previously lived. The two-column UI works the same way regardless;
-// when the backend grows a true many-to-many endpoint the only change
-// needed will be inside `handleAddToCategory` (swap the editProduct
-// dispatch for an "AddProductToCategory" one).
+// Endpoint wiring (post many-to-many migration):
+//   • "Ekle"            → POST   /Products/{id}/Categories
+//   • "Bu kategoriden çıkar" via the move picker
+//                          → POST /Products/{id}/Categories (target)
+//                          + DELETE /Products/{id}/Categories/{this}
+//   • "Sıralamayı Kaydet" → PUT  /Categories/{id}/ProductOrder
+// All three were previously overloaded onto editProduct as single-cat
+// moves. The new flow respects the per-junction model — a product can
+// live in multiple categories with a distinct sortOrder per row.
 //
 // Mounted via PopupContext.setPopupContent (single-popup slot) — the
 // nested EditProduct / DeleteProduct popups go through
@@ -49,11 +53,19 @@ import {
   getProductsByCategoryId,
   resetGetProductsByCategoryIdState,
 } from "../../../redux/products/getProductsByCategoryIdSlice";
-import {
-  editProduct,
-  resetEditProduct,
-} from "../../../redux/products/editProductSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+import {
+  addProductToCategory,
+  resetAddProductToCategory,
+} from "../../../redux/products/addProductToCategorySlice";
+import {
+  removeProductFromCategory,
+  resetRemoveProductFromCategory,
+} from "../../../redux/products/removeProductFromCategorySlice";
+import {
+  reorderCategoryProducts,
+  resetReorderCategoryProducts,
+} from "../../../redux/categories/reorderCategoryProductsSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -245,64 +257,48 @@ const CategoryProducts = ({
   const handleEditProduct = (product) =>
     setSecondPopupContent(<EditProduct product={product} />);
 
-  // Build the bare-minimum FormData payload editProduct expects. We carry
-  // the existing values through so the backend doesn't blank them.
-  const buildEditPayload = (p, overrides = {}) => {
-    const fd = new FormData();
-    fd.append("id", p.id);
-    if (p.restaurantId || restaurantId)
-      fd.append("restaurantId", p.restaurantId || restaurantId);
-    fd.append("categoryId", overrides.categoryId ?? p.categoryId ?? "");
-    if (p.subCategoryId !== undefined)
-      fd.append("subCategoryId", p.subCategoryId ?? "");
-    fd.append("name", p.name ?? "");
-    fd.append("description", p.description ?? "");
-    fd.append("recommendation", String(p.recommendation ?? false));
-    fd.append("hide", String(p.hide ?? false));
-    fd.append("freeTagging", String(p.freeTagging ?? false));
-    fd.append(
-      "sortOrder",
-      String(overrides.sortOrder ?? p.sortOrder ?? 0),
-    );
-    if (Array.isArray(p.portions)) {
-      fd.append("portions", JSON.stringify(p.portions));
-    }
-    if (p.image && typeof p.image === "string") {
-      fd.append("imageUrl", p.image);
-    }
-    return fd;
-  };
-
-  // Add (=move) a left-column product into this category. Optimistic UI:
-  // immediately moves it across so the user gets feedback before the
-  // network round-trip completes. Rolls back on failure.
+  // Link a left-column product to this category via the new
+  // many-to-many junction endpoint. The product stays in its other
+  // categories — this is genuinely an ADD, not a move. Optimistic
+  // UI: immediately slot it into the right column with the next
+  // sortOrder so the user gets feedback before the round-trip
+  // completes. Rolls back on failure.
+  //
+  // `subCategoryId` is carried through if the product already had a
+  // subcategory assigned (the alias from normalizeProduct lands on
+  // `prod.subCategoryId`). The new endpoint validates that the sub
+  // belongs to `categoryId` — if it doesn't, we'd 400; today the
+  // lite payload only carries one sub, so the carry-through is a
+  // best-effort default and the user can refine in EditProduct later.
   const handleAddToCategory = async (prod) => {
     if (mutatingId) return; // serialise — keeps the optimistic state simple
     setMutatingId(prod.id);
 
-    // Snapshot for rollback.
+    // Snapshot for rollback. The lite list is the source for the
+    // left column — removing the row optimistically prevents it
+    // from showing in both columns mid-flight.
     const prevItems = items ?? [];
     const prevLite = liteLocal ?? [];
 
     const newSortOrder = prevItems.length;
-    const moved = {
+    const added = {
       ...prod,
       categoryId,
       sortOrder: newSortOrder,
     };
 
-    setItems([...prevItems, moved]);
-    setItemsBefore((prev) => [...(prev ?? []), moved]);
+    setItems([...prevItems, added]);
+    setItemsBefore((prev) => [...(prev ?? []), added]);
     setLiteLocal(prevLite.filter((p) => p.id !== prod.id));
 
     try {
       const action = await dispatch(
-        editProduct(
-          buildEditPayload(prod, {
-            categoryId,
-            sortOrder: newSortOrder,
-          }),
-        ),
+        addProductToCategory({
+          productId: prod.id,
+          categoryId,
+          // Carry-through; backend will reject if mismatched.
+          subCategoryId: prod.subCategoryId ?? null,
+        }),
       );
       if (action?.error) throw action.payload || action.error;
       toast.success(
@@ -313,7 +309,6 @@ const CategoryProducts = ({
         { id: "catProdAdd" },
       );
     } catch (err) {
-      // Rollback to pre-add snapshots.
       setItems(prevItems);
       setItemsBefore(prevItems);
       setLiteLocal(prevLite);
@@ -321,7 +316,7 @@ const CategoryProducts = ({
         err?.message_TR || err?.message || t("categoryProducts.add_failed");
       toast.error(msg, { id: "catProdAdd" });
     } finally {
-      dispatch(resetEditProduct());
+      dispatch(resetAddProductToCategory());
       setMutatingId(null);
     }
   };
@@ -349,10 +344,18 @@ const CategoryProducts = ({
     );
   };
 
-  // The actual MOVE — dispatched after the user picks a destination
-  // in the picker. Optimistic UI: drop the row from the right column
-  // and inject it into the lite cache with its new categoryId so it
-  // doesn't disappear from the picker if reopened.
+  // Move = ADD to target + REMOVE from current. Two sequential
+  // dispatches so we respect the many-to-many model. Ordered
+  // add-then-remove (not the reverse) so the orphan guard on
+  // DELETE never trips — after the add the product is in two
+  // categories, so removing from this one leaves it with one.
+  //
+  // Optimistic UI: drop the row from the right column immediately,
+  // inject it into the lite cache with the new categoryId alias so
+  // it appears in the left column of OTHER categories if reopened.
+  // Rollback on failure of either step (the modal doesn't try to
+  // undo a partial add — backend invalidation will reconcile via
+  // refetch on the next list view).
   const executeMoveToCategory = async (prod, targetCategoryId) => {
     if (!targetCategoryId || mutatingId) return;
     setMutatingId(prod.id);
@@ -369,17 +372,29 @@ const CategoryProducts = ({
     ]);
 
     try {
-      const action = await dispatch(
-        editProduct(
-          buildEditPayload(prod, {
-            categoryId: targetCategoryId,
-            // sortOrder reset so the product appears at the bottom of
-            // its new category (avoids inheriting the old position).
-            sortOrder: 0,
-          }),
-        ),
+      // Step 1: add to the destination category.
+      const addAction = await dispatch(
+        addProductToCategory({
+          productId: prod.id,
+          categoryId: targetCategoryId,
+          // The destination category may have a different subcategory
+          // set; we don't carry the old sub forward to avoid the
+          // 400 "sub doesn't belong to category" the backend throws.
+          subCategoryId: null,
+        }),
       );
-      if (action?.error) throw action.payload || action.error;
+      if (addAction?.error) throw addAction.payload || addAction.error;
+
+      // Step 2: remove from this category. Safe — the product is now
+      // in 2 categories, so the orphan guard won't trip.
+      const removeAction = await dispatch(
+        removeProductFromCategory({
+          productId: prod.id,
+          categoryId,
+        }),
+      );
+      if (removeAction?.error) throw removeAction.payload || removeAction.error;
+
       const targetCat = (categories || []).find(
         (c) => c.id === targetCategoryId,
       );
@@ -392,7 +407,6 @@ const CategoryProducts = ({
         { id: "catProdMove" },
       );
     } catch (err) {
-      // Rollback on backend reject.
       setItems(prevItems);
       setItemsBefore(prevItemsBefore);
       setLiteLocal(prevLite);
@@ -402,7 +416,8 @@ const CategoryProducts = ({
         t("categoryProducts.move_failed");
       toast.error(msg, { id: "catProdMove" });
     } finally {
-      dispatch(resetEditProduct());
+      dispatch(resetAddProductToCategory());
+      dispatch(resetRemoveProductFromCategory());
       setMutatingId(null);
     }
   };
@@ -437,19 +452,17 @@ const CategoryProducts = ({
     setSavingOrder(true);
     toast.loading(t("categoryProducts.saving_order"), { id: "prodOrder" });
 
-    const beforeMap = new Map(itemsBefore.map((p) => [p.id, p.sortOrder ?? 0]));
-    const moved = items.filter(
-      (p) => beforeMap.get(p.id) !== (p.sortOrder ?? 0),
-    );
+    // Single bulk dispatch — backend assigns sortOrder = 0, 1, 2, ...
+    // for each junction in the order we send. Send the FULL current
+    // list (every product in the category, in display order) — partial
+    // lists get rejected with 400.
+    const productIds = items.map((p) => p.id);
 
     try {
-      // Sequential to keep error reporting simple and to be friendly to the API.
-      for (const p of moved) {
-        const action = await dispatch(
-          editProduct(buildEditPayload(p, { sortOrder: p.sortOrder ?? 0 })),
-        );
-        if (action?.error) throw action.payload || action.error;
-      }
+      const action = await dispatch(
+        reorderCategoryProducts({ categoryId, productIds }),
+      );
+      if (action?.error) throw action.payload || action.error;
       setItemsBefore(items);
       toast.success(t("categoryProducts.order_saved"), { id: "prodOrder" });
     } catch (err) {
@@ -459,7 +472,7 @@ const CategoryProducts = ({
         t("categoryProducts.order_save_failed");
       toast.error(msg, { id: "prodOrder" });
     } finally {
-      dispatch(resetEditProduct());
+      dispatch(resetReorderCategoryProducts());
       setSavingOrder(false);
     }
   };
