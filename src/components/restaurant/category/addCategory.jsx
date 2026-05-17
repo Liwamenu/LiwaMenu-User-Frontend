@@ -18,7 +18,7 @@ import {
   addCategory,
   resetAddCategory,
 } from "../../../redux/categories/addCategorySlice";
-import { getMenus, resetGetMenus } from "../../../redux/menus/getMenusSlice";
+import { getMenus } from "../../../redux/menus/getMenusSlice";
 
 const initialCategory = () => ({
   name: "",
@@ -35,9 +35,14 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
   const { setPopupContent } = usePopup();
 
   const { success, error } = useSelector((s) => s.categories.addCategory);
-  const { menus, error: menusError } = useSelector((s) => s.menus.get);
-
-  const [menusData, setMenusData] = useState(null);
+  // Read menus directly from the slice — the older mirror-into-local +
+  // resetGetMenus() pattern looped infinitely against the fetch effect
+  // after the slice gained `fetchedFor` caching. Same fix as
+  // editCategory.jsx.
+  const { menus, fetchedFor: menusFetchedFor } = useSelector(
+    (s) => s.menus.get,
+  );
+  const menusData = menus;
   // Guards the "auto-select the only menu" effect so it runs once.
   // Without it, unticking the auto-selected menu would just immediately
   // re-tick on the next render — user could never opt out. With the
@@ -130,21 +135,13 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
     if (error) dispatch(resetAddCategory());
   }, [success, error]);
 
-  //GET MENUS
+  // GET MENUS — slice's fetchedFor handles caching across mounts.
   useEffect(() => {
-    if (!menusData) {
+    if (!menus || menusFetchedFor !== id) {
       dispatch(getMenus({ restaurantId: id }));
     }
-  }, [menusData]);
-
-  //SET MENUS
-  useEffect(() => {
-    if (menus) {
-      setMenusData(menus);
-      dispatch(resetGetMenus());
-    }
-    if (menusError) dispatch(resetGetMenus());
-  }, [menus, menusError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // When the restaurant has exactly one menu, pre-select it so the
   // new category isn't accidentally saved with an empty `menuIds` (a
@@ -203,12 +200,21 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
               onChange={(v) => handleField("name", toNameCase(v))}
             />
 
-            {/* Kategori Görseli */}
+            {/* Kategori Görseli — see editCategory.jsx for the rationale.
+                The label rendered by CustomFileInput IS the dropzone, so
+                clicks on the preview / cloud CTA trigger the file picker
+                natively. */}
             <div>
               <span className="text-[--black-2] text-sm font-medium mb-2 block">
                 {t("addCategory.category_image_optional")}
               </span>
-              <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-4 text-center hover:border-[--primary-1] transition-all relative cursor-pointer">
+              <CustomFileInput
+                required={false}
+                value={category.image}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg"
+                className="!group !border-[--border-1] !rounded-xl !p-4 !bg-transparent text-center hover:!border-[--primary-1] transition-all"
+              >
                 {preview ? (
                   <div className="max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md">
                     <img
@@ -218,7 +224,7 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
                     />
                   </div>
                 ) : (
-                  <div className="group-hover:scale-110 transition-transform duration-300 pointer-events-none">
+                  <div className="group-hover:scale-110 transition-transform duration-300">
                     <div className="w-12 h-12 bg-[--status-primary-1] text-[--primary-1] rounded-full flex items-center justify-center mx-auto mb-3">
                       <CloudUI className="size-[1.5rem] pt-1 pl-1" />
                     </div>
@@ -227,16 +233,7 @@ const AddCategory = ({ id, onSuccess, data: restaurant }) => {
                     </p>
                   </div>
                 )}
-                <div className="absolute inset-0 opacity-0">
-                  <CustomFileInput
-                    required={false}
-                    value={category.image}
-                    onChange={handleFileChange}
-                    accept="image/png, image/jpeg"
-                    className="h-full w-full"
-                  />
-                </div>
-              </div>
+              </CustomFileInput>
             </div>
 
             {/* Checkbox for Menu IDs */}
