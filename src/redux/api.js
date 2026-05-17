@@ -168,7 +168,14 @@ axiosPrivate.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
-      errorMessage = t("apiErrors.inactive_account");
+      // 403 covers more than "account inactive" — role/permission
+      // denial, endpoint-level [Authorize] failures, etc. Prefer the
+      // backend's own `message_TR` when present so the user sees the
+      // real reason ("Yetkiniz yok", "Geçersiz endpoint", …) instead
+      // of the misleading default. Falls back to "inactive_account"
+      // only when the backend sent no diagnostic.
+      const backend = pickBackendMessage(error?.response?.data);
+      errorMessage = backend || t("apiErrors.inactive_account");
       toast.error(errorMessage, { id: "403" });
     } else if (error.response) {
       const resErr = pickBackendMessage(error?.response?.data);
