@@ -10,9 +10,7 @@ import { useTranslation } from "react-i18next";
 import ProductsHeader from "./header";
 import CustomInput from "../../common/customInput";
 import CustomToggle from "../../common/customToggle";
-import CustomSelect from "../../common/customSelector";
 import CustomTextarea from "../../common/customTextarea";
-import CustomFileInput from "../../common/customFileInput";
 
 // UTILS
 import { parsePrice, toNameCase } from "../../../utils/utils";
@@ -30,6 +28,7 @@ import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesS
 import { updateProductAllergens } from "../../../redux/allergens/updateProductAllergensSlice";
 
 import AllergensPicker from "./allergensPicker";
+import CategoriesPicker from "./categoriesPicker";
 
 const emptyPortion = () => ({
   id: undefined,
@@ -108,13 +107,14 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     [],
   );
 
-  // Per-row column visibility — Kampanya tied to the SELECTED category's
-  // campaign flag, Özel tied to the restaurant's isSpecialPriceActive.
+  // Per-row column visibility:
+  //   • Kampanya — driven by the per-product isCampaign flag (used
+  //                to be inferred from the parent category's
+  //                campaign flag, but the many-to-many migration
+  //                moved this onto Product itself).
+  //   • Özel    — only when the restaurant's isSpecialPriceActive is true.
   // Mirrors AddProduct so both forms behave identically.
-  const selectedCategory = (categories || []).find(
-    (c) => c.id === productData?.categoryId,
-  );
-  const showCampaign = !!selectedCategory?.campaign;
+  const showCampaign = !!productData?.isCampaign;
   const showSpecial = !!restaurant?.isSpecialPriceActive;
   // Owner-supplied label for the special-price column (Genel Ayarlar
   // → "Özel Fiyat Tanımı"). Falls back to the generic "Özel" header
@@ -141,30 +141,6 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     2: "grid-cols-2",
     3: "grid-cols-3",
   }[priceCount];
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [subCategoryOptions, setSubCategoryOptions] = useState([]);
-
-  function setCategoryOptionsFunc() {
-    const options = (categories || []).map((c) => ({
-      value: c.id,
-      label: c.name,
-      ...c,
-    }));
-    setCategoryOptions(options);
-  }
-
-  function setSubCategoryOptionsFunc() {
-    const options = (subCategories || []).map((sc) => ({
-      value: sc.id,
-      label: sc.name,
-      ...sc,
-    }));
-    setSubCategoryOptions(options);
-  }
-
-  const getSubcatOptions = (categoryId) =>
-    (subCategoryOptions || []).filter((s) => s.categoryId === categoryId);
-
   //handlers
   const handleField = (key, value) => {
     setProductData((prev) => ({ ...prev, [key]: value }));
@@ -243,6 +219,21 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
       toast.error(t("editProduct.no_changes"));
       return;
     }
+
+    // Client-side category guard — backend rejects empty arrays
+    // with 400 (orphan guard), but surfacing the message here saves
+    // a round-trip and gives the user a clearer, localised error.
+    if (!productData.categories || productData.categories.length === 0) {
+      toast.error(
+        t(
+          "editProduct.categories_required",
+          "En az bir kategori seçin.",
+        ),
+        { id: "editProductCategories" },
+      );
+      return;
+    }
+
     const formData = new FormData();
 
     // Append basic fields
@@ -252,9 +243,20 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     formData.append("description", productData.description || "");
     formData.append("recommendation", productData.recommendation);
     formData.append("hide", productData.hide);
-    formData.append("categoryId", productData.categoryId || "");
-    formData.append("subCategoryId", productData.subCategoryId || "");
     formData.append("freeTagging", productData.freeTagging);
+    formData.append("isCampaign", !!productData.isCampaign);
+
+    // Many-to-many: ship the picked memberships as a JSON-stringified
+    // array (multipart/form-data can't nest natively). Backend
+    // contract: each entry has `categoryId` (required) and an
+    // optional `subCategoryId`. Strip the display-only `*Name` fields
+    // (and any per-junction sortOrder the backend already owns) to
+    // keep the payload minimal.
+    const categoriesPayload = productData.categories.map((c) => ({
+      categoryId: c.categoryId,
+      ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
+    }));
+    formData.append("categories", JSON.stringify(categoriesPayload));
 
     // Image handling: 3 mutually exclusive cases.
     //   1. User picked a new file → upload it (replaces existing)
@@ -297,27 +299,19 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
 
   //GET CATEGORIES IF NOT IN STORE
   useEffect(() => {
-    if (!categories && categoryOptions.length === 0) {
+    if (!categories) {
       dispatch(getCategories({ restaurantId }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  //SET CATEGORIES
-  useEffect(() => {
-    if (categories) setCategoryOptionsFunc();
-  }, [categories, dispatch]);
 
   //GET SUBCATEGORIES IF NOT IN STORE
   useEffect(() => {
-    if (!subCategories && subCategoryOptions.length === 0) {
+    if (!subCategories) {
       dispatch(getSubCategories({ restaurantId }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  //SET SUBCATEGORIES
-  useEffect(() => {
-    if (subCategories) setSubCategoryOptionsFunc();
-  }, [subCategories]);
 
   useEffect(() => {
     if (success) {
@@ -429,58 +423,36 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                     onChange={(v) => handleField("name", toNameCase(v))}
                   />
 
-                  <CustomSelect
+                  <CategoriesPicker
+                    value={productData.categories || []}
+                    onChange={(cats) => handleField("categories", cats)}
+                    categories={categories || []}
+                    subCategories={subCategories || []}
+                    t={t}
                     required
-                    label={`${t("editProduct.category_label")} *`}
-                    placeholder={t("editProduct.category_placeholder")}
-                    value={
-                      productData.categoryId
-                        ? {
-                            value: productData.categoryId,
-                            label: productData.categoryName,
-                          }
-                        : {
-                            value: "",
-                            label: t("editProduct.category_placeholder"),
-                          }
-                    }
-                    style={{ backgroundColor: "var(--light-1)" }}
-                    options={categoryOptions}
-                    onChange={(opt) =>
-                      setProductData((prev) => ({
-                        ...prev,
-                        categoryId: opt?.value || "",
-                        categoryName: opt?.label || "",
-                      }))
-                    }
-                    isSearchable={true}
-                    className="text-sm"
                   />
 
-                  <CustomSelect
-                    label={t("editProduct.subCategory_label")}
-                    disabled={!productData.categoryId}
-                    placeholder={t("editProduct.subCategory_placeholder")}
-                    value={
-                      productData.subCategoryId
-                        ? {
-                            value: productData.subCategoryId,
-                            label: productData.subCategoryName,
-                          }
-                        : null
-                    }
-                    isClearable
-                    style={{ backgroundColor: "var(--light-1)" }}
-                    options={getSubcatOptions(productData.categoryId)}
-                    onChange={(opt) =>
-                      setProductData((prev) => ({
-                        ...prev,
-                        subCategoryId: opt?.value || "",
-                        subCategoryName: opt?.label || "",
-                      }))
-                    }
-                    className="text-sm"
-                  />
+                  {/* Kampanya toggle — promoted from the parent
+                      category to a per-product field by the
+                      many-to-many migration. Drives the Kampanya
+                      price column below. */}
+                  <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-indigo-200 transition-colors">
+                    <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
+                      {t("editProduct.isCampaign_section", "Kampanya")}
+                    </span>
+                    <div className="flex items-center justify-between">
+                      <CustomToggle
+                        label={t(
+                          "editProduct.isCampaign_label",
+                          "Kampanyalı Ürün",
+                        )}
+                        className1="text-sm"
+                        className="peer-checked:bg-[--green-1] bg-[--border-1] scale-[.9]"
+                        checked={!!productData.isCampaign}
+                        onChange={() => handleToggle("isCampaign")}
+                      />
+                    </div>
+                  </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1 py-2">

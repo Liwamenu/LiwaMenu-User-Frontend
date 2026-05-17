@@ -71,6 +71,12 @@ const QuickEditImage = ({ product, onSaved }) => {
     // Backend PUT /Products/EditProduct expects the full product DTO.
     // Mirror the field set used by editProduct.jsx (handleSave) so the
     // shape is identical and only the image actually changes.
+    //
+    // Many-to-many migration: replay the existing `categories` array
+    // verbatim (minus display-only `*Name` fields) so nothing about
+    // the category membership shifts on an image-only save. The
+    // upstream `normalizeProduct` guarantees `product.categories` is
+    // an array on every read path that feeds this popup.
     const formData = new FormData();
     formData.append("id", product.id);
     formData.append("restaurantId", product.restaurantId);
@@ -78,9 +84,13 @@ const QuickEditImage = ({ product, onSaved }) => {
     formData.append("description", product.description || "");
     formData.append("recommendation", !!product.recommendation);
     formData.append("hide", !!product.hide);
-    formData.append("categoryId", product.categoryId || "");
-    formData.append("subCategoryId", product.subCategoryId || "");
     formData.append("freeTagging", !!product.freeTagging);
+    formData.append("isCampaign", !!product.isCampaign);
+    const categoriesPayload = (product.categories || []).map((c) => ({
+      categoryId: c.categoryId,
+      ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
+    }));
+    formData.append("categories", JSON.stringify(categoriesPayload));
     formData.append("image", file);
 
     const portions = (product.portions || []).map((p) => ({
