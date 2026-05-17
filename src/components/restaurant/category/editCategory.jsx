@@ -20,7 +20,7 @@ import {
   editCategory,
   resetEditCategory,
 } from "../../../redux/categories/editCategorySlice";
-import { getMenus, resetGetMenus } from "../../../redux/menus/getMenusSlice";
+import { getMenus } from "../../../redux/menus/getMenusSlice";
 
 const EditCategory = ({
   id,
@@ -34,7 +34,15 @@ const EditCategory = ({
   const { setPopupContent } = usePopup();
 
   const { success, error } = useSelector((s) => s.categories.editCategory);
-  const { menus, error: menusError } = useSelector((s) => s.menus.get);
+  // Read the menus list straight from the slice. The earlier mirror-into-
+  // local-state + resetGetMenus() pattern looped infinitely against the
+  // fetch effect after the slice gained a fetchedFor cache — the reset
+  // wiped the slice every render, the fetch refilled it, repeat. Reading
+  // the slice directly lets us rely on its own cache (see useEffect below).
+  const { menus, fetchedFor: menusFetchedFor } = useSelector(
+    (s) => s.menus.get,
+  );
+  const menusData = menus;
 
   const [categoryData, setCategoryData] = useState(category);
   const [preview, setPreview] = useState(
@@ -43,7 +51,6 @@ const EditCategory = ({
       : category?.imageAbsoluteUrl || null,
   );
   const [showCampaignWarning, setShowCampaignWarning] = useState(false);
-  const [menusData, setMenusData] = useState(null);
 
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
@@ -159,21 +166,15 @@ const EditCategory = ({
     if (error) dispatch(resetEditCategory());
   }, [success, error]);
 
-  //GET MENUS
+  // GET MENUS — fetch only when the slice cache is empty or scoped to
+  // a different restaurant. The slice handles invalidation on menu
+  // mutations, so this never re-fetches while the popup is open.
   useEffect(() => {
-    if (!menusData) {
+    if (!menus || menusFetchedFor !== id) {
       dispatch(getMenus({ restaurantId: id }));
     }
-  }, [menusData]);
-
-  //SET MENUS
-  useEffect(() => {
-    if (menus) {
-      setMenusData(menus);
-      dispatch(resetGetMenus());
-    }
-    if (menusError) dispatch(resetGetMenus());
-  }, [menus, menusError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   return (
     <div className="w-full flex justify-center pb-5- mt-1- text-[--black-2] max-h-[95dvh] overflow-hidden ">
@@ -222,7 +223,11 @@ const EditCategory = ({
               </span>
               <div className="group border-2 border-dashed border-[--border-1] rounded-xl p-4 text-center hover:border-[--primary-1] transition-all relative cursor-pointer">
                 {preview ? (
-                  <div className="max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md">
+                  // pointer-events-none so clicks on the preview fall
+                  // through to the absolute-positioned CustomFileInput
+                  // below — otherwise the <img> swallows the click and
+                  // the file picker (and drag-drop) never open.
+                  <div className="max-h-40 overflow-hidden flex justify-center items-center rounded-lg mx-auto shadow-md pointer-events-none">
                     <img
                       src={preview}
                       className="max-h-40 w-auto object-cover rounded-md"
