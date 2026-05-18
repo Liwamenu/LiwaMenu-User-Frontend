@@ -135,7 +135,7 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
-      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
+      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-2xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center mb-6 border-b border-[--border-1] pb-4">
           <h3 className="text-2xl font-bold text-[--black-1]">
             {t("addMenu.title")}
@@ -203,13 +203,13 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
                         key={idx}
                         type="button"
                         onClick={() => toggleScheduleDay(sch.id, idx)}
-                        className={`text-[10px] w-8 h-8 rounded-full border flex items-center justify-center transition-colors font-medium ${
+                        className={`text-xs h-8 px-3 rounded-full border flex items-center justify-center transition-colors font-medium whitespace-nowrap ${
                           sch.days.includes(idx)
                             ? "bg-[--primary-1] text-white border-[--primary-1]"
                             : "bg-[--white-1] text-[--gr-1] border-[--border-1]"
                         }`}
                       >
-                        {t(`workingHours.${dayKey}`).substring(0, 2)}
+                        {t(`workingHours.${dayKey}`)}
                       </button>
                     ))}
                   </div>
