@@ -21,6 +21,11 @@ import {
   resetEditCategory,
 } from "../../../redux/categories/editCategorySlice";
 import { getMenus } from "../../../redux/menus/getMenusSlice";
+import {
+  getProductsByCategoryId,
+  resetGetProductsByCategoryId,
+} from "../../../redux/products/getProductsByCategoryIdSlice";
+import { editProduct } from "../../../redux/products/editProductSlice";
 
 const EditCategory = ({
   id,
@@ -51,6 +56,13 @@ const EditCategory = ({
       : category?.imageAbsoluteUrl || null,
   );
   const [showCampaignWarning, setShowCampaignWarning] = useState(false);
+
+  // Snapshot the as-fetched `campaign` flag once so the success
+  // handler can diff against it. Reading `category.campaign`
+  // directly inside the success effect would re-read on every
+  // re-render and may have already drifted if the parent re-fetched
+  // the category mid-edit.
+  const [originalCampaign] = useState(!!category?.campaign);
 
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
@@ -141,6 +153,104 @@ const EditCategory = ({
     }
   };
 
+  // Build the EditProduct FormData needed to flip a single product's
+  // `isCampaign` flag without losing any other field. The endpoint is
+  // full-DTO-replace (per the uncategorizedSafety post-mortem any
+  // omitted portion gets wiped to zero), so we round-trip every field
+  // the lite category-product DTO carries plus the m2m memberships +
+  // their flat backwards-compat aliases. Same shape `editProduct.jsx`'s
+  // own handleSave assembles, just with `isCampaign` overridden.
+  const buildProductCampaignPayload = (product, isCampaign) => {
+    const fd = new FormData();
+    fd.append("id", product.id);
+    fd.append("restaurantId", product.restaurantId || id || "");
+    fd.append("name", product.name ?? "");
+    fd.append("description", product.description ?? "");
+    fd.append("recommendation", String(!!product.recommendation));
+    fd.append("hide", String(!!product.hide));
+    fd.append("freeTagging", String(!!product.freeTagging));
+    fd.append("isCampaign", String(!!isCampaign));
+    if (Array.isArray(product.portions)) {
+      fd.append("portions", JSON.stringify(product.portions));
+    }
+    const memberships = Array.isArray(product.categories)
+      ? product.categories.map((c) => ({
+          categoryId: c.categoryId,
+          ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
+        }))
+      : [];
+    fd.append("categories", JSON.stringify(memberships));
+    // Backwards-compat flat fields (see editProduct.jsx for context).
+    const firstCat = memberships[0];
+    fd.append("categoryId", firstCat?.categoryId || categoryData.id || "");
+    fd.append("subCategoryId", firstCat?.subCategoryId || "");
+    return fd;
+  };
+
+  // After a successful category save, if the `campaign` flag changed,
+  // cascade the new value to every product in this category. Backend
+  // doesn't propagate yet (see CATEGORY_CAMPAIGN_CASCADE_BRIEF.md for
+  // the long-form ask) so the frontend does the fan-out itself —
+  // fetch the full product DTOs first via `getProductsByCategoryId`
+  // (full payload so portions/prices survive the round-trip), then
+  // PUT each one in parallel with `isCampaign` updated. Progress
+  // surfaces in a single loading toast that swaps to success/partial
+  // on completion.
+  const runCampaignCascade = async () => {
+    const action = await dispatch(
+      getProductsByCategoryId({ categoryId: categoryData.id }),
+    );
+    const payload = action?.payload;
+    const products = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload)
+        ? payload
+        : [];
+    dispatch(resetGetProductsByCategoryId());
+    if (products.length === 0) return { succeeded: 0, total: 0 };
+
+    const toastId = "campaignCascade";
+    toast.loading(
+      t("editCategories.cascade_progress", {
+        count: products.length,
+        defaultValue: "{{count}} ürün güncelleniyor…",
+      }),
+      { id: toastId },
+    );
+
+    const results = await Promise.allSettled(
+      products.map((p) =>
+        dispatch(
+          editProduct(buildProductCampaignPayload(p, categoryData.campaign)),
+        ),
+      ),
+    );
+    const succeeded = results.filter(
+      (r) => r.status === "fulfilled" && !r.value?.error,
+    ).length;
+    const failed = results.length - succeeded;
+    if (failed > 0) {
+      toast.error(
+        t("editCategories.cascade_partial", {
+          succeeded,
+          total: products.length,
+          defaultValue:
+            "{{succeeded}}/{{total}} ürün güncellendi, kalanı başarısız oldu.",
+        }),
+        { id: toastId, duration: 6000 },
+      );
+    } else {
+      toast.success(
+        t("editCategories.cascade_done", {
+          count: succeeded,
+          defaultValue: "{{count}} ürünün Kampanya durumu güncellendi.",
+        }),
+        { id: toastId },
+      );
+    }
+    return { succeeded, total: products.length };
+  };
+
   // TOAST
   useEffect(() => {
     if (success) {
@@ -159,11 +269,21 @@ const EditCategory = ({
             : cat,
         ),
       );
+      const campaignChanged = !!categoryData.campaign !== originalCampaign;
       setPopupContent(null);
       toast.success(t("editCategories.success"), { id: "categories" });
       dispatch(resetEditCategory());
+      // Fire-and-forget — the popup is already closed so the parent
+      // can keep working. Cascade results surface via its own toast.
+      if (campaignChanged) {
+        runCampaignCascade().catch((err) => {
+          // eslint-disable-next-line no-console
+          console.warn("[editCategory] cascade failed:", err);
+        });
+      }
     }
     if (error) dispatch(resetEditCategory());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error]);
 
   // GET MENUS — fetch only when the slice cache is empty or scoped to
