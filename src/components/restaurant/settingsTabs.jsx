@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import PageHelp from "../common/pageHelp";
+import { useDirtyNav } from "../../context/DirtyNavContext";
 
 // Map the URL slug for each tab to the matching pageHelp.<key> entry in
 // the i18n bundle. Kept inline because the tabs themselves only live here.
@@ -40,6 +41,7 @@ const SLUG_TO_HELP_KEY = {
 const SettingsTabs = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const { confirmAndNavigate } = useDirtyNav();
   const activeRef = useRef(null);
   const wrapRef = useRef(null);
   // Routes look like /restaurant/<slug>/<id>; the slug is what we match on.
@@ -138,6 +140,23 @@ const SettingsTabs = () => {
                 key={tabSlug}
                 ref={active ? activeRef : null}
                 to={to}
+                // Intercept the navigation so the DirtyNav context can
+                // prompt the user before they leave a page with
+                // unsaved form changes. The active tab early-returns
+                // (clicking your own tab is a no-op anyway, but we
+                // still don't want to fire the confirm).
+                onClick={(e) => {
+                  if (active) return;
+                  if (!confirmAndNavigate()) {
+                    e.preventDefault();
+                    return;
+                  }
+                  // confirmAndNavigate said go — fall through to the
+                  // Link's own router navigation. We `preventDefault`
+                  // and call `navigate` manually only when we need
+                  // to short-circuit; the plain Link behaviour wins
+                  // otherwise.
+                }}
                 className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
                   active
                     ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"

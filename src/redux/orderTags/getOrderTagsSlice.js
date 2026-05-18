@@ -70,6 +70,11 @@ const getOrderTagsSlice = createSlice({
           // refetch so the relation rows reflect server-side cascade.
           "Products/DeleteProduct",
           "Categories/DeleteCategory",
+          // Category edits (rename, visibility) flow into the
+          // category-picker dropdown inside each relation row. Stale
+          // names there are misleading, so refetch on edits too.
+          "Categories/EditCategory",
+          "Categories/EditCategories",
         ]),
         (state) => {
           state.orderTags = null;

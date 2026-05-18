@@ -84,6 +84,14 @@ const getMenusSlice = createSlice({
           "Menus/AddMenu",
           "Menus/EditMenu",
           "Menus/DeleteMenu",
+          // Menus carry `categoryIds`, so sibling category edits /
+          // deletes can rename or orphan referenced categories. The
+          // menus page renders category chips per menu — without
+          // refetching after a category change those chips show
+          // stale names (or the deleted-category entries linger).
+          "Categories/EditCategory",
+          "Categories/EditCategories",
+          "Categories/DeleteCategory",
         ]),
         (state) => {
           state.menus = null;

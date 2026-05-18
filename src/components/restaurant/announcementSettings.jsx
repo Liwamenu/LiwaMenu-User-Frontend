@@ -25,6 +25,7 @@ import CustomToogle from "../common/customToggle";
 import CustomTextarea from "../common/customTextarea";
 import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 // REDUX
 import {
@@ -61,6 +62,8 @@ const AnnouncementSettings = ({ data }) => {
   );
 
   const [settings, setSettings] = useState(null);
+  const [settingsBefore, setSettingsBefore] = useState(null);
+  useDirtyTracking(settings, settingsBefore);
   const [openPreview, setOpenPreview] = useState(false);
   // Device-frame width for the live preview. Lets the author confirm
   // their announcement is responsive — most customers see the popup on
@@ -137,6 +140,7 @@ const AnnouncementSettings = ({ data }) => {
   useEffect(() => {
     if (announcementData) {
       setSettings(announcementData);
+      setSettingsBefore(announcementData);
       dispatch(resetGetAnnouncementSettingsSlice());
     }
     if (error) dispatch(resetGetAnnouncementSettingsSlice());
@@ -146,11 +150,15 @@ const AnnouncementSettings = ({ data }) => {
   useEffect(() => {
     if (success) {
       toast.success(t("announcementSettings.success"));
+      // Re-baseline so the DirtyNav check stops nagging until the
+      // user touches the form again.
+      setSettingsBefore(settings);
       dispatch(resetSetAnnouncementSettingsSlice());
     }
     if (err) {
       dispatch(resetSetAnnouncementSettingsSlice());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, err]);
 
   // const generateContentWithAI = async () => {

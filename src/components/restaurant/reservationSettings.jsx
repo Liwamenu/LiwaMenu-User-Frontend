@@ -10,6 +10,7 @@ import { CalendarClock, Clock, Users, Save, Power } from "lucide-react";
 import CustomToggle from "../common/customToggle";
 import CustomDatePicker from "../common/customdatePicker";
 import SettingsTabs from "./settingsTabs";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 // REDUX
 import {
@@ -51,6 +52,10 @@ const RestaurantReservationSettings = ({ data }) => {
   );
 
   const [reservationData, setReservationData] = useState(null);
+  // Baseline snapshot so the DirtyNav context can flag unsaved
+  // changes when the user tries to tab away.
+  const [reservationDataBefore, setReservationDataBefore] = useState(null);
+  useDirtyTracking(reservationData, reservationDataBefore);
 
   //GET RESERVATION SETTINGS
   useEffect(() => {
@@ -74,6 +79,7 @@ const RestaurantReservationSettings = ({ data }) => {
   useEffect(() => {
     if (reservationSettings) {
       setReservationData(reservationSettings);
+      setReservationDataBefore(reservationSettings);
       dispatch(resetGetRestaurantReservationSettingsSlice());
     }
     if (error) dispatch(resetGetRestaurantReservationSettingsSlice());
@@ -83,10 +89,14 @@ const RestaurantReservationSettings = ({ data }) => {
   useEffect(() => {
     if (success) {
       toast.success(t("restaurantReservationSettings.updateSuccess"));
+      // Save landed — accept the current state as the new baseline
+      // so the DirtyNav check stops nagging until the next edit.
+      setReservationDataBefore(reservationData);
     }
     if (error) {
       dispatch(resetSetRestaurantReservationSettings());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error]);
 
   const inputCls =

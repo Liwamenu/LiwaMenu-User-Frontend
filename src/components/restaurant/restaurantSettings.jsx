@@ -32,6 +32,7 @@ import CustomSelect from "../common/customSelector";
 import LanguagesEnums from "../../enums/languagesEnums";
 import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 //REDUX
 import {
@@ -322,6 +323,10 @@ const RestaurantSettings = ({ data: inData }) => {
 
   const [restaurantData, setRestaurantData] = useState(initialData);
   const [restaurantDataBefore, setRestaurantDataBefore] = useState(initialData);
+
+  // Push dirty state into the shared context so SettingsTabs can
+  // warn the user before they tab away with unsaved changes.
+  useDirtyTracking(restaurantData, restaurantDataBefore);
 
   const handleToggleOnlineOrder = () => {
     const next = !restaurantData?.onlineOrder;

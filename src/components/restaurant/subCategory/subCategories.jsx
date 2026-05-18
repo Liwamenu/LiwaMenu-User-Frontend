@@ -88,6 +88,13 @@ const SubCategories = ({ data: restaurant }) => {
   // and the global loading middleware blocks the entire UI until both
   // resolve, so we lean on the slice cache to make revisits feel instant.
   // Cross-restaurant navigation still triggers a refetch via fetchedFor.
+  //
+  // Slice payloads + `fetchedFor` are in the dep array so a cross-slice
+  // invalidation (e.g. EditSubCategory from another modal flips the
+  // cache to null) re-fires this effect and pulls fresh data. Without
+  // them the effect runs once at mount and the page stays stale after
+  // any mutation that doesn't go through this component's own save
+  // handlers.
   useEffect(() => {
     if (!restaurant?.id) return;
     if (!subCategories || subFetchedFor !== restaurant.id) {
@@ -96,8 +103,14 @@ const SubCategories = ({ data: restaurant }) => {
     if (!categories || catFetchedFor !== restaurant.id) {
       dispatch(getCategories({ restaurantId: restaurant.id }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurant?.id]);
+  }, [
+    restaurant?.id,
+    subCategories,
+    subFetchedFor,
+    categories,
+    catFetchedFor,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (subCategories && categories) {

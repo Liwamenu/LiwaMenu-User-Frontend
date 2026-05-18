@@ -71,14 +71,19 @@ const Categories = ({ data: restaurant }) => {
   // within the same restaurant skip the (slow) network round trip. The
   // earlier implementation called resetGetCategories() right after copying
   // the slice into local state, which nuked the cache and forced a refetch
-  // on every mount; that's removed now. The slice is still invalidated
-  // explicitly after add/edit/delete so we never serve stale rows.
+  // on every mount; that's removed now.
+  //
+  // `categories` + `catFetchedFor` MUST stay in the dependency array so
+  // a cross-slice invalidation (e.g. AddProductToCategory from Ürünleri
+  // Yönet flips the cache to null) re-fires this effect and pulls a
+  // fresh list. Without them the effect runs once at mount, the modal
+  // closes, the slice gets cleared by its `invalidateOn` matcher, and
+  // the page stays on its stale local copy until a hard refresh.
   useEffect(() => {
     if (!categories || catFetchedFor !== params?.id) {
       dispatch(getCategories({ restaurantId: params?.id }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params?.id]);
+  }, [params?.id, categories, catFetchedFor, dispatch]);
 
   // SET CATEGORIES WHEN FETCHED — also runs on remount with cached data,
   // because `categories` will be the cached reference straight from the

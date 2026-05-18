@@ -24,6 +24,9 @@
     "too_large": "File size cannot exceed {{mb}} MB.",
     "replace_action": "Click to choose another file"
   },
+  "dirtyNav": {
+    "unsaved_warning": "You have unsaved changes. Do you want to continue anyway?"
+  },
   "apiErrors": {
     "unauthorized": "You are not authorized.",
     "inactive_account": "Your account is not active",

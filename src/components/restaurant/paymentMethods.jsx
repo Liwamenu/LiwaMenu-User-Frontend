@@ -20,6 +20,7 @@ import {
 import CustomToggle from "../common/customToggle";
 import SettingsTabs from "./settingsTabs";
 import { usePopup } from "../../context/PopupContext";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 //REDUX
 import {
@@ -56,6 +57,8 @@ const PaymentMethods = ({ data: restaurant }) => {
   );
 
   const [paymentMethodsData, setPaymentMethodsData] = useState(null);
+  const [paymentMethodsDataBefore, setPaymentMethodsDataBefore] = useState(null);
+  useDirtyTracking(paymentMethodsData, paymentMethodsDataBefore);
 
   // Is every method enabled?
   const allEnabled =
@@ -127,6 +130,7 @@ const PaymentMethods = ({ data: restaurant }) => {
   useEffect(() => {
     if (data) {
       setPaymentMethodsData(data);
+      setPaymentMethodsDataBefore(data);
       dispatch(resetGetPaymentMethods());
     }
   }, [data]);
@@ -137,8 +141,11 @@ const PaymentMethods = ({ data: restaurant }) => {
     if (success) {
       toast.dismiss();
       toast.success(t("paymentMethods.success"));
+      // Re-baseline so the DirtyNav check stops nagging post-save.
+      setPaymentMethodsDataBefore(paymentMethodsData);
       dispatch(resetSetPaymentMethods());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, success, dispatch, t]);
 
   // ADD / DELETE — refresh list after success

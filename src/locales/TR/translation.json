@@ -24,6 +24,9 @@
     "too_large": "Dosya boyutu en fazla {{mb}} MB olabilir.",
     "replace_action": "Yeniden seçmek için tıklayın"
   },
+  "dirtyNav": {
+    "unsaved_warning": "Kaydedilmemiş değişiklikleriniz var. Yine de devam etmek istiyor musunuz?"
+  },
   "apiErrors": {
     "unauthorized": "Yetkili değilsiniz.",
     "inactive_account": "Hesabınız aktif değil",
