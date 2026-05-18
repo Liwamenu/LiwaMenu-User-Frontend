@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
 import { invalidateOn } from "../cacheInvalidation";
 import { normalizeProductsPayload } from "../../utils/normalizeProduct";
+import { normalizeKeysDeep } from "../../utils/normalizeKeys";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -140,12 +141,17 @@ export const getProducts = createAsyncThunk(
         },
       );
 
-      // Normalize each product into the dual flat+categories shape so
-      // every reader works against either the old or the new backend
-      // response. See `utils/normalizeProduct.js` for the migration
-      // contract — this is a no-op once every reader has been pivoted
-      // to iterate `categories[]` directly.
-      return normalizeProductsPayload(res.data);
+      // Two-step normalization (matches getProductsLite):
+      //   1. `normalizeKeysDeep` — recursively lowercase the first
+      //      character of every key. Without it, a PascalCase
+      //      `Categories` on the product DTO slips past the shape
+      //      normalizer's `Array.isArray(product.categories)` check,
+      //      the fallback synthesis reads the (PascalCase, so
+      //      undefined) `product.categoryId`, and every product ends
+      //      up with `categories: [{categoryId: null}]`. Downstream
+      //      readers that iterate `categories[]` then find nothing.
+      //   2. `normalizeProductsPayload` — shape migration for m2m.
+      return normalizeProductsPayload(normalizeKeysDeep(res.data));
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

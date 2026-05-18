@@ -1,6 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,7 +12,9 @@ import DeleteOrderTag from "./deleteOrderTag";
 import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 import { NewOrderTagGroup } from "./components/constraints";
-import OrderTagGroupCard from "./components/_orderTagGroupCard";
+import OrderTagGroupCard, {
+  compressRelations,
+} from "./components/_orderTagGroupCard";
 
 // REDUX
 import { addOrderTag } from "../../../redux/orderTags/addOrderTagSlice";
@@ -209,13 +211,39 @@ const OrderTags = ({ data: restaurant }) => {
     dispatch,
   ]);
 
+  // Track which orderTags reference we've already compressed so this
+  // effect doesn't re-collapse (and clobber any user edits) when only
+  // products / categories arrive later. Cleared by the mutation cycle:
+  // resetGetOrderTags → fresh fetch → new orderTags reference → ref
+  // miss → compress + remember.
+  const compressedRef = useRef(null);
+
   useEffect(() => {
     if (categories) setState((prev) => ({ ...prev, categories }));
     // Wrap the flat lite array in `{ data }` so OrderTagGroupCard's
     // `products?.data` access pattern keeps working unchanged.
     if (liteProducts)
       setState((prev) => ({ ...prev, products: { data: liteProducts } }));
-    if (orderTags) setState((prev) => ({ ...prev, tagGroups: orderTags }));
+    if (!orderTags) return;
+    if (compressedRef.current === orderTags) return; // already collapsed
+
+    // Need both products and categories before compression can
+    // detect "all products in category" — without products we'd
+    // miss layer 1 (per-product portion collapse) too. Fall back
+    // to raw rows in the meantime; when deps arrive the effect
+    // re-runs and overwrites with the collapsed view.
+    if (!liteProducts || !categories) {
+      setState((prev) => ({ ...prev, tagGroups: orderTags }));
+      return;
+    }
+    compressedRef.current = orderTags;
+    setState((prev) => ({
+      ...prev,
+      tagGroups: orderTags.map((g) => ({
+        ...g,
+        relations: compressRelations(g.relations || [], liteProducts),
+      })),
+    }));
   }, [categories, liteProducts, orderTags]);
 
   useEffect(() => {

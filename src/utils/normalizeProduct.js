@@ -43,12 +43,47 @@
 export function normalizeProduct(product) {
   if (!product || typeof product !== "object") return product;
 
-  const hasNew = Array.isArray(product.categories);
+  // Three input shapes are supported, in priority order:
+  //
+  //   1. Full m2m objects:   `categories: [{categoryId, categoryName, …}, …]`
+  //      → trust verbatim. Empty array falls through to (2)/(3) so a
+  //        partial response can still synthesize memberships.
+  //   2. Id-only lite shape: `categoryIds: ["uuid", "uuid"]`
+  //      → expand each id into a stub membership ({categoryId:id, …null}).
+  //        The lite endpoint (`Products/GetProductsByRestaurantIdLite`)
+  //        ships this — it's the source for the Order Tags relation
+  //        dropdown, so without expansion the second-tier "Ürün"
+  //        picker stays empty and "Bu grup için hiçbir ilişki
+  //        tanımlanmadı" pops on save.
+  //   3. Legacy flat fields: `categoryId` + `categoryName` + …
+  //      → synthesize a single-element array. Empty/missing flat
+  //        `categoryId` still produces `[{categoryId: null}]` so
+  //        downstream readers can rely on `categories[]` being
+  //        non-empty (separately, an explicit zero-membership shape
+  //        from the backend signals an orphan — uncategorizedSafety
+  //        used to handle that).
+  const hasNewArray = Array.isArray(product.categories);
+  const hasNonEmptyNew = hasNewArray && product.categories.length > 0;
+  const hasCategoryIds =
+    Array.isArray(product.categoryIds) && product.categoryIds.length > 0;
 
-  // Build the categories array regardless of input shape.
   let categories;
-  if (hasNew) {
+  if (hasNonEmptyNew) {
     categories = product.categories;
+  } else if (hasCategoryIds) {
+    categories = product.categoryIds
+      .filter((id) => typeof id === "string" && id.length > 0)
+      .map((id) => ({
+        categoryId: id,
+        categoryName: null,
+        categoryImage: null,
+        categorySortOrder: 0,
+        subCategoryId: null,
+        subCategoryName: null,
+        subCategoryImage: null,
+        subCategorySortOrder: null,
+        sortOrder: 0,
+      }));
   } else {
     // Synthesize a single-element array from the old flat fields. We
     // include the keys even when they're null/undefined so consumers

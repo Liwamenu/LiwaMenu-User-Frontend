@@ -15,9 +15,19 @@ const RelationRow = ({
     // memberships matches. The flat `categoryId` alias only surfaces
     // memberships[0], which would hide multi-category products from
     // the second-tier dropdown.
-    return products.filter((p) =>
-      (p.categories || []).some((c) => c.categoryId === relation.categoryId),
-    );
+    //
+    // Fallback to the flat `categoryId` for products whose backend
+    // response carried an empty / missing categories array AND the
+    // normalizer didn't manage to synthesize one (e.g. a payload
+    // that lost categoryId mid-pipeline). Belt and suspenders so the
+    // dropdown isn't silently empty just because data is partial.
+    return products.filter((p) => {
+      const memberships = p.categories || [];
+      if (memberships.some((c) => c?.categoryId === relation.categoryId)) {
+        return true;
+      }
+      return p.categoryId === relation.categoryId;
+    });
   }, [relation.categoryId, products]);
 
   const selectedProduct = useMemo(() => {
