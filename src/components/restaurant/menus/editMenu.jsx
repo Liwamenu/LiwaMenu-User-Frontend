@@ -152,6 +152,16 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
     }
   }, [menu, open]);
 
+  // NOTE: An earlier attempt added a reconcile useEffect here that
+  // unioned menu.categoryIds with "categories whose menuIds list this
+  // menu", mirroring the EditCategory reconcile. Reverted on
+  // 2026-05-19: UNION can't distinguish "the other side knows about a
+  // relationship that hasn't synced here yet" from "the other side
+  // is just stale after a removal", so just-removed categories kept
+  // re-appearing in the picker. See CATEGORY_CAMPAIGN_CASCADE_BRIEF.md
+  // Addendum 2 for the backend ask; this dialog reads raw
+  // `menu.categoryIds` until that lands.
+
   useEffect(() => {
     if (success) {
       toast.success(t("editMenu.success"));

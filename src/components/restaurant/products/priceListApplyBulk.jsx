@@ -129,6 +129,14 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
     categoryOptions.find((o) => o.value === bulkCategory) ||
     categoryOptions[0];
 
+  // Disable the Uygula button until the user has typed a numeric value.
+  // The on-click handler still does its own validation as a defensive
+  // backstop (e.g. for keyboard-activated submits while the field is
+  // briefly empty), but pre-disabling stops the click from racing the
+  // confirmation modal open at all, which was the user's complaint.
+  const bulkValueValid =
+    bulkValue !== "" && bulkValue !== null && !isNaN(bulkValue);
+
   // Run the actual price math. Pulled out of `applyBulkUpdate` so the
   // confirmation modal's "yes" button can call this directly without
   // re-validating or re-opening another modal.
@@ -355,11 +363,14 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
             </div>
           )}
 
-          {/* Uygula Button */}
+          {/* Uygula Button — disabled until the user has typed a value
+              in the Değer field, so an accidental click on a fresh row
+              can't fire the confirmation modal with nothing to apply. */}
           <div className="flex flex-col justify-end w-full sm:w-auto">
             <button
               onClick={applyBulkUpdate}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-500/25 transition"
+              disabled={!bulkValueValid}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-500/25 transition disabled:bg-indigo-300 disabled:hover:bg-indigo-300 disabled:cursor-not-allowed disabled:shadow-none"
             >
               <CheckI className="size-[1.1rem]" />
               {t("priceList.bulk_apply_button")}

@@ -245,17 +245,23 @@ const PriceList = ({ data: restaurant }) => {
     return Array.from(grouped.values());
   }, [list]);
 
-  // Dropdown options: "Tüm Ürünler" + every category present in the list.
-  const categoryOptions = useMemo(
-    () => [
+  // Dropdown options: "Tüm Ürünler" + every category present in the
+  // list, sorted alphabetically (TR-aware via localeCompare) so the
+  // picker is predictable to scan. We deliberately do NOT sort the
+  // rendered category sections — those follow the products' insertion
+  // order, which is driven by the owner-controlled `sortOrder` from
+  // the backend.
+  const categoryOptions = useMemo(() => {
+    const cats = groupedByCategory
+      .map((g) => ({ label: g.categoryName || "—", value: g.categoryId }))
+      .sort((a, b) =>
+        String(a.label).localeCompare(String(b.label), "tr"),
+      );
+    return [
       { label: t("priceList.all_categories"), value: null },
-      ...groupedByCategory.map((g) => ({
-        label: g.categoryName || "—",
-        value: g.categoryId,
-      })),
-    ],
-    [groupedByCategory, t],
-  );
+      ...cats,
+    ];
+  }, [groupedByCategory, t]);
 
   // For each (productId|portionId) tuple, decide whether its pricing is
   // actually driven by an OrderTag selection — i.e. there is at least

@@ -296,6 +296,20 @@ const EditCategory = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // NOTE: An earlier attempt added a reconcile useEffect here that
+  // unioned category.menuIds with "menus whose categoryIds list this
+  // category", to mask backend's lack of bidirectional m2m sync.
+  // Reverted on 2026-05-19 because UNION can't distinguish:
+  //   - ADD that hasn't synced (the other side legitimately knows
+  //     the relationship → we want to show it), from
+  //   - REMOVE that hasn't synced (the other side is just stale →
+  //     we want to NOT show it).
+  // Treating both as "add" wrongly resurrected just-removed
+  // relationships in the symmetric EditMenu picker. The real fix
+  // lives in backend — see CATEGORY_CAMPAIGN_CASCADE_BRIEF.md
+  // Addendum 2 for the ask. Until that ships, this dialog reads the
+  // raw `category.menuIds` as backend returns it.
+
   return (
     <div className="w-full flex justify-center pb-5- mt-1- text-[--black-2] max-h-[95dvh] overflow-hidden ">
       {/* <div className="flex flex-col px-4- sm:px-14-"> */}

@@ -193,3 +193,88 @@ to the field when present and only uses the products-derived
 heuristic when it's absent — so when backend projects it, the
 heuristic becomes inert and behaviour is correct without a code
 change.
+
+---
+
+## Addendum 2 — bidirectional menu↔category m2m sync (2026-05-19)
+
+Separate issue surfaced while testing the cascade work. The menu↔
+category relationship is stored on **both sides** of the m2m:
+
+- `category.menuIds[]` — which menus this category appears in
+- `menu.categoryIds[]` — which categories appear in this menu
+
+Observed today: these two halves drift apart. Concrete example
+from the same test restaurant:
+
+- All 13 categories returned `menuIds: ["8548bd69-5870-4828-bc6b-9ae8500e01ff"]`
+- The only existing menu had `id: "767c0d46-cb58-413e-8a91-e848acada5f8"`
+  and its `categoryIds` correctly listed all 13 category ids
+
+So `category.menuIds` referenced a menu UUID that didn't exist
+anymore, while `menu.categoryIds` was correct. The category-side
+field looks like it carries a stale pointer from a previous menu
+delete-and-recreate that didn't cascade.
+
+The mirror failure also exists in the write direction: if an admin
+toggles a menu in the EditCategory dialog and saves, the category's
+`menuIds` updates, but the corresponding menu's `categoryIds` is
+not back-filled — so opening that menu in EditMenu shows the
+relationship missing.
+
+### Symptoms on the admin side
+
+1. **EditCategory popup** — the "Menüler" checkboxes are unchecked
+   even for menus the category is actually a member of.
+2. **EditMenu popup** — adding a category via EditCategory doesn't
+   show up in the menu's category picker until you also add it
+   from this side.
+3. **Customer-facing app** — currently appears to render off
+   `menu.categoryIds`, so it'd surface the category in the menu
+   when the menu side is correct (i.e. the EditCategory case
+   above heals correctly through the customer view) but NOT when
+   only the category side was updated (the EditMenu case is
+   silently broken for end customers).
+
+### Frontend mitigation considered and rejected
+
+We tried a reconcile in both `editCategory.jsx` and `editMenu.jsx`
+that took the **union** of (this side's list) and (the OTHER side's
+implicit claim, computed from the other entity's list). Idea was
+to mask the missing sync by showing whichever side currently held
+the relationship.
+
+It half-worked: the ADD case (one side has it, other doesn't yet)
+read correctly. But the symmetric REMOVE case was strictly worse
+than no workaround at all:
+
+1. User unchecks "Sabah Menü" inside EditCategory for BALIKLAR,
+   saves. `category.menuIds` correctly drops Sabah; `menu.categoryIds`
+   stays stale (still listing BALIKLAR).
+2. User opens EditMenu on Sabah Menü to verify. Reconcile unions
+   (categories with this menu in menuIds = no BALIKLAR) ∪ (menu's
+   own categoryIds = still has BALIKLAR) → BALIKLAR reappears
+   checked. User's explicit removal looks ignored.
+
+Frontend can't tell ADD-not-synced from REMOVE-not-synced from
+data alone — both look like "one side says yes, the other says no."
+The reconcile was reverted on 2026-05-19. Both edit dialogs now
+read the raw field returned by their respective list endpoint.
+The fix has to live in backend.
+
+### Ask
+
+When `EditCategory` saves, also update `menu.categoryIds` for every
+menu whose membership changed (added or removed). Symmetrically,
+when `EditMenu` saves, update `category.menuIds` for every category
+whose membership changed. Single transaction on each side.
+
+If a single canonical source is preferred over dual storage, that
+also works — just have one read endpoint (whichever you keep as
+authoritative) populate the other side at projection time. Either
+approach removes the need for the frontend workaround.
+
+Reference: `src/components/restaurant/category/editCategory.jsx`
+and `src/components/restaurant/menus/editMenu.jsx` both carry a
+`reconciled = union(other-side-says, own-still-existing-entries)`
+block — search for "m2m self-heal".
