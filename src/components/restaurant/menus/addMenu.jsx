@@ -11,7 +11,10 @@ import {
   PriceListSelect,
   MenuCategoryPicker,
   DEFAULT_PRICE_LIST_TYPE,
+  buildPlansForBackend,
+  isOvernightRange,
 } from "./menuFormSections";
+import { Info } from "lucide-react";
 
 //REDUX
 import { addMenu, resetaddMenu } from "../../../redux/menus/addMenuSlice";
@@ -49,12 +52,17 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
   const newMenu = {
     restaurantId,
     name: menuName,
-    // Don't ship the client-generated row ids — let the backend assign them.
-    plans: schedules.map((sch) => ({
-      days: sch.days,
-      startTime: sch.start,
-      endTime: sch.end,
-    })),
+    // Don't ship the client-generated row ids — let the backend assign
+    // them. Overnight rows (start > end, e.g. 23:50 → 02:30) get split
+    // into two same-week plans by buildPlansForBackend so the backend's
+    // single-day `startTime < endTime` validator stops rejecting them.
+    plans: buildPlansForBackend(
+      schedules.map((sch) => ({
+        days: sch.days,
+        startTime: sch.start,
+        endTime: sch.end,
+      })),
+    ),
     categoryIds,
     priceListType,
   };
@@ -237,6 +245,17 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
                       className="flex-1 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] tabular-nums focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition"
                     />
                   </div>
+
+                  {/* Overnight hint — surfaces what the backend split will
+                      do so the user understands why two plans appear on
+                      the next edit. Only shown when the row actually
+                      wraps midnight (start > end). */}
+                  {isOvernightRange(sch.start, sch.end) && (
+                    <div className="mt-2 flex items-start gap-2 px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 text-[11px] leading-snug dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                      <Info className="size-3.5 mt-px shrink-0" />
+                      <span>{t("addMenu.overnight_hint")}</span>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <button

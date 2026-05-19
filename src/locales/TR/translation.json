@@ -915,6 +915,7 @@
     "name_required": "Menü adı gereklidir!",
     "schedule_required": "Zaman planı eklemelisiniz!",
     "schedule_days_required": "Her plan için gün seçilmelidir!",
+    "overnight_hint": "Gece yarısını aşan bu aralık, kaydedildiğinde iki plana bölünür: aynı günlerde başlangıç → 23:59 ve ertesi gün 00:00 → bitiş.",
     "success": "Menü başarıyla eklendi.",
     "cancel": "Vazgeç",
     "save": "Kaydet"

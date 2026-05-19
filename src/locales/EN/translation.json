@@ -914,6 +914,7 @@
     "name_required": "Menu name is required!",
     "schedule_required": "You must add at least one time plan!",
     "schedule_days_required": "Each plan must have at least one day selected!",
+    "overnight_hint": "This overnight range will be saved as two plans: start → 23:59 on the selected days and 00:00 → end on the next day.",
     "success": "Menu added successfully.",
     "cancel": "Cancel",
     "save": "Save"

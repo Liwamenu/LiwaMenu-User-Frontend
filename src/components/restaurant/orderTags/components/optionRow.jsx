@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GripVertical, Trash2 } from "lucide-react";
 import CustomCheckbox from "../../../common/customCheckbox";
-import { maxInput, parsePrice } from "../../../../utils/utils";
+import { parsePrice, sanitizePriceInput } from "../../../../utils/utils";
 
 const OptionRow = ({
   item,
@@ -202,9 +202,14 @@ const ChipCheck = ({ label, checked, onChange }) => (
 // (decimals=2) or "150" (decimals=0). On focus, swaps to a raw
 // editable string so the user can type without the locale's thousand
 // separator chasing the cursor — same pattern as PriceList's
-// `PriceInput`. Sanitizes input live (`maxInput`) and leaves the raw
-// string in parent state during editing; the parent's save path runs
-// `parsePrice` to coerce to a Number, so we don't have to here.
+// `PriceInput`.
+//
+// Negative values are allowed (`sanitizePriceInput` is called with
+// `allowNegative: true`). The use case: an order tag option that
+// represents an opt-OUT — e.g. a default-on extra that DROPS the
+// product price by 5₺ when the customer unchecks it. Stored as a
+// signed number; the parent's save path runs `parsePrice` which
+// already round-trips the sign cleanly.
 const TagPriceInput = ({
   value,
   onChange,
@@ -214,9 +219,13 @@ const TagPriceInput = ({
 }) => {
   const formatter = useMemo(
     () =>
+      // `signDisplay: "auto"` keeps the leading minus on negative values
+      // (TR locale uses an ASCII '-' here, so re-focusing and editing
+      // doesn't trip parsePrice).
       new Intl.NumberFormat("tr-TR", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
+        signDisplay: "auto",
       }),
     [decimals],
   );
@@ -261,12 +270,12 @@ const TagPriceInput = ({
   };
 
   const handleChange = (e) => {
-    // Reuse maxInput so the same digit/.,/maxLength rules apply as
-    // before — but feed the sanitized string back into local edit
-    // state AND up to the parent (parent still holds the raw string
-    // during editing, matching the OrderTags save contract).
-    const sanitized = maxInput({
-      target: { ...e.target, name: "price", value: e.target.value },
+    // Same sanitization rules as the global `maxInput` price branch
+    // (digits + at most one '.' and one ','), plus a leading '-' for
+    // the deduction case. Calling `sanitizePriceInput` directly lets us
+    // pass the option flag, which `maxInput` doesn't expose.
+    const sanitized = sanitizePriceInput(e.target.value, {
+      allowNegative: true,
     });
     setEditStr(sanitized);
     onChange(sanitized);

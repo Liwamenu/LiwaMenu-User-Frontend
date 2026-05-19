@@ -12,7 +12,10 @@ import {
   PriceListSelect,
   MenuCategoryPicker,
   DEFAULT_PRICE_LIST_TYPE,
+  buildPlansForBackend,
+  isOvernightRange,
 } from "./menuFormSections";
+import { Info } from "lucide-react";
 
 //REDUX
 import { editMenu, resetEditMenu } from "../../../redux/menus/editMenuSlice";
@@ -46,25 +49,18 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
     menu?.priceListType || DEFAULT_PRICE_LIST_TYPE,
   );
 
-  // Frontend-generated row IDs (used as React keys) start with "sch-".
-  // The backend rejects those — only existing plans should round-trip their
-  // id back to the server.
-  const isClientId = (id) => !id || String(id).startsWith("sch-");
-
+  // Plans payload: pass each row through buildPlansForBackend, which
+  // preserves backend-issued ids for non-overnight rows and splits
+  // overnight rows (start > end, e.g. 23:50 → 02:30) into two same-week
+  // plans to work around the backend's `startTime < endTime` validator.
+  // Client-generated row ids (the "sch-" prefix used as React keys) are
+  // stripped inside the helper — only ids the backend issued round-trip.
   const updatedMenu = {
     ...menu,
     restaurantId,
     menuId: menu.id,
     name: menuName,
-    plans: schedules.map((sch) => {
-      const out = {
-        days: sch.days,
-        startTime: sch.startTime,
-        endTime: sch.endTime,
-      };
-      if (!isClientId(sch.id)) out.id = sch.id;
-      return out;
-    }),
+    plans: buildPlansForBackend(schedules),
     categoryIds,
     priceListType,
   };
@@ -281,6 +277,17 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
                       className="flex-1 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] tabular-nums focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition"
                     />
                   </div>
+
+                  {/* Overnight hint — surfaces what the backend split will
+                      do so the user understands why two plans appear on
+                      the next edit. Only shown when the row actually
+                      wraps midnight (start > end). */}
+                  {isOvernightRange(sch.startTime, sch.endTime) && (
+                    <div className="mt-2 flex items-start gap-2 px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 text-[11px] leading-snug dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                      <Info className="size-3.5 mt-px shrink-0" />
+                      <span>{t("addMenu.overnight_hint")}</span>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <button
