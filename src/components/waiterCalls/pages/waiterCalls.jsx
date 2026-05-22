@@ -1,4 +1,5 @@
 // MODULES
+import { useEffect } from "react";
 import {
   Bell,
   CheckCircle2,
@@ -9,6 +10,7 @@ import {
   Hash,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 
 // COMP
 import CustomSelect from "../../common/customSelector";
@@ -38,9 +40,19 @@ const WaiterCallsPage = () => {
     pageNumbers,
     handleResolve,
     handleDelete,
+    handleDeleteAll,
+    deletingAll,
     handleItemsPerPage,
     handlePageChange,
   } = useWaiterCalls();
+
+  // Re-fetch on every visit. The WaiterCallsProvider lives at the app
+  // root and doesn't refetch on navigation, so without this the list
+  // would stay on its last-cached page until a push or reload.
+  useEffect(() => {
+    handlePageChange(pageNumber);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const openDeleteConfirm = (call) => {
     setSecondPopupContent(
@@ -54,6 +66,32 @@ const WaiterCallsPage = () => {
         onConfirm={async () => {
           await handleDelete(call.id);
           setSecondPopupContent(null);
+        }}
+      />,
+    );
+  };
+
+  const openDeleteAllConfirm = () => {
+    setSecondPopupContent(
+      <ConfirmDeleteModal
+        title={t("waiterCalls.delete_all_title")}
+        targetName={t("waiterCalls.delete_all_target", {
+          count: totalCount ?? 0,
+        })}
+        description={t("waiterCalls.delete_all_description")}
+        confirmLabel={t("waiterCalls.delete_all_confirm")}
+        onConfirm={async () => {
+          const { deleted, failed } = await handleDeleteAll();
+          setSecondPopupContent(null);
+          if (failed > 0) {
+            toast.error(
+              t("waiterCalls.delete_all_partial", { deleted, failed }),
+            );
+          } else {
+            toast.success(
+              t("waiterCalls.delete_all_success", { count: deleted }),
+            );
+          }
         }}
       />,
     );
@@ -101,7 +139,23 @@ const WaiterCallsPage = () => {
                 : t("waiterCalls.subtitle")}
             </p>
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-2">
+            {typeof totalCount === "number" && totalCount > 0 && (
+              <button
+                type="button"
+                onClick={openDeleteAllConfirm}
+                disabled={deletingAll}
+                title={t("waiterCalls.delete_all")}
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 ring-1 ring-rose-200 hover:bg-rose-100 transition disabled:opacity-60 disabled:cursor-wait dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/30 dark:hover:bg-rose-500/25"
+              >
+                <Trash2 className="size-3.5" strokeWidth={2.4} />
+                <span className="hidden sm:inline">
+                  {deletingAll
+                    ? t("waiterCalls.deleting_all")
+                    : t("waiterCalls.delete_all")}
+                </span>
+              </button>
+            )}
             <FilterWaiterCalls />
           </div>
         </div>
@@ -135,7 +189,7 @@ const WaiterCallsPage = () => {
         calls.length > 0 &&
         typeof totalCount === "number" &&
         totalCount > (pageSize?.value || 10) && (
-          <div className="w-full flex flex-wrap justify-center items-center gap-2 pt-6 mt-auto text-[--black-2]">
+          <div className="w-full mt-auto sticky bottom-0 z-20 flex flex-wrap justify-center items-center gap-2 py-3 bg-[--white-1] border-t border-[--border-1] shadow-[0_-3px_10px_rgba(0,0,0,0.05)] text-[--black-2]">
             <div className="scale-[.8] min-w-20">
               <CustomSelect
                 className="mt-[0] sm:mt-[0]"

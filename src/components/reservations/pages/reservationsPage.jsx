@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -34,6 +34,22 @@ const todayLocalYmd = () => {
   return `${y}-${m}-${day}`;
 };
 
+/**
+ * Chronological order — soonest reservation first. Sort by date, then
+ * time, both ascending. `reservationDate` (YYYY-MM-DD) and
+ * `reservationTime` (HH:mm:ss, zero-padded) are lexicographically
+ * ordered, so plain string comparison is correct and timezone-free.
+ */
+const byDateTimeAsc = (a, b) => {
+  const da = a.reservationDate || "";
+  const db = b.reservationDate || "";
+  if (da !== db) return da < db ? -1 : 1;
+  const ta = a.reservationTime || "";
+  const tb = b.reservationTime || "";
+  if (ta !== tb) return ta < tb ? -1 : 1;
+  return 0;
+};
+
 const ReservationsPage = () => {
   const { t } = useTranslation();
   const { setSecondPopupContent } = usePopup();
@@ -51,6 +67,15 @@ const ReservationsPage = () => {
     updateLoading,
   } = useReservations();
 
+  // Re-fetch on every visit. The ReservationsProvider lives at the app
+  // root and doesn't refetch on navigation, so without this you'd see
+  // the last-cached page until a push or reload. Keeps the active
+  // filter; fetches the current page.
+  useEffect(() => {
+    handlePageChange(pageNumber);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const openDeleteConfirm = (reservation) => {
     setSecondPopupContent(
       <ConfirmDeleteModal
@@ -67,12 +92,17 @@ const ReservationsPage = () => {
   };
 
   // ── Bu Gün / Tümü tabs ───────────────────────────────────────────
-  // Same split as the staff mobile app:
-  //   • Bu Gün : reservationDate === today (any status — staff
-  //              want pending today's bookings visible too).
-  //   • Tümü   : reservationDate >= today AND status === "Accepted"
-  //              — past dates are never useful, and a "what's
-  //              coming up that's confirmed" planner stays clean.
+  //   • Bu Gün : reservationDate === today (any status).
+  //   • Tümü   : reservationDate > today (ANY status) — strictly
+  //              FUTURE bookings (today is excluded; it lives in the
+  //              Bu Gün tab), including the PendingOwnerDecision ones
+  //              the owner still has to accept or reject.
+  //
+  // NOTE: "Tümü" previously also required status === "Accepted". That
+  // hid pending future reservations on BOTH tabs (not today, and not
+  // accepted), so a brand-new booking for a future date was
+  // impossible to see or act on. Showing every upcoming status here is
+  // what makes those reservations reachable again.
   //
   // Filters apply to the currently-loaded page only. Users wanting
   // older history can still use FilterReservations above the tabs.
@@ -80,18 +110,20 @@ const ReservationsPage = () => {
   const [activeTab, setActiveTab] = useState("today");
 
   const todayList = useMemo(
-    () => reservationsData.filter((r) => r.reservationDate === today),
-    [reservationsData, today],
-  );
-  const upcomingAcceptedList = useMemo(
     () =>
-      reservationsData.filter(
-        (r) => r.reservationDate >= today && r.status === "Accepted",
-      ),
+      reservationsData
+        .filter((r) => r.reservationDate === today)
+        .sort(byDateTimeAsc),
     [reservationsData, today],
   );
-  const visibleList =
-    activeTab === "today" ? todayList : upcomingAcceptedList;
+  const upcomingList = useMemo(
+    () =>
+      reservationsData
+        .filter((r) => r.reservationDate > today)
+        .sort(byDateTimeAsc),
+    [reservationsData, today],
+  );
+  const visibleList = activeTab === "today" ? todayList : upcomingList;
 
   // Stats reflect "what's still actionable" — today's + future
   // reservations, regardless of status. Past reservations are
@@ -265,7 +297,7 @@ const ReservationsPage = () => {
                     : "bg-[--light-4] text-[--gr-1]"
                 }`}
               >
-                {upcomingAcceptedList.length}
+                {upcomingList.length}
               </span>
             </button>
           </div>
@@ -462,7 +494,7 @@ const ReservationsPage = () => {
       </main>
 
       {typeof totalCount === "number" && (
-        <div className="w-full self-end flex justify-center py-4 text-[--black-2]">
+        <div className="w-full self-end sticky bottom-0 z-20 flex justify-center items-center py-3 bg-[--white-1] border-t border-[--border-1] shadow-[0_-3px_10px_rgba(0,0,0,0.05)] text-[--black-2]">
           <div className="scale-[.8] min-w-20">
             <CustomSelect
               className="mt-[0] sm:mt-[0]"
