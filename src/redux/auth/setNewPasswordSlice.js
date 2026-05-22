@@ -41,23 +41,19 @@ const setNewPasswordSlice = createSlice({
 
 export const setNewPassword = createAsyncThunk(
   "Auth/setNewPassword",
-  async ({ token, currentPassword, newPassword }, { rejectWithValue }) => {
+  async ({ emailOrPhone, token, newPassword }, { rejectWithValue }) => {
     try {
-      // Switched from a raw `axios.post(...)` to the configured `api`
-      // instance so this call inherits the 30s timeout (was hanging
-      // forever on backend stalls — same root cause as the register
-      // "Mail Gönder" infinite spinner). The optional Bearer header is
-      // attached per-request because this endpoint is sometimes called
-      // unauthenticated (password reset link) and sometimes
-      // authenticated (in-app password change).
-      const res = await api.post(
-        `${baseURL}Auth/change-password`,
-        {
-          currentPassword: currentPassword ?? token,
-          newPassword,
-        },
-        token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
-      );
+      // Anonymous password-reset step. POST /api/Auth/reset-password with
+      // the ASP.NET Identity reset token taken straight from the reset
+      // link's `token` query param — sent as-is, no decode/re-encode.
+      // (Backend renamed this JSON key from `code` to `token` to match
+      // the URL param; the value is identical.) Uses the public `api`
+      // instance — no Bearer header — and inherits its 30s timeout.
+      const res = await api.post(`${baseURL}Auth/reset-password`, {
+        emailOrPhone,
+        token,
+        newPassword,
+      });
       return res.data;
     } catch (err) {
       console.log(err);

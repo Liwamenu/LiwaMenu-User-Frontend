@@ -47,7 +47,11 @@ const SetNewPassword = () => {
       toast.error(t("setNewPassword.passwords_match"));
       return;
     }
-    dispatch(setNewPassword({ token, newPassword: password }));
+    // `email` and `token` come straight from the reset link's query
+    // params. Send the token exactly as it arrives — no decode/encode.
+    dispatch(
+      setNewPassword({ emailOrPhone: email, token, newPassword: password }),
+    );
   };
 
   useEffect(() => {
@@ -58,7 +62,13 @@ const SetNewPassword = () => {
       return () => clearTimeout(tid);
     }
     if (error) {
-      toast.error(error.message);
+      // The common 400 cause is an expired / already-used token. Point
+      // the user back to forgot-password rather than just echoing the
+      // raw backend string.
+      const expired = Number(error.statusCode) === 400;
+      toast.error(
+        expired ? t("setNewPassword.link_expired") : error.message,
+      );
       dispatch(resetSetNewPassword());
     }
   }, [success, error, dispatch, navigate, t]);

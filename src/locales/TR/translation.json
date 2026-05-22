@@ -195,7 +195,8 @@
     "too_short": "Şifre en az 6 karakter olmalı",
     "invalid_link_title": "Geçersiz Bağlantı",
     "invalid_link_message": "Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeniden talepte bulunun.",
-    "request_new": "Yeni Bağlantı Talep Et"
+    "request_new": "Yeni Bağlantı Talep Et",
+    "link_expired": "Bu sıfırlama bağlantısının süresi dolmuş veya daha önce kullanılmış. Lütfen yeni bir sıfırlama e-postası talep edin."
   },
   "restaurants": {
     "processing": "İşleniyor 🤩...",
