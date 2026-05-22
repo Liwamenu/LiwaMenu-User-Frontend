@@ -24,7 +24,10 @@ import PageHelp from "../../common/pageHelp";
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
-const THEMES = [
+// Exported so the Kiosk/Self-Order theme page (kioskSelector.jsx) can
+// reuse the exact same theme catalog + swatch colours without
+// duplicating (and drifting from) this list.
+export const THEMES = [
   {
     id: 0,
     name: "Tema 1",
@@ -99,7 +102,7 @@ const THEMES = [
 
 // Build the tenant-facing live URL — used both as the public link and as the
 // iframe preview source (theme is rendered server-side from the saved value).
-const buildTenantUrl = (tenant, fallback = "demo") => {
+export const buildTenantUrl = (tenant, fallback = "demo") => {
   const t = (tenant || fallback).trim();
   return `https://${t}.liwamenu.com`;
 };

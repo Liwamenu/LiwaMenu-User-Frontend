@@ -16,6 +16,7 @@ import {
   Package,
   Palette,
   Tv,
+  Monitor,
   QrCode,
   DollarSign,
 } from "lucide-react";
@@ -248,6 +249,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       text: t("subSidebar.tvthemes"),
       to: `/restaurant/tvthemes/${id}`,
       path: "tvthemes",
+    },
+    {
+      icon: <Monitor className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.kioskthemes"),
+      to: `/restaurant/kioskthemes/${id}`,
+      path: "kioskthemes",
     },
     {
       icon: <QrCode className={ICON_CLS} strokeWidth={ICON_STROKE} />,

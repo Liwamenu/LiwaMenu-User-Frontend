@@ -31,6 +31,7 @@ import CustomToggle from "../common/customToggle";
 import CustomSelect from "../common/customSelector";
 import LanguagesEnums from "../../enums/languagesEnums";
 import SettingsTabs from "./settingsTabs";
+import PageHelp from "../common/pageHelp";
 import { usePopup } from "../../context/PopupContext";
 import { useDirtyTracking } from "../../context/DirtyNavContext";
 
@@ -578,6 +579,7 @@ const RestaurantSettings = ({ data: inData }) => {
                 : "—"}
             </p>
           </div>
+          <PageHelp pageKey="settings" className="shrink-0" />
         </div>
 
         <div className="p-4 sm:p-5">

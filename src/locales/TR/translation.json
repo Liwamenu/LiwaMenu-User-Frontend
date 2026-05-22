@@ -80,6 +80,7 @@
     "themes": "Temalar",
     "qrthemes": "QR Menü Temaları",
     "tvthemes": "TV Menü Temaları",
+    "kioskthemes": "Kiosk / Self Order Temaları",
     "qr_code": "QR Kod Oluştur",
     "announcement_settings": "Duyuru Ayarları",
     "survey_settings": "Anket Ayarları",
@@ -872,6 +873,7 @@
     "add_menu": "Yeni Menü Ekle",
     "edit": "Düzenle",
     "delete": "Sil",
+    "delete_last_blocked": "En az bir menü tanımlı kalmalıdır. Silmek yerine menüyü düzenleyebilirsiniz.",
     "every_day": "Her Gün",
     "no_time_plan": "Zaman planı eklenmemiş.",
     "summary": "{{count}} menü",
@@ -1303,6 +1305,7 @@
     "name_placeholder": "Örn: Hizmet Kalitesi",
     "name_hint": "Müşterilerinize gösterilecek kategori adı.",
     "icon_label": "Görsel Simge (Emoji)",
+    "icon_emoji_hint": "Daha fazla emoji için sistemin emoji panelini açabilirsiniz — Windows: Win (⊞) + . (nokta), macOS: Fn / 🌐 (Dünya) tuşu. Seçtiğiniz emojiyi soldaki kutuya yapıştırın.",
     "cancel": "İptal",
     "create": "Oluştur",
     "update": "Güncelle",
@@ -1359,6 +1362,12 @@
     "tag_orange_fresh": "Turuncu Tazelik",
     "tag_parchment_scroll": "Parşömen Tomar",
     "tag_placeholder": "Yer tutucu · yakında"
+  },
+  "kioskThemeSelector": {
+    "title": "{{name}} için Kiosk / Self Order Teması",
+    "subtitle": "Kiosk menü temasını seçin — yatay ve dikey kiosk ekranında önizleyin.",
+    "vertical": "Dikey Kiosk",
+    "horizontal": "Yatay Kiosk"
   },
   "tvThemeSelector": {
     "title": "{{name}} için TV Tema Ayarları",

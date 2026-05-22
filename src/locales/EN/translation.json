@@ -80,6 +80,7 @@
     "themes": "Themes",
     "qrthemes": "QR Menu Themes",
     "tvthemes": "TV Menu Themes",
+    "kioskthemes": "Kiosk / Self Order Themes",
     "qr_code": "Create QR Code",
     "announcement_settings": "Announcement Settings",
     "survey_settings": "Survey Settings",
@@ -871,6 +872,7 @@
     "add_menu": "Add New Menu",
     "edit": "Edit",
     "delete": "Delete",
+    "delete_last_blocked": "At least one menu must remain. You can edit it instead of deleting.",
     "every_day": "Every Day",
     "no_time_plan": "No time plan added.",
     "summary": "{{count}} menus",
@@ -1302,6 +1304,7 @@
     "name_placeholder": "e.g. Service Quality",
     "name_hint": "The category name shown to your customers.",
     "icon_label": "Display Icon (Emoji)",
+    "icon_emoji_hint": "For more emojis, open your system emoji panel — Windows: Win (⊞) + . , macOS: Fn / 🌐 (Globe) key. Then paste your pick into the box on the left.",
     "cancel": "Cancel",
     "create": "Create",
     "update": "Update",
@@ -1358,6 +1361,12 @@
     "tag_orange_fresh": "Orange Fresh",
     "tag_parchment_scroll": "Parchment Scroll",
     "tag_placeholder": "Placeholder · coming soon"
+  },
+  "kioskThemeSelector": {
+    "title": "Kiosk / Self Order Theme for {{name}}",
+    "subtitle": "Pick the kiosk menu theme — preview it on landscape and portrait kiosk screens.",
+    "vertical": "Portrait Kiosk",
+    "horizontal": "Landscape Kiosk"
   },
   "tvThemeSelector": {
     "title": "TV Theme Settings for {{name}}",

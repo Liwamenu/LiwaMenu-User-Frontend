@@ -49,6 +49,7 @@ import SurveySettings from "../components/restaurant/survey/surveySettings";
 //THEME
 import ThemeSelector from "../components/restaurant/themes/qrMenuSelector";
 import TvMenuSelector from "../components/restaurant/themes/tvMenuSelector";
+import KioskSelector from "../components/restaurant/themes/kioskSelector";
 
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();
@@ -178,6 +179,10 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           <Route
             path="/tvthemes/:id"
             element={<TvMenuSelector data={data} />}
+          />
+          <Route
+            path="/kioskthemes/:id"
+            element={<KioskSelector data={data} />}
           />
 
           {/* QR */}
