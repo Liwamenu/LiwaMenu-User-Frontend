@@ -239,6 +239,8 @@
     "select_on_map": "Haritada Seç",
     "image_main": "Restoran Görseli",
     "image_logo": "Restoran Logosu (opsiyonel)",
+    "image_required": "Kaydetmeden önce bir restoran görseli seçin.",
+    "generic_error": "Restoran oluşturulamadı. Lütfen tekrar deneyin.",
     "address_placeholder": "Tam adresinizi girin",
     "form_title": "Yeni Restoran Ekle",
     "form_subtitle": "Bilgileri doldurun, restoranınızı eklemeye başlayın.",

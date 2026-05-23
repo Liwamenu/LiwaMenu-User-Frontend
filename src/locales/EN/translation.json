@@ -239,6 +239,8 @@
     "select_on_map": "Pick on Map",
     "image_main": "Restaurant Image",
     "image_logo": "Restaurant Logo (optional)",
+    "image_required": "Please pick a restaurant image before saving.",
+    "generic_error": "Couldn't create the restaurant. Please try again.",
     "address_placeholder": "Enter full address",
     "form_title": "Add New Restaurant",
     "form_subtitle": "Fill in the details to add your restaurant.",
