@@ -3,6 +3,7 @@ import {
   Banknote,
   CreditCard,
   ExternalLink,
+  Eye,
   FileText,
   Gift,
   Hash,
@@ -15,6 +16,12 @@ import {
   Store,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+//COMP
+import ShowBasket from "./actions/showBasket";
+
+//CONTEXT
+import { usePopup } from "../../context/PopupContext";
 
 //UTILS
 import {
@@ -122,14 +129,21 @@ const PaymentsTable = ({ payments }) => {
 export default PaymentsTable;
 
 const PaymentRow = ({ p, t }) => {
+  const { setPopupContent } = usePopup();
   const method = METHOD_META[p.paymentMethod] || METHOD_META.Free;
   const status =
     STATUS_META[resolveStatusKey(p.status)] || STATUS_META.Waiting;
   const type = TYPE_META[p.licenseType] || TYPE_META.NewLicense;
   const MethodIcon = method.icon;
 
+  // Inline peek list — backed by the legacy chip parser. The actual
+  // basket details (multi-restaurant, packages with name + price,
+  // optional invoice) live in the <ShowBasket /> popup opened below;
+  // these chips just give the at-a-glance summary on the row.
   const items = parseBasket(p.basketItems);
   const formattedAmount = formatPrice(p.amount ?? 0);
+
+  const openBasket = () => setPopupContent(<ShowBasket payment={p} />);
 
   return (
     <li className="rounded-2xl border border-[--border-1] bg-[--white-1] hover:border-[--primary-1]/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all">
@@ -210,15 +224,20 @@ const PaymentRow = ({ p, t }) => {
             </div>
           )}
 
-          {/* Basket items */}
-          {items.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-1.5">
+          {/* Basket peek (click to open full viewer) */}
+          {items.length > 0 ? (
+            <button
+              type="button"
+              onClick={openBasket}
+              title={t("paymentsPage.basket_view_action")}
+              className="mt-2 inline-flex flex-wrap gap-1.5 items-center text-left hover:opacity-90 transition"
+            >
               {items.map((it, i) => {
                 const pkg = LICENSE_PKG_META[it.LicensePackageType];
                 const PkgIcon = pkg?.icon || Sparkles;
                 const pkgLabel = pkg ? t(pkg.labelKey) : it.LicensePackageType;
                 return (
-                  <li
+                  <span
                     key={i}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[--white-2] border border-[--border-1] text-[10px] text-[--black-1]"
                   >
@@ -232,10 +251,30 @@ const PaymentRow = ({ p, t }) => {
                         </span>
                       </>
                     ) : null}
-                  </li>
+                  </span>
                 );
               })}
-            </ul>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 text-[10px] font-semibold">
+                <Eye className="size-3" />
+                {t("paymentsPage.basket_view_action")}
+              </span>
+            </button>
+          ) : (
+            // No items detected by the legacy chip parser — the basket
+            // probably uses the new unified shape (items[].packages[])
+            // which the chip parser doesn't understand. Surface a
+            // standalone "View Basket" button so the user can still
+            // open the proper viewer modal.
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={openBasket}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 text-[10px] font-semibold hover:bg-indigo-100 transition"
+              >
+                <Eye className="size-3" />
+                {t("paymentsPage.basket_view_action")}
+              </button>
+            </div>
           )}
 
           {/* Card mask (online payments) */}

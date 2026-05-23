@@ -64,14 +64,17 @@ const THEMES = [
   // in the database and preview from the TV theme app while real themes
   // are being built. Replace each entry as the matching theme ships.
   { id: 5, name: "Tema 6", color: "hsl(38 75% 52%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 6, name: "Tema 7", color: "hsl(186 80% 45%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 7, name: "Tema 8", color: "hsl(330 75% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 8, name: "Tema 9", color: "hsl(160 65% 40%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 9, name: "Tema 10", color: "hsl(0 70% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 10, name: "Tema 11", color: "hsl(150 60% 35%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 11, name: "Tema 12", color: "hsl(250 60% 60%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 12, name: "Tema 13", color: "hsl(210 75% 50%)", tagKey: "tvThemeSelector.tag_placeholder" },
-  { id: 13, name: "Tema 14", color: "hsl(20 50% 35%)", tagKey: "tvThemeSelector.tag_placeholder" },
+  // Tema 7-14 — real themes shipping from the TV menu-theme catalog
+  // (folders theme-7..theme-14 in the TV themes repo). Tag keys map to
+  // the descriptive labels documented in the catalog spec.
+  { id: 6, name: "Tema 7", color: "hsl(186 80% 45%)", tagKey: "tvThemeSelector.tag_fast_food_cream" },
+  { id: 7, name: "Tema 8", color: "hsl(330 75% 55%)", tagKey: "tvThemeSelector.tag_todays_special" },
+  { id: 8, name: "Tema 9", color: "hsl(160 65% 40%)", tagKey: "tvThemeSelector.tag_cafe_board" },
+  { id: 9, name: "Tema 10", color: "hsl(0 70% 55%)", tagKey: "tvThemeSelector.tag_lunch_deals_grid" },
+  { id: 10, name: "Tema 11", color: "hsl(150 60% 35%)", tagKey: "tvThemeSelector.tag_kebap_fire" },
+  { id: 11, name: "Tema 12", color: "hsl(250 60% 60%)", tagKey: "tvThemeSelector.tag_editorial_walkthrough" },
+  { id: 12, name: "Tema 13", color: "hsl(210 75% 50%)", tagKey: "tvThemeSelector.tag_featured_combos" },
+  { id: 13, name: "Tema 14", color: "hsl(20 50% 35%)", tagKey: "tvThemeSelector.tag_hero_category_grid" },
   { id: 14, name: "Tema 15", color: "hsl(290 65% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
   { id: 15, name: "Tema 16", color: "hsl(140 40% 55%)", tagKey: "tvThemeSelector.tag_placeholder" },
   { id: 16, name: "Tema 17", color: "hsl(30 60% 30%)", tagKey: "tvThemeSelector.tag_placeholder" },

@@ -118,6 +118,15 @@ function AddRestaurantPopup({ onSuccess }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validate the main image explicitly. The file input is visually
+    // hidden (display: none) inside CompactImageUpload, so even with
+    // the `required` attribute the browser can't surface its native
+    // validation popover — submission would just block silently with
+    // a console warning, no visible feedback. Toast it here instead.
+    if (!doc) {
+      toast.error(t("restaurants.image_required"));
+      return;
+    }
     const fd = new FormData();
     fd.append("Name", r.name);
     fd.append("PhoneNumber", r.phoneNumber);
@@ -249,6 +258,17 @@ function AddRestaurantPopup({ onSuccess }) {
       toastId.current = toast.loading(t("register.processing"));
     } else if (error) {
       toast.dismiss(toastId.current);
+      // Surface the failure. The shared axios interceptor toasts most
+      // backend errors via pickBackendMessage, but local validation
+      // failures (or any path that skips the interceptor) would leave
+      // the user staring at a dismissed loader with no signal. A
+      // best-effort fallback toast guarantees feedback in every case.
+      const msg =
+        error?.message_EN ||
+        error?.message_TR ||
+        error?.message ||
+        t("restaurants.generic_error");
+      toast.error(msg, { id: "addRestaurantError" });
       dispatch(resetAddRestaurantState());
     } else if (success) {
       // Seed the new restaurant's working hours (7 days, 08:00–22:00).
@@ -664,13 +684,17 @@ function CompactImageUpload({
         {label}
       </label>
 
+      {/* `required` is intentionally NOT set on the hidden input —
+          display: none inputs can't surface the browser's native
+          validation popover, so a required+hidden combo just blocks
+          form submit silently. The caller (handleSubmit) toasts an
+          explicit error when a required image is missing. */}
       <input
         ref={inputRef}
         type="file"
         accept={accept}
         onChange={handleInputChange}
         className="hidden"
-        required={required && !file}
       />
 
       {file && preview ? (

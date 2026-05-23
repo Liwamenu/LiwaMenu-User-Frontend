@@ -2,7 +2,7 @@
 import { isEqual } from "lodash";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 //COMP
@@ -26,6 +26,10 @@ import {
   resetGetProductsByCategoryId,
 } from "../../../redux/products/getProductsByCategoryIdSlice";
 import { editProduct } from "../../../redux/products/editProductSlice";
+import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+
+//UTILS
+import { isCategoryOnCampaign } from "../../../utils/categoryCampaign";
 
 const EditCategory = ({
   id,
@@ -49,7 +53,32 @@ const EditCategory = ({
   );
   const menusData = menus;
 
-  const [categoryData, setCategoryData] = useState(category);
+  // Lite products — backs the *derived* Kampanya value for both the
+  // initial toggle state and the cascade diff. Post-m2m migration the
+  // backend no longer returns `category.campaign`, so seeding from
+  // `category?.campaign` would always read false. We derive it from
+  // products' `isCampaign` using the every-true rule (see
+  // utils/categoryCampaign.js). The slice self-invalidates on
+  // category/product mutations, so the value stays fresh.
+  const { products: liteProducts, fetchedFor: liteFetchedFor } = useSelector(
+    (s) => s.products.getLite,
+  );
+  const derivedCampaign = isCategoryOnCampaign(category?.id, liteProducts);
+  const memberCount = (liteProducts || []).filter((p) => {
+    if (Array.isArray(p.categories))
+      return p.categories.some((m) => m?.categoryId === category?.id);
+    if (Array.isArray(p.categoryIds))
+      return p.categoryIds.includes(category?.id);
+    return p.categoryId === category?.id;
+  }).length;
+  const categoryIsEmpty = memberCount === 0;
+
+  // Seed `categoryData.campaign` from the derived value rather than
+  // the (now nonexistent) category-level field.
+  const [categoryData, setCategoryData] = useState({
+    ...category,
+    campaign: derivedCampaign,
+  });
   const [preview, setPreview] = useState(
     category?.image
       ? URL.createObjectURL(category.image)
@@ -57,12 +86,27 @@ const EditCategory = ({
   );
   const [showCampaignWarning, setShowCampaignWarning] = useState(false);
 
-  // Snapshot the as-fetched `campaign` flag once so the success
-  // handler can diff against it. Reading `category.campaign`
-  // directly inside the success effect would re-read on every
-  // re-render and may have already drifted if the parent re-fetched
-  // the category mid-edit.
-  const [originalCampaign] = useState(!!category?.campaign);
+  // Snapshot the AS-DERIVED campaign value so the success handler can
+  // detect "did the user actually change it". Using derivedCampaign
+  // instead of `category.campaign` here matters: the backend no longer
+  // returns the column, so reading category.campaign would always
+  // snapshot false and the cascade would fire on every toggle-ON-save
+  // (even when products were already on campaign).
+  const [originalCampaign] = useState(derivedCampaign);
+
+  // If the lite payload arrives after the dialog mounts (cold cache),
+  // refresh the seeded value — but only when the user hasn't already
+  // touched the toggle, so we never clobber a deliberate edit.
+  const userTouchedCampaignRef = useRef(false);
+  useEffect(() => {
+    if (userTouchedCampaignRef.current) return;
+    setCategoryData((prev) =>
+      prev.campaign === derivedCampaign
+        ? prev
+        : { ...prev, campaign: derivedCampaign },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [derivedCampaign]);
 
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
@@ -74,6 +118,7 @@ const EditCategory = ({
 
   const handleCampaignToggle = () => {
     const newCampaignState = !categoryData.campaign;
+    userTouchedCampaignRef.current = true;
     handleToggle("campaign");
     setShowCampaignWarning(newCampaignState);
   };
@@ -296,6 +341,16 @@ const EditCategory = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // GET LITE PRODUCTS — drives the derived Kampanya value (initial
+  // toggle + cascade diff) and the "empty category" hint shown next
+  // to the toggle. Auto-invalidated on category/product mutations.
+  useEffect(() => {
+    if (!liteProducts || liteFetchedFor !== id) {
+      dispatch(getProductsLite({ restaurantId: id }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   // NOTE: An earlier attempt added a reconcile useEffect here that
   // unioned category.menuIds with "menus whose categoryIds list this
   // category", to mask backend's lack of bidirectional m2m sync.
@@ -454,7 +509,10 @@ const EditCategory = ({
                 </div>
               </div>
 
-              {/* Kampanya */}
+              {/* Kampanya — initial value is derived from products'
+                  isCampaign (every-true rule). On save the EditCategory
+                  payload carries `campaign`; the success effect also
+                  cascades to every product in this category. */}
               <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-[--primary-1] transition-colors">
                 <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
                   {t("editCategories.campaign")}
@@ -464,11 +522,19 @@ const EditCategory = ({
                     {t("editCategories.status_active")}
                   </span>
                   <CustomToggle
-                    checked={categoryData.campaign}
+                    checked={!!categoryData.campaign}
                     onChange={handleCampaignToggle}
                     className="peer-checked:bg-[var(--green-1)] bg-[--border-1] scale-[.7]"
                   />
                 </div>
+                {/* Empty-category footnote: the cascade has nothing to
+                    stamp, so the toggle won't "stick" across reopens
+                    until the category has products. */}
+                {categoryIsEmpty && (
+                  <p className="mt-2 text-[10px] leading-snug text-[--gr-1]">
+                    {t("editCategories.campaign_empty_hint")}
+                  </p>
+                )}
               </div>
 
               {/* Öne Çıkan */}

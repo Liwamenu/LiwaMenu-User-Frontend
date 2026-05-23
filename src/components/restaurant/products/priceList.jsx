@@ -30,6 +30,7 @@ import { getProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
 
+
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
@@ -68,9 +69,11 @@ const PriceList = ({ data: restaurant }) => {
 
   const { products } = useSelector((s) => s.products.get);
   // Pull categories so we can hide the Kampanya column / input for any
-  // category that has its `campaign` flag turned off — the price list
-  // shouldn't let the user enter a campaign price for products whose
-  // category isn't running campaigns.
+  // category that isn't running campaigns. After the m2m migration the
+  // category-level `campaign` column was dropped — the per-category
+  // state is derived from products' `isCampaign` (see
+  // `categoryCampaignMap` below). We still need the categories list
+  // itself for the filter dropdown.
   const { categories, fetchedFor: catFetchedFor } = useSelector(
     (s) => s.categories.get,
   );
