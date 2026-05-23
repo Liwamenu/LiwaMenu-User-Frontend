@@ -10,6 +10,7 @@ import { Clock, Save, Check, CopyCheck } from "lucide-react";
 import CustomToggle from "../common/customToggle";
 import CustomDatePicker from "../common/customdatePicker";
 import SettingsTabs from "./settingsTabs";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 // REDUX
 import {
@@ -54,6 +55,8 @@ const WorkingHours = ({ data }) => {
   );
 
   const [workingHoursData, setWorkingHoursData] = useState([]);
+  const [workingHoursDataBefore, setWorkingHoursDataBefore] = useState(null);
+  useDirtyTracking(workingHoursData, workingHoursDataBefore);
 
   useEffect(() => {
     if (!workingHoursData?.length) {
@@ -70,6 +73,7 @@ const WorkingHours = ({ data }) => {
         Close: parseTimeToDate(item.close),
       }));
       setWorkingHoursData(mapped);
+      setWorkingHoursDataBefore(mapped);
       dispatch(resetSetWorkingHours());
     }
   }, [workingHours]);
@@ -79,8 +83,11 @@ const WorkingHours = ({ data }) => {
       toast.loading(t("workingHours.processing"), { id: "workingHours" });
     if (success) {
       toast.success(t("workingHours.success"), { id: "workingHours" });
+      // Re-baseline so the DirtyNav check stops nagging post-save.
+      setWorkingHoursDataBefore(workingHoursData);
       dispatch(resetSetWorkingHours());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, success, dispatch]);
 
   const setDay = (day, patch) =>

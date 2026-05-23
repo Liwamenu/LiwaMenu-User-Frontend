@@ -5,6 +5,7 @@ import { Route, Routes, useLocation, useParams } from "react-router-dom";
 
 //COMP
 import Sidebar from "../components/subSidebar/subSidebar";
+import { DirtyNavProvider } from "../context/DirtyNavContext";
 
 //REDUX
 import { getRestaurant } from "../redux/restaurants/getRestaurantSlice";
@@ -48,6 +49,7 @@ import SurveySettings from "../components/restaurant/survey/surveySettings";
 //THEME
 import ThemeSelector from "../components/restaurant/themes/qrMenuSelector";
 import TvMenuSelector from "../components/restaurant/themes/tvMenuSelector";
+import KioskSelector from "../components/restaurant/themes/kioskSelector";
 
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();
@@ -131,6 +133,12 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
         <Sidebar openSidebar={openSidebar} setOpenSidebar={setOpenSidebar} />
       )}
       <section className="lg:ml-[280px] pt-16 px-[4%] pb-4 grid grid-cols-1 section_row">
+        {/* Wraps every restaurant route so the Genel Ayarlar tab strip
+            (and any other surface that opts in) can warn the user
+            when they try to navigate away with unsaved changes.
+            Non-settings pages just don't push any dirty state and
+            the provider is a no-op for them. */}
+        <DirtyNavProvider>
         <Routes>
           <Route path="/edit/:id" element={<EditRestaurant data={data} />} />
           <Route path="/hours/:id" element={<WorkingHours data={data} />} />
@@ -172,12 +180,17 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
             path="/tvthemes/:id"
             element={<TvMenuSelector data={data} />}
           />
+          <Route
+            path="/kioskthemes/:id"
+            element={<KioskSelector data={data} />}
+          />
 
           {/* QR */}
           <Route path="/qr/:id" element={<QRPage data={data} />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </DirtyNavProvider>
       </section>
     </section>
   );

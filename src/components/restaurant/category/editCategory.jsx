@@ -21,6 +21,11 @@ import {
   resetEditCategory,
 } from "../../../redux/categories/editCategorySlice";
 import { getMenus } from "../../../redux/menus/getMenusSlice";
+import {
+  getProductsByCategoryId,
+  resetGetProductsByCategoryId,
+} from "../../../redux/products/getProductsByCategoryIdSlice";
+import { editProduct } from "../../../redux/products/editProductSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
 
 //UTILS
@@ -48,16 +53,16 @@ const EditCategory = ({
   );
   const menusData = menus;
 
-  // Lite products — drives the *initial* Kampanya toggle value.
-  // The category-level `campaign` column was removed post-m2m migration;
-  // we derive it from products' `isCampaign` using the every-true rule
-  // (see utils/categoryCampaign.js). Write path is unchanged: the toggle
-  // still flips `categoryData.campaign` and the EditCategory payload
-  // still sends it — backend treats that as the one-shot cascade.
+  // Lite products — backs the *derived* Kampanya value for both the
+  // initial toggle state and the cascade diff. Post-m2m migration the
+  // backend no longer returns `category.campaign`, so seeding from
+  // `category?.campaign` would always read false. We derive it from
+  // products' `isCampaign` using the every-true rule (see
+  // utils/categoryCampaign.js). The slice self-invalidates on
+  // category/product mutations, so the value stays fresh.
   const { products: liteProducts, fetchedFor: liteFetchedFor } = useSelector(
     (s) => s.products.getLite,
   );
-
   const derivedCampaign = isCategoryOnCampaign(category?.id, liteProducts);
   const memberCount = (liteProducts || []).filter((p) => {
     if (Array.isArray(p.categories))
@@ -68,17 +73,30 @@ const EditCategory = ({
   }).length;
   const categoryIsEmpty = memberCount === 0;
 
-  // Seed `categoryData.campaign` from the derived value rather than the
-  // (now nonexistent) category-level field. The prop `category` doesn't
-  // carry `campaign` anymore, so without this seed every category would
-  // open with the toggle off regardless of state.
+  // Seed `categoryData.campaign` from the derived value rather than
+  // the (now nonexistent) category-level field.
   const [categoryData, setCategoryData] = useState({
     ...category,
     campaign: derivedCampaign,
   });
+  const [preview, setPreview] = useState(
+    category?.image
+      ? URL.createObjectURL(category.image)
+      : category?.imageAbsoluteUrl || null,
+  );
+  const [showCampaignWarning, setShowCampaignWarning] = useState(false);
+
+  // Snapshot the AS-DERIVED campaign value so the success handler can
+  // detect "did the user actually change it". Using derivedCampaign
+  // instead of `category.campaign` here matters: the backend no longer
+  // returns the column, so reading category.campaign would always
+  // snapshot false and the cascade would fire on every toggle-ON-save
+  // (even when products were already on campaign).
+  const [originalCampaign] = useState(derivedCampaign);
+
   // If the lite payload arrives after the dialog mounts (cold cache),
-  // refresh the seeded value once — but only if the user hasn't already
-  // touched the toggle.
+  // refresh the seeded value — but only when the user hasn't already
+  // touched the toggle, so we never clobber a deliberate edit.
   const userTouchedCampaignRef = useRef(false);
   useEffect(() => {
     if (userTouchedCampaignRef.current) return;
@@ -89,12 +107,6 @@ const EditCategory = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derivedCampaign]);
-  const [preview, setPreview] = useState(
-    category?.image
-      ? URL.createObjectURL(category.image)
-      : category?.imageAbsoluteUrl || null,
-  );
-  const [showCampaignWarning, setShowCampaignWarning] = useState(false);
 
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
@@ -186,6 +198,104 @@ const EditCategory = ({
     }
   };
 
+  // Build the EditProduct FormData needed to flip a single product's
+  // `isCampaign` flag without losing any other field. The endpoint is
+  // full-DTO-replace (per the uncategorizedSafety post-mortem any
+  // omitted portion gets wiped to zero), so we round-trip every field
+  // the lite category-product DTO carries plus the m2m memberships +
+  // their flat backwards-compat aliases. Same shape `editProduct.jsx`'s
+  // own handleSave assembles, just with `isCampaign` overridden.
+  const buildProductCampaignPayload = (product, isCampaign) => {
+    const fd = new FormData();
+    fd.append("id", product.id);
+    fd.append("restaurantId", product.restaurantId || id || "");
+    fd.append("name", product.name ?? "");
+    fd.append("description", product.description ?? "");
+    fd.append("recommendation", String(!!product.recommendation));
+    fd.append("hide", String(!!product.hide));
+    fd.append("freeTagging", String(!!product.freeTagging));
+    fd.append("isCampaign", String(!!isCampaign));
+    if (Array.isArray(product.portions)) {
+      fd.append("portions", JSON.stringify(product.portions));
+    }
+    const memberships = Array.isArray(product.categories)
+      ? product.categories.map((c) => ({
+          categoryId: c.categoryId,
+          ...(c.subCategoryId ? { subCategoryId: c.subCategoryId } : {}),
+        }))
+      : [];
+    fd.append("categories", JSON.stringify(memberships));
+    // Backwards-compat flat fields (see editProduct.jsx for context).
+    const firstCat = memberships[0];
+    fd.append("categoryId", firstCat?.categoryId || categoryData.id || "");
+    fd.append("subCategoryId", firstCat?.subCategoryId || "");
+    return fd;
+  };
+
+  // After a successful category save, if the `campaign` flag changed,
+  // cascade the new value to every product in this category. Backend
+  // doesn't propagate yet (see CATEGORY_CAMPAIGN_CASCADE_BRIEF.md for
+  // the long-form ask) so the frontend does the fan-out itself —
+  // fetch the full product DTOs first via `getProductsByCategoryId`
+  // (full payload so portions/prices survive the round-trip), then
+  // PUT each one in parallel with `isCampaign` updated. Progress
+  // surfaces in a single loading toast that swaps to success/partial
+  // on completion.
+  const runCampaignCascade = async () => {
+    const action = await dispatch(
+      getProductsByCategoryId({ categoryId: categoryData.id }),
+    );
+    const payload = action?.payload;
+    const products = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload)
+        ? payload
+        : [];
+    dispatch(resetGetProductsByCategoryId());
+    if (products.length === 0) return { succeeded: 0, total: 0 };
+
+    const toastId = "campaignCascade";
+    toast.loading(
+      t("editCategories.cascade_progress", {
+        count: products.length,
+        defaultValue: "{{count}} ürün güncelleniyor…",
+      }),
+      { id: toastId },
+    );
+
+    const results = await Promise.allSettled(
+      products.map((p) =>
+        dispatch(
+          editProduct(buildProductCampaignPayload(p, categoryData.campaign)),
+        ),
+      ),
+    );
+    const succeeded = results.filter(
+      (r) => r.status === "fulfilled" && !r.value?.error,
+    ).length;
+    const failed = results.length - succeeded;
+    if (failed > 0) {
+      toast.error(
+        t("editCategories.cascade_partial", {
+          succeeded,
+          total: products.length,
+          defaultValue:
+            "{{succeeded}}/{{total}} ürün güncellendi, kalanı başarısız oldu.",
+        }),
+        { id: toastId, duration: 6000 },
+      );
+    } else {
+      toast.success(
+        t("editCategories.cascade_done", {
+          count: succeeded,
+          defaultValue: "{{count}} ürünün Kampanya durumu güncellendi.",
+        }),
+        { id: toastId },
+      );
+    }
+    return { succeeded, total: products.length };
+  };
+
   // TOAST
   useEffect(() => {
     if (success) {
@@ -204,11 +314,21 @@ const EditCategory = ({
             : cat,
         ),
       );
+      const campaignChanged = !!categoryData.campaign !== originalCampaign;
       setPopupContent(null);
       toast.success(t("editCategories.success"), { id: "categories" });
       dispatch(resetEditCategory());
+      // Fire-and-forget — the popup is already closed so the parent
+      // can keep working. Cascade results surface via its own toast.
+      if (campaignChanged) {
+        runCampaignCascade().catch((err) => {
+          // eslint-disable-next-line no-console
+          console.warn("[editCategory] cascade failed:", err);
+        });
+      }
     }
     if (error) dispatch(resetEditCategory());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, error]);
 
   // GET MENUS — fetch only when the slice cache is empty or scoped to
@@ -221,16 +341,29 @@ const EditCategory = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // GET LITE PRODUCTS — same caching contract. Drives the derived
-  // Kampanya toggle (and the "is this category empty" hint shown next
-  // to it). Auto-invalidated on Categories/EditCategory + product
-  // mutations, so reopening the dialog after a save sees fresh data.
+  // GET LITE PRODUCTS — drives the derived Kampanya value (initial
+  // toggle + cascade diff) and the "empty category" hint shown next
+  // to the toggle. Auto-invalidated on category/product mutations.
   useEffect(() => {
     if (!liteProducts || liteFetchedFor !== id) {
       dispatch(getProductsLite({ restaurantId: id }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // NOTE: An earlier attempt added a reconcile useEffect here that
+  // unioned category.menuIds with "menus whose categoryIds list this
+  // category", to mask backend's lack of bidirectional m2m sync.
+  // Reverted on 2026-05-19 because UNION can't distinguish:
+  //   - ADD that hasn't synced (the other side legitimately knows
+  //     the relationship → we want to show it), from
+  //   - REMOVE that hasn't synced (the other side is just stale →
+  //     we want to NOT show it).
+  // Treating both as "add" wrongly resurrected just-removed
+  // relationships in the symmetric EditMenu picker. The real fix
+  // lives in backend — see CATEGORY_CAMPAIGN_CASCADE_BRIEF.md
+  // Addendum 2 for the ask. Until that ships, this dialog reads the
+  // raw `category.menuIds` as backend returns it.
 
   return (
     <div className="w-full flex justify-center pb-5- mt-1- text-[--black-2] max-h-[95dvh] overflow-hidden ">
@@ -376,11 +509,10 @@ const EditCategory = ({
                 </div>
               </div>
 
-              {/* Kampanya — toggle value is derived from products'
-                  isCampaign (every-true). On save the EditCategory
-                  payload still sends `campaign`, which the backend
-                  treats as a one-shot cascade onto every product in
-                  the category. */}
+              {/* Kampanya — initial value is derived from products'
+                  isCampaign (every-true rule). On save the EditCategory
+                  payload carries `campaign`; the success effect also
+                  cascades to every product in this category. */}
               <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-[--primary-1] transition-colors">
                 <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
                   {t("editCategories.campaign")}
@@ -397,8 +529,7 @@ const EditCategory = ({
                 </div>
                 {/* Empty-category footnote: the cascade has nothing to
                     stamp, so the toggle won't "stick" across reopens
-                    until the category has products. Surface this so
-                    the off-on-reopen behaviour doesn't read as a bug. */}
+                    until the category has products. */}
                 {categoryIsEmpty && (
                   <p className="mt-2 text-[10px] leading-snug text-[--gr-1]">
                     {t("editCategories.campaign_empty_hint")}

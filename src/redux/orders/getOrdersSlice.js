@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
+import { normalizeKeysDeep } from "../../utils/normalizeKeys";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -53,8 +54,16 @@ export const getOrders = createAsyncThunk(
         params: data,
       });
 
-      // console.log(res.data);
-      return res.data;
+      // Defensive PascalCase → camelCase normalization at the slice
+      // boundary, matching the FCM push handler in ordersContext.jsx.
+      // Without this, an order whose backend payload arrives with
+      // `Items` / `OrderItems` / etc. would render with an empty body
+      // in OrderDetailDrawer (the section guards on `order.items`).
+      // Top-level fields like `subTotal` / `totalAmount` happen to
+      // already arrive lowercased today, but the items array under
+      // each row is the one most likely to ship mixed-case from a
+      // .NET endpoint that hasn't enforced JSON naming policy.
+      return normalizeKeysDeep(res.data);
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

@@ -31,7 +31,9 @@ import CustomToggle from "../common/customToggle";
 import CustomSelect from "../common/customSelector";
 import LanguagesEnums from "../../enums/languagesEnums";
 import SettingsTabs from "./settingsTabs";
+import PageHelp from "../common/pageHelp";
 import { usePopup } from "../../context/PopupContext";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 //REDUX
 import {
@@ -323,6 +325,10 @@ const RestaurantSettings = ({ data: inData }) => {
   const [restaurantData, setRestaurantData] = useState(initialData);
   const [restaurantDataBefore, setRestaurantDataBefore] = useState(initialData);
 
+  // Push dirty state into the shared context so SettingsTabs can
+  // warn the user before they tab away with unsaved changes.
+  useDirtyTracking(restaurantData, restaurantDataBefore);
+
   const handleToggleOnlineOrder = () => {
     const next = !restaurantData?.onlineOrder;
     if (next && !hasEnabledPaymentMethod) {
@@ -573,6 +579,7 @@ const RestaurantSettings = ({ data: inData }) => {
                 : "—"}
             </p>
           </div>
+          <PageHelp pageKey="settings" className="shrink-0" />
         </div>
 
         <div className="p-4 sm:p-5">

@@ -70,9 +70,19 @@ const getCategoriesSlice = createSlice({
           "Categories/DeleteCategory",
           // Product mutations change `category.productsCount` (the
           // badge rendered next to each row on the Categories page),
-          // so refetch so that counter stays accurate.
+          // so refetch so that counter stays accurate. Covers direct
+          // CRUD plus the m2m junction endpoints used by the
+          // Ürünleri Yönet modal — without those, adding or removing
+          // a product to a category from the modal leaves the count
+          // stale until a hard refresh. EditProduct catches moves /
+          // renames that bubble into category-level denormalized
+          // fields.
           "Products/AddProduct",
+          "Products/EditProduct",
           "Products/DeleteProduct",
+          "Products/AddProductToCategory",
+          "Products/RemoveProductFromCategory",
+          "Categories/UpdateProductOrder",
         ]),
         (state) => {
           state.categories = null;

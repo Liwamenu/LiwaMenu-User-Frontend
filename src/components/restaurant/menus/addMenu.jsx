@@ -11,7 +11,10 @@ import {
   PriceListSelect,
   MenuCategoryPicker,
   DEFAULT_PRICE_LIST_TYPE,
+  buildPlansForBackend,
+  isOvernightRange,
 } from "./menuFormSections";
+import { Info } from "lucide-react";
 
 //REDUX
 import { addMenu, resetaddMenu } from "../../../redux/menus/addMenuSlice";
@@ -49,12 +52,17 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
   const newMenu = {
     restaurantId,
     name: menuName,
-    // Don't ship the client-generated row ids — let the backend assign them.
-    plans: schedules.map((sch) => ({
-      days: sch.days,
-      startTime: sch.start,
-      endTime: sch.end,
-    })),
+    // Don't ship the client-generated row ids — let the backend assign
+    // them. Overnight rows (start > end, e.g. 23:50 → 02:30) get split
+    // into two same-week plans by buildPlansForBackend so the backend's
+    // single-day `startTime < endTime` validator stops rejecting them.
+    plans: buildPlansForBackend(
+      schedules.map((sch) => ({
+        days: sch.days,
+        startTime: sch.start,
+        endTime: sch.end,
+      })),
+    ),
     categoryIds,
     priceListType,
   };
@@ -135,7 +143,7 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
-      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
+      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-2xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center mb-6 border-b border-[--border-1] pb-4">
           <h3 className="text-2xl font-bold text-[--black-1]">
             {t("addMenu.title")}
@@ -203,13 +211,13 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
                         key={idx}
                         type="button"
                         onClick={() => toggleScheduleDay(sch.id, idx)}
-                        className={`text-[10px] w-8 h-8 rounded-full border flex items-center justify-center transition-colors font-medium ${
+                        className={`text-xs h-8 px-3 rounded-full border flex items-center justify-center transition-colors font-medium whitespace-nowrap ${
                           sch.days.includes(idx)
                             ? "bg-[--primary-1] text-white border-[--primary-1]"
                             : "bg-[--white-1] text-[--gr-1] border-[--border-1]"
                         }`}
                       >
-                        {t(`workingHours.${dayKey}`).substring(0, 2)}
+                        {t(`workingHours.${dayKey}`)}
                       </button>
                     ))}
                   </div>
@@ -237,6 +245,17 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
                       className="flex-1 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] tabular-nums focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition"
                     />
                   </div>
+
+                  {/* Overnight hint — surfaces what the backend split will
+                      do so the user understands why two plans appear on
+                      the next edit. Only shown when the row actually
+                      wraps midnight (start > end). */}
+                  {isOvernightRange(sch.start, sch.end) && (
+                    <div className="mt-2 flex items-start gap-2 px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 text-[11px] leading-snug dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                      <Info className="size-3.5 mt-px shrink-0" />
+                      <span>{t("addMenu.overnight_hint")}</span>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <button

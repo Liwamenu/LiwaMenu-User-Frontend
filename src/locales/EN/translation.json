@@ -24,6 +24,9 @@
     "too_large": "File size cannot exceed {{mb}} MB.",
     "replace_action": "Click to choose another file"
   },
+  "dirtyNav": {
+    "unsaved_warning": "You have unsaved changes. Do you want to continue anyway?"
+  },
   "apiErrors": {
     "unauthorized": "You are not authorized.",
     "inactive_account": "Your account is not active",
@@ -73,9 +76,11 @@
     "menus": "Menus",
     "tags": "Tags",
     "products": "Products",
+    "price_list": "Price List",
     "themes": "Themes",
     "qrthemes": "QR Menu Themes",
     "tvthemes": "TV Menu Themes",
+    "kioskthemes": "Kiosk / Self Order Themes",
     "qr_code": "Create QR Code",
     "announcement_settings": "Announcement Settings",
     "survey_settings": "Survey Settings",
@@ -659,6 +664,9 @@
     "delete_confirm": "Are you sure you want to delete the category.",
     "cancel": "Cancel",
     "success": "Categories updated successfully.",
+    "cascade_progress": "Updating {{count}} products…",
+    "cascade_done": "Campaign status updated on {{count}} products.",
+    "cascade_partial": "{{succeeded}}/{{total}} products updated, the rest failed.",
     "not_changed": "No changes made.",
     "status": "Status",
     "featured": "Featured",
@@ -867,6 +875,7 @@
     "add_menu": "Add New Menu",
     "edit": "Edit",
     "delete": "Delete",
+    "delete_last_blocked": "At least one menu must remain. You can edit it instead of deleting.",
     "every_day": "Every Day",
     "no_time_plan": "No time plan added.",
     "summary": "{{count}} menus",
@@ -912,6 +921,7 @@
     "name_required": "Menu name is required!",
     "schedule_required": "You must add at least one time plan!",
     "schedule_days_required": "Each plan must have at least one day selected!",
+    "overnight_hint": "This overnight range will be saved as two plans: start → 23:59 on the selected days and 00:00 → end on the next day.",
     "success": "Menu added successfully.",
     "cancel": "Cancel",
     "save": "Save"
@@ -968,8 +978,9 @@
     "search_placeholder": "Search product...",
     "all_categories": "All Categories",
     "all_statuses": "All Statuses",
-    "all_recommendations": "All Products",
+    "all_highlights": "All Products",
     "recommended_only": "Chef's Pick",
+    "campaign_only": "Campaign Only",
     "no_products": "No products found.",
     "filters": "Filters",
     "clear_filters": "Clear Filters",
@@ -1003,6 +1014,7 @@
     "campaign_prefix": "Campaign:",
     "portion_count": "{{count}} portions",
     "chef_recommended": "Chef's Pick",
+    "campaign": "Campaign",
     "change_image": "Change Image",
     "edit": "Edit Product",
     "delete": "Delete Product"
@@ -1295,6 +1307,7 @@
     "name_placeholder": "e.g. Service Quality",
     "name_hint": "The category name shown to your customers.",
     "icon_label": "Display Icon (Emoji)",
+    "icon_emoji_hint": "For more emojis, open your system emoji panel — Windows: Win (⊞) + . , macOS: Fn / 🌐 (Globe) key. Then paste your pick into the box on the left.",
     "cancel": "Cancel",
     "create": "Create",
     "update": "Update",
@@ -1351,6 +1364,12 @@
     "tag_orange_fresh": "Orange Fresh",
     "tag_parchment_scroll": "Parchment Scroll",
     "tag_placeholder": "Placeholder · coming soon"
+  },
+  "kioskThemeSelector": {
+    "title": "Kiosk / Self Order Theme for {{name}}",
+    "subtitle": "Pick the kiosk menu theme — preview it on landscape and portrait kiosk screens.",
+    "vertical": "Portrait Kiosk",
+    "horizontal": "Landscape Kiosk"
   },
   "tvThemeSelector": {
     "title": "TV Theme Settings for {{name}}",
@@ -1564,11 +1583,11 @@
     "empty_desc": "Try changing your filter settings.",
     "tabs_aria": "Reservation list filter",
     "tab_today": "Today",
-    "tab_all": "Upcoming",
+    "tab_all": "Upcoming Reservations",
     "today_empty_title": "No reservations for today",
     "today_empty_desc": "Today's bookings will appear here as they come in.",
-    "upcoming_empty_title": "No upcoming confirmed reservations",
-    "upcoming_empty_desc": "Confirmed future reservations are listed here. For pending ones, use the \"Today\" tab or the filters above."
+    "upcoming_empty_title": "No upcoming reservations",
+    "upcoming_empty_desc": "Future reservations appear here, including ones awaiting your decision. Use the filters above to browse past dates."
   },
   "waiterCalls": {
     "title": "Waiter Call Lists",
@@ -1592,6 +1611,14 @@
     "delete_description": "waiter call will be deleted. This action cannot be undone.",
     "delete_confirm": "Delete",
     "delete_success": "Waiter call deleted.",
+    "delete_all": "Delete All",
+    "deleting_all": "Deleting…",
+    "delete_all_title": "Delete All Calls",
+    "delete_all_target": "{{count}} waiter calls",
+    "delete_all_description": "will be permanently deleted. This action cannot be undone.",
+    "delete_all_confirm": "Delete All",
+    "delete_all_success": "{{count}} calls deleted.",
+    "delete_all_partial": "{{deleted}} deleted, {{failed}} failed.",
     "filter_button": "Filter",
     "filters_title": "Filters",
     "start_date": "Start Date",

@@ -21,6 +21,16 @@ const CustomSelect = ({
   // portal so it escapes any ancestor `overflow:hidden` / clipping boxes.
   // Used by inputs that live inside scrollable cards, popups, etc.
   menuPortalTarget,
+  // Multi-select extras (all optional → single-selects keep their
+  // current behaviour when these aren't passed):
+  //  - `isMulti`              react-select multi mode (chips + array value)
+  //  - `components`           override sub-components (e.g. checkbox Option)
+  //  - `closeMenuOnSelect`    keep the menu open while ticking boxes
+  //  - `hideSelectedOptions`  keep picked rows visible (so checkboxes show)
+  isMulti,
+  components,
+  closeMenuOnSelect,
+  hideSelectedOptions,
 }) => {
   const formatOptionLabel = ({ label }) => (
     <div dangerouslySetInnerHTML={{ __html: label }} />
@@ -40,6 +50,10 @@ const CustomSelect = ({
         placeholder={placeholder}
         className={`text-base font-[350] ${className}`}
         isDisabled={disabled}
+        isMulti={isMulti}
+        components={components}
+        closeMenuOnSelect={closeMenuOnSelect}
+        hideSelectedOptions={hideSelectedOptions}
         isSearchable={isSearchable !== undefined ? isSearchable : true}
         isClearable={isClearable}
         formatOptionLabel={formatOptionLabel}
@@ -71,6 +85,17 @@ const CustomSelect = ({
             ...provided,
             color: "var(--black-2)",
             ...singleValueStyle,
+          }),
+          // Theme-aware chips for multi-select (only rendered when
+          // `isMulti` is set, so single-selects are unaffected).
+          multiValue: (provided) => ({
+            ...provided,
+            backgroundColor: "var(--light-1)",
+            borderRadius: ".3rem",
+          }),
+          multiValueLabel: (provided) => ({
+            ...provided,
+            color: "var(--black-1)",
           }),
           menu: (provided, state) => ({
             ...provided,

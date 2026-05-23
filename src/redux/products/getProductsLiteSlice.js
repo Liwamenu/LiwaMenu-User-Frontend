@@ -12,6 +12,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
 import { invalidateOn } from "../cacheInvalidation";
 import { normalizeProductsPayload } from "../../utils/normalizeProduct";
+import { normalizeKeysDeep } from "../../utils/normalizeKeys";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -44,11 +45,20 @@ export const getProductsLite = createAsyncThunk(
       );
       // Endpoint returns { data: ProductLite[], totalCount }. Some
       // backends omit the wrapper for unpaged endpoints; tolerate both.
-      // Then normalize so each product has both the flat
-      // `categoryId` alias AND the new `categories[]` array — see
-      // `utils/normalizeProduct.js` for the migration contract.
+      //
+      // Two-step normalization:
+      //   1. `normalizeKeysDeep` — recursively lowercase the first
+      //      character of every key. Required because `normalizeProduct`
+      //      below detects the m2m shape via `Array.isArray(product
+      //      .categories)`; a PascalCase `Categories` would slip past
+      //      that check, the synthesis fallback would then read the
+      //      (also PascalCase, so undefined) `product.categoryId`, and
+      //      every product ends up with `categories: [{categoryId:
+      //      null}]`. The Order Tags relation-row category filter then
+      //      finds no matches → "* Tüm Ürünler" with nothing under it.
+      //   2. `normalizeProductsPayload` — shape migration for m2m.
       const raw = res?.data?.data ?? res?.data ?? [];
-      return normalizeProductsPayload(raw);
+      return normalizeProductsPayload(normalizeKeysDeep(raw));
     } catch (err) {
       if (err?.response?.data) return rejectWithValue(err.response.data);
       return rejectWithValue({ message_TR: err.message });

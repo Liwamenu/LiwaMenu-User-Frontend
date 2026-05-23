@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { getAuth } from "../redux/api";
+import { getAuth, privateApi } from "../redux/api";
 import {
   getWaiterCalls,
   resetWaiterCalls,
@@ -57,6 +57,7 @@ export const WaiterCallsProvider = ({ children }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [totalCount, setTotalCount] = useState(null);
   const [pageSize, setPageSize] = useState(localItemsPerPage);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   const pageNumbers = () => {
     const numbersColl = [];
@@ -123,6 +124,77 @@ export const WaiterCallsProvider = ({ children }) => {
       typeof prev === "number" ? prev + 1 : prev,
     );
     return false;
+  };
+
+  // Bulk "delete everything" for housekeeping. The list can pile up to
+  // hundreds of calls and there's no backend bulk endpoint, so we loop:
+  // fetch a page, delete those ids in parallel batches, repeat until the
+  // list is empty. Fetching page 1 each round (rather than pre-collecting
+  // every id) stays correct no matter how the backend treats the page
+  // params, and naturally drains the queue. Uses privateApi directly (not
+  // the delete thunk) so we don't fire hundreds of Redux actions / flash
+  // the global loader; the api interceptor dedupes any error toasts.
+  const handleDeleteAll = async () => {
+    const apiClient = privateApi();
+    const base = import.meta.env.VITE_BASE_URL;
+    const FETCH_SIZE = 100;
+    const BATCH = 8;
+    let deleted = 0;
+    let failed = 0;
+
+    setDeletingAll(true);
+    try {
+      // `round` is bounded so a backend that keeps returning the same
+      // undeletable rows can't spin forever.
+      for (let round = 0; round < 200; round += 1) {
+        let rows = [];
+        try {
+          const res = await apiClient.get(
+            `${base}Notifications/GetWaiterCalls`,
+            { params: { pageNumber: 1, pageSize: FETCH_SIZE } },
+          );
+          rows = Array.isArray(res.data?.data) ? res.data.data : [];
+        } catch {
+          break; // GET failed (interceptor already toasted) — stop.
+        }
+
+        const ids = rows.map((c) => c.id || c.Id).filter(Boolean);
+        if (ids.length === 0) break;
+
+        let roundFailed = 0;
+        for (let i = 0; i < ids.length; i += BATCH) {
+          const results = await Promise.allSettled(
+            ids
+              .slice(i, i + BATCH)
+              .map((id) =>
+                apiClient.delete(
+                  `${base}Notifications/DeleteWaiterCall?waiterCallId=${id}`,
+                ),
+              ),
+          );
+          results.forEach((r) => {
+            if (r.status === "fulfilled") deleted += 1;
+            else {
+              failed += 1;
+              roundFailed += 1;
+            }
+          });
+        }
+
+        // Whole round failed → the same rows will come back forever.
+        if (roundFailed === ids.length) break;
+      }
+    } finally {
+      // Clear optimistically, then refetch page 1 so a partial failure
+      // still surfaces whatever survived.
+      setCalls([]);
+      setTotalCount(0);
+      setPageNumber(1);
+      dispatch(getWaiterCalls({ pageNumber: 1, pageSize: pageSize.value }));
+      setDeletingAll(false);
+    }
+
+    return { deleted, failed };
   };
 
   const handleItemsPerPage = (number) => {
@@ -271,11 +343,13 @@ export const WaiterCallsProvider = ({ children }) => {
       pageNumbers,
       handleResolve,
       handleDelete,
+      handleDeleteAll,
+      deletingAll,
       handleItemsPerPage,
       handlePageChange,
       filterInitialState: waiterCallsFilterInitialState,
     }),
-    [calls, filter, pageNumber, totalCount, pageSize],
+    [calls, filter, pageNumber, totalCount, pageSize, deletingAll],
   );
 
   return (

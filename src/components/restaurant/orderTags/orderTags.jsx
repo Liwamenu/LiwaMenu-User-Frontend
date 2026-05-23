@@ -1,6 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,7 +12,10 @@ import DeleteOrderTag from "./deleteOrderTag";
 import PageHelp from "../../common/pageHelp";
 import { usePopup } from "../../../context/PopupContext";
 import { NewOrderTagGroup } from "./components/constraints";
-import OrderTagGroupCard from "./components/_orderTagGroupCard";
+import OrderTagGroupCard, {
+  compressRelations,
+  expandRelations,
+} from "./components/_orderTagGroupCard";
 
 // REDUX
 import { addOrderTag } from "../../../redux/orderTags/addOrderTagSlice";
@@ -28,16 +31,38 @@ import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
 // UTILS
 import { parsePrice } from "../../../utils/utils";
 
-// Items hold price as a raw string during editing — convert to Number at
-// the dispatch boundary. Mirrors _orderTagGroupCard's per-group save.
-const normalizeGroupsForSave = (groups) =>
-  (groups || []).map((g) => ({
-    ...g,
-    items: (g.items || []).map((it) => ({
-      ...it,
-      price: parsePrice(it.price),
-    })),
-  }));
+// Frontend-generated row IDs (used as React keys) start with "New-".
+// Mirror of the helper inside _orderTagGroupCard — kept local so the
+// page can strip its own group's temp ids on bulk save without
+// reaching across the file boundary.
+const isClientId = (id) => !id || String(id).startsWith("New-");
+
+// Normalize a list of groups for the bulk save endpoint. Three jobs:
+//   1. items: parse the raw user-typed price string into a Number
+//      (the OptionRow input keeps it as a string while editing so
+//      backspace etc. work cleanly).
+//   2. relations: expand any wildcard rows back into concrete
+//      (categoryId, productId, portionId) tuples — same expansion
+//      the per-group save runs, so the payload shape stays
+//      consistent and the backend never sees a "*" sentinel it
+//      can't parse as a Guid.
+//   3. drop frontend-only flags (`isDirty`, `isNew`) plus temp
+//      `New-…` ids so the backend gets a clean DTO.
+const normalizeGroupsForSave = (groups, products) =>
+  (groups || []).map((g) => {
+    const expandedRelations = expandRelations(g.relations || [], products);
+    const { isDirty, isNew, ...rest } = g;
+    const payload = {
+      ...rest,
+      items: (g.items || []).map((it) => ({
+        ...it,
+        price: parsePrice(it.price),
+      })),
+      relations: expandedRelations,
+    };
+    if (isClientId(payload.id)) delete payload.id;
+    return payload;
+  });
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -157,7 +182,7 @@ const OrderTags = ({ data: restaurant }) => {
     if (dataToBeEdited.length > 0) {
       dispatch(
         editOrderTags({
-          data: normalizeGroupsForSave(dataToBeEdited),
+          data: normalizeGroupsForSave(dataToBeEdited, state.products),
           restaurantId,
         }),
       );
@@ -165,7 +190,7 @@ const OrderTags = ({ data: restaurant }) => {
     if (dataToBeAdded.length > 0) {
       dispatch(
         addOrderTag({
-          data: normalizeGroupsForSave(dataToBeAdded),
+          data: normalizeGroupsForSave(dataToBeAdded, state.products),
           restaurantId,
         }),
       );
@@ -209,13 +234,53 @@ const OrderTags = ({ data: restaurant }) => {
     dispatch,
   ]);
 
+  // Track which orderTags reference we've already compressed so this
+  // effect doesn't re-collapse (and clobber any user edits) when only
+  // products / categories arrive later. Cleared by the mutation cycle:
+  // resetGetOrderTags → fresh fetch → new orderTags reference → ref
+  // miss → compress + remember.
+  const compressedRef = useRef(null);
+
   useEffect(() => {
     if (categories) setState((prev) => ({ ...prev, categories }));
     // Wrap the flat lite array in `{ data }` so OrderTagGroupCard's
     // `products?.data` access pattern keeps working unchanged.
     if (liteProducts)
       setState((prev) => ({ ...prev, products: { data: liteProducts } }));
-    if (orderTags) setState((prev) => ({ ...prev, tagGroups: orderTags }));
+    if (!orderTags) return;
+    if (compressedRef.current === orderTags) return; // already collapsed
+
+    // Sort by sortOrder ascending. The GET endpoint isn't reliable
+    // about returning rows in the persisted order (and the save
+    // path's PUT doesn't guarantee a sorted response either), so
+    // apply the sort client-side. Falls back to 0 for missing or
+    // non-numeric values so a partially-migrated payload still
+    // lands somewhere sensible.
+    const sortedOrderTags = orderTags
+      .slice()
+      .sort(
+        (a, b) =>
+          (Number.isFinite(a?.sortOrder) ? a.sortOrder : 0) -
+          (Number.isFinite(b?.sortOrder) ? b.sortOrder : 0),
+      );
+
+    // Need both products and categories before compression can
+    // detect "all products in category" — without products we'd
+    // miss layer 1 (per-product portion collapse) too. Fall back
+    // to raw rows in the meantime; when deps arrive the effect
+    // re-runs and overwrites with the collapsed view.
+    if (!liteProducts || !categories) {
+      setState((prev) => ({ ...prev, tagGroups: sortedOrderTags }));
+      return;
+    }
+    compressedRef.current = orderTags;
+    setState((prev) => ({
+      ...prev,
+      tagGroups: sortedOrderTags.map((g) => ({
+        ...g,
+        relations: compressRelations(g.relations || [], liteProducts),
+      })),
+    }));
   }, [categories, liteProducts, orderTags]);
 
   useEffect(() => {

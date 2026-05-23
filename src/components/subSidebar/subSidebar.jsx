@@ -16,7 +16,9 @@ import {
   Package,
   Palette,
   Tv,
+  Monitor,
   QrCode,
+  DollarSign,
 } from "lucide-react";
 
 //COMP
@@ -218,6 +220,18 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       to: `/restaurant/products/${id}`,
       path: "products",
     },
+    // Fiyat Listesi — bulk-edit lens over every product's prices,
+    // promoted to the sidebar so it's reachable in one click instead
+    // of "Ürünler → tab → Fiyat Listesi". Sits directly under
+    // Ürünler because it IS a view of the same data; falls into the
+    // `≥1 product` lock tier automatically (pathLockReason's tail
+    // branch), same as Etiketler below.
+    {
+      icon: <DollarSign className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.price_list"),
+      to: `/restaurant/price-list/${id}`,
+      path: "price-list",
+    },
     {
       icon: <Tag className={ICON_CLS} strokeWidth={ICON_STROKE} />,
       text: t("subSidebar.tags"),
@@ -235,6 +249,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       text: t("subSidebar.tvthemes"),
       to: `/restaurant/tvthemes/${id}`,
       path: "tvthemes",
+    },
+    {
+      icon: <Monitor className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.kioskthemes"),
+      to: `/restaurant/kioskthemes/${id}`,
+      path: "kioskthemes",
     },
     {
       icon: <QrCode className={ICON_CLS} strokeWidth={ICON_STROKE} />,

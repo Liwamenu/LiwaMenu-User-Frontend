@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
+import { components as selectComponents } from "react-select";
 
 //COMP
 import CheckI from "../../../assets/icon/check";
@@ -14,7 +15,21 @@ import { usePopup } from "../../../context/PopupContext";
 //REEDUX
 import { updatePriceList } from "../../../redux/products/updatePriceListSlice";
 
-const ALL_CATEGORIES_VALUE = "__all__";
+// Checkbox-style option for the multi-category picker — a ticked box
+// next to each category name so the user can apply the bulk update to
+// several categories at once. Selection state comes from react-select
+// (`isSelected`); the box is display-only (clicking the row toggles it).
+const CategoryCheckboxOption = (props) => (
+  <selectComponents.Option {...props}>
+    <input
+      type="checkbox"
+      checked={props.isSelected}
+      readOnly
+      className="mr-2 size-3.5 accent-indigo-600 align-middle"
+    />
+    <span className="align-middle">{props.label}</span>
+  </selectComponents.Option>
+);
 
 const BULK_TYPE_OPTIONS = [
   {
@@ -46,11 +61,11 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
   // Defaults to "Tutar (+) Ekle" — restaurants more often bump prices
   // by a flat lira amount than a percentage when running quick updates.
   const [bulkType, setBulkType] = useState("amount-add");
-  // null sentinel ALL_CATEGORIES_VALUE applies the change to every
-  // category; otherwise we only mutate products whose categoryId
-  // matches. Defaults to "all" so the existing flow stays the same
-  // for users who don't touch the new dropdown.
-  const [bulkCategory, setBulkCategory] = useState(ALL_CATEGORIES_VALUE);
+  // Selected categories for the bulk update (array of react-select
+  // option objects). EMPTY = "all categories" — preserves the original
+  // default (apply to everything) when the user doesn't narrow it down.
+  // Any selection limits the update to the ticked categories.
+  const [bulkCategories, setBulkCategories] = useState([]);
 
   // Surface the special-price column as a bulk target only when the
   // restaurant has the feature on (Genel Ayarlar → Özel Fiyat Tanımı).
@@ -119,15 +134,16 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
     const cats = [...seen.entries()]
       .map(([id, name]) => ({ value: id, label: name }))
       .sort((a, b) => String(a.label).localeCompare(String(b.label), "tr"));
-    return [
-      { value: ALL_CATEGORIES_VALUE, label: t("priceList.bulk_all_categories") },
-      ...cats,
-    ];
-  }, [list, t]);
+    return cats;
+  }, [list]);
 
-  const selectedCategoryOption =
-    categoryOptions.find((o) => o.value === bulkCategory) ||
-    categoryOptions[0];
+  // Disable the Uygula button until the user has typed a numeric value.
+  // The on-click handler still does its own validation as a defensive
+  // backstop (e.g. for keyboard-activated submits while the field is
+  // briefly empty), but pre-disabling stops the click from racing the
+  // confirmation modal open at all, which was the user's complaint.
+  const bulkValueValid =
+    bulkValue !== "" && bulkValue !== null && !isNaN(bulkValue);
 
   // Run the actual price math. Pulled out of `applyBulkUpdate` so the
   // confirmation modal's "yes" button can call this directly without
@@ -138,21 +154,23 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
     setHistory([...list]);
 
     const value = parseFloat(bulkValue);
-    const onlyCategoryId =
-      bulkCategory === ALL_CATEGORIES_VALUE ? null : bulkCategory;
+    const targetIds = bulkCategories.map((o) => o.value);
+    const applyAll = targetIds.length === 0;
 
     const updatedList = list.map((product) => {
-      // Skip products outside the selected category — they pass through
-      // unchanged so the rest of the price list stays intact. m2m: a
-      // product is "in" the target category when any of its memberships
-      // matches (or — special case — the target is "uncategorized" and
+      // Skip products outside the selected categories — they pass
+      // through unchanged so the rest of the price list stays intact.
+      // Empty selection ("Tüm Kategoriler") touches everything. m2m: a
+      // product is "in" a target when any of its memberships matches any
+      // selected id (or — special case — a target is "uncategorized" and
       // the product has no memberships at all).
-      if (onlyCategoryId !== null) {
+      if (!applyAll) {
         const memberships = product.categories || [];
-        const inTarget =
-          onlyCategoryId === "uncategorized"
+        const inTarget = targetIds.some((id) =>
+          id === "uncategorized"
             ? memberships.length === 0
-            : memberships.some((m) => m.categoryId === onlyCategoryId);
+            : memberships.some((m) => m.categoryId === id),
+        );
         if (!inTarget) return product;
       }
       const newProduct = { ...product };
@@ -240,12 +258,12 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
     // the user picks "Tüm Kategoriler" because a single click otherwise
     // rewrites every price; the Geri Al button limits damage but the
     // confirmation gives a chance to pause first.
-    const isAll = bulkCategory === ALL_CATEGORIES_VALUE;
+    const isAll = bulkCategories.length === 0;
     setSecondPopupContent(
       <BulkPriceConfirm
         t={t}
         isAll={isAll}
-        categoryName={isAll ? "" : selectedCategoryOption?.label || ""}
+        categoryName={isAll ? "" : bulkCategories.map((o) => o.label).join(", ")}
         onCancel={() => setSecondPopupContent(null)}
         onConfirm={() => {
           setSecondPopupContent(null);
@@ -327,16 +345,20 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
             />
           </div>
 
-          {/* Kategori — limits the bulk update to a single category
-              when picked, "Tüm Kategoriler" applies to everything. */}
-          <div className="w-full sm:w-52">
+          {/* Kategori — multi-select with checkboxes. Tick one or more
+              categories to limit the update to them; leave it empty
+              ("Tüm Kategoriler") to apply to every category. */}
+          <div className="w-full sm:w-60">
             <CustomSelect
               label={t("priceList.bulk_category_label")}
-              value={selectedCategoryOption}
+              value={bulkCategories}
               options={categoryOptions}
-              onChange={(opt) =>
-                setBulkCategory(opt?.value ?? ALL_CATEGORIES_VALUE)
-              }
+              onChange={(opts) => setBulkCategories(opts || [])}
+              isMulti
+              components={{ Option: CategoryCheckboxOption }}
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
+              placeholder={t("priceList.bulk_all_categories")}
               isSearchable={categoryOptions.length > 6}
               className="text-sm"
             />
@@ -355,11 +377,14 @@ const PriceListApplyBulk = ({ list, setList, restaurant }) => {
             </div>
           )}
 
-          {/* Uygula Button */}
+          {/* Uygula Button — disabled until the user has typed a value
+              in the Değer field, so an accidental click on a fresh row
+              can't fire the confirmation modal with nothing to apply. */}
           <div className="flex flex-col justify-end w-full sm:w-auto">
             <button
               onClick={applyBulkUpdate}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-500/25 transition"
+              disabled={!bulkValueValid}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-500/25 transition disabled:bg-indigo-300 disabled:hover:bg-indigo-300 disabled:cursor-not-allowed disabled:shadow-none"
             >
               <CheckI className="size-[1.1rem]" />
               {t("priceList.bulk_apply_button")}

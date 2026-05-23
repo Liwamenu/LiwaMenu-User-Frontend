@@ -53,6 +53,54 @@ export const PRICE_LIST_META = {
   special: { icon: Sparkles, chipTone: "amber" },
 };
 
+// ===== Overnight plan splitting =====
+//
+// The backend validates each plan with `startTime < endTime` and rejects
+// anything else with "Başlangıç saati bitiş saatinden küçük olmalı". That
+// kills the legitimate late-night use case (e.g. a bar menu active 23:50
+// → 02:30) since wrapping past midnight requires `endTime < startTime`.
+//
+// Workaround: split overnight UI rows into two server-valid same-week
+// plans before shipping. The late-night portion stays on the originally
+// selected days (`startTime → 23:59`), and the early-morning portion
+// shifts forward one weekday (`00:00 → endTime`) so that "Monday night →
+// Tuesday morning" is preserved end-to-end. For Sun→Mon the shift wraps.
+//
+// Day indices follow the DAY_KEYS convention in addMenu/editMenu
+// (0=Mon..6=Sun). On round-trip the user sees the two split rows in the
+// edit form — we deliberately don't auto-merge them because the
+// detection heuristic ("endTime=23:59 + startTime=00:00 on adjacent
+// days") would false-positive on plans the user genuinely typed that
+// way and silently rewrite their data.
+export const isOvernightRange = (startTime, endTime) =>
+  !!startTime && !!endTime && String(startTime) > String(endTime);
+
+const isClientId = (id) => !id || String(id).startsWith("sch-");
+
+export const expandOvernightPlans = (uiRow) => {
+  const { days, startTime, endTime, id } = uiRow || {};
+  if (!isOvernightRange(startTime, endTime)) {
+    const base = { days: days || [], startTime, endTime };
+    if (!isClientId(id)) base.id = id;
+    return [base];
+  }
+  // Overnight — split into two new plans. Drop the original id on both
+  // halves: one row is becoming two and the backend can't reuse a
+  // single id, so it should treat both as new and let the previous
+  // single row (if any) be removed by the replace-all semantics of the
+  // edit endpoint.
+  const latePart = { days: days || [], startTime, endTime: "23:59" };
+  const nextDays = (days || []).map((d) => (d + 1) % 7);
+  const earlyPart = { days: nextDays, startTime: "00:00", endTime };
+  return [latePart, earlyPart];
+};
+
+// Convenience: expand a whole array of UI schedule rows into the flat
+// plans payload the backend expects. Overnight rows become two; every
+// other row passes through unchanged.
+export const buildPlansForBackend = (schedules) =>
+  (schedules || []).flatMap((sch) => expandOvernightPlans(sch));
+
 // Turkish-aware diacritic folding for the category search — mirror of
 // the helper used across products.jsx / categoryProducts.jsx etc.
 const TR_FOLD = {

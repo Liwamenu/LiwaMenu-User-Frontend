@@ -10,17 +10,14 @@ import {
 } from "../../../redux/restaurant/setSurveySettingsSlice";
 import toast from "react-hot-toast";
 
+// Curated picks for restaurant survey categories (taste, service,
+// cleanliness, ambiance, price, speed, …). The grid scrolls, and the
+// text box + the OS emoji panel cover anything not listed here.
 const EMOJI_PRESETS = [
-  "🍕",
-  "✨",
-  "⚡",
-  "👨‍🍳",
-  "🧼",
-  "🍔",
-  "🍷",
-  "🌱",
-  "💰",
-  "🕙",
+  "🍕", "🍔", "🍟", "🍝", "🍣", "🥗", "🥩", "🍳", "🌮", "🍰",
+  "🍩", "☕", "🍷", "🍺", "🥤", "🍹", "🍽️", "👨‍🍳", "👩‍🍳", "🛎️",
+  "🤝", "⭐", "✨", "❤️", "👍", "😋", "🔥", "⚡", "🥂", "🎵",
+  "🪑", "🌱", "🧼", "✅", "💰", "💳", "🏷️", "🕙", "📍", "🚗",
 ];
 
 const PRIMARY_GRADIENT =
@@ -172,16 +169,16 @@ const AddOrEditCategoryPopup = ({
             {t("surveySettings.icon_label")}
             <span className="text-rose-500 ml-0.5">*</span>
           </label>
-          <div className="flex gap-2">
+          <div className="flex items-start gap-2">
             <input
               type="text"
               required
-              maxLength={2}
+              maxLength={8}
               value={formIcon}
               onChange={(e) => setFormIcon(e.target.value)}
               className="w-16 h-10 text-center text-2xl bg-[--white-1] border border-[--border-1] rounded-lg outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
             />
-            <div className="flex-1 grid grid-cols-5 gap-1 p-1 bg-[--white-2] border border-[--border-1] rounded-lg">
+            <div className="flex-1 grid grid-cols-5 gap-1 p-1 bg-[--white-2] border border-[--border-1] rounded-lg max-h-32 overflow-y-auto content-start">
               {EMOJI_PRESETS.map((emoji) => (
                 <button
                   key={emoji}
@@ -198,6 +195,9 @@ const AddOrEditCategoryPopup = ({
               ))}
             </div>
           </div>
+          <p className="text-[10px] text-[--gr-1] mt-1.5 leading-relaxed">
+            {t("surveySettings.icon_emoji_hint")}
+          </p>
         </div>
 
         <div className="flex justify-end gap-2 pt-3 border-t border-[--border-1]">

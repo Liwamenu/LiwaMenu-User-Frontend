@@ -4,11 +4,6 @@
 //
 // Each tab is a real Link so deep links and browser back/forward keep
 // working — we just stop showing the same items in the sub-sidebar.
-//
-// We also render the page-help button to the right of the tabs (rather
-// than in each sub-page's hero), since the strip is already the natural
-// "above the form" anchor and it saves seven near-identical edits.
-import { useEffect, useRef } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -22,26 +17,12 @@ import {
   Layout,
 } from "lucide-react";
 
-import PageHelp from "../common/pageHelp";
-
-// Map the URL slug for each tab to the matching pageHelp.<key> entry in
-// the i18n bundle. Kept inline because the tabs themselves only live here.
-const SLUG_TO_HELP_KEY = {
-  settings: "settings",
-  reservationSettings: "reservationSettings",
-  announcementSettings: "announcementSettings",
-  surveySettings: "surveySettings",
-  externalPage: "externalPage",
-  hours: "workingHours",
-  social: "socialMedias",
-  payments: "paymentMethods",
-};
+import { useDirtyNav } from "../../context/DirtyNavContext";
 
 const SettingsTabs = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const activeRef = useRef(null);
-  const wrapRef = useRef(null);
+  const { confirmAndNavigate } = useDirtyNav();
   // Routes look like /restaurant/<slug>/<id>; the slug is what we match on.
   const segments = location.pathname.split("/").filter(Boolean);
   const slug = segments[1] || "";
@@ -102,46 +83,33 @@ const SettingsTabs = () => {
     },
   ];
 
-  // On every route change, scroll the active tab into view inside the
-  // horizontal scroller. Critical on mobile, where the bar overflows.
-  useEffect(() => {
-    const node = activeRef.current;
-    const wrap = wrapRef.current;
-    if (!node || !wrap) return;
-    const nodeLeft = node.offsetLeft;
-    const nodeRight = nodeLeft + node.offsetWidth;
-    const viewLeft = wrap.scrollLeft;
-    const viewRight = viewLeft + wrap.clientWidth;
-    if (nodeLeft < viewLeft || nodeRight > viewRight) {
-      wrap.scrollTo({
-        left: nodeLeft - 12,
-        behavior: "smooth",
-      });
-    }
-  }, [slug]);
-
-  const helpKey = SLUG_TO_HELP_KEY[slug];
-
   return (
-    <div className="mb-3 flex items-start gap-2">
-      <div
-        ref={wrapRef}
-        className="-mx-1 overflow-x-auto scrollbar-thin flex-1 min-w-0"
-        // Hide native scrollbar visuals on mobile but keep scroll behaviour.
-        style={{ scrollbarWidth: "none" }}
-      >
-        <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-[--border-1] bg-[--white-1] shadow-sm whitespace-nowrap min-w-max">
+    // Tabs "hang" off this top line: each one pulls up 2px to sit on it,
+    // with squared tops, rounded bottoms and a thick top accent on the
+    // active tab. Wraps to multiple rows on narrow widths.
+    <div className="mb-3 border-t-2 border-[--border-1]">
+      <div className="flex flex-wrap gap-[3px] px-1">
           {tabs.map(({ slug: tabSlug, to, icon: Icon, label }) => {
             const active = slug === tabSlug;
             return (
               <Link
                 key={tabSlug}
-                ref={active ? activeRef : null}
                 to={to}
-                className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs sm:text-sm font-semibold transition shrink-0 ${
+                // Intercept the navigation so the DirtyNav context can
+                // prompt the user before they leave a page with unsaved
+                // form changes. The active tab early-returns (clicking
+                // your own tab is a no-op, but we still don't want to
+                // fire the confirm).
+                onClick={(e) => {
+                  if (active) return;
+                  if (!confirmAndNavigate()) {
+                    e.preventDefault();
+                  }
+                }}
+                className={`-mt-[2px] inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-t-none rounded-b-[6px] border border-t-4 text-xs sm:text-sm font-medium shadow-md transition-all duration-300 active:scale-[0.97] ${
                   active
-                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
-                    : "text-[--gr-1] hover:text-[--black-1] hover:bg-[--white-2]"
+                    ? "z-10 bg-indigo-600 text-white border-indigo-600 border-t-indigo-400"
+                    : "z-0 bg-[--white-2] text-[--gr-1] border-[--border-1] border-t-transparent hover:bg-[--white-1] hover:text-indigo-600 hover:border-t-[--border-1]"
                 }`}
               >
                 <Icon className="size-4" />
@@ -149,9 +117,7 @@ const SettingsTabs = () => {
               </Link>
             );
           })}
-        </div>
       </div>
-      {helpKey && <PageHelp pageKey={helpKey} className="self-stretch" />}
     </div>
   );
 };

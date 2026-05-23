@@ -83,7 +83,236 @@ const normalizeItemsForSave = (items) =>
 // two copies of the same portion.
 const isWildcard = (v) => v == null || v === "*";
 
-const expandRelations = (relations, lite) => {
+// Re-collapse a flat list of (cat, prod, port) tuples back into a
+// wildcard-aware view. Inverse of `expandRelations` — the backend
+// stores ONE row per portion (see the note above expandRelations
+// for why) so a tag that was originally saved as
+// `{ cat:X, prod:"*", port:"*" }` round-trips as N concrete rows.
+// Without compression the user would re-open the tag and see all
+// N expanded rows instead of the single wildcard they saved.
+//
+// Three layers, fine → coarse:
+//
+//   1. For each (cat, prod) tuple: if every portion of `prod` is
+//      present in the set → emit `{ cat, prod, port:"*" }` instead
+//      of N individual portion rows.
+//   2. For each cat: if every product currently in that category
+//      collapsed at step 1 AND no per-portion partial rows leaked
+//      through → emit `{ cat, prod:"*", port:"*" }` (single
+//      category-wide wildcard).
+//   3. `cat === "*"` rows are already maximally wildcarded — pass
+//      through unchanged.
+//
+// Conservative on missing data: a portion or product deleted since
+// the wildcard was first saved leaves the set incomplete, so we
+// keep the individual rows rather than synthesize a wildcard that
+// would silently re-include something the menu owner cleaned out.
+// New products added to a category AFTER the wildcard was saved
+// auto-include on the next save (expandRelations re-evaluates
+// against the latest catalog).
+//
+// Synthetic React-key ids (`c-…`) are stamped on each output row;
+// they never roundtrip — expandRelations strips ids before save.
+export const compressRelations = (rawRelations, productList) => {
+  if (!Array.isArray(rawRelations) || rawRelations.length === 0) return [];
+
+  // catId → Map<prodId, Set<portionId>>
+  const tree = new Map();
+  for (const rel of rawRelations) {
+    const cat = isWildcard(rel.categoryId) ? "*" : rel.categoryId;
+    const prod = isWildcard(rel.productId) ? "*" : rel.productId;
+    const port = isWildcard(rel.portionId) ? "*" : rel.portionId;
+    if (!tree.has(cat)) tree.set(cat, new Map());
+    if (!tree.get(cat).has(prod)) tree.get(cat).set(prod, new Set());
+    tree.get(cat).get(prod).add(port);
+  }
+
+  // Pre-index categoryId → products (per current catalog) for the
+  // layer-2 "all products in category" check. Walks every product
+  // once, so layer 2 stays O(1) per category.
+  const productsByCategory = new Map();
+  for (const p of productList || []) {
+    const cats = Array.isArray(p.categories) ? p.categories : [];
+    for (const c of cats) {
+      if (!c?.categoryId) continue;
+      if (!productsByCategory.has(c.categoryId)) {
+        productsByCategory.set(c.categoryId, []);
+      }
+      productsByCategory.get(c.categoryId).push(p);
+    }
+  }
+
+  // Pre-compute a GLOBAL "fully covered products" set by unioning
+  // every portion seen across all category buckets in the tree.
+  // Backend's relation table is keyed by (orderTagId, portionId) —
+  // categoryId is metadata, so a multi-category product gets stored
+  // under exactly one (arbitrary) category. Without the global
+  // view, a multi-cat product saved under cat A would be invisible
+  // to cat B's layer-2 collapse, even though the tag definitively
+  // applies to that portion in either context. This is what made
+  // KEBAPLAR fail to collapse on a "Tüm/Tüm/Tüm" save while
+  // DÜRÜMLER worked (Adana Dürüm stored under one cat only).
+  const portionsByProduct = new Map(); // productId → Set<portionId>
+  for (const [, prodMap] of tree) {
+    for (const [prodId, portSet] of prodMap) {
+      if (prodId === "*") continue;
+      if (!portionsByProduct.has(prodId)) {
+        portionsByProduct.set(prodId, new Set());
+      }
+      const merged = portionsByProduct.get(prodId);
+      for (const port of portSet) merged.add(port);
+    }
+  }
+  const globallyCoveredProducts = new Set();
+  for (const [prodId, portSet] of portionsByProduct) {
+    const product = (productList || []).find((p) => p.id === prodId);
+    const productPortions = Array.isArray(product?.portions)
+      ? product.portions
+      : [];
+    const allPortionIds = productPortions
+      .map((p) => p.id)
+      .filter(Boolean);
+    const hasAllPortions =
+      portSet.has("*") ||
+      (allPortionIds.length > 0 &&
+        allPortionIds.every((id) => portSet.has(id)));
+    if (hasAllPortions) globallyCoveredProducts.add(prodId);
+  }
+
+  const out = [];
+
+  for (const [catId, prodMap] of tree) {
+    // Layer 3: cat-wildcards bypass layer 1 + 2.
+    if (catId === "*") {
+      for (const [prodId, portSet] of prodMap) {
+        for (const portId of portSet) {
+          out.push({
+            categoryId: "*",
+            productId: prodId,
+            portionId: portId,
+          });
+        }
+      }
+      continue;
+    }
+
+    // Layer 1: per-product portion check — but read from the GLOBAL
+    // `globallyCoveredProducts` set built above. A product whose
+    // portions are fully covered SOMEWHERE in the tree (even under a
+    // different category bucket) counts as covered here too.
+    const collapsedInThisCat = new Set();
+    const passthroughRows = [];
+
+    for (const [prodId, portSet] of prodMap) {
+      if (prodId === "*") {
+        // Product-wildcards leak through to passthrough — handled
+        // below; layer 2 still skips collapse when any are present.
+        for (const portId of portSet) {
+          passthroughRows.push({
+            categoryId: catId,
+            productId: "*",
+            portionId: portId,
+          });
+        }
+        continue;
+      }
+      if (globallyCoveredProducts.has(prodId)) {
+        collapsedInThisCat.add(prodId);
+      } else {
+        // Partial coverage globally — emit each portion present in
+        // THIS category bucket as an individual row.
+        for (const portId of portSet) {
+          passthroughRows.push({
+            categoryId: catId,
+            productId: prodId,
+            portionId: portId,
+          });
+        }
+      }
+    }
+
+    // Layer 2: category-wide collapse — every product the catalog
+    // says belongs to this category is globally covered, AND there
+    // are no per-portion partials leaking through. The check uses
+    // the global covered set so multi-category products stored under
+    // their "other" cat still count toward this cat's quorum.
+    const catProducts = productsByCategory.get(catId) || [];
+    const catProductIds = catProducts.map((p) => p.id);
+    const canCollapseCategory =
+      catProductIds.length > 0 &&
+      catProductIds.every((id) => globallyCoveredProducts.has(id)) &&
+      passthroughRows.length === 0;
+
+    if (canCollapseCategory) {
+      out.push({ categoryId: catId, productId: "*", portionId: "*" });
+    } else {
+      // Emit per-product wildcards for the products this cat's
+      // bucket actually has (don't synthesize rows for products
+      // whose data lives in another bucket — that'd over-promise
+      // the tag's scope).
+      for (const prodId of collapsedInThisCat) {
+        out.push({ categoryId: catId, productId: prodId, portionId: "*" });
+      }
+      out.push(...passthroughRows);
+    }
+  }
+
+  // Layer 3: top-level wildcard collapse. When EVERY category that
+  // has products is at its layer-2 wildcard (`{ cat:X, prod:"*",
+  // port:"*" }`) AND nothing else leaked through, collapse the
+  // whole list to a single `{ cat:"*", prod:"*", port:"*" }` row.
+  // Matches how the user originally saved a "Tüm Kategoriler / Tüm
+  // Ürünler / Tüm Porsiyonlar" wildcard — without this, the UI
+  // shows 13 separate cat-wildcards instead of the 1 row the user
+  // expected.
+  const collapsedCatIds = new Set();
+  let hasNonCatWildcardRow = false;
+  for (const rel of out) {
+    if (
+      rel.categoryId !== "*" &&
+      rel.productId === "*" &&
+      rel.portionId === "*"
+    ) {
+      collapsedCatIds.add(rel.categoryId);
+    } else if (
+      rel.categoryId === "*" &&
+      rel.productId === "*" &&
+      rel.portionId === "*"
+    ) {
+      // Already at top wildcard — don't count as "other".
+    } else {
+      hasNonCatWildcardRow = true;
+    }
+  }
+
+  // "All categories that have products" (per the live catalog). A
+  // category with zero products wouldn't have any rows emitted from
+  // expandRelations, so we don't require it for the collapse check.
+  const productCatIds = new Set();
+  for (const p of productList || []) {
+    const cats = Array.isArray(p.categories) ? p.categories : [];
+    for (const c of cats) {
+      if (c?.categoryId) productCatIds.add(c.categoryId);
+    }
+  }
+
+  const canCollapseTop =
+    !hasNonCatWildcardRow &&
+    collapsedCatIds.size > 0 &&
+    productCatIds.size > 0 &&
+    [...productCatIds].every((id) => collapsedCatIds.has(id));
+
+  const finalOut = canCollapseTop
+    ? [{ categoryId: "*", productId: "*", portionId: "*" }]
+    : out;
+
+  return finalOut.map((rel, i) => ({
+    ...rel,
+    id: `c-${i}-${rel.categoryId}-${rel.productId}-${rel.portionId}`,
+  }));
+};
+
+export const expandRelations = (relations, lite) => {
   const productList = lite?.data || [];
   const out = [];
   for (const rel of relations || []) {
@@ -101,9 +330,19 @@ const expandRelations = (relations, lite) => {
       // surfaces via the flat alias. Without this, multi-category
       // products would silently miss wildcards targeting a non-primary
       // category.
-      productCandidates = productList.filter((p) =>
-        (p.categories || []).some((c) => c.categoryId === rel.categoryId),
-      );
+      //
+      // Fallback to the flat `categoryId` for products whose backend
+      // response carried an empty / missing categories array AND the
+      // normalizer didn't manage to synthesize one. Belt and
+      // suspenders so wildcard expansion doesn't silently emit zero
+      // rows just because data is partial.
+      productCandidates = productList.filter((p) => {
+        const memberships = p.categories || [];
+        if (memberships.some((c) => c?.categoryId === rel.categoryId)) {
+          return true;
+        }
+        return p.categoryId === rel.categoryId;
+      });
     } else {
       productCandidates = productList;
     }
@@ -113,12 +352,15 @@ const expandRelations = (relations, lite) => {
         ? product.portions || []
         : (product.portions || []).filter((pt) => pt.id === rel.portionId);
 
-      // Pick the categoryId to stamp on the emitted relation row.
-      // Prefer the explicit `rel.categoryId` when the wildcard wasn't
-      // an "all categories", since that's the category the user picked
-      // for this relation row. Otherwise fall back to the product's
-      // first membership (m2m: pick one, the relation is keyed by
-      // (productId, portionId) anyway).
+      // Stamp the categoryId for the emitted rows. Backend's relation
+      // table is keyed by (orderTagId, portionId) — categoryId is
+      // metadata, not part of the natural key. A multi-category
+      // product (Adana Dürüm in both KEBAPLAR + DÜRÜMLER) therefore
+      // ends up as ONE row per portion regardless of how many
+      // categories we fan it out under, with the categoryId chosen
+      // arbitrarily by the backend's dedupe. We just pick the first
+      // membership and let compress's global-coverage check
+      // reconstruct the wildcard semantics on load.
       const emittedCategoryId = !allCats
         ? rel.categoryId
         : (product.categories || [])[0]?.categoryId ?? product.categoryId;

@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 // COMP
-import ProductsHeader from "./header";
 import PriceListApplyBulk from "./priceListApplyBulk";
 import CustomSelect from "../../common/customSelector";
 
@@ -31,8 +30,6 @@ import { getProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
 
-// UTILS
-import { buildCategoryCampaignMap } from "../../../utils/categoryCampaign";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -75,8 +72,8 @@ const PriceList = ({ data: restaurant }) => {
   // category that isn't running campaigns. After the m2m migration the
   // category-level `campaign` column was dropped — the per-category
   // state is derived from products' `isCampaign` (see
-  // `buildCategoryCampaignMap` below). We still need the categories
-  // list itself for the filter dropdown.
+  // `categoryCampaignMap` below). We still need the categories list
+  // itself for the filter dropdown.
   const { categories, fetchedFor: catFetchedFor } = useSelector(
     (s) => s.categories.get,
   );
@@ -89,18 +86,6 @@ const PriceList = ({ data: restaurant }) => {
   // fetchedFor cache'iyle gereksiz refetch'ten kaçınıyoruz.
   const { orderTags, fetchedFor: tagsFetchedFor } = useSelector(
     (s) => s.orderTags.get,
-  );
-
-  // categoryId → boolean: does this category have campaigns enabled?
-  // Derived from products' `isCampaign` (every-true rule) — the
-  // category-level `campaign` column no longer exists post-m2m. Empty
-  // categories and unknown ids resolve to false so the Kampanya UI
-  // stays hidden until we have proof it's allowed. See
-  // `utils/categoryCampaign.js` for the rule + rationale.
-  const productList = (products?.data?.length && products.data) || [];
-  const categoryCampaignMap = useMemo(
-    () => buildCategoryCampaignMap(categories, productList),
-    [categories, productList],
   );
 
   // Özel Fiyat column visibility — driven by the restaurant's
@@ -186,6 +171,53 @@ const PriceList = ({ data: restaurant }) => {
     setListBefore(initialList);
   }, [products]);
 
+  // categoryId → boolean: does THIS category itself have campaign on?
+  //
+  // The cleanest source would be `category.campaign` from the Categories
+  // list, but `Categories/GetCategoriesByRestaurantId` doesn't project
+  // that flag (only isActive / featured) — see CATEGORY_CAMPAIGN_CASCADE
+  // brief. Until backend exposes it, we lean on a side-effect of the
+  // editCategory cascade we already ship: flipping a category's campaign
+  // ON updates EVERY product in that category to isCampaign=true (and
+  // OFF resets them to false). So "every product in this category is
+  // campaign-tagged" is a reliable proxy for "this category itself has
+  // campaign on".
+  //
+  // Why ALL and not ANY: products are m2m, so a single Kebab that's
+  // also tagged under Dürümler would falsely promote Dürümler if we
+  // checked "any campaign-tagged product". Requiring ALL filters out
+  // those drift-ins — a true campaign category will have 100%
+  // coverage (cascade just ran), a non-campaign category that merely
+  // hosts a drifted product won't.
+  //
+  // Falls back to `c.campaign` if backend ever does project it, so this
+  // stays correct after that change too — no extra cleanup needed.
+  //
+  // NOTE: placed AFTER the `list` useState above, otherwise the closure
+  // hits a temporal dead zone (`list` referenced before declaration) on
+  // first render and the whole page crashes to a white screen.
+  const categoryCampaignMap = useMemo(() => {
+    const map = new Map();
+    (categories || []).forEach((c) => {
+      if (c?.id && c.campaign) map.set(c.id, true);
+    });
+    // Per-category {total, campaign} counts across the visible products.
+    const counts = new Map();
+    for (const p of list) {
+      for (const m of p.categories || []) {
+        if (!m?.categoryId) continue;
+        const slot = counts.get(m.categoryId) || { total: 0, campaign: 0 };
+        slot.total += 1;
+        if (p.isCampaign) slot.campaign += 1;
+        counts.set(m.categoryId, slot);
+      }
+    }
+    for (const [cid, c] of counts) {
+      if (c.total > 0 && c.campaign === c.total) map.set(cid, true);
+    }
+    return map;
+  }, [categories, list]);
+
   // m2m: a product appears in EVERY category it's a member of, not just
   // the first. The same product object is pushed into multiple groups —
   // edits flow through because `list` is keyed by id and the inputs
@@ -216,17 +248,23 @@ const PriceList = ({ data: restaurant }) => {
     return Array.from(grouped.values());
   }, [list]);
 
-  // Dropdown options: "Tüm Ürünler" + every category present in the list.
-  const categoryOptions = useMemo(
-    () => [
+  // Dropdown options: "Tüm Ürünler" + every category present in the
+  // list, sorted alphabetically (TR-aware via localeCompare) so the
+  // picker is predictable to scan. We deliberately do NOT sort the
+  // rendered category sections — those follow the products' insertion
+  // order, which is driven by the owner-controlled `sortOrder` from
+  // the backend.
+  const categoryOptions = useMemo(() => {
+    const cats = groupedByCategory
+      .map((g) => ({ label: g.categoryName || "—", value: g.categoryId }))
+      .sort((a, b) =>
+        String(a.label).localeCompare(String(b.label), "tr"),
+      );
+    return [
       { label: t("priceList.all_categories"), value: null },
-      ...groupedByCategory.map((g) => ({
-        label: g.categoryName || "—",
-        value: g.categoryId,
-      })),
-    ],
-    [groupedByCategory, t],
-  );
+      ...cats,
+    ];
+  }, [groupedByCategory, t]);
 
   // For each (productId|portionId) tuple, decide whether its pricing is
   // actually driven by an OrderTag selection — i.e. there is at least
@@ -420,11 +458,9 @@ const PriceList = ({ data: restaurant }) => {
 
   return (
     <div className="w-full pb-8 mt-1 text-[--black-1]">
-      {/* Top tabs */}
-      <div className="flex flex-wrap gap-2 mb-3 text-sm">
-        <ProductsHeader />
-      </div>
-
+      {/* Fiyat Listesi is now reached from the sidebar (under Ürünler),
+          so we no longer render the Products tab strip here — it'd just
+          surface two unrelated tabs (Manage / Add) with nothing active. */}
       <div
         className="bg-[--white-1] rounded-2xl border border-[--border-1] shadow-sm overflow-hidden"
         ref={containerRef}
@@ -925,7 +961,23 @@ const PriceInput = ({
     setEditStr(numericValue ? String(numericValue) : "");
     setFocused(true);
     // Auto-select so a fresh number replaces the existing one.
-    e.target.select();
+    // The select() runs against the still-formatted display ("360,00")
+    // — React then swaps the value to the raw editStr ("360") on the
+    // next commit, and most browsers collapse the selection when the
+    // value changes underneath them. Re-select on the next frame so
+    // keyboard navigation (Enter / ArrowUp / ArrowDown) lands with
+    // everything highlighted and a single keystroke replaces the
+    // existing price instead of forcing a backspace.
+    const target = e.target;
+    target.select();
+    requestAnimationFrame(() => {
+      if (
+        document.activeElement === target &&
+        typeof target.select === "function"
+      ) {
+        target.select();
+      }
+    });
   };
 
   const handleChange = (e) => {

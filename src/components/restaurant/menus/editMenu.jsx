@@ -12,7 +12,10 @@ import {
   PriceListSelect,
   MenuCategoryPicker,
   DEFAULT_PRICE_LIST_TYPE,
+  buildPlansForBackend,
+  isOvernightRange,
 } from "./menuFormSections";
+import { Info } from "lucide-react";
 
 //REDUX
 import { editMenu, resetEditMenu } from "../../../redux/menus/editMenuSlice";
@@ -46,25 +49,18 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
     menu?.priceListType || DEFAULT_PRICE_LIST_TYPE,
   );
 
-  // Frontend-generated row IDs (used as React keys) start with "sch-".
-  // The backend rejects those — only existing plans should round-trip their
-  // id back to the server.
-  const isClientId = (id) => !id || String(id).startsWith("sch-");
-
+  // Plans payload: pass each row through buildPlansForBackend, which
+  // preserves backend-issued ids for non-overnight rows and splits
+  // overnight rows (start > end, e.g. 23:50 → 02:30) into two same-week
+  // plans to work around the backend's `startTime < endTime` validator.
+  // Client-generated row ids (the "sch-" prefix used as React keys) are
+  // stripped inside the helper — only ids the backend issued round-trip.
   const updatedMenu = {
     ...menu,
     restaurantId,
     menuId: menu.id,
     name: menuName,
-    plans: schedules.map((sch) => {
-      const out = {
-        days: sch.days,
-        startTime: sch.startTime,
-        endTime: sch.endTime,
-      };
-      if (!isClientId(sch.id)) out.id = sch.id;
-      return out;
-    }),
+    plans: buildPlansForBackend(schedules),
     categoryIds,
     priceListType,
   };
@@ -156,6 +152,16 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
     }
   }, [menu, open]);
 
+  // NOTE: An earlier attempt added a reconcile useEffect here that
+  // unioned menu.categoryIds with "categories whose menuIds list this
+  // menu", mirroring the EditCategory reconcile. Reverted on
+  // 2026-05-19: UNION can't distinguish "the other side knows about a
+  // relationship that hasn't synced here yet" from "the other side
+  // is just stale after a removal", so just-removed categories kept
+  // re-appearing in the picker. See CATEGORY_CAMPAIGN_CASCADE_BRIEF.md
+  // Addendum 2 for the backend ask; this dialog reads raw
+  // `menu.categoryIds` until that lands.
+
   useEffect(() => {
     if (success) {
       toast.success(t("editMenu.success"));
@@ -179,7 +185,7 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
-      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
+      <div className="bg-[--white-1] rounded-2xl shadow-2xl w-full max-w-2xl p-8 transform scale-95 transition-all duration-300 modal-content relative flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center mb-6 border-b border-[--border-1] pb-4">
           <h3 className="text-2xl font-bold text-[--black-1]">
             {t("editMenu.title")}
@@ -247,13 +253,13 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
                         key={idx}
                         type="button"
                         onClick={() => toggleScheduleDay(sch.id, idx)}
-                        className={`text-[10px] w-8 h-8 rounded-full border flex items-center justify-center transition-colors font-medium ${
+                        className={`text-xs h-8 px-3 rounded-full border flex items-center justify-center transition-colors font-medium whitespace-nowrap ${
                           sch.days.includes(idx)
                             ? "bg-[--primary-1] text-white border-[--primary-1]"
                             : "bg-[--white-1] text-[--gr-1] border-[--border-1]"
                         }`}
                       >
-                        {t(`workingHours.${dayKey}`).substring(0, 2)}
+                        {t(`workingHours.${dayKey}`)}
                       </button>
                     ))}
                   </div>
@@ -281,6 +287,17 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
                       className="flex-1 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-sm text-[--black-1] tabular-nums focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition"
                     />
                   </div>
+
+                  {/* Overnight hint — surfaces what the backend split will
+                      do so the user understands why two plans appear on
+                      the next edit. Only shown when the row actually
+                      wraps midnight (start > end). */}
+                  {isOvernightRange(sch.startTime, sch.endTime) && (
+                    <div className="mt-2 flex items-start gap-2 px-2.5 py-1.5 rounded-md bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 text-[11px] leading-snug dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
+                      <Info className="size-3.5 mt-px shrink-0" />
+                      <span>{t("addMenu.overnight_hint")}</span>
+                    </div>
+                  )}
 
                   {/* Remove Button */}
                   <button

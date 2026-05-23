@@ -121,11 +121,19 @@ export const maxInput = (e) => {
 // Allow only digits, at most one '.' and at most one ','. First occurrence
 // of each separator wins; subsequent ones are dropped. Letters / currency
 // symbols are stripped. Empty input passes through as "".
-export function sanitizePriceInput(value) {
+//
+// Opt-in `allowNegative` permits a single leading '-' so callers that
+// support price deductions (e.g. order tag options where an unselected
+// option discounts the product) can accept inputs like "-5". The minus
+// is only accepted as the FIRST emitted character — typing it mid-string
+// or repeating it is dropped, so the live display stays unambiguous.
+// Default is `false` so product-price inputs keep refusing the sign.
+export function sanitizePriceInput(value, { allowNegative = false } = {}) {
   if (value === null || value === undefined) return "";
   const s = String(value);
   let dotSeen = false;
   let commaSeen = false;
+  let negSeen = false;
   let out = "";
   for (const ch of s) {
     if (ch >= "0" && ch <= "9") {
@@ -140,6 +148,11 @@ export function sanitizePriceInput(value) {
         out += ch;
         commaSeen = true;
       }
+    } else if (ch === "-" && allowNegative && !negSeen && out.length === 0) {
+      // Leading-only: must come before any digit/separator. Once we've
+      // emitted anything else, subsequent '-' chars are dropped.
+      out += ch;
+      negSeen = true;
     }
   }
   return out;

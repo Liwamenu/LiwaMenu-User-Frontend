@@ -111,6 +111,15 @@ const OrdersPage = () => {
     dispatch(getRestaurants({}));
   }, [dispatch]);
 
+  // Re-fetch orders every time this page is opened. The OrdersProvider
+  // lives at the app root and does NOT refetch on navigation, so
+  // without this you'd keep seeing the last-cached list until a push
+  // or full reload. Fetches the current page with the active filter.
+  useEffect(() => {
+    handlePageChange(pageNumber);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
 
@@ -281,7 +290,7 @@ const OrdersPage = () => {
 
       {/* PAGINATION */}
       {ordersData && typeof totalCount === "number" && totalCount > 0 && (
-        <div className="w-full mt-auto flex flex-wrap justify-center items-center gap-3 pt-8 text-[--black-1]">
+        <div className="w-full mt-auto sticky bottom-0 z-20 flex flex-wrap justify-center items-center gap-3 py-3 bg-[--white-1] border-t border-[--border-1] shadow-[0_-3px_10px_rgba(0,0,0,0.05)] text-[--black-1]">
           <div className="w-20">
             <CustomSelect
               className="mt-[0] sm:mt-[0]"

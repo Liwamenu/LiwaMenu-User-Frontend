@@ -24,6 +24,9 @@
     "too_large": "Dosya boyutu en fazla {{mb}} MB olabilir.",
     "replace_action": "Yeniden seçmek için tıklayın"
   },
+  "dirtyNav": {
+    "unsaved_warning": "Kaydedilmemiş değişiklikleriniz var. Yine de devam etmek istiyor musunuz?"
+  },
   "apiErrors": {
     "unauthorized": "Yetkili değilsiniz.",
     "inactive_account": "Hesabınız aktif değil",
@@ -73,9 +76,11 @@
     "menus": "Menüler",
     "tags": "Etiketler",
     "products": "Ürünler",
+    "price_list": "Fiyat Listesi",
     "themes": "Temalar",
     "qrthemes": "QR Menü Temaları",
     "tvthemes": "TV Menü Temaları",
+    "kioskthemes": "Kiosk / Self Order Temaları",
     "qr_code": "QR Kod Oluştur",
     "announcement_settings": "Duyuru Ayarları",
     "survey_settings": "Anket Ayarları",
@@ -659,6 +664,9 @@
     "delete_confirm": "Bu kategoriyi silmek istediğinize emin misiniz?",
     "cancel": "İptal",
     "success": "Kategoriler başarıyla güncellendi.",
+    "cascade_progress": "{{count}} ürün güncelleniyor…",
+    "cascade_done": "{{count}} ürünün Kampanya durumu güncellendi.",
+    "cascade_partial": "{{succeeded}}/{{total}} ürün güncellendi, kalanı başarısız oldu.",
     "not_changed": "Değişiklik yapılmadı.",
     "status": "Durum",
     "featured": "Öne Çıkan",
@@ -868,6 +876,7 @@
     "add_menu": "Yeni Menü Ekle",
     "edit": "Düzenle",
     "delete": "Sil",
+    "delete_last_blocked": "En az bir menü tanımlı kalmalıdır. Silmek yerine menüyü düzenleyebilirsiniz.",
     "every_day": "Her Gün",
     "no_time_plan": "Zaman planı eklenmemiş.",
     "summary": "{{count}} menü",
@@ -913,6 +922,7 @@
     "name_required": "Menü adı gereklidir!",
     "schedule_required": "Zaman planı eklemelisiniz!",
     "schedule_days_required": "Her plan için gün seçilmelidir!",
+    "overnight_hint": "Gece yarısını aşan bu aralık, kaydedildiğinde iki plana bölünür: aynı günlerde başlangıç → 23:59 ve ertesi gün 00:00 → bitiş.",
     "success": "Menü başarıyla eklendi.",
     "cancel": "Vazgeç",
     "save": "Kaydet"
@@ -969,8 +979,9 @@
     "search_placeholder": "Ürün ara...",
     "all_categories": "Tüm Kategoriler",
     "all_statuses": "Tüm Durumlar",
-    "all_recommendations": "Tüm Ürünler",
+    "all_highlights": "Tüm Ürünler",
     "recommended_only": "Şef Tavsiyesi",
+    "campaign_only": "Sadece Kampanyalı",
     "no_products": "Ürün bulunamadı.",
     "filters": "Filtreler",
     "clear_filters": "Filtreleri Temizle",
@@ -1004,6 +1015,7 @@
     "campaign_prefix": "Kampanya:",
     "portion_count": "{{count}} porsiyon",
     "chef_recommended": "Şef Tavsiyesi",
+    "campaign": "Kampanyalı",
     "change_image": "Fotoğrafı Değiştir",
     "edit": "Ürünü Düzenle",
     "delete": "Ürünü Sil"
@@ -1296,6 +1308,7 @@
     "name_placeholder": "Örn: Hizmet Kalitesi",
     "name_hint": "Müşterilerinize gösterilecek kategori adı.",
     "icon_label": "Görsel Simge (Emoji)",
+    "icon_emoji_hint": "Daha fazla emoji için sistemin emoji panelini açabilirsiniz — Windows: Win (⊞) + . (nokta), macOS: Fn / 🌐 (Dünya) tuşu. Seçtiğiniz emojiyi soldaki kutuya yapıştırın.",
     "cancel": "İptal",
     "create": "Oluştur",
     "update": "Güncelle",
@@ -1352,6 +1365,12 @@
     "tag_orange_fresh": "Turuncu Tazelik",
     "tag_parchment_scroll": "Parşömen Tomar",
     "tag_placeholder": "Yer tutucu · yakında"
+  },
+  "kioskThemeSelector": {
+    "title": "{{name}} için Kiosk / Self Order Teması",
+    "subtitle": "Kiosk menü temasını seçin — yatay ve dikey kiosk ekranında önizleyin.",
+    "vertical": "Dikey Kiosk",
+    "horizontal": "Yatay Kiosk"
   },
   "tvThemeSelector": {
     "title": "{{name}} için TV Tema Ayarları",
@@ -1565,11 +1584,11 @@
     "empty_desc": "Filtre ayarlarınızı değiştirmeyi deneyin.",
     "tabs_aria": "Rezervasyon listesi filtresi",
     "tab_today": "Bu Gün",
-    "tab_all": "Tümü",
+    "tab_all": "Gelecek Rezervasyonlar",
     "today_empty_title": "Bugün için rezervasyon yok",
     "today_empty_desc": "Bugünkü gelen rezervasyonlar burada listelenecek.",
-    "upcoming_empty_title": "Gelecek için onaylanmış rezervasyon yok",
-    "upcoming_empty_desc": "Onaylanmış ileri tarihli rezervasyonlar burada listelenir. Bekleyen rezervasyonlar için \"Bu Gün\" sekmesini veya filtreleri kullanın."
+    "upcoming_empty_title": "Gelecek tarihli rezervasyon yok",
+    "upcoming_empty_desc": "İleri tarihli rezervasyonlar (kararınızı bekleyenler dahil) burada listelenir. Geçmiş tarihler için yukarıdaki filtreleri kullanın."
   },
   "waiterCalls": {
     "title": "Garson Çağrı Listesi",
@@ -1593,6 +1612,14 @@
     "delete_description": "için yapılan garson çağrısı silinecek. Bu işlem geri alınamaz.",
     "delete_confirm": "Sil",
     "delete_success": "Garson çağrısı silindi.",
+    "delete_all": "Tümünü Sil",
+    "deleting_all": "Siliniyor…",
+    "delete_all_title": "Tüm Çağrıları Sil",
+    "delete_all_target": "{{count}} garson çağrısı",
+    "delete_all_description": "kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "delete_all_confirm": "Tümünü Sil",
+    "delete_all_success": "{{count}} çağrı silindi.",
+    "delete_all_partial": "{{deleted}} silindi, {{failed}} silinemedi.",
     "filter_button": "Filtre",
     "filters_title": "Filtreler",
     "start_date": "Başlangıç Tarihi",

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { privateApi } from "../api";
 import { normalizeProductsPayload } from "../../utils/normalizeProduct";
+import { normalizeKeysDeep } from "../../utils/normalizeKeys";
 
 const api = privateApi();
 const baseURL = import.meta.env.VITE_BASE_URL;
@@ -56,9 +57,12 @@ export const getProductsByCategoryId = createAsyncThunk(
         params: data,
       });
 
-      // Same migration shim as getProductsSlice — see
-      // `utils/normalizeProduct.js` for the contract.
-      return normalizeProductsPayload(res.data);
+      // Same two-step normalization as getProductsSlice / Lite —
+      // PascalCase keys first, then m2m shape. See those slices for
+      // the failure mode this guards against (mixed-case nested
+      // `Categories` arrays leaving every product with a synthesized
+      // `categories: [{categoryId: null}]`).
+      return normalizeProductsPayload(normalizeKeysDeep(res.data));
     } catch (err) {
       console.log(err);
       if (err?.response?.data) {

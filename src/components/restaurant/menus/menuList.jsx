@@ -144,6 +144,14 @@ const MenuList = () => {
   };
 
   const onDeleteMenu = (menu) => {
+    // Never let a restaurant delete its last menu — the QR/menu
+    // experience needs at least one to exist. They can edit it instead.
+    if ((menusData?.length || 0) <= 1) {
+      toast.error(t("menuList.delete_last_blocked"), {
+        id: "delete-last-menu",
+      });
+      return;
+    }
     setPopupContent(
       <DeleteMenu
         menu={menu}
@@ -349,6 +357,7 @@ const MenuList = () => {
                   key={menu.id}
                   menu={menu}
                   t={t}
+                  canDelete={totalCount > 1}
                   onEdit={onEditMenu}
                   onDelete={onDeleteMenu}
                 />
@@ -620,7 +629,7 @@ const IntegrationPanel = ({ t, restaurantId, onSyncCompleted }) => {
 };
 
 // =================== MENU CARD ===================
-const MenuCard = ({ menu, t, onEdit, onDelete }) => {
+const MenuCard = ({ menu, t, canDelete = true, onEdit, onDelete }) => {
   const planCount = Array.isArray(menu.plans) ? menu.plans.length : 0;
   const categoryCount = Array.isArray(menu.categoryIds)
     ? menu.categoryIds.length
@@ -691,8 +700,15 @@ const MenuCard = ({ menu, t, onEdit, onDelete }) => {
           <button
             type="button"
             onClick={() => onDelete(menu)}
-            title={t("menuList.delete")}
-            className="grid place-items-center size-8 rounded-md text-rose-600 hover:bg-rose-50 transition"
+            disabled={!canDelete}
+            title={
+              canDelete ? t("menuList.delete") : t("menuList.delete_last_blocked")
+            }
+            className={`grid place-items-center size-8 rounded-md transition ${
+              canDelete
+                ? "text-rose-600 hover:bg-rose-50"
+                : "text-[--gr-2] opacity-40 cursor-not-allowed"
+            }`}
           >
             <Trash2 className="size-3.5" />
           </button>

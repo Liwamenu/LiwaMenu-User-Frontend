@@ -114,22 +114,34 @@ const Products = () => {
     { label: t("editCategories.status_closed"), value: false },
   ];
 
-  // Chef's-pick filter — sends `recommendation: true` to the backend when
-  // active. `null` means "no filter" (the default). Status and chef-pick
-  // are orthogonal dimensions (a product can be open AND recommended), so
-  // this lives as its own dropdown rather than being merged into status.
-  const recommendationOptions = [
-    { label: t("productsList.all_recommendations"), value: null },
-    { label: t("productsList.recommended_only"), value: true },
+  // "Öne çıkan ürünler" filter — a single dropdown that picks
+  // between two mutually-exclusive scopes the user usually wants
+  // to filter by. They were separate dropdowns in an earlier pass,
+  // but the AND combination ("BOTH Şef Tavsiyesi and Kampanyalı")
+  // is rarely a real workflow and the two extra columns crowded
+  // the filter bar. If the AND case ever becomes meaningful we can
+  // swap this for a multi-select.
+  //
+  // Values are sentinel strings the backend doesn't see — the
+  // dispatch helpers below map them to the actual `recommendation`
+  // / `isCampaign` query params. `null` means "no filter".
+  const highlightOptions = [
+    { label: t("productsList.all_highlights", "Tüm Ürünler"), value: null },
+    {
+      label: t("productsList.recommended_only", "Şef Tavsiyesi"),
+      value: "recommendation",
+    },
+    {
+      label: t("productsList.campaign_only", "Sadece Kampanyalı"),
+      value: "campaign",
+    },
   ];
 
   const [productsData, setProductsData] = useState(null);
   const [searchVal, setSearchVal] = useState("");
   const [statusFilter, setStatusFilter] = useState(statusOptions[0]);
   const [categoryFilter, setCategoryFilter] = useState(allCategoryOption);
-  const [recommendationFilter, setRecommendationFilter] = useState(
-    recommendationOptions[0],
-  );
+  const [highlightFilter, setHighlightFilter] = useState(highlightOptions[0]);
 
   const [pageNumber, setPageNumber] = useState(initialPage);
   // Products page uses a fixed 20 rows per page, independent of the
@@ -188,13 +200,14 @@ const Products = () => {
     return !opt.value; // value=true → hide=false (active), value=false → hide=true (closed)
   };
 
-  // Map the chef-pick option to the backend `recommendation` query value:
-  // `null` means "no filter", `true` means "only chef's picks". The backend
-  // is expected to ignore the param when null/undefined.
-  const recommendationForFilter = (opt) => {
-    if (!opt || opt.value === null || opt.value === undefined) return null;
-    return !!opt.value;
-  };
+  // Map the single "Öne çıkan" dropdown to the backend's `recommendation`
+  // / `isCampaign` query params. The two are mutually exclusive in the
+  // UI (one dropdown, three options), so at most one of them is `true`
+  // at a time — the other comes back as `null` meaning "no filter".
+  const recommendationForHighlight = (opt) =>
+    opt?.value === "recommendation" ? true : null;
+  const campaignForHighlight = (opt) =>
+    opt?.value === "campaign" ? true : null;
 
   const isAllCategory = (opt) =>
     !opt || opt.value === ALL_CATEGORIES_VALUE || !opt.id;
@@ -203,17 +216,15 @@ const Products = () => {
     if (type === "status") setStatusFilter(opt);
     else if (type === "category") setCategoryFilter(opt);
     else if (type === "search") setSearchVal(opt);
-    else if (type === "recommendation") setRecommendationFilter(opt);
+    else if (type === "highlight") setHighlightFilter(opt);
 
     const nextStatus = type === "status" ? opt : statusFilter;
     const nextCategory = type === "category" ? opt : categoryFilter;
-    const nextSearch = type === "search" ? opt : searchVal;
-    const nextRecommendation =
-      type === "recommendation" ? opt : recommendationFilter;
+    const nextHighlight = type === "highlight" ? opt : highlightFilter;
 
     // Backend search isn't diacritic-insensitive (Turkish "ı" ≠ "i", etc.),
     // so search is applied client-side over `allProducts`. Backend only
-    // gets the category/status/recommendation/page filters here.
+    // gets the category/status/highlight/page filters here.
     dispatch(
       getProducts({
         restaurantId,
@@ -221,7 +232,8 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: hideForStatus(nextStatus),
         categoryId: isAllCategory(nextCategory) ? null : nextCategory.id,
-        recommendation: recommendationForFilter(nextRecommendation),
+        recommendation: recommendationForHighlight(nextHighlight),
+        isCampaign: campaignForHighlight(nextHighlight),
       }),
     );
     setPageNumber(1);
@@ -236,7 +248,8 @@ const Products = () => {
         pageSize: itemsPerPage,
         hide: hideForStatus(statusFilter),
         categoryId: isAllCategory(categoryFilter) ? null : categoryFilter.id,
-        recommendation: recommendationForFilter(recommendationFilter),
+        recommendation: recommendationForHighlight(highlightFilter),
+        isCampaign: campaignForHighlight(highlightFilter),
       }),
     );
   }
@@ -245,7 +258,7 @@ const Products = () => {
     setSearchVal("");
     setStatusFilter(statusOptions[0]);
     setCategoryFilter(allCategoryOption);
-    setRecommendationFilter(recommendationOptions[0]);
+    setHighlightFilter(highlightOptions[0]);
     dispatch(
       getProducts({
         restaurantId,
@@ -254,6 +267,7 @@ const Products = () => {
         hide: null,
         categoryId: null,
         recommendation: null,
+        isCampaign: null,
       }),
     );
     setPageNumber(1);
@@ -263,7 +277,7 @@ const Products = () => {
     searchVal ||
     statusFilter?.value !== null ||
     !isAllCategory(categoryFilter) ||
-    recommendationFilter?.value !== null;
+    highlightFilter?.value !== null;
 
   // Pull *every* product. Used by the duplicate-finder and client-side
   // search modes — both need full DTOs (description, prices, etc.) so
@@ -443,18 +457,29 @@ const Products = () => {
       .sort((a, b) => norm(a.name).localeCompare(norm(b.name), "tr"));
   }, [allProducts]);
 
-  // === Client-side search ===
-  // Active when the user has typed anything. Searches the locally-cached
-  // `allProducts` list with diacritic folding (so "kavurma" matches "Kâvurma"
-  // and "ızgara" matches "izgara") because backend search is exact-match.
+  // === Client-side search + filter ===
+  // We fall into the client-filter branch whenever the user has typed
+  // a search term OR picked a non-default value on the "Öne çıkan"
+  // dropdown (Şef Tavsiyesi / Sadece Kampanyalı). The backend's filter
+  // for the latter two doesn't actually match the dropdown's promise
+  // (it returns the current page only and gates `isCampaign` on the
+  // presence of a `campaignPrice` instead of the real flag), so once
+  // any of these is active we pull the full lite catalogue and filter
+  // ourselves — same pattern the diacritic-insensitive search has
+  // always used.
   const searchActive = !!searchVal && searchVal.trim().length > 0;
+  const recommendationActive = highlightFilter?.value === "recommendation";
+  const campaignActive = highlightFilter?.value === "campaign";
+  const clientFilterActive =
+    searchActive || recommendationActive || campaignActive;
 
-  // Pull the full list once when search begins (or restart it when content
-  // changes via delete/edit). Skipping if duplicates / no-image modes are
-  // on — those modes already load the full list themselves.
+  // Pull the full list once when any client-side filter engages (or
+  // restart it when content changes via delete/edit). Skipping if
+  // duplicates / no-image modes are on — those modes already load
+  // the full list themselves.
   useEffect(() => {
     if (
-      searchActive &&
+      clientFilterActive &&
       !allProducts &&
       !dupLoading &&
       !showDuplicates &&
@@ -463,15 +488,20 @@ const Products = () => {
       fetchAllProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchActive]);
+  }, [clientFilterActive]);
 
-  const searchResults = useMemo(() => {
-    if (!searchActive || !allProducts) return null;
-    const q = normalizeSearch(searchVal.trim());
-    if (!q) return allProducts;
+  // Unified client-side filter — applies search term, category,
+  // status, and the merged "Öne çıkan" highlight (Şef Tavsiyesi /
+  // Sadece Kampanyalı) all on top of the full catalogue. The
+  // category/status dropdowns ALSO go through the backend
+  // (handleFilter re-dispatches getProducts), but we re-apply them
+  // here so the search/highlight client filter and the already-active
+  // backend filters compose the same way.
+  const clientFilteredResults = useMemo(() => {
+    if (!clientFilterActive || !allProducts) return null;
+    const q = searchActive ? normalizeSearch(searchVal.trim()) : "";
     const catId = isAllCategory(categoryFilter) ? null : categoryFilter.id;
     const statusVal = statusFilter?.value;
-    const recVal = recommendationFilter?.value;
     return allProducts.filter((p) => {
       // Apply category filter — m2m: a product passes when any of its
       // memberships matches the picked category. The flat `categoryId`
@@ -487,20 +517,30 @@ const Products = () => {
       // Apply status filter (true = active, false = closed/hidden)
       if (statusVal === true && p.hide) return false;
       if (statusVal === false && !p.hide) return false;
-      // Apply chef's-pick filter (true = only recommended)
-      if (recVal === true && !p.recommendation) return false;
-      // Match against name (and description as a bonus)
-      const nameN = normalizeSearch(p.name);
-      const descN = normalizeSearch(p.description || "");
-      return nameN.includes(q) || descN.includes(q);
+      // Apply the merged highlight filter — mutually exclusive: at
+      // most one of the two branches is engaged at a time, so we
+      // never need to AND them.
+      if (recommendationActive && !p.recommendation) return false;
+      if (campaignActive && !p.isCampaign) return false;
+      // Match against name (and description as a bonus) — only when
+      // a search term is actually present; highlight-only mode skips
+      // this so non-matching names aren't filtered out.
+      if (q) {
+        const nameN = normalizeSearch(p.name);
+        const descN = normalizeSearch(p.description || "");
+        if (!nameN.includes(q) && !descN.includes(q)) return false;
+      }
+      return true;
     });
   }, [
-    searchActive,
+    clientFilterActive,
     allProducts,
+    searchActive,
     searchVal,
     categoryFilter,
     statusFilter,
-    recommendationFilter,
+    recommendationActive,
+    campaignActive,
   ]);
 
   // Snapshot the live filter state in a ref so callbacks captured by
@@ -515,7 +555,7 @@ const Products = () => {
   const filtersRef = useRef({
     categoryFilter,
     statusFilter,
-    recommendationFilter,
+    highlightFilter,
     pageNumber,
     showDuplicates,
     showNoImage,
@@ -525,7 +565,7 @@ const Products = () => {
     filtersRef.current = {
       categoryFilter,
       statusFilter,
-      recommendationFilter,
+      highlightFilter,
       pageNumber,
       showDuplicates,
       showNoImage,
@@ -534,7 +574,7 @@ const Products = () => {
   }, [
     categoryFilter,
     statusFilter,
-    recommendationFilter,
+    highlightFilter,
     pageNumber,
     showDuplicates,
     showNoImage,
@@ -563,7 +603,8 @@ const Products = () => {
         categoryId: isAllCategory(f.categoryFilter)
           ? null
           : f.categoryFilter.id,
-        recommendation: recommendationForFilter(f.recommendationFilter),
+        recommendation: recommendationForHighlight(f.highlightFilter),
+        isCampaign: campaignForHighlight(f.highlightFilter),
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -699,9 +740,11 @@ const Products = () => {
             </form>
 
             {/* Filter dropdowns. flex-wrap keeps the row from overflowing
-                on narrow screens now that there are three filters; each
-                dropdown gets a `min-w-[140px]` so a wrapped row still
-                shows readable labels. */}
+                on narrow screens; each dropdown gets a `min-w-[140px]`
+                so a wrapped row still shows readable labels. Şef
+                Tavsiyesi + Sadece Kampanyalı share a single "Öne çıkan"
+                dropdown since they're mutually exclusive in practice
+                and two separate dropdowns crowded the filter bar. */}
             <div className="flex flex-wrap gap-2 sm:shrink-0">
               <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
                 <CustomSelect
@@ -727,12 +770,12 @@ const Products = () => {
                   menuPlacement="auto"
                 />
               </div>
-              <div className="flex-1 min-w-[140px] sm:w-44 sm:flex-none">
+              <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
                 <CustomSelect
                   label=""
-                  value={recommendationFilter}
-                  options={recommendationOptions}
-                  onChange={(opt) => handleFilter(opt, "recommendation")}
+                  value={highlightFilter}
+                  options={highlightOptions}
+                  onChange={(opt) => handleFilter(opt, "highlight")}
                   isSearchable={false}
                   className="text-sm font-medium"
                   className2="relative w-full"
@@ -1042,25 +1085,33 @@ const Products = () => {
                 </p>
               </div>
             )
-          ) : searchActive ? (
-            // === Client-side search view (diacritic-insensitive) ===
+          ) : clientFilterActive ? (
+            // === Client-side filter view (search + rec + campaign) ===
+            // Whenever any of these is active we work off the full
+            // catalogue rather than the paginated slice, so the
+            // dropdown promise ("Sadece Kampanyalı" / "Şef Tavsiyesi")
+            // actually surfaces every matching product instead of
+            // just the ones that happened to live on the current
+            // backend page.
             !allProducts || dupLoading ? (
               <div className="grid place-items-center py-12 text-[--gr-1]">
                 <Loader2 className="size-6 animate-spin text-indigo-600" />
               </div>
-            ) : searchResults && searchResults.length > 0 ? (
+            ) : clientFilteredResults && clientFilteredResults.length > 0 ? (
               <>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-[--gr-1]">
                     {t("productsList.search_summary", {
-                      count: searchResults.length,
+                      count: clientFilteredResults.length,
                       defaultValue: "{{count}} sonuç",
                     })}
                   </span>
                   <button
                     type="button"
                     onClick={() =>
-                      selectAllVisible(searchResults.map((p) => p.id))
+                      selectAllVisible(
+                        clientFilteredResults.map((p) => p.id),
+                      )
                     }
                     className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30"
                   >
@@ -1069,7 +1120,7 @@ const Products = () => {
                   </button>
                 </div>
                 <div className="flex flex-col gap-2.5">
-                  {searchResults.map((product) => (
+                  {clientFilteredResults.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -1094,9 +1145,9 @@ const Products = () => {
                     "Aramaya uygun ürün bulunamadı",
                   )}
                 </h3>
-                <p className="text-xs text-[--gr-1] mt-1">
-                  "{searchVal}"
-                </p>
+                {searchActive && (
+                  <p className="text-xs text-[--gr-1] mt-1">"{searchVal}"</p>
+                )}
               </div>
             )
           ) : productsData && productsData.length > 0 ? (
@@ -1153,10 +1204,13 @@ const Products = () => {
           />
         )}
 
-        {/* PAGINATION (hidden in duplicate / no-image / search modes) */}
+        {/* PAGINATION — hidden in duplicate / no-image / client-filter
+            modes. The client-filter branch (search + rec + campaign)
+            works off the full catalogue and shows every match in one
+            list, so server pagination doesn't apply. */}
         {!showDuplicates &&
           !showNoImage &&
-          !searchActive &&
+          !clientFilterActive &&
           productsData &&
           productsData.length > 0 &&
           typeof totalItems === "number" && (

@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Package, DollarSign, PlusCircle } from "lucide-react";
+import { Package, PlusCircle } from "lucide-react";
 
 const ProductsHeader = () => {
   const params = useParams();
@@ -11,13 +11,13 @@ const ProductsHeader = () => {
 
   const pathMatches = (path) => thisPath === path && fullPath.length === 2;
 
+  // Fiyat Listesi used to live here as a third tab, but it's now a
+  // top-level sidebar entry under Ürünler. The remaining two tabs
+  // (Ürün Yönetimi + Ürün Ekle) stay so the user can flip between
+  // the list view and the add-product form without leaving the
+  // Products area.
   const headers = [
     { label: t("productsHeader.manage"), path: "products", icon: Package },
-    {
-      label: t("productsHeader.price_list"),
-      path: "price-list",
-      icon: DollarSign,
-    },
     {
       label: t("productsHeader.add_product"),
       path: "add-product",

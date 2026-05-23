@@ -140,6 +140,17 @@ const ProductCard = ({
                 {t("productCard.chef_recommended", "Şef Tavsiyesi")}
               </span>
             )}
+            {/* Kampanya — emerald tone matching the campaign price
+                column visuals. Driven by the per-product `isCampaign`
+                flag (canonical post-m2m); a product with
+                campaignPrice set on its portions but isCampaign=false
+                shouldn't read as a campaign at a glance. */}
+            {product.isCampaign && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200 px-1.5 py-0.5 rounded-md dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/30">
+                <TrendingUp className="size-3" strokeWidth={2.5} />
+                {t("productCard.campaign", "Kampanyalı")}
+              </span>
+            )}
             {/* Only flag the portion count when there are multiple — single
                 portions are the default and don't need a chip. */}
             {portionCount > 1 && (
@@ -175,7 +186,11 @@ const ProductCard = ({
                     maximumFractionDigits: 2,
                   })}
                 </span>
-                {portion.campaignPrice > 0 && (
+                {/* Show the campaign price only when the product is
+                    actually flagged as Kampanya — a leftover
+                    campaignPrice on a non-campaign product is admin-
+                    side bookkeeping the list shouldn't surface. */}
+                {product.isCampaign && portion.campaignPrice > 0 && (
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200 px-1 py-0.5 rounded">
                     <TrendingUp className="size-2.5" strokeWidth={3} />
                     {Number(portion.campaignPrice).toLocaleString("tr-TR", {

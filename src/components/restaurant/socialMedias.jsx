@@ -10,6 +10,7 @@ import { Share2, Save, ExternalLink, Check } from "lucide-react";
 
 // COMP
 import SettingsTabs from "./settingsTabs";
+import { useDirtyTracking } from "../../context/DirtyNavContext";
 
 // REDUX
 import {
@@ -83,6 +84,8 @@ const SocialMedias = ({ data: restaurant }) => {
   const { t } = useTranslation();
 
   const [socialMediasData, setSocialMediasData] = useState(null);
+  const [socialMediasDataBefore, setSocialMediasDataBefore] = useState(null);
+  useDirtyTracking(socialMediasData, socialMediasDataBefore);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -98,6 +101,7 @@ const SocialMedias = ({ data: restaurant }) => {
   useEffect(() => {
     if (data) {
       setSocialMediasData(data);
+      setSocialMediasDataBefore(data);
       dispatch(resetGetSocialMedias());
     }
   }, [data]);
@@ -107,8 +111,11 @@ const SocialMedias = ({ data: restaurant }) => {
       toast.loading(t("socialMedias.processing"), { id: "socialMedias" });
     if (success) {
       toast.success(t("socialMedias.success"), { id: "socialMedias" });
+      // Re-baseline so the DirtyNav check stops nagging post-save.
+      setSocialMediasDataBefore(socialMediasData);
       dispatch(resetSetSocialMedias());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, success, dispatch]);
 
   const filledCount = PLATFORMS.filter((p) =>
