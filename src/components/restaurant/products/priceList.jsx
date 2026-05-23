@@ -31,6 +31,9 @@ import { getProducts } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getOrderTags } from "../../../redux/orderTags/getOrderTagsSlice";
 
+// UTILS
+import { buildCategoryCampaignMap } from "../../../utils/categoryCampaign";
+
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
@@ -69,9 +72,11 @@ const PriceList = ({ data: restaurant }) => {
 
   const { products } = useSelector((s) => s.products.get);
   // Pull categories so we can hide the Kampanya column / input for any
-  // category that has its `campaign` flag turned off — the price list
-  // shouldn't let the user enter a campaign price for products whose
-  // category isn't running campaigns.
+  // category that isn't running campaigns. After the m2m migration the
+  // category-level `campaign` column was dropped — the per-category
+  // state is derived from products' `isCampaign` (see
+  // `buildCategoryCampaignMap` below). We still need the categories
+  // list itself for the filter dropdown.
   const { categories, fetchedFor: catFetchedFor } = useSelector(
     (s) => s.categories.get,
   );
@@ -87,16 +92,16 @@ const PriceList = ({ data: restaurant }) => {
   );
 
   // categoryId → boolean: does this category have campaigns enabled?
-  // Defaults to `false` for unknown ids (categories that didn't load),
-  // so the campaign UI stays hidden until we have proof it's allowed.
-  const categoryCampaignMap = useMemo(() => {
-    const map = new Map();
-    (categories || []).forEach((c) => {
-      if (!c?.id) return;
-      map.set(c.id, !!c.campaign);
-    });
-    return map;
-  }, [categories]);
+  // Derived from products' `isCampaign` (every-true rule) — the
+  // category-level `campaign` column no longer exists post-m2m. Empty
+  // categories and unknown ids resolve to false so the Kampanya UI
+  // stays hidden until we have proof it's allowed. See
+  // `utils/categoryCampaign.js` for the rule + rationale.
+  const productList = (products?.data?.length && products.data) || [];
+  const categoryCampaignMap = useMemo(
+    () => buildCategoryCampaignMap(categories, productList),
+    [categories, productList],
+  );
 
   // Özel Fiyat column visibility — driven by the restaurant's
   // isSpecialPriceActive flag in Genel Ayarlar. Mirrors how Kampanya

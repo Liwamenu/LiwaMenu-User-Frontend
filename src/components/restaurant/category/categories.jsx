@@ -1,7 +1,7 @@
 // MODULES
 import { isEqual } from "lodash";
 import { toast } from "react-hot-toast";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,6 +40,10 @@ import {
   editCategories,
   resetEditCategories,
 } from "../../../redux/categories/editCategoriesSlice";
+import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+
+// UTILS
+import { buildCategoryCampaignMap } from "../../../utils/categoryCampaign";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -58,6 +62,15 @@ const Categories = ({ data: restaurant }) => {
   );
   const { success, error, loading } = useSelector(
     (state) => state.categories.edit,
+  );
+  // Lite product list — used to derive each category's Kampanya state
+  // post-m2m migration (the category-level `campaign` column is gone
+  // from the read endpoints; truth lives on products' `isCampaign`).
+  // The lite endpoint is unpaged + carries `categoryIds` + `isCampaign`,
+  // and the slice self-invalidates on Categories/EditCategory + product
+  // mutations, so the derived badge stays correct after every save.
+  const { products: liteProducts, fetchedFor: liteFetchedFor } = useSelector(
+    (s) => s.products.getLite,
   );
 
   const [activeTab, setActiveTab] = useState("list"); // "list" | "bulk"
@@ -79,6 +92,28 @@ const Categories = ({ data: restaurant }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.id]);
+
+  // LITE PRODUCTS — needed to derive the Kampanya badge from products'
+  // `isCampaign`. Cheap: one unpaged call, cached per restaurant, and
+  // auto-invalidated by the lite slice when a category or product
+  // mutation fulfills. We do NOT block the categories list on this —
+  // the badge is purely additive UI.
+  useEffect(() => {
+    if (
+      params?.id &&
+      (!liteProducts || liteFetchedFor !== params.id)
+    ) {
+      dispatch(getProductsLite({ restaurantId: params.id }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params?.id]);
+
+  // categoryId → boolean: is every product in this category on
+  // campaign? See utils/categoryCampaign.js for the derivation rule.
+  const categoryCampaignMap = useMemo(
+    () => buildCategoryCampaignMap(categories, liteProducts),
+    [categories, liteProducts],
+  );
 
   // SET CATEGORIES WHEN FETCHED — also runs on remount with cached data,
   // because `categories` will be the cached reference straight from the
@@ -279,6 +314,7 @@ const Categories = ({ data: restaurant }) => {
               t={t}
               params={params}
               categoriesData={categoriesData}
+              categoryCampaignMap={categoryCampaignMap}
               orderDirty={orderDirty}
               saveNewOrder={saveNewOrder}
               loading={loading}
@@ -335,6 +371,7 @@ function ListTab({
   t,
   params,
   categoriesData,
+  categoryCampaignMap,
   orderDirty,
   saveNewOrder,
   loading,
@@ -450,7 +487,10 @@ function ListTab({
                                 tone="indigo"
                               />
                             )}
-                            {cat.campaign && (
+                            {/* Kampanya badge is now derived from
+                                products' isCampaign (every-true).
+                                See utils/categoryCampaign.js. */}
+                            {categoryCampaignMap?.get(cat.id) && (
                               <FeatureBadge
                                 icon={Tag}
                                 label={t("editCategories.campaign")}

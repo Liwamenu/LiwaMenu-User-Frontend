@@ -33,9 +33,10 @@
  * Coerce a single product DTO into the dual-shape (flat aliases +
  * categories array) representation. Pure: never mutates the input.
  *
- * Inputs handled:
- *  - New shape: `{ ..., categories: [{...}, ...] }`
- *  - Old shape: `{ ..., categoryId, categoryName, ..., subCategoryId, ..., sortOrder }`
+ * Inputs handled (checked in order of richness):
+ *  - Full shape:        `{ ..., categories: [{ categoryId, categoryName, ... }, ...] }`
+ *  - Lite m2m shape:    `{ ..., categoryIds: [id, id, ...] }`  ← lite endpoint after the m2m migration
+ *  - Old flat shape:    `{ ..., categoryId, categoryName, ..., subCategoryId, ..., sortOrder }`
  *  - Mixed/partial: best-effort fill from whichever side is populated.
  *
  * Returns: `{ ...product, categories: [...always], <flat aliases for backwards compat> }`.
@@ -43,12 +44,30 @@
 export function normalizeProduct(product) {
   if (!product || typeof product !== "object") return product;
 
-  const hasNew = Array.isArray(product.categories);
+  const hasFullCategories = Array.isArray(product.categories);
+  const hasLiteCategoryIds = Array.isArray(product.categoryIds);
 
   // Build the categories array regardless of input shape.
   let categories;
-  if (hasNew) {
+  if (hasFullCategories) {
     categories = product.categories;
+  } else if (hasLiteCategoryIds) {
+    // Lite endpoint carries membership only (no denormalized name /
+    // image / sort fields). Expand the id list into membership entries
+    // so consumers that iterate `categories[]` see every category the
+    // product belongs to, not just the first one. Empty array stays
+    // empty — that's a real "belongs to no category" signal post-m2m.
+    categories = product.categoryIds.map((id) => ({
+      categoryId: id ?? null,
+      categoryName: null,
+      categoryImage: null,
+      categorySortOrder: 0,
+      subCategoryId: null,
+      subCategoryName: null,
+      subCategoryImage: null,
+      subCategorySortOrder: null,
+      sortOrder: 0,
+    }));
   } else {
     // Synthesize a single-element array from the old flat fields. We
     // include the keys even when they're null/undefined so consumers
