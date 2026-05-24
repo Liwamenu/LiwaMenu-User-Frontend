@@ -14,6 +14,8 @@ import {
   AlertTriangle,
   ImageOff,
   Printer,
+  Archive,
+  Upload,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -23,6 +25,8 @@ import ProductCard from "./productCard";
 import EditProduct from "./editProduct";
 import QuickEditImage from "./quickEditImage";
 import PrintProductsExportModal from "./printProductsExport";
+import BackupProductsModal from "./backupProducts";
+import RestoreProductsModal from "./restoreProducts";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 import PageHelp from "../../common/pageHelp";
@@ -703,6 +707,62 @@ const Products = () => {
                 : t("productsList.subtitle")}
             </p>
           </div>
+          {/* Backup — bundles image/description/allergens into a ZIP so
+              the user has a portable safety net before risky bulk
+              edits. Sibling button below restores from one. */}
+          <button
+            type="button"
+            onClick={() =>
+              setSecondPopupContent(
+                <BackupProductsModal restaurantId={restaurantId} />,
+              )
+            }
+            title={t("productsList.backup_btn", "Yedek Al")}
+            aria-label={t("productsList.backup_btn", "Yedek Al")}
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition shrink-0 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-400/30 dark:hover:bg-emerald-500/25"
+          >
+            <Archive className="size-3.5" />
+            <span className="hidden sm:inline">
+              {t("productsList.backup_btn", "Yedek Al")}
+            </span>
+          </button>
+          {/* Restore — name-keyed import. After apply we re-fetch the
+              current page so the user immediately sees the new images
+              / descriptions without a manual refresh. */}
+          <button
+            type="button"
+            onClick={() =>
+              setSecondPopupContent(
+                <RestoreProductsModal
+                  restaurantId={restaurantId}
+                  onApplied={() => {
+                    dispatch(
+                      getProducts({
+                        restaurantId,
+                        pageNumber,
+                        pageSize: itemsPerPage,
+                        hide: hideForStatus(statusFilter),
+                        categoryId: isAllCategory(categoryFilter)
+                          ? null
+                          : categoryFilter.id,
+                        recommendation:
+                          recommendationForHighlight(highlightFilter),
+                        isCampaign: campaignForHighlight(highlightFilter),
+                      }),
+                    );
+                  }}
+                />,
+              )
+            }
+            title={t("productsList.restore_btn", "Yedeği Yükle")}
+            aria-label={t("productsList.restore_btn", "Yedeği Yükle")}
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition shrink-0 dark:bg-amber-500/15 dark:text-amber-200 dark:border-amber-400/30 dark:hover:bg-amber-500/25"
+          >
+            <Upload className="size-3.5" />
+            <span className="hidden sm:inline">
+              {t("productsList.restore_btn", "Yedeği Yükle")}
+            </span>
+          </button>
           {/* Print-friendly PDF export — opens the options modal, then
               builds a print-styled HTML document, opens it in a new
               tab and triggers the browser's print dialog so the user
