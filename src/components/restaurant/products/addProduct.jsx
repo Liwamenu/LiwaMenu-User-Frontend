@@ -43,9 +43,14 @@ const emptyPortion = () => ({
   id: undefined,
   productId: undefined,
   name: "",
-  price: 0,
-  campaignPrice: 0,
-  specialPrice: 0, // local optional “Özel” price
+  // Blank (not 0) so the user has to TYPE the price explicitly —
+  // 0 was passing the save-time guard silently because it's a valid
+  // value, which let the user create products with default-zero
+  // prices by accident. handleSave's `String(p.price ?? "").trim()
+  // === ""` check still accepts "0" if the user types it.
+  price: "",
+  campaignPrice: "",
+  specialPrice: "", // local optional “Özel” price
 });
 
 // First portion is pre-named "Normal" so single-portion products can be saved

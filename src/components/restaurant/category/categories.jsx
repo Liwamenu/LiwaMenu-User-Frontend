@@ -442,11 +442,21 @@ function ListTab({
                   : "bg-transparent"
               }`}
             >
-              {categoriesData.map((cat) => (
+              {categoriesData.map((cat, idx) => (
                 <Draggable
                   key={cat.id || `temp-${cat.sortOrder}`}
                   draggableId={cat.id || `temp-${cat.sortOrder}`}
-                  index={cat.sortOrder}
+                  // index MUST be the array position (0..N-1, contiguous),
+                  // not `cat.sortOrder` — @hello-pangea/dnd rejects any
+                  // gap or duplicate and the drag silently no-ops.
+                  // Categories with sortOrder gaps (e.g. after a delete:
+                  // [0,1,2,4,5]) used to break re-ordering entirely.
+                  // sortOrder is still re-normalised inside handleDragEnd
+                  // (every category gets sortOrder = its new array index)
+                  // and only flushed to the backend when the user clicks
+                  // "Kaydet", so behaviour from the user's POV is
+                  // unchanged once a successful drag commits.
+                  index={idx}
                 >
                   {(provided, snapshot) => (
                     <div

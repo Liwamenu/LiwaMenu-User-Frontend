@@ -591,12 +591,43 @@ const Products = () => {
   // or edit so the list reflects the server state immediately (no manual
   // refresh). Stable identity via useCallback + filtersRef so popup props
   // captured at open-time don't go stale by save-time.
+  //
+  // Source-of-truth rule: which dataset the list renders depends on
+  // whether any CLIENT-SIDE filter is active. The mapping (kept in
+  // sync with `clientFilterActive` above):
+  //
+  //   • Search / Duplicates / No-image / Şef Tavsiyesi / Kampanyalı
+  //     → renders from local `allProducts` (filtered client-side)
+  //     → refetch must rebuild `allProducts` via fetchAllProducts()
+  //
+  //   • Otherwise (no filter, or only category/status which the
+  //     backend handles natively)
+  //     → renders from the paginated slice (`s.products.get.products`)
+  //     → refetch dispatches getProducts() with current filters
+  //
+  // The original guard only listed search / duplicates / no-image — so
+  // saving an edit while "Şef Tavsiyesi" or "Sadece Kampanyalı" was
+  // active dispatched getProducts() into the slice, but the UI kept
+  // rendering from the now-stale `allProducts` snapshot. The product
+  // the user just edited stayed in the list with its old flags until
+  // a hard reload re-ran fetchAllProducts. Adding the highlight modes
+  // closes that gap so editing inside ANY client-filter mode actually
+  // updates the visible list.
   const refetchProducts = useCallback(() => {
     const f = filtersRef.current;
-    if (f.showDuplicates || f.showNoImage || f.searchVal) {
-      // Search / duplicates / no-image are all client-side over the
-      // full product cache, so a delete/edit means we have to refresh
-      // that cache rather than the paginated slice.
+    const highlightActive =
+      f.highlightFilter?.value === "recommendation" ||
+      f.highlightFilter?.value === "campaign";
+    if (
+      f.showDuplicates ||
+      f.showNoImage ||
+      f.searchVal ||
+      highlightActive
+    ) {
+      // Any client-filter mode → refresh the local allProducts
+      // snapshot the UI is rendering from. Without this branch a
+      // post-edit refetch updates the slice but the visible list
+      // (driven by `allProducts`) stays stale.
       fetchAllProducts();
       return;
     }

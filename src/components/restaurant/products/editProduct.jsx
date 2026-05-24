@@ -34,9 +34,12 @@ const emptyPortion = () => ({
   id: undefined,
   productId: undefined,
   name: "",
-  price: 0,
-  campaignPrice: 0,
-  specialPrice: 0, // local optional “Özel” price
+  // Blank (not 0) so a newly-added portion on an existing product
+  // forces the user to type a real price — matches addProduct.jsx
+  // and the save-time guard which accepts "0" only when typed.
+  price: "",
+  campaignPrice: "",
+  specialPrice: "", // local optional “Özel” price
 });
 
 // Stable key for the allergens array — order-insensitive so the
