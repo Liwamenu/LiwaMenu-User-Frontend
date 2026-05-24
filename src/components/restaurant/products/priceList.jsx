@@ -820,6 +820,26 @@ const PriceList = ({ data: restaurant }) => {
                                         dataAttr="data-edit-second"
                                         tone="emerald"
                                         decimals={decimals}
+                                        // Validation: a campaign price
+                                        // ≥ the normal price is nonsense
+                                        // (no discount). Only checks when
+                                        // BOTH numbers are positive; an
+                                        // empty / zero campaign price
+                                        // means "no campaign" and is fine.
+                                        // Triggers rose tone on the input
+                                        // AND a small hint line right
+                                        // below it.
+                                        warningText={(() => {
+                                          const camp = Number(portion.campaignPrice) || 0;
+                                          const norm = Number(portion.price) || 0;
+                                          if (camp > 0 && norm > 0 && camp >= norm) {
+                                            return t(
+                                              "priceList.campaign_above_normal",
+                                              "Kampanya fiyatı Normal fiyattan yüksek olamaz!",
+                                            );
+                                          }
+                                          return "";
+                                        })()}
                                       />
                                     </div>
                                   )}
@@ -915,6 +935,11 @@ const PriceInput = ({
   isZeroPriceTagged = false,
   zeroPriceTaggedHint = "",
   zeroPriceMissingHint = "",
+  // Inline validation message. When non-empty, rendered as a small
+  // rose-toned line right below the input AND the input gets a rose
+  // border so the connection is obvious. Used by the campaign-vs-
+  // normal check ("Kampanya fiyatı Normal fiyattan yüksek olamaz!").
+  warningText = "",
 }) => {
   const tones = {
     slate:
@@ -1002,14 +1027,18 @@ const PriceInput = ({
   const contentCh = Math.max(4, display.length); // 4 = "0,00"
   const widthValue = `calc(${contentCh + 1}ch + 1rem)`;
 
-  // Resolve the effective tone + hover tooltip. When the value is 0
-  // we override the configured tone with amber (tag-priced) or rose
-  // (no coverage); a positive value falls back to whatever the column
-  // wanted (slate/emerald/orange).
+  // Resolve the effective tone + hover tooltip. Order of precedence
+  // (highest first):
+  //   1. Inline validation warning (warningText) → rose
+  //   2. Zero-price warning (only relevant when value is 0)
+  //   3. The column's configured `tone`
   const isZero = !Number.isFinite(numericValue) || numericValue <= 0;
   let effectiveTone = tone;
   let titleAttr = label;
-  if (isZero && (zeroPriceTaggedHint || zeroPriceMissingHint)) {
+  if (warningText) {
+    effectiveTone = "rose";
+    titleAttr = warningText;
+  } else if (isZero && (zeroPriceTaggedHint || zeroPriceMissingHint)) {
     if (isZeroPriceTagged) {
       effectiveTone = "amber";
       titleAttr = zeroPriceTaggedHint;
@@ -1019,7 +1048,7 @@ const PriceInput = ({
     }
   }
 
-  return (
+  const inputEl = (
     <input
       type="text"
       inputMode="decimal"
@@ -1035,6 +1064,22 @@ const PriceInput = ({
       style={{ width: widthValue }}
       className={`h-9 px-2 text-right text-sm font-semibold tabular-nums rounded-md border outline-none transition focus:ring-4 shrink-0 ${tones[effectiveTone] || tones.slate}`}
     />
+  );
+
+  // When there's no warning we keep the bare <input> — same DOM as
+  // before, callers wrapping in `flex items-center` cells stay
+  // pixel-perfect. With a warning we wrap in a column flex so the
+  // hint sits directly below the input; the cell's `items-center`
+  // alignment falls back to centering the wrapped div, which still
+  // looks right because the input remains the dominant visual.
+  if (!warningText) return inputEl;
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      {inputEl}
+      <span className="text-[10px] leading-tight text-rose-600 dark:text-rose-300 max-w-[180px] text-right">
+        {warningText}
+      </span>
+    </div>
   );
 };
 

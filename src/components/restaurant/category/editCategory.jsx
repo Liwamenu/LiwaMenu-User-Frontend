@@ -20,13 +20,16 @@ import {
   editCategory,
   resetEditCategory,
 } from "../../../redux/categories/editCategorySlice";
-import { getMenus } from "../../../redux/menus/getMenusSlice";
+import { getMenus, resetGetMenus } from "../../../redux/menus/getMenusSlice";
 import {
   getProductsByCategoryId,
   resetGetProductsByCategoryId,
 } from "../../../redux/products/getProductsByCategoryIdSlice";
 import { editProduct } from "../../../redux/products/editProductSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+import { privateApi } from "../../../redux/api";
+
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 //UTILS
 import { isCategoryOnCampaign } from "../../../utils/categoryCampaign";
@@ -79,6 +82,13 @@ const EditCategory = ({
     ...category,
     campaign: derivedCampaign,
   });
+  // Snapshot of the menuIds the category had when this dialog opened.
+  // Used to compute added/removed menus after save so we can sync the
+  // OTHER side of the m2m (menu.categoryIds). Backend doesn't cascade
+  // the mirror — see CATEGORY_CAMPAIGN_CASCADE_BRIEF Addendum 2.
+  const [originalMenuIds] = useState(
+    Array.isArray(category?.menuIds) ? [...category.menuIds] : [],
+  );
   const [preview, setPreview] = useState(
     category?.image
       ? URL.createObjectURL(category.image)
@@ -296,6 +306,80 @@ const EditCategory = ({
     return { succeeded, total: products.length };
   };
 
+  // After a successful category save, mirror the new menuIds back into
+  // every affected menu's `categoryIds`. Backend's stance: "the data is
+  // already being sent, call both endpoints" — they don't cascade the
+  // m2m from one side to the other, so the frontend does it. Walks the
+  // ADDED ∪ REMOVED list against the live menus cache and PUTs
+  // EditMenu for each with the appropriate {add to | remove from}
+  // categoryIds change. Fire-and-forget like the campaign cascade —
+  // partial failures surface via console.warn rather than blocking
+  // the popup close (matches the existing UX).
+  const syncMenuCategoryIds = async (
+    categoryId,
+    oldMenuIds,
+    newMenuIds,
+  ) => {
+    const oldSet = new Set(oldMenuIds || []);
+    const newSet = new Set(newMenuIds || []);
+    const added = [...newSet].filter((mid) => !oldSet.has(mid));
+    const removed = [...oldSet].filter((mid) => !newSet.has(mid));
+    if (added.length === 0 && removed.length === 0) return;
+
+    const api = privateApi();
+    const affected = [...added, ...removed];
+    await Promise.allSettled(
+      affected.map(async (menuId) => {
+        const menuObj = (menusData || []).find((m) => m.id === menuId);
+        if (!menuObj) {
+          console.warn(
+            "[category→menu sync] menu not in local cache, skip:",
+            menuId,
+          );
+          return;
+        }
+        const isAdding = added.includes(menuId);
+        const currentCatIds = Array.isArray(menuObj.categoryIds)
+          ? menuObj.categoryIds
+          : [];
+        const nextCatIds = isAdding
+          ? currentCatIds.includes(categoryId)
+            ? currentCatIds
+            : [...currentCatIds, categoryId]
+          : currentCatIds.filter((cid) => cid !== categoryId);
+
+        // EditMenu is a plain JSON PUT (see editMenuSlice). Mirror
+        // the payload shape the EditMenu dialog assembles — name,
+        // plans and priceListType are sent untouched so backend
+        // doesn't interpret missing fields as deletes.
+        const payload = {
+          ...menuObj,
+          restaurantId: menuObj.restaurantId || id,
+          menuId: menuObj.id,
+          name: menuObj.name,
+          plans: menuObj.plans || [],
+          categoryIds: nextCatIds,
+          priceListType: menuObj.priceListType || "normal",
+        };
+        try {
+          await api.put(`${baseURL}Menus/EditMenu`, payload);
+        } catch (err) {
+          console.warn(
+            "[category→menu sync] EditMenu failed for",
+            menuObj?.name,
+            err?.response?.data?.message_TR ||
+              err?.response?.data?.message ||
+              err?.message,
+          );
+        }
+      }),
+    );
+    // Cache flush — direct api.put calls bypass the slice matchers
+    // so the menus list would otherwise still show stale categoryIds.
+    dispatch(resetGetMenus());
+    dispatch(getMenus({ restaurantId: id }));
+  };
+
   // TOAST
   useEffect(() => {
     if (success) {
@@ -326,6 +410,15 @@ const EditCategory = ({
           console.warn("[editCategory] cascade failed:", err);
         });
       }
+      // Mirror sync to the menu side — also fire-and-forget. Cheap
+      // (1 PUT per added/removed menu) and never blocks the user.
+      syncMenuCategoryIds(
+        categoryData.id,
+        originalMenuIds,
+        categoryData.menuIds,
+      ).catch((err) => {
+        console.warn("[editCategory] menu sync failed:", err);
+      });
     }
     if (error) dispatch(resetEditCategory());
     // eslint-disable-next-line react-hooks/exhaustive-deps

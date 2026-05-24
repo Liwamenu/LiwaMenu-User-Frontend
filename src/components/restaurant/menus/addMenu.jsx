@@ -171,11 +171,16 @@ const AddMenu = ({ onClose, onSave, restaurantId }) => {
             />
           </div>
 
-          <PriceListSelect
+          {/* Hidden 2026-05-25 per product decision. State + payload
+              field stay wired so re-enabling is a one-line uncomment;
+              meanwhile new menus default to DEFAULT_PRICE_LIST_TYPE
+              ("normal"). Re-enable when the special-pricing flow is
+              ready to ship. */}
+          {/* <PriceListSelect
             restaurantId={restaurantId}
             value={priceListType}
             onChange={setPriceListType}
-          />
+          /> */}
 
           <MenuCategoryPicker
             restaurantId={restaurantId}

@@ -42,6 +42,7 @@ import {
   Loader2,
   Download,
   AlertTriangle,
+  FolderTree,
 } from "lucide-react";
 
 import { usePopup } from "../../../context/PopupContext";
@@ -54,13 +55,37 @@ const PRIMARY_GRADIENT =
 
 // Bumping this triggers an explicit error on the import side rather
 // than silent misinterpretation when the format changes incompatibly.
-const BACKUP_FORMAT_VERSION = 1;
+//
+// v1 (initial): name + description + allergens + image (per product),
+//   name + sortOrder + flags + image (per category). No IDs, no
+//   portions, no machine-readable product→category memberships.
+//   Restore was UPDATE-only (matched live products by name).
+//
+// v2 (current): adds `id` to every entity, `portions` and
+//   `categories` (machine-readable membership array, independent of
+//   the folder layout) and flags to products. Enables ID-based
+//   matching and full CREATE-or-UPDATE restore. v1 manifests still
+//   parse on the restore side via a name-based fallback.
+const BACKUP_FORMAT_VERSION = 2;
 const BACKUP_FILE_TYPE = "liwamenu.products.backup";
 
-// Concurrent image downloads — high enough to feel snappy on a fast
-// connection, low enough not to swamp the backend / browser network
-// queue on a slow one. Same cap as the import side.
-const IMAGE_FETCH_CONCURRENCY = 4;
+// Concurrent image downloads — kept low so the backend's static-file
+// handler isn't hammered with 100+ near-simultaneous requests. 4 was
+// observed to drop ~17% of fetches to "Failed to fetch" on a 120-
+// product catalog (server / browser network-queue exhaustion); 2 is
+// the comfortable middle that paired with the retry logic below
+// brings success rate to near 100% without making the export drag.
+const IMAGE_FETCH_CONCURRENCY = 2;
+
+// Per-image fetch retry policy. Transient drops on a single product
+// image shouldn't sink the whole backup, so each strategy gets a few
+// retries with exponential-ish backoff before giving up. The total
+// extra wall-time on a clean run is zero (no retries needed); on a
+// flaky run it adds ~1.1s per fully-failing image (300 + 800ms).
+const IMAGE_FETCH_RETRIES = 2; // 1 initial + 2 retries = 3 attempts
+const IMAGE_FETCH_RETRY_DELAYS_MS = [300, 800];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Strip query / hash so a CDN URL with a `?v=` cache-buster still
 // produces a clean filename extension.
@@ -74,6 +99,52 @@ function extFromUrl(url) {
     const m = /\.([a-z0-9]{2,5})(?:[?#]|$)/i.exec(url || "");
     return m ? m[1].toLowerCase() : "jpg";
   }
+}
+
+// Sanitise a name so it's safe as a single ZIP path segment. Keeps
+// Turkish letters (UTF-8 in ZIP is fine), replaces filesystem-
+// forbidden chars (\ / : * ? " < > |) and control chars with `_`,
+// collapses whitespace, trims, hard-caps length so the path doesn't
+// blow past Windows MAX_PATH on extract. Empty / whitespace-only
+// inputs fall back to "untitled" so the resulting ZIP never has
+// "//" or "/." artefacts.
+function safeFileSegment(name) {
+  const cleaned = String(name || "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\\/:*?"<>|\x00-\x1f]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 100);
+  return cleaned || "untitled";
+}
+
+// Resolve "<dir>/<name>.<ext>" against a Set of paths already used in
+// this ZIP, appending " (2)", " (3)", … to disambiguate. Two products
+// named "Çay" in the same category folder get distinct files instead
+// of one overwriting the other.
+function uniqueZipPath(used, candidate) {
+  if (!used.has(candidate)) {
+    used.add(candidate);
+    return candidate;
+  }
+  const dot = candidate.lastIndexOf(".");
+  const stem = dot > -1 ? candidate.slice(0, dot) : candidate;
+  const ext = dot > -1 ? candidate.slice(dot) : "";
+  let i = 2;
+  // Bound the loop so a pathological collision can't loop forever —
+  // 999 disambiguation suffixes is well beyond any real catalog.
+  while (i < 1000) {
+    const tryPath = `${stem} (${i})${ext}`;
+    if (!used.has(tryPath)) {
+      used.add(tryPath);
+      return tryPath;
+    }
+    i += 1;
+  }
+  // Fallback if we somehow burn through 1000 collisions: random suffix.
+  const fallback = `${stem}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+  used.add(fallback);
+  return fallback;
 }
 
 // Fetch an image as a Blob. Returns null (not throws) when the
@@ -100,14 +171,43 @@ function extFromUrl(url) {
 async function fetchImageBlob(url) {
   if (!url) return null;
 
-  // Strategy 1: fetch
-  try {
-    const res = await fetch(url, { mode: "cors", credentials: "omit" });
-    if (res.ok) return await res.blob();
-    console.warn("backup: fetch image returned non-OK", res.status, url);
-  } catch (err) {
-    console.warn("backup: fetch image failed (CORS?)", url, err?.message);
+  // Strategy 1: fetch — with retry+backoff to ride out transient
+  // network blips. Empirically the failures are NOT 404s (curl shows
+  // 200), they're "Failed to fetch" exceptions thrown when the
+  // server / browser drops a connection under concurrent load. A
+  // simple retry recovers almost all of them.
+  let lastFetchErr = null;
+  for (let attempt = 0; attempt <= IMAGE_FETCH_RETRIES; attempt++) {
+    try {
+      const res = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (res.ok) return await res.blob();
+      // Permanent HTTP failure (404, 403, etc.) — no point retrying.
+      // Log the status and break out to the canvas fallbacks.
+      console.warn(
+        "backup: fetch image returned non-OK",
+        res.status,
+        url,
+      );
+      lastFetchErr = new Error(`HTTP ${res.status}`);
+      break;
+    } catch (err) {
+      lastFetchErr = err;
+      if (attempt < IMAGE_FETCH_RETRIES) {
+        const delay = IMAGE_FETCH_RETRY_DELAYS_MS[attempt] ?? 500;
+        // Quiet retry — only loud if we exhaust attempts (logged after the loop).
+        await sleep(delay);
+        continue;
+      }
+      console.warn(
+        "backup: fetch image failed after retries",
+        url,
+        err?.message,
+      );
+    }
   }
+  // suppress unused-var lint; the variable is preserved for symmetry
+  // if we ever need to surface the cause to the caller.
+  void lastFetchErr;
 
   // Strategies 2 & 3 use <img> + canvas. Sniff the source extension
   // once so we encode the canvas back into the same format (PNG vs
@@ -213,10 +313,16 @@ export default function BackupProductsModal({ restaurantId }) {
   const [withImages, setWithImages] = useState(true);
   const [withDescription, setWithDescription] = useState(true);
   const [withAllergens, setWithAllergens] = useState(true);
+  // Categories toggle bundles parent categories + subcategories
+  // together. Off by default — the original 3 fields cover ~99% of
+  // "I want my product copy back" cases; categories matter only when
+  // the user accidentally deleted category rows and lost the structure.
+  const [withCategories, setWithCategories] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: "" });
 
-  const anyEnabled = withImages || withDescription || withAllergens;
+  const anyEnabled =
+    withImages || withDescription || withAllergens || withCategories;
 
   const close = () => {
     if (loading) return; // do not let the user dismiss mid-build
@@ -231,34 +337,40 @@ export default function BackupProductsModal({ restaurantId }) {
     try {
       const api = privateApi();
 
-      // Pull every product — same big-page strategy as the print export.
-      // The list response already carries description + allergens, so
-      // no per-product round-trip is needed except for image blobs.
-      const PAGE = 2000;
-      const first = await api.get(
-        `${baseURL}Products/getProductsByRestaurantId`,
-        { params: { restaurantId, pageNumber: 1, pageSize: PAGE } },
-      );
-      const total = first?.data?.totalCount ?? 0;
-      const firstPage = first?.data?.data || [];
-      let products = firstPage;
-      if (firstPage.length < total) {
-        const totalPages = Math.ceil(total / PAGE);
-        const rest = await Promise.all(
-          Array.from({ length: totalPages - 1 }, (_, i) =>
-            api
-              .get(`${baseURL}Products/getProductsByRestaurantId`, {
-                params: {
-                  restaurantId,
-                  pageNumber: i + 2,
-                  pageSize: PAGE,
-                },
-              })
-              .then((r) => r?.data?.data || [])
-              .catch(() => []),
-          ),
+      // Skip the product fetch entirely if the user only wants
+      // categories — saves a 2000-row round-trip + a potential fan-out.
+      const anyProductToggle = withImages || withDescription || withAllergens;
+      let products = [];
+      if (anyProductToggle) {
+        // Pull every product — same big-page strategy as the print export.
+        // The list response already carries description + allergens, so
+        // no per-product round-trip is needed except for image blobs.
+        const PAGE = 2000;
+        const first = await api.get(
+          `${baseURL}Products/getProductsByRestaurantId`,
+          { params: { restaurantId, pageNumber: 1, pageSize: PAGE } },
         );
-        products = firstPage.concat(...rest);
+        const total = first?.data?.totalCount ?? 0;
+        const firstPage = first?.data?.data || [];
+        products = firstPage;
+        if (firstPage.length < total) {
+          const totalPages = Math.ceil(total / PAGE);
+          const rest = await Promise.all(
+            Array.from({ length: totalPages - 1 }, (_, i) =>
+              api
+                .get(`${baseURL}Products/getProductsByRestaurantId`, {
+                  params: {
+                    restaurantId,
+                    pageNumber: i + 2,
+                    pageSize: PAGE,
+                  },
+                })
+                .then((r) => r?.data?.data || [])
+                .catch(() => []),
+            ),
+          );
+          products = firstPage.concat(...rest);
+        }
       }
 
       // Normalise the per-product allergen shape — backend sometimes
@@ -287,13 +399,65 @@ export default function BackupProductsModal({ restaurantId }) {
       // queue separately so we can run downloads concurrently.
       const entries = [];
       const imageJobs = [];
+      // Tracks ZIP paths already issued so two products with the same
+      // name in the same category get disambiguated ("Çay.jpg",
+      // "Çay (2).jpg") instead of one overwriting the other.
+      const usedPaths = new Set();
+      // We always reserve "manifest.json" first — paranoid guard
+      // against a category called literally "manifest" with a
+      // pathological .json image extension.
+      usedPaths.add("manifest.json");
 
-      let imageIndex = 0;
       for (const p of products || []) {
         const name = (p?.name || "").trim();
         if (!name) continue; // unnameable product can't be matched on import
 
-        const entry = { name };
+        // v2 core fields — always emitted regardless of toggles.
+        // These are the "structural" bits needed to recreate the
+        // product on restore. The user-facing toggles below only gate
+        // the bulky / opinionated fields (image bytes, free-text
+        // description, allergen lists).
+        const entry = {
+          id: p?.id || p?.Id || null,
+          name,
+          recommendation: !!p?.recommendation,
+          hide: !!p?.hide,
+          freeTagging: !!p?.freeTagging,
+          isCampaign: !!p?.isCampaign,
+          // Portions carry their own IDs so the restore can UPDATE
+          // individual portion rows rather than always recreate them
+          // (which would break referential integrity with anything
+          // that points at portion IDs — e.g. orders historicals).
+          portions: (Array.isArray(p?.portions) ? p.portions : []).map(
+            (po) => ({
+              id: po?.id || po?.Id || null,
+              name: po?.name ?? po?.Name ?? "",
+              price: Number(po?.price ?? po?.Price ?? 0) || 0,
+              campaignPrice:
+                Number(po?.campaignPrice ?? po?.CampaignPrice ?? 0) || 0,
+              specialPrice:
+                Number(po?.specialPrice ?? po?.SpecialPrice ?? 0) || 0,
+            }),
+          ),
+          // Machine-readable category memberships — independent of
+          // the human-friendly folder layout the image path encodes.
+          // Restore reads from here, not from the path. Both casings
+          // accepted because some endpoints still return PascalCase.
+          categories: (
+            (Array.isArray(p?.categories) && p.categories) ||
+            (Array.isArray(p?.Categories) && p.Categories) ||
+            []
+          )
+            .map((m) => {
+              const categoryId = m?.categoryId ?? m?.CategoryId;
+              const subCategoryId = m?.subCategoryId ?? m?.SubCategoryId;
+              if (!categoryId) return null;
+              const out = { categoryId };
+              if (subCategoryId) out.subCategoryId = subCategoryId;
+              return out;
+            })
+            .filter(Boolean),
+        };
 
         if (withDescription) {
           entry.description = p?.description ?? "";
@@ -308,8 +472,20 @@ export default function BackupProductsModal({ restaurantId }) {
         if (withImages) {
           const url = p?.imageURL || p?.ImageURL || "";
           if (url) {
-            imageIndex += 1;
-            const fileName = `images/${String(imageIndex).padStart(4, "0")}.${extFromUrl(url)}`;
+            // Place the file under "products/<Category>/[<Subcategory>/]<Name>.<ext>"
+            // so the ZIP visually mirrors the menu tree. Multi-category
+            // products get their image in the FIRST membership's folder
+            // (rare in practice; manifest holds product data, the
+            // folder is just a display nicety).
+            const firstCat = (p.categories || [])[0] || {};
+            const catSeg = firstCat?.categoryName
+              ? safeFileSegment(firstCat.categoryName)
+              : "__uncategorized__";
+            const subSeg = firstCat?.subCategoryName
+              ? `/${safeFileSegment(firstCat.subCategoryName)}`
+              : "";
+            const base = `products/${catSeg}${subSeg}/${safeFileSegment(name)}.${extFromUrl(url)}`;
+            const fileName = uniqueZipPath(usedPaths, base);
             entry.image = fileName;
             imageJobs.push({ url, fileName });
           }
@@ -317,9 +493,134 @@ export default function BackupProductsModal({ restaurantId }) {
         entries.push(entry);
       }
 
-      // Phase 2: download images in parallel batches.
+      // ── Categories + subcategories (opt-in 4th toggle) ──
+      // Stored under their own manifest section so the import side
+      // can run an "ensure exists" pass BEFORE touching products.
+      // Image paths use separate folders inside the ZIP so the file
+      // tree self-documents what each asset belongs to.
+      let categoryEntries = [];
+      if (withCategories) {
+        const [catsRes, subsRes] = await Promise.all([
+          api
+            .get(`${baseURL}Categories/GetCategoriesByRestaurantId`, {
+              params: { restaurantId },
+            })
+            .catch(() => ({ data: { data: [] } })),
+          // The backend route is lower-cased "Subcategories" (see
+          // getSubCategoriesSlice). Spell it the same way or get a 404.
+          api
+            .get(`${baseURL}Subcategories/GetSubCategoriesByRestaurantId`, {
+              params: { restaurantId },
+            })
+            .catch(() => ({ data: { data: [] } })),
+        ]);
+        const categories = catsRes?.data?.data || [];
+        const subcategories = subsRes?.data?.data || [];
+
+        // Bucket subcategories by parent for nested manifest emission.
+        const subsByCatId = new Map();
+        for (const sc of subcategories) {
+          const parentId = sc?.categoryId ?? sc?.CategoryId;
+          if (!parentId) continue;
+          const arr = subsByCatId.get(parentId) || [];
+          arr.push(sc);
+          subsByCatId.set(parentId, arr);
+        }
+
+        for (const c of categories) {
+          const cName = (c?.name || "").trim();
+          if (!cName) continue;
+          const catEntry = {
+            // v2: id is the primary match key on restore (falls back
+            // to normalised-name when a v2 backup is restored into a
+            // restaurant whose entities have different IDs).
+            id: c?.id || c?.Id || null,
+            name: cName,
+            sortOrder: c?.sortOrder ?? 0,
+            isActive: c?.isActive ?? true,
+            featured: !!c?.featured,
+            campaign: !!c?.campaign,
+          };
+          // Category image (independent of the products' withImages
+          // toggle — categories are their own scope). Skipping the
+          // `withImages` check here is intentional: a user backing up
+          // categories with images-off wouldn't see them anyway, and
+          // having the file in the ZIP is cheap. Named file path
+          // mirrors the visible menu tree: "categories/<Name>.<ext>".
+          //
+          // Field-name landmine: products use `imageURL` but the
+          // categories endpoint returns the image URL as
+          // `imageAbsoluteUrl` (see categories.jsx where the list
+          // renders <img src={cat.imageAbsoluteUrl} />). v2.0 of the
+          // backup only checked imageURL → category images were
+          // silently dropped from every backup. Now we accept all
+          // observed casings + naming variants.
+          const cUrl =
+            c?.imageAbsoluteUrl ||
+            c?.ImageAbsoluteUrl ||
+            c?.imageURL ||
+            c?.ImageURL ||
+            c?.image ||
+            "";
+          const safeCatSeg = safeFileSegment(cName);
+          if (cUrl) {
+            const base = `categories/${safeCatSeg}.${extFromUrl(cUrl)}`;
+            const fn = uniqueZipPath(usedPaths, base);
+            catEntry.image = fn;
+            imageJobs.push({ url: cUrl, fileName: fn });
+          }
+
+          const childList = subsByCatId.get(c?.id) || [];
+          const subEntries = [];
+          for (const sc of childList.sort(
+            (a, b) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0),
+          )) {
+            const sName = (sc?.name || "").trim();
+            if (!sName) continue;
+            const sEntry = {
+              id: sc?.id || sc?.Id || null,
+              name: sName,
+              sortOrder: sc?.sortOrder ?? 0,
+              isActive: sc?.isActive ?? true,
+            };
+            // Same field-name landmine as categories — subcategories
+            // surface their image URL as `imageAbsoluteUrl`.
+            const sUrl =
+              sc?.imageAbsoluteUrl ||
+              sc?.ImageAbsoluteUrl ||
+              sc?.imageURL ||
+              sc?.ImageURL ||
+              sc?.image ||
+              "";
+            if (sUrl) {
+              // "subcategories/<Parent Name>/<Sub Name>.<ext>" keeps
+              // the hierarchy visible even without opening the manifest.
+              const base = `subcategories/${safeCatSeg}/${safeFileSegment(sName)}.${extFromUrl(sUrl)}`;
+              const fn = uniqueZipPath(usedPaths, base);
+              sEntry.image = fn;
+              imageJobs.push({ url: sUrl, fileName: fn });
+            }
+            subEntries.push(sEntry);
+          }
+          if (subEntries.length > 0) catEntry.subCategories = subEntries;
+          categoryEntries.push(catEntry);
+        }
+        // Stable order on output so two backups of the same state
+        // produce identical (diff-able) manifests.
+        categoryEntries.sort(
+          (a, b) =>
+            (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
+            a.name.localeCompare(b.name, "tr"),
+        );
+      }
+
+      // Phase 2: download images in parallel batches. Single queue
+      // for product / category / subcategory images — they're all
+      // the same fetch operation just with different destination
+      // paths inside the ZIP. Triggers whenever ANY image job was
+      // queued, regardless of which toggles populated it.
       let imageBlobs = [];
-      if (withImages && imageJobs.length > 0) {
+      if (imageJobs.length > 0) {
         setProgress({ done: 0, total: imageJobs.length, phase: "images" });
         let done = 0;
         imageBlobs = await mapWithConcurrency(
@@ -358,18 +659,28 @@ export default function BackupProductsModal({ restaurantId }) {
           image: withImages,
           description: withDescription,
           allergens: withAllergens,
+          categories: withCategories,
         },
         products: entries,
       };
+      // Categories section is optional — older v1 backups (no
+      // categories) still parse cleanly because the import side
+      // reads it with `manifest.categories || []`.
+      if (withCategories) {
+        manifest.categories = categoryEntries;
+      }
       zip.file("manifest.json", JSON.stringify(manifest, null, 2));
 
       // Only include images that actually downloaded; if a fetch
       // returned null we drop the file entry to avoid an empty file
       // in the ZIP, and unset the entry's image path so the importer
-      // doesn't try to read a missing image.
+      // doesn't try to read a missing image. Covers product images,
+      // category images, and subcategory images uniformly — they all
+      // live in the same `imageJobs` queue with prefixed file paths.
       let imagesIncluded = 0;
       let imagesFailed = 0;
-      if (withImages && imageBlobs.length > 0) {
+      const failedUrls = []; // for diagnostic logging
+      if (imageBlobs.length > 0) {
         const successfulNames = new Set();
         for (const job of imageBlobs) {
           if (job?.blob) {
@@ -378,12 +689,21 @@ export default function BackupProductsModal({ restaurantId }) {
             imagesIncluded += 1;
           } else {
             imagesFailed += 1;
+            failedUrls.push(job.url);
           }
         }
-        // Clean up entries whose image failed to fetch.
+        // Drop the image path from any manifest entry whose blob
+        // didn't make it into the ZIP — applies across products,
+        // categories, and nested subcategories.
         for (const e of entries) {
-          if (e.image && !successfulNames.has(e.image)) {
-            delete e.image;
+          if (e.image && !successfulNames.has(e.image)) delete e.image;
+        }
+        for (const c of categoryEntries) {
+          if (c.image && !successfulNames.has(c.image)) delete c.image;
+          if (Array.isArray(c.subCategories)) {
+            for (const s of c.subCategories) {
+              if (s.image && !successfulNames.has(s.image)) delete s.image;
+            }
           }
         }
         // Re-write manifest with cleaned entries.
@@ -415,24 +735,77 @@ export default function BackupProductsModal({ restaurantId }) {
       // Defer revoke so the browser has time to start the download.
       setTimeout(() => URL.revokeObjectURL(url), 4000);
 
-      toast.success(
-        t("productsList.backup_success", {
-          count: entries.length,
-          defaultValue: "{{count}} ürün yedeği oluşturuldu.",
-        }),
-      );
-      // Surface partial failure prominently — the user shouldn't think
-      // their backup is complete if half the images silently dropped
-      // out. Console already has per-URL diagnostics for DevTools.
-      if (withImages && imagesFailed > 0) {
-        toast(
+      // Console summary — single grouped log so the user can see the
+      // entire breakdown in one place when investigating "why are
+      // there fewer files than products" without scrolling through
+      // 100s of per-URL warning lines. Each failed URL is listed
+      // explicitly so the user can copy one into a browser tab to
+      // confirm what kind of failure it is (CORS / 404 / timeout).
+      const productsWithImageURL = (products || []).filter(
+        (p) => (p?.imageURL || p?.ImageURL || "").trim(),
+      ).length;
+      try {
+        console.group(
+          `[backup] Done — products: ${entries.length}, categories: ${categoryEntries.length}, images: ${imagesIncluded}/${imageJobs.length}`,
+        );
+        console.log("Products fetched:", (products || []).length);
+        console.log("Products with imageURL:", productsWithImageURL);
+        console.log("Image fetch jobs queued:", imageJobs.length);
+        console.log("Images downloaded successfully:", imagesIncluded);
+        console.log("Images failed:", imagesFailed);
+        if (failedUrls.length > 0) {
+          console.warn(
+            "Failed URLs (first 30):",
+            failedUrls.slice(0, 30),
+          );
+        }
+        console.groupEnd();
+      } catch {
+        // ignore — diagnostics should never break the export
+      }
+
+      // Two phrasings so a categories-only or products-only backup
+      // doesn't read awkwardly ("0 ürün yedeği oluşturuldu"). The
+      // image count is included so the user can reconcile ZIP file
+      // count vs. manifest entry count — when imagesFailed > 0 we
+      // show it as "95/120" so the gap is impossible to miss.
+      const imageFraction =
+        imagesFailed > 0
+          ? `${imagesIncluded}/${imagesIncluded + imagesFailed}`
+          : `${imagesIncluded}`;
+      if (categoryEntries.length > 0) {
+        toast.success(
+          t("productsList.backup_success_full", {
+            products: entries.length,
+            categories: categoryEntries.length,
+            images: imageFraction,
+            defaultValue:
+              "Yedek oluşturuldu: {{products}} ürün, {{categories}} kategori, {{images}} görsel.",
+          }),
+        );
+      } else {
+        toast.success(
+          t("productsList.backup_success", {
+            count: entries.length,
+            images: imageFraction,
+            defaultValue:
+              "{{count}} ürün yedeği oluşturuldu ({{images}} görsel).",
+          }),
+        );
+      }
+      // Surface partial failure prominently — promoted to toast.error
+      // so the user can't dismiss it as a passive informational chip.
+      // Longer duration + clear "konsola bakın" pointer because the
+      // root cause is almost always per-URL and only visible there.
+      if (imagesFailed > 0) {
+        toast.error(
           t("productsList.backup_images_failed", {
             failed: imagesFailed,
             total: imagesFailed + imagesIncluded,
             defaultValue:
               "{{failed}} / {{total}} görsel indirilemedi (tarayıcı konsoluna bakın — büyük olasılıkla CORS).",
           }),
-          { icon: "⚠️", duration: 7000 },
+          { duration: 10000 },
         );
       }
       setSecondPopupContent(null);
@@ -536,6 +909,20 @@ export default function BackupProductsModal({ restaurantId }) {
             )}
             checked={withAllergens}
             onChange={setWithAllergens}
+            disabled={loading}
+          />
+          <OptionToggle
+            icon={FolderTree}
+            label={t(
+              "productsList.backup_with_categories",
+              "Kategoriler & Alt Kategoriler",
+            )}
+            hint={t(
+              "productsList.backup_with_categories_hint",
+              "Kategori ve alt kategori yapısı (ad, görsel, sıralama) yedeklenir; eksik olanlar geri yüklerken oluşturulur.",
+            )}
+            checked={withCategories}
+            onChange={setWithCategories}
             disabled={loading}
           />
         </div>

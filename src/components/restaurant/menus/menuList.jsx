@@ -23,6 +23,11 @@ import {
   CheckCircle2,
   AlertTriangle,
   LifeBuoy,
+  Lightbulb,
+  Sunrise,
+  Sun,
+  Moon,
+  CalendarDays,
 } from "lucide-react";
 
 // COMP
@@ -366,7 +371,121 @@ const MenuList = () => {
           )}
         </div>
       </div>
+
+      {/* Footnote — purpose + concrete examples. Sits below the main
+          card so first-time users (and onboarders writing playbooks)
+          can read "what is a Menu actually for?" without having to
+          open the PageHelp drawer. Only rendered on the list tab —
+          the Integration tab has its own explanatory copy already. */}
+      {activeTab === "list" && <MenusFootnote t={t} />}
     </div>
+  );
+};
+
+// Footnote block — light info card with the "how to use Menus" copy.
+// Two-column on lg+ (weekday breakdown next to weekend tip) so the
+// example doesn't push the page too far down on a desktop screen.
+const MenusFootnote = ({ t }) => (
+  <div className="mt-4 sm:mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/40 dark:bg-indigo-500/5 dark:border-indigo-400/20 overflow-hidden">
+    <div className="px-4 sm:px-5 py-3 border-b border-indigo-100 dark:border-indigo-400/20 flex items-center gap-2.5">
+      <span className="grid place-items-center size-7 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+        <Lightbulb className="size-4" />
+      </span>
+      <h3 className="text-[13px] font-bold text-[--black-1] truncate">
+        {t(
+          "menuList.footnote_title",
+          "Menülerinizi nasıl planlarsınız?",
+        )}
+      </h3>
+    </div>
+    <div className="p-4 sm:p-5 space-y-4 text-[12px] leading-relaxed text-[--gr-1]">
+      <p>
+        {t(
+          "menuList.footnote_intro",
+          "İşletmenizde müşterilerinize farklı gün ve saatlerde farklı menü kategorileri sunuyorsanız yeni menüler ekleyerek aktif gün ve saatleri seçebilirsiniz.",
+        )}
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+        {/* Weekday example */}
+        <div className="rounded-xl bg-[--white-1] border border-indigo-100 dark:bg-[--white-2] dark:border-indigo-400/20 p-3.5">
+          <div className="flex items-center gap-2 mb-2.5">
+            <Calendar className="size-3.5 text-indigo-600 dark:text-indigo-300" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-200">
+              {t(
+                "menuList.footnote_weekday_title",
+                "Hafta İçi Örneği",
+              )}
+            </span>
+          </div>
+          <ul className="space-y-2">
+            <FootnoteRow
+              icon={Sunrise}
+              tone="amber"
+              label={t(
+                "menuList.footnote_weekday_morning",
+                "Sabah Menüsü — 08:00–11:00 — sadece Kahvaltı kategorileri",
+              )}
+            />
+            <FootnoteRow
+              icon={Sun}
+              tone="orange"
+              label={t(
+                "menuList.footnote_weekday_noon",
+                "Öğlen Menüsü — 11:00–16:00 — Öğle Yemeği kategorileri",
+              )}
+            />
+            <FootnoteRow
+              icon={Moon}
+              tone="indigo"
+              label={t(
+                "menuList.footnote_weekday_evening",
+                "Akşam Menüsü — 16:00–22:00 — Akşam Yemeği kategorileri",
+              )}
+            />
+          </ul>
+        </div>
+
+        {/* Weekend example */}
+        <div className="rounded-xl bg-[--white-1] border border-indigo-100 dark:bg-[--white-2] dark:border-indigo-400/20 p-3.5">
+          <div className="flex items-center gap-2 mb-2.5">
+            <CalendarDays className="size-3.5 text-emerald-600 dark:text-emerald-300" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-200">
+              {t(
+                "menuList.footnote_weekend_title",
+                "Hafta Sonu Örneği",
+              )}
+            </span>
+          </div>
+          <p className="text-[12px] text-[--gr-1] leading-relaxed">
+            {t(
+              "menuList.footnote_weekend_desc",
+              "Hafta sonuna özel kategorileriniz varsa gün ve saatlerini tanımlayarak sadece o günlerde seçilen kategorileri gösterebilirsiniz.",
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const FootnoteRow = ({ icon: Icon, tone, label }) => {
+  const tones = {
+    amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/30",
+    orange: "bg-orange-50 text-orange-700 ring-orange-100 dark:bg-orange-500/15 dark:text-orange-200 dark:ring-orange-400/30",
+    indigo: "bg-indigo-50 text-indigo-700 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30",
+  };
+  return (
+    <li className="flex items-start gap-2.5">
+      <span
+        className={`grid place-items-center size-6 rounded-md ring-1 shrink-0 ${tones[tone]}`}
+      >
+        <Icon className="size-3" />
+      </span>
+      <span className="text-[12px] leading-snug text-[--black-2] pt-0.5">
+        {label}
+      </span>
+    </li>
   );
 };
 
