@@ -1478,7 +1478,14 @@
     "tag_kebap_fire": "Kebap Fire · animated flames + yellow torn-receipt tickets",
     "tag_editorial_walkthrough": "Editorial Walkthrough · category list + rotating product detail",
     "tag_featured_combos": "Featured Combos · 4 large cards + dark quick-reference strip",
-    "tag_hero_category_grid": "Hero Category + Grid · orange hero column + 4×3 product grid"
+    "tag_hero_category_grid": "Hero Category + Grid · orange hero column + 4×3 product grid",
+    "display_settings": "Display Settings",
+    "page_duration": "Page Duration",
+    "seconds_short": "sec",
+    "transition_style": "Transition Style",
+    "transition_fade": "Fade",
+    "transition_slide": "Slide",
+    "transition_none": "Instant"
   },
   "orders": {
     "subtitle": "Track incoming orders in real time",
