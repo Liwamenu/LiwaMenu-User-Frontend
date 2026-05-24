@@ -1479,7 +1479,14 @@
     "tag_kebap_fire": "Kebap Ateş · animasyonlu alev + sarı yırtık fiş biletleri",
     "tag_editorial_walkthrough": "Editör Turu · kategori listesi + dönen ürün detayı",
     "tag_featured_combos": "Öne Çıkan Menüler · 4 büyük kart + koyu hızlı liste şeridi",
-    "tag_hero_category_grid": "Kategori Vitrini + Grid · turuncu vitrin kolonu + 4×3 ürün grid"
+    "tag_hero_category_grid": "Kategori Vitrini + Grid · turuncu vitrin kolonu + 4×3 ürün grid",
+    "display_settings": "Görüntü Ayarları",
+    "page_duration": "Sayfa Süresi",
+    "seconds_short": "sn",
+    "transition_style": "Geçiş Stili",
+    "transition_fade": "Yumuşak",
+    "transition_slide": "Kaydır",
+    "transition_none": "Anlık"
   },
   "orders": {
     "subtitle": "Gelen siparişleri canlı olarak takip edin",

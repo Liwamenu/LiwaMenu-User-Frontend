@@ -10,6 +10,8 @@ import {
   RotateCw,
   Palette,
   Sparkles,
+  Timer,
+  Wand2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -108,6 +110,22 @@ const buildTenantUrl = (tenant, fallback = "demo") => {
   return `https://${t}.liwamenu.tv`;
 };
 
+// Display-settings constraints, mirroring the backend contract:
+//   pageDurationMs : number, 5000–15000 (per-theme default within that range)
+//   transitionStyle: 'fade' | 'slide' | 'none' (default 'fade')
+const PAGE_DURATION_MIN_MS = 5000;
+const PAGE_DURATION_MAX_MS = 15000;
+const PAGE_DURATION_STEP_MS = 1000;
+const PAGE_DURATION_DEFAULT_MS = 7000; // mid-range fallback when missing
+const TRANSITION_STYLES = ["fade", "slide", "none"];
+const clampDurationMs = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return PAGE_DURATION_DEFAULT_MS;
+  return Math.min(PAGE_DURATION_MAX_MS, Math.max(PAGE_DURATION_MIN_MS, n));
+};
+const normalizeTransitionStyle = (v) =>
+  TRANSITION_STYLES.includes(v) ? v : "fade";
+
 const ThemeSelector = ({ data }) => {
   const params = useParams();
   const dispatch = useDispatch();
@@ -128,6 +146,20 @@ const ThemeSelector = ({ data }) => {
   );
   const [activeThemeId, setActiveThemeId] = useState(data?.tvMenuId ?? null);
   const [pendingThemeId, setPendingThemeId] = useState(null);
+
+  // Display-settings local state. Seeded from `data` once; we deliberately
+  // don't re-sync on prop changes so an in-flight save doesn't snap the
+  // slider back to a stale server value while the user is still dragging.
+  const [pageDurationMs, setPageDurationMs] = useState(() =>
+    clampDurationMs(data?.pageDurationMs),
+  );
+  const [transitionStyle, setTransitionStyle] = useState(() =>
+    normalizeTransitionStyle(data?.transitionStyle),
+  );
+  // Which kind of save is in flight, so the shared loading/success flags
+  // can be routed to the right pending state (theme pick vs display
+  // setting). `null` when idle.
+  const [pendingSetting, setPendingSetting] = useState(null); // "duration" | "transition" | null
 
   const activeTheme = THEMES.find((th) => th.id === activeThemeId) || null;
 
@@ -152,6 +184,29 @@ const ThemeSelector = ({ data }) => {
         restaurantId,
       }),
     );
+  };
+
+  // Save handlers for the two display settings. Each PUTs only its own
+  // field so the backend's "null = leave alone" semantics keep the
+  // sibling field (and tvMenuId) untouched. The restaurantEntityPatcher
+  // matcher merges the dispatched arg back into the cached restaurant,
+  // so no parent-side refetch / callback is needed.
+  const saveDuration = (rawMs) => {
+    if (loading) return;
+    const ms = clampDurationMs(rawMs);
+    if (ms === clampDurationMs(data?.pageDurationMs)) return; // no-op
+    setPageDurationMs(ms);
+    setPendingSetting("duration");
+    dispatch(setRestaurantTvTheme({ pageDurationMs: ms, restaurantId }));
+  };
+
+  const saveTransition = (style) => {
+    if (loading) return;
+    const next = normalizeTransitionStyle(style);
+    if (next === normalizeTransitionStyle(data?.transitionStyle)) return;
+    setTransitionStyle(next);
+    setPendingSetting("transition");
+    dispatch(setRestaurantTvTheme({ transitionStyle: next, restaurantId }));
   };
 
   const handleRefreshIframe = () => {
@@ -190,21 +245,28 @@ const ThemeSelector = ({ data }) => {
   // parent's cached restaurant.tvMenuId is kept in sync centrally via the
   // restaurantEntityPatchers matcher — no callback needed.
   useEffect(() => {
-    if (success && pendingThemeId !== null) {
+    if (!success) return;
+    if (pendingThemeId !== null) {
       toast.success(t("tvThemeSelector.success_updated"), {
         id: "set-tv-theme-success",
       });
       setActiveThemeId(pendingThemeId);
       setPendingThemeId(null);
     }
+    if (pendingSetting) {
+      toast.success(t("tvThemeSelector.success_updated"), {
+        id: `set-tv-${pendingSetting}-success`,
+      });
+      setPendingSetting(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
 
-  // Clear pending state on failure
+  // Clear pending state on failure (any kind).
   useEffect(() => {
-    if (!loading && pendingThemeId !== null && !success) {
-      setPendingThemeId(null);
-    }
+    if (loading || success) return;
+    if (pendingThemeId !== null) setPendingThemeId(null);
+    if (pendingSetting) setPendingSetting(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
@@ -346,6 +408,97 @@ const ThemeSelector = ({ data }) => {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Display settings — page rotation timing + transition
+                style. Both live next to the theme picker because they
+                only affect the TV menu surface. Each control PUTs its
+                own field through the existing TV-theme thunk; the
+                restaurantEntityPatchers matcher merges the change back
+                into the cached restaurant entity, so refresh isn't
+                needed. */}
+            <div className="p-3 border-t border-[--border-1] space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1] px-1">
+                {t("tvThemeSelector.display_settings")}
+              </p>
+
+              {/* Page duration slider */}
+              <div className="space-y-1.5 px-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 font-medium text-[--black-2]">
+                    <Timer className="size-3.5 text-indigo-600" />
+                    {t("tvThemeSelector.page_duration")}
+                  </span>
+                  <span className="font-bold text-indigo-700 tabular-nums dark:text-indigo-200">
+                    {(pageDurationMs / 1000).toFixed(0)}{" "}
+                    {t("tvThemeSelector.seconds_short")}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={PAGE_DURATION_MIN_MS}
+                  max={PAGE_DURATION_MAX_MS}
+                  step={PAGE_DURATION_STEP_MS}
+                  value={pageDurationMs}
+                  disabled={loading}
+                  // Visual update on every drag tick…
+                  onChange={(e) => setPageDurationMs(Number(e.target.value))}
+                  // …but only PUT once the user releases (covers mouse,
+                  // touch, and keyboard step changes).
+                  onMouseUp={(e) => saveDuration(e.target.value)}
+                  onTouchEnd={(e) => saveDuration(e.target.value)}
+                  onKeyUp={(e) => saveDuration(e.target.value)}
+                  className="w-full accent-indigo-600 disabled:opacity-50"
+                  aria-label={t("tvThemeSelector.page_duration")}
+                />
+                <div className="flex justify-between text-[10px] text-[--gr-1]">
+                  <span>
+                    {PAGE_DURATION_MIN_MS / 1000}{" "}
+                    {t("tvThemeSelector.seconds_short")}
+                  </span>
+                  <span>
+                    {PAGE_DURATION_MAX_MS / 1000}{" "}
+                    {t("tvThemeSelector.seconds_short")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Transition-style picker */}
+              <div className="space-y-1.5 px-1">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[--black-2]">
+                  <Wand2 className="size-3.5 text-indigo-600" />
+                  {t("tvThemeSelector.transition_style")}
+                </span>
+                <div className="grid grid-cols-3 gap-0.5 p-0.5 rounded-lg bg-[--white-2] border border-[--border-1]">
+                  {[
+                    { id: "fade", labelKey: "tvThemeSelector.transition_fade" },
+                    { id: "slide", labelKey: "tvThemeSelector.transition_slide" },
+                    { id: "none", labelKey: "tvThemeSelector.transition_none" },
+                  ].map((opt) => {
+                    const isActive = transitionStyle === opt.id;
+                    const isPendingThis =
+                      pendingSetting === "transition" && isActive && loading;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => saveTransition(opt.id)}
+                        disabled={loading}
+                        className={`inline-flex items-center justify-center gap-1 h-8 px-2 rounded-md text-[11px] font-semibold transition disabled:cursor-wait ${
+                          isActive
+                            ? "bg-[--white-1] text-indigo-700 shadow-sm ring-1 ring-[--border-1] dark:bg-indigo-500/20 dark:text-indigo-200"
+                            : "text-[--gr-1] hover:text-[--black-1] disabled:opacity-50"
+                        }`}
+                      >
+                        {isPendingThis ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : null}
+                        {t(opt.labelKey)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Live URL footer */}
