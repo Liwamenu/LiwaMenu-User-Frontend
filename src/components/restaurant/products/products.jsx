@@ -13,6 +13,7 @@ import {
   CheckCheck,
   AlertTriangle,
   ImageOff,
+  Printer,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -21,6 +22,7 @@ import ProductsHeader from "./header";
 import ProductCard from "./productCard";
 import EditProduct from "./editProduct";
 import QuickEditImage from "./quickEditImage";
+import PrintProductsExportModal from "./printProductsExport";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 import PageHelp from "../../common/pageHelp";
@@ -701,6 +703,26 @@ const Products = () => {
                 : t("productsList.subtitle")}
             </p>
           </div>
+          {/* Print-friendly PDF export — opens the options modal, then
+              builds a print-styled HTML document, opens it in a new
+              tab and triggers the browser's print dialog so the user
+              can save as PDF. */}
+          <button
+            type="button"
+            onClick={() =>
+              setSecondPopupContent(
+                <PrintProductsExportModal restaurantId={restaurantId} />,
+              )
+            }
+            title={t("productsList.export_pdf", "PDF / Yazdır")}
+            aria-label={t("productsList.export_pdf", "PDF / Yazdır")}
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition shrink-0 dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30 dark:hover:bg-indigo-500/25"
+          >
+            <Printer className="size-3.5" />
+            <span className="hidden sm:inline">
+              {t("productsList.export_pdf", "PDF / Yazdır")}
+            </span>
+          </button>
           <PageHelp pageKey="products" />
         </div>
 
