@@ -10,11 +10,12 @@ import { invalidateOn } from "../cacheInvalidation";
 
 // Same invalidator set as getRestaurantsSlice — license lifecycle +
 // restaurant add/delete/transfer/update flip fields on the entity
-// (licenseIsActive, hasQrLicense, end date, ...) that the dispatched
-// arg doesn't carry, so the single-restaurant cache must drop and
-// refetch rather than patch. Kept as its own list (not imported from
-// the list slice) so each slice's invalidation contract is readable
-// in one place.
+// (qrLicenseIsActive / tvLicenseIsActive / kioskLicenseIsActive,
+// hasQrLicense / hasTvLicense / hasKioskLicense, end date, ...)
+// that the dispatched arg doesn't carry, so the single-restaurant
+// cache must drop and refetch rather than patch. Kept as its own
+// list (not imported from the list slice) so each slice's
+// invalidation contract is readable in one place.
 const RESTAURANT_INVALIDATORS = [
   "Licenses/AddLicense",
   "Licenses/AddLicenseByBank",

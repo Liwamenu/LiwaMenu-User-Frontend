@@ -318,6 +318,11 @@ const RestaurantSettings = ({ data: inData }) => {
       maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter ?? 500,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
       minOrderAmount: inData?.minOrderAmount,
+      // Default ON — customers expect the "Garson Çağır" button to be
+      // available unless the owner explicitly turns it off (typically a
+      // restaurant that doesn't run table service via QR menus).
+      // `??` so an existing `false` is preserved.
+      showWaiterCallButton: inData?.showWaiterCallButton ?? true,
     }),
     [inData],
   );
@@ -1029,7 +1034,7 @@ const RestaurantSettings = ({ data: inData }) => {
                 icon={Eye}
                 label={t("restaurantSettings.special_price_section")}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-[--border-1] bg-[--white-1] p-3">
                   <CustomToggle
                     label={t("restaurantSettings.is_special_price_active")}
@@ -1053,6 +1058,28 @@ const RestaurantSettings = ({ data: inData }) => {
                       setRestaurantData((prev) => ({
                         ...prev,
                         hide: !restaurantData.hide,
+                      }))
+                    }
+                  />
+                </div>
+                {/* "Garson Çağır" customer-side button visibility.
+                    Backend default is true (customer expects to be able
+                    to call a waiter); off-switch is for restaurants
+                    that don't run table service via QR. The flag is
+                    consumed by the customer-facing theme repo, not
+                    this admin app. */}
+                <div className="rounded-xl border border-[--border-1] bg-[--white-1] p-3">
+                  <CustomToggle
+                    label={t(
+                      "restaurantSettings.show_waiter_call_button",
+                      "Garson Çağır Butonu Göster",
+                    )}
+                    className2="text-sm font-medium text-[--black-1]"
+                    checked={restaurantData?.showWaiterCallButton}
+                    onChange={() =>
+                      setRestaurantData((prev) => ({
+                        ...prev,
+                        showWaiterCallButton: !prev?.showWaiterCallButton,
                       }))
                     }
                   />

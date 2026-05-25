@@ -49,8 +49,19 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
     const data = restaurants?.data || [];
     return {
       hasRestaurants: (restaurants?.totalCount || data.length) > 0,
+      // Backend replaced the single `licenseIsActive` with three
+      // per-type booleans (qr / tv / kiosk). Any of them being active
+      // is enough to unlock the sidebar — the gate is just
+      // "restaurant has SOME working license", not "has THE license".
+      // Per-license gating belongs on the specific feature page
+      // (e.g. qrPage checks qrLicenseIsActive on its own).
       hasActiveLicense: data.some(
-        (r) => r.isActive && r.licenseIsActive && !r.licenseIsExpired,
+        (r) =>
+          r.isActive &&
+          !r.licenseIsExpired &&
+          (r.qrLicenseIsActive ||
+            r.tvLicenseIsActive ||
+            r.kioskLicenseIsActive),
       ),
     };
   }, [restaurants]);

@@ -249,7 +249,9 @@ const QRPage = ({ data: restaurant }) => {
       toast.error(t("qrPage.license_missing"), { id: "qr_page" });
       return false;
     }
-    if (!restaurant?.licenseIsActive) {
+    // Per-type license boolean (backend split `licenseIsActive` into
+    // qr/tv/kiosk variants). QR page only cares about the QR one.
+    if (!restaurant?.qrLicenseIsActive) {
       toast.error(t("qrPage.license_inactive"), { id: "qr_page" });
       return false;
     }

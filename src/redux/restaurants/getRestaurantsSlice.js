@@ -11,13 +11,15 @@ import { invalidateOn } from "../cacheInvalidation";
 // Mutations whose effect on the restaurant LIST can't be expressed as
 // an in-place `{ restaurantId, ...patch }` merge (that's what
 // `restaurantEntityPatchers` handles for settings saves). License
-// purchases change `licenseIsActive` / `hasQrLicense` / the license
-// end date — fields the dispatched arg doesn't carry (it's a payment
-// basket, not a restaurant patch). Add/Delete/Transfer change which
-// rows exist at all. For every one of these the only correct move is
-// to drop the cache and let the page refetch. Keep these strings in
-// sync with the `createAsyncThunk` first-arg in each slice — a typo
-// silently disables the invalidation.
+// purchases change the per-type license fields
+// (qrLicenseIsActive / tvLicenseIsActive / kioskLicenseIsActive,
+// hasQrLicense / hasTvLicense / hasKioskLicense, the license end
+// date) — fields the dispatched arg doesn't carry (it's a payment
+// basket, not a restaurant patch). Add/Delete/Transfer change
+// which rows exist at all. For every one of these the only correct
+// move is to drop the cache and let the page refetch. Keep these
+// strings in sync with the `createAsyncThunk` first-arg in each
+// slice — a typo silently disables the invalidation.
 const RESTAURANT_LIST_INVALIDATORS = [
   // License lifecycle — all of these flip license fields on the
   // restaurant entity the list renders.

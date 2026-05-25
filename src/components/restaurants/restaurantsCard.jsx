@@ -44,7 +44,15 @@ const RestaurantsCard = ({ inData }) => {
   }
 
   function handleCardOpen(r) {
-    const canOpen = r.isActive && r.licenseIsActive && !r.licenseIsExpired;
+    // Same OR-of-three rule as the sidebar gate: any active license
+    // (qr / tv / kiosk) unlocks the restaurant card. Per-feature
+    // gating happens inside the relevant editor page (e.g. qrPage
+    // separately checks qrLicenseIsActive before allowing edits).
+    const anyLicenseActive =
+      r.qrLicenseIsActive ||
+      r.tvLicenseIsActive ||
+      r.kioskLicenseIsActive;
+    const canOpen = r.isActive && anyLicenseActive && !r.licenseIsExpired;
     if (canOpen) {
       navigate(`/restaurant/edit/${r.id}`, { state: { restaurant: r } });
       return;
@@ -84,12 +92,30 @@ export default RestaurantsCard;
 
 const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
   const licenseExpired = Boolean(r.licenseIsExpired);
-  const licenseActive = r.licenseIsActive && !licenseExpired;
+  // "Active" = ANY of the three per-type license booleans is true.
+  // The card surfaces a single overall badge for now; once the UI is
+  // ready for per-type detail (3 chips, or a tooltip listing which
+  // license types are active), swap this for a richer derivation.
+  const anyLicenseActive =
+    r.qrLicenseIsActive ||
+    r.tvLicenseIsActive ||
+    r.kioskLicenseIsActive;
+  const licenseActive = anyLicenseActive && !licenseExpired;
+  // `licenseId` is now split into qr/tv/kiosk variants — treat
+  // "has at least one of them" as the "user purchased something
+  // at some point" signal that distinguishes the inactive vs none
+  // badge states.
+  const hasAnyLicenseId = !!(
+    r.qrLicenseId ||
+    r.tvLicenseId ||
+    r.kioskLicenseId ||
+    r.licenseId
+  );
   const licenseState = licenseActive
     ? "active"
     : licenseExpired
       ? "expired"
-      : r.licenseId
+      : hasAnyLicenseId
         ? "inactive"
         : "none";
   const licenseLabel = {
