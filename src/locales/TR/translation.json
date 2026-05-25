@@ -944,8 +944,7 @@
     "title": "Menüyü Düzenle",
     "success": "Menü başarıyla güncellendi.",
     "not_changed": "Menüde herhangi bir değişiklik yapılmadı!",
-    "update": "Güncelle",
-    "syncing": "Kategoriler senkronize ediliyor…"
+    "update": "Güncelle"
   },
   "menuForm": {
     "price_list_label": "Fiyat Listesi",

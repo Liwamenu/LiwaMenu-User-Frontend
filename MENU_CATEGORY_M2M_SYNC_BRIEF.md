@@ -1,5 +1,29 @@
 # Menu ↔ Category m2m sync — write-mirror not persisting
 
+> **STATUS: RESOLVED via backend PR #162 (deployed 2026-05-25).**
+>
+> Root cause was §3 Hypothesis 1 — the m2m is dual-stored
+> (`Category.MenuIds` uuid[] column + `CategoryMenu` junction table),
+> and each Edit endpoint only wrote to its OWN side. PR #162 makes
+> both `EditCategory` and `EditMenu` dual-write inside a single
+> SaveChanges transaction. Acceptance test from §2 now passes.
+>
+> Frontend cleanup landed in the same series: `syncCategoryMenuIds`
+> and `syncMenuCategoryIds` helpers, the `originalMenuIds` snapshot,
+> the `editMenu.syncing` translation key, and the Save-button sync
+> UX are all gone. A single `EditCategory` or `EditMenu` call is now
+> sufficient.
+>
+> Historical drift caveat: any restaurant currently in a desynced
+> state heals on the next save touching that side (PR #162 dual-
+> writes from then on). Backend offered a one-shot reconciliation
+> script if needed — not requested.
+>
+> The rest of this file is preserved as the original investigation
+> trail.
+>
+> ---
+
 Follow-up to the bidirectional m2m sync discussion captured in
 `CATEGORY_CAMPAIGN_CASCADE_BRIEF.md` Addendum 2. The previous round
 closed with: **"the data is already being sent — call both

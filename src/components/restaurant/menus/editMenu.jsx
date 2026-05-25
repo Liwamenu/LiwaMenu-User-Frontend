@@ -19,14 +19,7 @@ import { Info } from "lucide-react";
 
 //REDUX
 import { editMenu, resetEditMenu } from "../../../redux/menus/editMenuSlice";
-import {
-  getCategories,
-  resetGetCategories,
-} from "../../../redux/categories/getCategoriesSlice";
-import { privateApi } from "../../../redux/api";
 import { useParams } from "react-router-dom";
-
-const baseURL = import.meta.env.VITE_BASE_URL;
 
 const DAY_KEYS = [
   "monday",
@@ -46,19 +39,6 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
   const { success, error, data: editResponse } = useSelector(
     (s) => s.menus.edit,
   );
-  // Live categories — needed to look up each affected category's full
-  // payload when we sync the OTHER side of the m2m after save (backend
-  // only updates `menu.categoryIds`, never the mirror
-  // `category.menuIds`, so the frontend does the mirror itself).
-  const { categories: liveCategories } = useSelector(
-    (s) => s.categories.get,
-  );
-
-  // Local flag covering the brief window between EditMenu's success
-  // and the follow-up category-sync round-trips finishing. Disables
-  // the Save button so a rage-click doesn't fire the save again
-  // mid-sync.
-  const [syncing, setSyncing] = useState(false);
 
   const [menuName, setMenuName] = useState("");
   const [schedules, setSchedules] = useState([]);
@@ -172,117 +152,21 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
     }
   }, [menu, open]);
 
-  // Backend confirmed they don't cascade EditMenu → category.menuIds
-  // (their stance: "the data is already being sent, call both endpoints").
-  // So after the menu save lands we walk every category whose membership
-  // changed and PUT EditCategory with the updated menuIds. Earlier read-
-  // side reconcile attempts couldn't tell ADD-not-synced from REMOVE-
-  // not-synced (see CATEGORY_CAMPAIGN_CASCADE_BRIEF Addendum 2); doing
-  // it on WRITE is unambiguous because we know exactly which IDs the
-  // user just added vs removed in this save.
-  const syncCategoryMenuIds = async (menuId, oldCatIds, newCatIds) => {
-    const oldSet = new Set(oldCatIds || []);
-    const newSet = new Set(newCatIds || []);
-    const added = [...newSet].filter((id) => !oldSet.has(id));
-    const removed = [...oldSet].filter((id) => !newSet.has(id));
-    if (added.length === 0 && removed.length === 0) return;
-
-    const api = privateApi();
-    const affected = [...added, ...removed];
-
-    await Promise.allSettled(
-      affected.map(async (catId) => {
-        const cat = (liveCategories || []).find((c) => c.id === catId);
-        if (!cat) {
-          console.warn(
-            "[menu→category sync] category not in local cache, skip:",
-            catId,
-          );
-          return;
-        }
-        const isAdding = added.includes(catId);
-        const currentMenuIds = Array.isArray(cat.menuIds) ? cat.menuIds : [];
-        const nextMenuIds = isAdding
-          ? currentMenuIds.includes(menuId)
-            ? currentMenuIds
-            : [...currentMenuIds, menuId]
-          : currentMenuIds.filter((mid) => mid !== menuId);
-
-        const fd = new FormData();
-        fd.append("restaurantId", restaurantId);
-        // Same payload shape EditCategory uses elsewhere — only the
-        // menuIds field actually differs from the cached state. We do
-        // NOT send any image field, so the backend keeps the existing
-        // image untouched (no DonotPostTheImages flag here — that's
-        // an `EditCategories` bulk-endpoint concern).
-        fd.append(
-          "categoriesData",
-          JSON.stringify([
-            {
-              id: cat.id,
-              restaurantId,
-              name: cat.name,
-              isActive: !!cat.isActive,
-              featured: !!cat.featured,
-              campaign: !!cat.campaign,
-              menuIds: nextMenuIds,
-            },
-          ]),
-        );
-        try {
-          await api.put(`${baseURL}Categories/EditCategory`, fd, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        } catch (err) {
-          console.warn(
-            "[menu→category sync] EditCategory failed for",
-            cat?.name,
-            err?.response?.data?.message_TR ||
-              err?.response?.data?.message ||
-              err?.message,
-          );
-        }
-      }),
-    );
-  };
-
   useEffect(() => {
     if (success) {
-      // Wrap in an IIFE so we can await the cross-side sync before
-      // closing the modal. Modal stays open for the ~1s the syncs
-      // take so the user doesn't navigate away to a half-synced
-      // state.
-      (async () => {
-        setSyncing(true);
-        try {
-          await syncCategoryMenuIds(
-            menu.id,
-            menu.categoryIds,
-            categoryIds,
-          );
-        } finally {
-          setSyncing(false);
-        }
-
-        // Force a fresh categories fetch on the next render — direct
-        // api.put calls inside syncCategoryMenuIds skip the slice
-        // matchers, so the cache would still hold the pre-sync
-        // menuIds otherwise.
-        dispatch(resetGetCategories());
-        dispatch(getCategories({ restaurantId }));
-
-        toast.success(t("editMenu.success"));
-        const saved =
-          editResponse?.data || editResponse || updatedMenu;
-        const merged = {
-          ...updatedMenu,
-          ...saved,
-          id: saved?.id || menu.id,
-        };
-        dispatch(resetEditMenu());
-        onSave?.(merged);
-        onClose?.();
-      })();
+      toast.success(t("editMenu.success"));
+      // Prefer the server response (which has the freshly-assigned plan ids)
+      // over the locally-built object so the next edit round-trips real ids.
+      const saved =
+        editResponse?.data || editResponse || updatedMenu;
+      const merged = {
+        ...updatedMenu,
+        ...saved,
+        id: saved?.id || menu.id,
+      };
+      dispatch(resetEditMenu());
+      onSave?.(merged);
+      onClose?.();
     }
     if (error) dispatch(resetEditMenu());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -433,12 +317,9 @@ const EditMenu = ({ menu, onClose, onSave, restaurantId }) => {
           </button>
           <button
             onClick={handleSave}
-            disabled={syncing}
-            className="px-6 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg hover:bg-[--primary-2] transition-all disabled:opacity-70 disabled:cursor-wait"
+            className="px-6 py-2.5 text-sm font-medium text-white bg-[--primary-1] rounded-xl shadow-lg hover:bg-[--primary-2] transition-all"
           >
-            {syncing
-              ? t("editMenu.syncing", "Senkronize ediliyor…")
-              : t("editMenu.update")}
+            {t("editMenu.update")}
           </button>
         </div>
       </div>
