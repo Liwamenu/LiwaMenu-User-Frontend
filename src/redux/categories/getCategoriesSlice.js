@@ -83,6 +83,16 @@ const getCategoriesSlice = createSlice({
           "Products/AddProductToCategory",
           "Products/RemoveProductFromCategory",
           "Categories/UpdateProductOrder",
+          // Menu mutations now propagate to `category.menuIds` on
+          // the backend (PR #162 dual-writes both sides of the m2m).
+          // Without these matchers a user who edits a menu's category
+          // picker and then navigates to the Categories page sees
+          // stale `menuIds` on every row until a hard refresh —
+          // exactly the symptom that prompted the resolved Menu↔
+          // Category sync brief.
+          "Menus/AddMenu",
+          "Menus/EditMenu",
+          "Menus/DeleteMenu",
         ]),
         (state) => {
           state.categories = null;
