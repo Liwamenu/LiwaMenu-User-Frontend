@@ -98,7 +98,9 @@ const MenuList = () => {
   const { setPopupContent } = usePopup();
   const { t } = useTranslation();
 
-  const { menus, error, fetchedFor } = useSelector((s) => s.menus.get);
+  const { menus, error, fetchedFor, loading } = useSelector(
+    (s) => s.menus.get,
+  );
 
   // Render data: prefer the redux cache, fall back to the bundled mock list
   // when the backend errors out (kept from the legacy behavior so the page
@@ -349,7 +351,15 @@ const MenuList = () => {
                 }
               }}
             />
-          ) : !menusData ? null : isFirstTime ? (
+          ) : !menusData ? (
+            // Inline loading state for the first-ever fetch (slice
+            // cache is null + GetMenusByRestaurantId is in flight).
+            // We silence this thunk in loadingMiddleware so the
+            // global full-screen spinner doesn't gate the whole app
+            // on a known-slow backend call — this skeleton fills the
+            // visual gap so the page doesn't look frozen meanwhile.
+            <MenusSkeleton t={t} loading={loading} />
+          ) : isFirstTime ? (
             <FirstTimeChooser
               t={t}
               onManual={onAddMenu}
@@ -381,6 +391,46 @@ const MenuList = () => {
     </div>
   );
 };
+
+// First-load skeleton — three card-shaped placeholders + a spinner.
+// Renders while the slice cache is null and GetMenusByRestaurantId is
+// in flight (we silence that thunk in loadingMiddleware so the global
+// spinner doesn't gate the whole app on this slow backend call).
+//
+// The animation uses Tailwind's built-in `animate-pulse` so we don't
+// pull in any extra dependency. The spinner row underneath the cards
+// gives users a "yes the page is alive, just waiting on data" signal
+// — without it, on a fast machine the skeleton can look like it's the
+// final empty state.
+const MenusSkeleton = ({ t, loading }) => (
+  <div className="space-y-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-[--border-1] bg-[--white-1] overflow-hidden animate-pulse"
+        >
+          <div className="h-1 bg-indigo-100" />
+          <div className="p-4 space-y-3">
+            <div className="h-4 w-3/4 rounded bg-[--white-2]" />
+            <div className="flex gap-2">
+              <div className="h-5 w-14 rounded-full bg-[--white-2]" />
+              <div className="h-5 w-16 rounded-full bg-[--white-2]" />
+              <div className="h-5 w-20 rounded-full bg-[--white-2]" />
+            </div>
+            <div className="h-9 rounded-lg bg-[--white-2]" />
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="flex items-center justify-center gap-2 py-3 text-[12px] text-[--gr-1]">
+      <Loader2
+        className={`size-3.5 text-indigo-600 ${loading ? "animate-spin" : ""}`}
+      />
+      <span>{t("menuList.loading", "Menüler yükleniyor…")}</span>
+    </div>
+  </div>
+);
 
 // Footnote block — light info card with the "how to use Menus" copy.
 // Two-column on lg+ (weekday breakdown next to weekend tip) so the

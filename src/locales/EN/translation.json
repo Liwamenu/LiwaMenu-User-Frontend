@@ -887,6 +887,7 @@
     "footnote_weekday_evening": "Dinner Menu — 16:00–22:00 — Dinner categories",
     "footnote_weekend_title": "Weekend Example",
     "footnote_weekend_desc": "If you have weekend-only categories, define the days and times to show those categories only on those days.",
+    "loading": "Loading menus…",
     "edit": "Edit",
     "delete": "Delete",
     "delete_last_blocked": "At least one menu must remain. You can edit it instead of deleting.",

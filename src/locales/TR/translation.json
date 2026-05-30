@@ -888,6 +888,7 @@
     "footnote_weekday_evening": "Akşam Menüsü — 16:00–22:00 — Akşam Yemeği kategorileri",
     "footnote_weekend_title": "Hafta Sonu Örneği",
     "footnote_weekend_desc": "Hafta sonuna özel kategorileriniz varsa gün ve saatlerini tanımlayarak sadece o günlerde seçilen kategorileri gösterebilirsiniz.",
+    "loading": "Menüler yükleniyor…",
     "edit": "Düzenle",
     "delete": "Sil",
     "delete_last_blocked": "En az bir menü tanımlı kalmalıdır. Silmek yerine menüyü düzenleyebilirsiniz.",

@@ -8,6 +8,13 @@ import { setIsLoading } from "../redux/loadingSlice";
 // spinner. The string must match the first arg passed to createAsyncThunk
 // (e.g. "Products/getProducts").
 const SILENT_THUNKS = new Set([
+  // GetMenusByRestaurantId is one of the slowest backend GETs. The
+  // global full-screen spinner makes a slow first-load look like the
+  // whole app froze (or in extreme cases the browser actually times
+  // out the navigation). Silenced so the page renders its own
+  // inline loading state while the request finishes; the user can
+  // still navigate around in the meantime.
+  "Menus/GetMenusByRestaurantId",
   // Examples (uncomment when needed):
   // "Orders/getOrders",
   // "WaiterCalls/getWaiterCalls",
