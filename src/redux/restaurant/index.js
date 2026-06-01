@@ -18,6 +18,7 @@ import getSurveySettingsSlice from "./getSurveySettingsSlice";
 import setSurveySettingsSlice from "./setSurveySettingsSlice";
 import setRestaurantThemeSlice from "./setRestaurantThemeSlice";
 import setRestaurantTvThemeSlice from "./setRestaurantTvThemeSlice";
+import setRestaurantKioskThemeSlice from "./setRestaurantKioskThemeSlice";
 import checkTenantAvailabilitySlice from "./checkTenantAvailabilitySlice";
 
 const restaurantSlice = combineReducers({
@@ -41,6 +42,11 @@ const restaurantSlice = combineReducers({
   // rationale (was sharing the QR slice and that caused the QR theme
   // to silently switch when a TV theme was picked).
   setRestaurantTvTheme: setRestaurantTvThemeSlice,
+  // Dedicated slice for the Kiosk theme save. Was sharing the QR slice
+  // until the Qr/Tv/Kiosk endpoint split — kiosk picks silently
+  // overwrote the QR theme; companion slices: setRestaurantTheme (QR),
+  // setRestaurantTvTheme (TV).
+  setRestaurantKioskTheme: setRestaurantKioskThemeSlice,
   checkTenantAvailability: checkTenantAvailabilitySlice,
 });
 

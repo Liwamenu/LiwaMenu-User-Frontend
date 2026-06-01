@@ -20,6 +20,7 @@ import {
   QrCode,
   DollarSign,
   ChartLine,
+  CreditCard,
 } from "lucide-react";
 
 //COMP
@@ -42,6 +43,10 @@ const ALWAYS_ALLOWED_PATHS = new Set([
   "edit",
   "settings",
   "googleAnalytics",
+  // Payment Gateway settings live behind a separate license gate
+  // (`paymentIntegrationLicenseIsActive`) rather than the menu-building
+  // onboarding gate, so it shouldn't be locked by the "≥1 product" tier.
+  "paymentGateways",
 ]);
 
 // Progressive onboarding gate. Each setup page unlocks the NEXT one
@@ -276,6 +281,20 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       to: `/restaurant/googleAnalytics/${id}`,
       path: "googleAnalytics",
     },
+    // Payment Gateway settings — only rendered when the restaurant has
+    // the Payment Integration license active. Filtered out below rather
+    // than passed as a conditional `null` so the index-driven stagger
+    // animation stays sequential.
+    ...(currentRestaurant?.paymentIntegrationLicenseIsActive
+      ? [
+          {
+            icon: <CreditCard className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+            text: t("subSidebar.payment_gateways", "Ödeme Entegrasyonu"),
+            to: `/restaurant/paymentGateways/${id}`,
+            path: "paymentGateways",
+          },
+        ]
+      : []),
   ];
 
   const route = Object.values(param)[0].split("/")[0];

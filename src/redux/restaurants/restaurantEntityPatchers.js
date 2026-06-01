@@ -21,6 +21,11 @@ const PATCH_THUNK_PREFIXES = new Set([
   // the dispatched arg (so both `themeId` and `tvMenuId` patches
   // continue to flow through the same merge logic below).
   "Restaurants/SetRestaurantTvTheme",
+  // Kiosk theme save → patches `kioskThemeId`. Same per-type
+  // split rationale as TV: each pick writes only its own field and
+  // the cached restaurant entry is merged with whatever fields the
+  // dispatched arg carries.
+  "Restaurants/SetRestaurantKioskTheme",
   "Restaurants/SetRestaurantSettings",
   "Restaurants/SetRestaurantReservationSettings",
   "Restaurants/SetAnnouncementSettings",

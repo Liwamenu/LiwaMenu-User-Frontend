@@ -56,6 +56,9 @@ import KioskSelector from "../components/restaurant/themes/kioskSelector";
 //ANALYTICS
 import GoogleAnalytics from "../components/restaurant/googleAnalytics";
 
+//PAYMENT GATEWAYS
+import PaymentGatewaySettings from "../components/restaurant/paymentGatewaySettings";
+
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -225,6 +228,15 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           <Route
             path="/googleAnalytics/:id"
             element={<GoogleAnalytics data={data} />}
+          />
+
+          {/* PAYMENT GATEWAYS — credentials for PayTR / Stripe / Iyzico.
+              Gated by `paymentIntegrationLicenseIsActive` (subSidebar
+              hides the link; the page itself also short-circuits with
+              a license-required notice for direct URL visits). */}
+          <Route
+            path="/paymentGateways/:id"
+            element={<PaymentGatewaySettings data={data} />}
           />
 
           <Route path="*" element={<NotFound />} />
