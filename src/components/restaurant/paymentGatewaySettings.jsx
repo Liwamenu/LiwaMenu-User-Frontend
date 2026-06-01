@@ -4,10 +4,10 @@
 // we surface it as THREE form cards (PayTR / Stripe / Iyzico) because
 // each provider has its own credential set and toggles. The owner can
 // save / delete each independently — Upsert is per-card, Delete is
-// per-card. The whole row is gated by the Payment Integration license
-// (the subSidebar only shows the entry when active; this page also
-// short-circuits with a "license missing" empty-state for direct URL
-// visits).
+// per-card. The page renders even without the Payment Integration
+// license — we want owners to see the providers we support — but
+// every editable control is disabled and a banner explains how to
+// unlock editing.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -191,10 +191,8 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
     }
   }, [deleteSuccess, deleteError, dispatch, restaurantId, t]);
 
-  // License gate. The subSidebar already hides the entry; this is the
-  // belt-and-suspenders for direct URL visits. We require the
-  // restaurant prop to be resolved (no flash of "license required"
-  // while it's still loading) — only then check the flag.
+  // Loader while restaurant resolves — avoids a flash of "license
+  // required" banner before we know whether the license is active.
   if (!restaurant) {
     return (
       <div className="w-full pb-8 mt-1 grid place-items-center min-h-[20rem]">
@@ -202,23 +200,11 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
       </div>
     );
   }
-  if (!restaurant.paymentIntegrationLicenseIsActive) {
-    return (
-      <div className="w-full pb-8 mt-1">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center">
-          <span className="mx-auto grid place-items-center size-12 rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200">
-            <AlertTriangle className="size-5" />
-          </span>
-          <h3 className="mt-3 text-base font-bold text-amber-900">
-            {t("paymentGateways.license_required_title")}
-          </h3>
-          <p className="mt-1 text-sm text-amber-900/90">
-            {t("paymentGateways.license_required_hint")}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Read-only flag — when the license isn't active the cards still
+  // render so the owner can see what providers we support, but every
+  // input / toggle / save / delete is disabled and a banner explains
+  // how to unlock editing.
+  const canEdit = !!restaurant.paymentIntegrationLicenseIsActive;
 
   const onChangeField = (provKey, fieldName, value) => {
     setForms((prev) => ({
@@ -243,6 +229,7 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
 
   const onSave = (gw) => {
     if (saveLoading) return;
+    if (!canEdit) return;
     const f = forms[gw.key];
     // Build a minimal body: restaurantId, gatewayType, isActive, plus
     // only the fields this provider owns. Strings are sent verbatim
@@ -263,6 +250,7 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
 
   const onDelete = (gw) => {
     if (deleteLoading) return;
+    if (!canEdit) return;
     const id = gatewayRow?.id;
     if (!id) {
       // Nothing to delete server-side — just reset the local card.
@@ -309,6 +297,29 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
         </div>
 
         <div className="p-4 sm:p-5 space-y-4">
+          {/* Read-only banner — shown when the restaurant doesn't have
+              an active Payment Integration license. The cards render
+              normally below; every editable control reads `readOnly`
+              from this same `canEdit` flag. */}
+          {!canEdit && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 flex items-start gap-3"
+            >
+              <span className="grid place-items-center size-9 rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">
+                <AlertTriangle className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-amber-900">
+                  {t("paymentGateways.license_required_title")}
+                </p>
+                <p className="mt-0.5 text-xs text-amber-900/90 leading-snug">
+                  {t("paymentGateways.license_required_hint")}
+                </p>
+              </div>
+            </div>
+          )}
+
           {GATEWAYS.map((gw) => (
             <ProviderCard
               key={gw.key}
@@ -323,6 +334,7 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
               saving={saveLoading && pendingKey === gw.key}
               deleting={deleteLoading && pendingKey === gw.key}
               hasRowOnBackend={!!gatewayRow?.id}
+              readOnly={!canEdit}
               t={t}
             />
           ))}
@@ -348,8 +360,10 @@ const ProviderCard = ({
   deleting,
   hasRowOnBackend,
   isCurrentRow,
+  readOnly,
   t,
 }) => {
+  const lock = readOnly || saving || deleting;
   const headerBg = form.isActive
     ? "bg-emerald-50/70 border-emerald-200"
     : "bg-[--white-2]/60 border-[--border-1]";
@@ -381,7 +395,11 @@ const ProviderCard = ({
           </p>
         </div>
         {/* Active toggle */}
-        <label className="inline-flex items-center gap-2 cursor-pointer shrink-0">
+        <label
+          className={`inline-flex items-center gap-2 shrink-0 ${
+            lock ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+          }`}
+        >
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[--gr-1]">
             {t("paymentGateways.active")}
           </span>
@@ -389,6 +407,7 @@ const ProviderCard = ({
             type="checkbox"
             checked={!!form.isActive}
             onChange={onToggleActive}
+            disabled={lock}
             className="peer sr-only"
           />
           <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-[--border-1] transition peer-checked:bg-emerald-500">
@@ -406,17 +425,22 @@ const ProviderCard = ({
             placeholder={f.placeholder}
             value={form[f.name] ?? ""}
             onChange={(v) => onChangeField(f.name, v)}
-            disabled={saving || deleting}
+            disabled={lock}
           />
         ))}
 
         {gw.booleanField && (
-          <label className="flex items-center gap-2 select-none mt-2">
+          <label
+            className={`flex items-center gap-2 select-none mt-2 ${
+              lock ? "opacity-60" : ""
+            }`}
+          >
             <input
               type="checkbox"
               checked={!!form[gw.booleanField.name]}
               onChange={() => onToggleBoolean(gw.booleanField.name)}
-              className="size-4 rounded border-[--border-1] text-indigo-600 focus:ring-indigo-500"
+              disabled={lock}
+              className="size-4 rounded border-[--border-1] text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed"
             />
             <span className="text-xs text-[--black-2]">
               {t(gw.booleanField.labelKey)}
@@ -429,7 +453,7 @@ const ProviderCard = ({
             <button
               type="button"
               onClick={onDelete}
-              disabled={saving || deleting}
+              disabled={lock}
               className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl border border-rose-200 text-rose-700 bg-[--white-1] hover:bg-rose-50 text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {deleting ? (
@@ -443,7 +467,7 @@ const ProviderCard = ({
           <button
             type="button"
             onClick={onSave}
-            disabled={saving || deleting}
+            disabled={lock}
             className="inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
             style={{ background: PRIMARY_GRADIENT }}
           >

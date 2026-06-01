@@ -281,20 +281,16 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       to: `/restaurant/googleAnalytics/${id}`,
       path: "googleAnalytics",
     },
-    // Payment Gateway settings — only rendered when the restaurant has
-    // the Payment Integration license active. Filtered out below rather
-    // than passed as a conditional `null` so the index-driven stagger
-    // animation stays sequential.
-    ...(currentRestaurant?.paymentIntegrationLicenseIsActive
-      ? [
-          {
-            icon: <CreditCard className={ICON_CLS} strokeWidth={ICON_STROKE} />,
-            text: t("subSidebar.payment_gateways", "Ödeme Entegrasyonu"),
-            to: `/restaurant/paymentGateways/${id}`,
-            path: "paymentGateways",
-          },
-        ]
-      : []),
+    // Payment Gateway settings — always visible so the owner can see
+    // the providers we support; the page itself locks editing behind
+    // `paymentIntegrationLicenseIsActive` (read-only + banner when the
+    // license isn't active).
+    {
+      icon: <CreditCard className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.payment_gateways", "Ödeme Entegrasyonu"),
+      to: `/restaurant/paymentGateways/${id}`,
+      path: "paymentGateways",
+    },
   ];
 
   const route = Object.values(param)[0].split("/")[0];
