@@ -97,7 +97,19 @@ export function createApiSlice(cfg) {
               `createApiSlice("${thunkType}"): arg must be an object for params-mode requests, received ${typeof arg}. Wrap it like dispatch(thunk({ key: value })).`,
             );
           }
-          opts.params = arg;
+          // Strip the loading-middleware control flag so it doesn't
+          // leak into the query string. `__silent` is passed by the
+          // smart-revalidate refetch (tab focus / in-app nav) to skip
+          // the global full-screen loader; it must never reach the
+          // backend as `?__silent=true`. `action.meta.arg` still
+          // carries the full arg, so loadingMiddleware can read the
+          // flag — we only keep it out of the HTTP params here.
+          if (arg && typeof arg === "object") {
+            const { __silent, ...rest } = arg;
+            opts.params = rest;
+          } else {
+            opts.params = arg;
+          }
           res = await api[method](fullUrl, opts);
         } else {
           res = await api[method](fullUrl, arg, opts);

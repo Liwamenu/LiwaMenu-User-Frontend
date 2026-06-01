@@ -51,6 +51,7 @@ import {
 } from "../../../redux/menus/getMenusSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+import useSmartRevalidate from "../../../hooks/useSmartRevalidate";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -190,6 +191,19 @@ const MenuList = () => {
       dispatch(getMenus({ restaurantId }));
     }
   }, [restaurantId, menus, fetchedFor, dispatch]);
+
+  // Cross-device / returning-to-tab freshness. The mount effect above
+  // only fetches when the cache is empty or for a different restaurant,
+  // so a change made elsewhere (owner edits on mobile) stays invisible
+  // on an already-open desktop tab until a hard refresh. This pulls a
+  // fresh list on tab focus + in-app navigation back to the page
+  // (throttled by the hook). getMenus is already in SILENT_THUNKS so it
+  // never shows the global loader, and the slice is
+  // stale-while-revalidate so the list never blanks during the refetch.
+  useSmartRevalidate(
+    restaurantId ? `menus:${restaurantId}` : null,
+    () => dispatch(getMenus({ restaurantId })),
+  );
 
   const totalCount = menusData?.length || 0;
 

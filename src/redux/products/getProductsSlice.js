@@ -134,10 +134,17 @@ export const getProducts = createAsyncThunk(
   "Products/getProducts",
   async (data, { rejectWithValue }) => {
     try {
+      // Strip the loading-middleware control flag before forwarding the
+      // rest as query params. `__silent` is passed by the smart-
+      // revalidate refetch (tab focus / in-app nav) so the background
+      // refresh skips the global full-screen loader; without this it
+      // would leak to the backend as `?__silent=true`. Everything else
+      // is a real query param (restaurantId, pageNumber, filters, …).
+      const { __silent, ...params } = data || {};
       const res = await api.get(
         `${baseURL}Products/getProductsByRestaurantId`,
         {
-          params: data,
+          params,
         },
       );
 

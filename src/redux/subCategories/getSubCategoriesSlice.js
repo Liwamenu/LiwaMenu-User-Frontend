@@ -92,10 +92,14 @@ export const getSubCategories = createAsyncThunk(
   "Subcategories/GetSubCategoriesByRestaurantId",
   async (data, { rejectWithValue }) => {
     try {
+      // Drop the loading-middleware control flag (`__silent`, set by the
+      // smart-revalidate refetch) so it doesn't leak to the backend as
+      // a query param. See getProductsSlice for the full rationale.
+      const { __silent, ...params } = data || {};
       const res = await api.get(
         `${baseURL}Subcategories/GetSubCategoriesByRestaurantId`,
         {
-          params: data,
+          params,
         },
       );
 

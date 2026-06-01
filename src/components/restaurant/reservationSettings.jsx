@@ -1,5 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
+import isEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -11,6 +12,7 @@ import CustomToggle from "../common/customToggle";
 import CustomDatePicker from "../common/customdatePicker";
 import SettingsTabs from "./settingsTabs";
 import { useDirtyTracking } from "../../context/DirtyNavContext";
+import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 
 // REDUX
 import {
@@ -78,12 +80,30 @@ const RestaurantReservationSettings = ({ data }) => {
   // GET RESERVATION DATA ON SUCCESS OR ERROR
   useEffect(() => {
     if (reservationSettings) {
-      setReservationData(reservationSettings);
-      setReservationDataBefore(reservationSettings);
+      // Only re-seed the form when it's pristine, so a background
+      // revalidate (tab focus / in-app nav / cross-device change)
+      // never wipes unsaved edits. On first load both are null so the
+      // isEqual check is true and the form seeds normally.
+      if (isEqual(reservationData, reservationDataBefore)) {
+        setReservationData(reservationSettings);
+        setReservationDataBefore(reservationSettings);
+      }
       dispatch(resetGetRestaurantReservationSettingsSlice());
     }
     if (error) dispatch(resetGetRestaurantReservationSettingsSlice());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservationSettings, error]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  // Silent so the background refresh never flashes the global loader;
+  // the dirty-guarded seed effect above keeps unsaved edits intact.
+  useSmartRevalidate(
+    id ? `reservationSettings:${id}` : null,
+    () =>
+      dispatch(
+        getRestaurantReservationSettings({ restaurantId: id, __silent: true }),
+      ),
+  );
 
   // TOAST NOTIFICATIONS
   useEffect(() => {

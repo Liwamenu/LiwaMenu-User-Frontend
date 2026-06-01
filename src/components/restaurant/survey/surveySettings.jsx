@@ -24,6 +24,7 @@ import {
   getSurveySettings,
   resetGetSurveySettings,
 } from "../../../redux/restaurant/getSurveySettingsSlice";
+import useSmartRevalidate from "../../../hooks/useSmartRevalidate";
 
 const SurveySettings = ({ data }) => {
   const dispatch = useDispatch();
@@ -45,6 +46,16 @@ const SurveySettings = ({ data }) => {
       dispatch(getSurveySettings({ restaurantId: id }));
     }
   }, [settings]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  // The success effect below re-seeds `settings`/`isActive` from the
+  // refetched payload; edits here happen in child popups (Add/Edit/
+  // Delete) which already trigger their own refetch, so no dirty-guard
+  // is needed on this page's own state.
+  useSmartRevalidate(
+    id ? `surveySettings:${id}` : null,
+    () => dispatch(getSurveySettings({ restaurantId: id, __silent: true })),
+  );
 
   //SET Survey
   useEffect(() => {

@@ -41,6 +41,7 @@ import {
   resetEditCategories,
 } from "../../../redux/categories/editCategoriesSlice";
 import { getProductsLite } from "../../../redux/products/getProductsLiteSlice";
+import useSmartRevalidate from "../../../hooks/useSmartRevalidate";
 
 // UTILS
 import { buildCategoryCampaignMap } from "../../../utils/categoryCampaign";
@@ -97,6 +98,29 @@ const Categories = ({ data: restaurant }) => {
       dispatch(getCategories({ restaurantId: params?.id }));
     }
   }, [params?.id, categories, catFetchedFor, dispatch]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  // `__silent` keeps the global full-screen loader from flashing on
+  // every focus/nav revalidate. Both thunks destructure `{ restaurantId }`
+  // and only forward that, so the flag never leaks to the backend.
+  // Stale-while-revalidate means the list never blanks while loading.
+  //
+  // We refetch BOTH slices because the page renders from both:
+  //   • getCategories — the category rows themselves
+  //   • getProductsLite — drives the Kampanya badge, which is DERIVED
+  //     from products' `isCampaign` (the category-level `campaign`
+  //     flag isn't projected on the read endpoint, see
+  //     CATEGORY_CAMPAIGN_CASCADE_BRIEF). Without refetching lite, a
+  //     campaign toggled on another device updates the products but
+  //     the badge here stays stale until a hard refresh — exactly the
+  //     reported symptom.
+  useSmartRevalidate(
+    params?.id ? `categories:${params.id}` : null,
+    () => {
+      dispatch(getCategories({ restaurantId: params?.id, __silent: true }));
+      dispatch(getProductsLite({ restaurantId: params?.id, __silent: true }));
+    },
+  );
 
   // LITE PRODUCTS — needed to derive the Kampanya badge from products'
   // `isCampaign`. Cheap: one unpaged call, cached per restaurant, and

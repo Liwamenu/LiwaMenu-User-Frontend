@@ -40,6 +40,7 @@ import {
 } from "../../../redux/products/getProductsSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
 import { privateApi } from "../../../redux/api";
+import useSmartRevalidate from "../../../hooks/useSmartRevalidate";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -613,39 +614,59 @@ const Products = () => {
   // a hard reload re-ran fetchAllProducts. Adding the highlight modes
   // closes that gap so editing inside ANY client-filter mode actually
   // updates the visible list.
-  const refetchProducts = useCallback(() => {
-    const f = filtersRef.current;
-    const highlightActive =
-      f.highlightFilter?.value === "recommendation" ||
-      f.highlightFilter?.value === "campaign";
-    if (
-      f.showDuplicates ||
-      f.showNoImage ||
-      f.searchVal ||
-      highlightActive
-    ) {
-      // Any client-filter mode → refresh the local allProducts
-      // snapshot the UI is rendering from. Without this branch a
-      // post-edit refetch updates the slice but the visible list
-      // (driven by `allProducts`) stays stale.
-      fetchAllProducts();
-      return;
-    }
-    dispatch(
-      getProducts({
-        restaurantId,
-        pageNumber: f.pageNumber,
-        pageSize: itemsPerPage,
-        hide: hideForStatus(f.statusFilter),
-        categoryId: isAllCategory(f.categoryFilter)
-          ? null
-          : f.categoryFilter.id,
-        recommendation: recommendationForHighlight(f.highlightFilter),
-        isCampaign: campaignForHighlight(f.highlightFilter),
-      }),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurantId, dispatch]);
+  // `silent` (default false) skips the global full-screen loader — used
+  // by the smart-revalidate refetch (tab focus / in-app nav) so a
+  // background refresh doesn't flash the overlay. fetchAllProducts uses
+  // a raw axios call (not a thunk) so it's already invisible to the
+  // loader; only the paginated getProducts dispatch needs the flag.
+  // Popup onSaved callbacks call refetchProducts() with no args, so
+  // they stay loud (show the loader) — unchanged behaviour.
+  const refetchProducts = useCallback(
+    (silent = false) => {
+      const f = filtersRef.current;
+      const highlightActive =
+        f.highlightFilter?.value === "recommendation" ||
+        f.highlightFilter?.value === "campaign";
+      if (
+        f.showDuplicates ||
+        f.showNoImage ||
+        f.searchVal ||
+        highlightActive
+      ) {
+        // Any client-filter mode → refresh the local allProducts
+        // snapshot the UI is rendering from. Without this branch a
+        // post-edit refetch updates the slice but the visible list
+        // (driven by `allProducts`) stays stale.
+        fetchAllProducts();
+        return;
+      }
+      dispatch(
+        getProducts({
+          restaurantId,
+          pageNumber: f.pageNumber,
+          pageSize: itemsPerPage,
+          hide: hideForStatus(f.statusFilter),
+          categoryId: isAllCategory(f.categoryFilter)
+            ? null
+            : f.categoryFilter.id,
+          recommendation: recommendationForHighlight(f.highlightFilter),
+          isCampaign: campaignForHighlight(f.highlightFilter),
+          ...(silent ? { __silent: true } : {}),
+        }),
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [restaurantId, dispatch],
+  );
+
+  // Cross-device / returning-to-tab freshness. Pulls a fresh page on
+  // tab focus + in-app navigation back to Products (throttled by the
+  // hook). Silent so it never flashes the global loader; the slice's
+  // stale-while-revalidate keeps the current list visible meanwhile.
+  useSmartRevalidate(
+    restaurantId ? `products:${restaurantId}` : null,
+    () => refetchProducts(true),
+  );
 
   // Open edit as a popup instead of navigating to /products/:id/edit/:prodId.
   // Full-page navigation unmounts this component, which loses the active

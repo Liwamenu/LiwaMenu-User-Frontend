@@ -1,6 +1,7 @@
 //MODULES
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import isEqual from "lodash/isEqual";
 // import { GoogleGenAI } from "@google/genai";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -36,6 +37,7 @@ import {
   resetSetAnnouncementSettingsSlice,
   setAnnouncementSettings,
 } from "../../redux/restaurant/setAnnouncementSettingsSlice";
+import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 
 // HTML safety helpers (validation + sandboxed preview srcDoc) are shared
 // with externalPage.jsx — same authoring surface, same iframe contract
@@ -139,12 +141,24 @@ const AnnouncementSettings = ({ data }) => {
   // SET ANNOUNCEMENT SETTINGS
   useEffect(() => {
     if (announcementData) {
-      setSettings(announcementData);
-      setSettingsBefore(announcementData);
+      // Only re-seed when pristine, so a background revalidate (tab
+      // focus / in-app nav / cross-device change) never wipes unsaved
+      // edits. On first load both are null → isEqual true → seeds.
+      if (isEqual(settings, settingsBefore)) {
+        setSettings(announcementData);
+        setSettingsBefore(announcementData);
+      }
       dispatch(resetGetAnnouncementSettingsSlice());
     }
     if (error) dispatch(resetGetAnnouncementSettingsSlice());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcementData, error]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  useSmartRevalidate(
+    id ? `announcementSettings:${id}` : null,
+    () => dispatch(getAnnouncementSettings({ restaurantId: id, __silent: true })),
+  );
 
   //TOAST ANNOUNCEMENT SETTINGS
   useEffect(() => {

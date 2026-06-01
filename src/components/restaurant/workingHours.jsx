@@ -1,5 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
+import isEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +19,7 @@ import {
   resetSetWorkingHours,
 } from "../../redux/restaurant/setWorkingHoursSlice";
 import { getWorkingHours } from "../../redux/restaurant/getWorkingHoursSlice";
+import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -72,11 +74,27 @@ const WorkingHours = ({ data }) => {
         Open: parseTimeToDate(item.open),
         Close: parseTimeToDate(item.close),
       }));
-      setWorkingHoursData(mapped);
-      setWorkingHoursDataBefore(mapped);
+      // Only re-seed when pristine, so a background revalidate (tab
+      // focus / in-app nav / cross-device change) never wipes unsaved
+      // edits. `!before` keeps first-load seeding working (data starts
+      // as [] and before as null → not equal otherwise).
+      const pristine =
+        !workingHoursDataBefore ||
+        isEqual(workingHoursData, workingHoursDataBefore);
+      if (pristine) {
+        setWorkingHoursData(mapped);
+        setWorkingHoursDataBefore(mapped);
+      }
       dispatch(resetSetWorkingHours());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingHours]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  useSmartRevalidate(
+    id ? `workingHours:${id}` : null,
+    () => dispatch(getWorkingHours({ restaurantId: id, __silent: true })),
+  );
 
   useEffect(() => {
     if (loading)

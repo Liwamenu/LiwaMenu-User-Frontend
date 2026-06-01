@@ -1,5 +1,6 @@
 // MODULES
 import toast from "react-hot-toast";
+import isEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +22,7 @@ import {
   setSocialMedias,
   resetSetSocialMedias,
 } from "../../redux/restaurant/setSocialMediasSlice";
+import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -100,11 +102,24 @@ const SocialMedias = ({ data: restaurant }) => {
 
   useEffect(() => {
     if (data) {
-      setSocialMediasData(data);
-      setSocialMediasDataBefore(data);
+      // Only re-seed the form when it's pristine, so a background
+      // revalidate (tab focus / in-app nav / cross-device change)
+      // never wipes unsaved edits. On first load both are null →
+      // isEqual true → seeds normally.
+      if (isEqual(socialMediasData, socialMediasDataBefore)) {
+        setSocialMediasData(data);
+        setSocialMediasDataBefore(data);
+      }
       dispatch(resetGetSocialMedias());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  useSmartRevalidate(
+    id ? `socialMedias:${id}` : null,
+    () => dispatch(getSocialMedias({ restaurantId: id, __silent: true })),
+  );
 
   useEffect(() => {
     if (loading)

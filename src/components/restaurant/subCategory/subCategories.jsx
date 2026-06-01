@@ -33,6 +33,7 @@ import {
 } from "../../../redux/subCategories/updateSubOrdersSlice";
 import { getSubCategories } from "../../../redux/subCategories/getSubCategoriesSlice";
 import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import useSmartRevalidate from "../../../hooks/useSmartRevalidate";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -114,12 +115,29 @@ const SubCategories = ({ data: restaurant }) => {
 
   useEffect(() => {
     if (subCategories && categories) {
+      // Only re-seed the editable copy when it's pristine, so a
+      // background revalidate (tab focus / in-app nav / cross-device
+      // change) never wipes unsaved drag-reordering. On first mount
+      // both data + before are null → isEqual true → seeds normally.
+      const dirty = !isEqual(subCategoriesData, subCategoriesDataBefore);
+      if (dirty) return;
       const grouped = groupSubCategories([...subCategories]);
       setSubCategoriesData(grouped);
       setSubCategoriesDataBefore(grouped);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subCategories, categories]);
+
+  // Cross-device / returning-to-tab freshness — see useSmartRevalidate.
+  // Silent so the global loader never flashes; the slice is
+  // stale-while-revalidate so the list never blanks during refetch.
+  useSmartRevalidate(
+    restaurant?.id ? `subcategories:${restaurant.id}` : null,
+    () =>
+      dispatch(
+        getSubCategories({ restaurantId: restaurant?.id, __silent: true }),
+      ),
+  );
 
   useEffect(() => {
     if (categories) setCategoriesData(categories);

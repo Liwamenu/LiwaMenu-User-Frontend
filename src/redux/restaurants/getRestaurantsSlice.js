@@ -117,8 +117,13 @@ export const getRestaurants = createAsyncThunk(
   "Restaurants/getRestaurants",
   async (data, { rejectWithValue }) => {
     try {
+      // Strip the loading-middleware control flag (`__silent`, set by
+      // the smart-revalidate refetch in restaurantHome / Genel Ayarlar)
+      // so it doesn't leak to the backend as a query param.
+      // `action.meta.arg` still carries it for the middleware to read.
+      const { __silent, ...params } = data || {};
       const res = await api.get(`${baseURL}Restaurants/GetmyRestaurants`, {
-        params: data,
+        params,
       });
 
       // console.log(res);
