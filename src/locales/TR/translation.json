@@ -1577,6 +1577,7 @@
     "delete_confirm": "Bu sağlayıcı bilgilerini kaldırmak istiyor musunuz? Devam eden işlemleri iade etmez.",
     "license_required_title": "Ödeme Entegrasyonu Lisansı gerekli",
     "license_required_hint": "Bu sayfa, restoranınızın aktif bir Ödeme Entegrasyonu Lisansı olduğunda açılır.",
+    "tab_saved_hint": "Bu restoranda kayıtlı",
     "paytr_title": "PayTR",
     "paytr_subtitle": "Türkiye için 3D Secure kart işlemleri.",
     "paytr_merchant_id": "Üye İşyeri No",

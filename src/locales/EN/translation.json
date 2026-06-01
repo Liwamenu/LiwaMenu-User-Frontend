@@ -1576,6 +1576,7 @@
     "delete_confirm": "Remove these gateway credentials? This won't refund any in-flight transactions.",
     "license_required_title": "Payment Integration License required",
     "license_required_hint": "This page is unlocked once your restaurant has an active Payment Integration license.",
+    "tab_saved_hint": "Saved on this restaurant",
     "paytr_title": "PayTR",
     "paytr_subtitle": "Turkish 3D-Secure card processing.",
     "paytr_merchant_id": "Merchant ID",

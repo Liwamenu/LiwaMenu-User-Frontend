@@ -139,6 +139,12 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
   // Local mutable per-card state seeded from the backend row.
   const [forms, setForms] = useState(() => seedForms(null));
   const [pendingKey, setPendingKey] = useState(null); // which card initiated the save
+  // Active tab key — explicit user click overrides the auto-default
+  // that follows the backend row. Without `userPickedTab`, switching
+  // to PayTR would snap back to "the provider on the saved row" every
+  // time the slice refetched.
+  const [activeTabKey, setActiveTabKey] = useState(GATEWAYS[0].key);
+  const userPickedTabRef = useRef(false);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -148,6 +154,18 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
   // Re-seed local forms whenever the backend row arrives.
   useEffect(() => {
     setForms(seedForms(gatewayRow));
+  }, [gatewayRow]);
+
+  // Auto-focus the tab of whatever provider already has a saved row,
+  // so opening the page lands on the relevant credentials. The user
+  // can still click another tab — once they do, `userPickedTabRef`
+  // freezes the choice for the rest of the page lifetime.
+  useEffect(() => {
+    if (userPickedTabRef.current) return;
+    const match = GATEWAYS.find(
+      (g) => g.gatewayType === gatewayRow?.gatewayType,
+    );
+    if (match) setActiveTabKey(match.key);
   }, [gatewayRow]);
 
   // Save / delete toasts.
@@ -298,9 +316,7 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
 
         <div className="p-4 sm:p-5 space-y-4">
           {/* Read-only banner — shown when the restaurant doesn't have
-              an active Payment Integration license. The cards render
-              normally below; every editable control reads `readOnly`
-              from this same `canEdit` flag. */}
+              an active Payment Integration license. */}
           {!canEdit && (
             <div
               role="alert"
@@ -320,24 +336,67 @@ const PaymentGatewaySettings = ({ data: restaurant }) => {
             </div>
           )}
 
-          {GATEWAYS.map((gw) => (
-            <ProviderCard
-              key={gw.key}
-              gw={gw}
-              form={forms[gw.key]}
-              isCurrentRow={gatewayRow?.gatewayType === gw.gatewayType}
-              onChangeField={(name, val) => onChangeField(gw.key, name, val)}
-              onToggleActive={() => onToggleActive(gw.key)}
-              onToggleBoolean={(name) => onToggleBoolean(gw.key, name)}
-              onSave={() => onSave(gw)}
-              onDelete={() => onDelete(gw)}
-              saving={saveLoading && pendingKey === gw.key}
-              deleting={deleteLoading && pendingKey === gw.key}
-              hasRowOnBackend={!!gatewayRow?.id}
-              readOnly={!canEdit}
-              t={t}
-            />
-          ))}
+          {/* Provider tab bar. The dot on a tab means "this provider
+              has a saved row on the backend" — useful when only one
+              provider is configured and the others are empty. */}
+          <div
+            role="tablist"
+            className="flex items-stretch gap-1 p-1 rounded-xl bg-[--white-2] border border-[--border-1] overflow-x-auto"
+          >
+            {GATEWAYS.map((gw) => {
+              const isActive = activeTabKey === gw.key;
+              const hasSavedRow = gatewayRow?.gatewayType === gw.gatewayType;
+              return (
+                <button
+                  key={gw.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    userPickedTabRef.current = true;
+                    setActiveTabKey(gw.key);
+                  }}
+                  className={`relative inline-flex items-center justify-center gap-2 flex-1 min-w-[6rem] h-10 px-3 rounded-lg text-xs sm:text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-[--white-1] text-indigo-700 shadow-sm ring-1 ring-[--border-1] dark:bg-indigo-500/20 dark:text-indigo-200"
+                      : "text-[--gr-1] hover:text-[--black-1] hover:bg-[--white-1]/40"
+                  }`}
+                >
+                  {t(gw.titleKey)}
+                  {hasSavedRow && (
+                    <span
+                      className="size-1.5 rounded-full bg-emerald-500"
+                      aria-label="saved"
+                      title={t("paymentGateways.tab_saved_hint")}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active provider card */}
+          {(() => {
+            const gw =
+              GATEWAYS.find((g) => g.key === activeTabKey) || GATEWAYS[0];
+            return (
+              <ProviderCard
+                gw={gw}
+                form={forms[gw.key]}
+                isCurrentRow={gatewayRow?.gatewayType === gw.gatewayType}
+                onChangeField={(name, val) => onChangeField(gw.key, name, val)}
+                onToggleActive={() => onToggleActive(gw.key)}
+                onToggleBoolean={(name) => onToggleBoolean(gw.key, name)}
+                onSave={() => onSave(gw)}
+                onDelete={() => onDelete(gw)}
+                saving={saveLoading && pendingKey === gw.key}
+                deleting={deleteLoading && pendingKey === gw.key}
+                hasRowOnBackend={!!gatewayRow?.id}
+                readOnly={!canEdit}
+                t={t}
+              />
+            );
+          })()}
         </div>
       </div>
     </div>
