@@ -1,18 +1,27 @@
 // Google Analytics help modal — step-by-step guide for getting a GA4
-// Measurement ID, opened from the (?) button next to the Google
-// Analytics field in Genel Ayarlar.
+// Measurement ID.
 //
-// Pure presentational: no redux, no API. Rendered through the shared
-// PopupContext (setSecondPopupContent) so it stacks above the settings
-// page like the other secondary popups. Closes via the X button or the
-// footer "Anladım" button.
+// Opened from two places, into DIFFERENT popup slots:
+//   • Genel Ayarlar (?) button → setSecondPopupContent (it stacks
+//     above the settings page, which itself lives in the primary slot)
+//   • Google Analytics launcher page → setPopupContent (primary slot)
+//
+// So the modal can't hard-code which slot to clear on close — doing
+// `setSecondPopupContent(null)` only worked from settings and left the
+// modal stuck open when launched from the launcher page (wrong slot
+// cleared). The opener now passes its OWN close handler via `onClose`;
+// we fall back to clearing the second slot for any legacy caller that
+// doesn't pass one.
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 import {
   ChartLine,
   X,
   ExternalLink,
   Check,
+  Copy,
 } from "lucide-react";
 
 import { usePopup } from "../../context/PopupContext";
@@ -22,14 +31,42 @@ const PRIMARY_GRADIENT =
 
 const GA_URL = "https://analytics.google.com/analytics/web";
 
-export default function GoogleAnalyticsHelp() {
+// Build the restaurant's public menu URL from its tenant slug — same
+// pattern qrPage.jsx uses (`https://<tenant>.liwamenu.com`). This is the
+// exact "website URL" the owner pastes into GA's web-stream setup, so we
+// hand it to them ready to copy instead of telling them to "enter the
+// menu address".
+const menuUrlForTenant = (tenant) =>
+  tenant ? `https://${tenant}.liwamenu.com` : "";
+
+export default function GoogleAnalyticsHelp({ onClose, tenant }) {
   const { t } = useTranslation();
   const { setSecondPopupContent } = usePopup();
-  const close = () => setSecondPopupContent(null);
+  // Prefer the opener's close handler (it knows which slot it used);
+  // fall back to clearing the second slot for callers that don't pass
+  // one.
+  const close = onClose || (() => setSecondPopupContent(null));
 
-  // Each step: a short instruction. The translation files hold the
-  // localized copy; the defaults here keep the modal readable even if
-  // a key is missing.
+  const menuUrl = menuUrlForTenant(tenant);
+  const [copied, setCopied] = useState(false);
+
+  const copyMenuUrl = async () => {
+    if (!menuUrl) return;
+    try {
+      await navigator.clipboard.writeText(menuUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Clipboard API can fail (insecure context / permissions). Fall
+      // back to a toast with the URL so the owner can still copy it
+      // manually.
+      toast(menuUrl, { icon: "🔗", duration: 6000 });
+    }
+  };
+
+  // Each step renders as a numbered row. step3 is special: instead of
+  // "enter the menu address" it shows the restaurant's actual URL with
+  // a one-click copy button (when a tenant is known).
   const steps = [
     t(
       "gaHelp.step1",
@@ -39,10 +76,9 @@ export default function GoogleAnalyticsHelp() {
       "gaHelp.step2",
       "Henüz bir hesabınız yoksa 'Ölçmeye başla' diyerek işletmeniz için bir hesap oluşturun.",
     ),
-    t(
-      "gaHelp.step3",
-      "Bir 'Mülk' (Property) oluşturun ve veri akışı olarak 'Web' seçin; menü adresinizi girin.",
-    ),
+    // step3 handled specially in the render (URL + copy) — placeholder
+    // here keeps the numbering aligned for the simple-string rows.
+    null,
     t(
       "gaHelp.step4",
       "Yönetici (⚙️) → Veri Akışları → web akışınızı açın. Sağ üstte 'Ölçüm Kimliği' (Measurement ID) görünür.",
@@ -96,9 +132,57 @@ export default function GoogleAnalyticsHelp() {
                 <span className="grid place-items-center size-6 rounded-full bg-indigo-50 text-indigo-700 text-[12px] font-bold shrink-0 ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-400/30">
                   {i + 1}
                 </span>
-                <p className="text-[13px] leading-relaxed text-[--black-2] pt-0.5">
-                  {step}
-                </p>
+                {/* step3 (index 2) is the special "create a Web data
+                    stream" step — show the restaurant's own menu URL
+                    with a copy button instead of "enter the menu
+                    address". Falls back to plain copy text when the
+                    tenant isn't known yet. */}
+                {i === 2 ? (
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className="text-[13px] leading-relaxed text-[--black-2]">
+                      {t(
+                        "gaHelp.step3_lead",
+                        "Bir 'Mülk' (Property) oluşturun ve veri akışı olarak 'Web' seçin. Web sitesi adresi olarak menü adresinizi girin:",
+                      )}
+                    </p>
+                    {menuUrl ? (
+                      <button
+                        type="button"
+                        onClick={copyMenuUrl}
+                        title={t("gaHelp.copy_url", "Adresi kopyala")}
+                        className="mt-2 group flex items-center gap-2 w-full rounded-lg border border-indigo-200 bg-indigo-50/50 px-3 py-2 text-left transition hover:bg-indigo-50 dark:border-indigo-400/30 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20"
+                      >
+                        <code className="flex-1 min-w-0 truncate text-[12.5px] font-mono font-semibold text-indigo-700 dark:text-indigo-200">
+                          {menuUrl}
+                        </code>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 shrink-0">
+                          {copied ? (
+                            <>
+                              <Check className="size-3.5" />
+                              {t("gaHelp.copied", "Kopyalandı")}
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="size-3.5" />
+                              {t("gaHelp.copy", "Kopyala")}
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    ) : (
+                      <p className="mt-1.5 text-[11.5px] text-[--gr-1] italic">
+                        {t(
+                          "gaHelp.step3_no_tenant",
+                          "Menü adresiniz, restoranın yayın adresi (tenant) tanımlandıktan sonra burada görünür.",
+                        )}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[13px] leading-relaxed text-[--black-2] pt-0.5">
+                    {step}
+                  </p>
+                )}
               </li>
             ))}
           </ol>

@@ -79,7 +79,14 @@ const GoogleAnalytics = ({ data: inData }) => {
           </div>
           <button
             type="button"
-            onClick={() => setPopupContent(<GoogleAnalyticsHelp />)}
+            onClick={() =>
+              setPopupContent(
+                <GoogleAnalyticsHelp
+                  tenant={restaurant?.tenant}
+                  onClose={() => setPopupContent(null)}
+                />,
+              )
+            }
             className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold border border-[--border-1] bg-[--white-1] text-[--gr-1] hover:text-indigo-700 hover:border-indigo-300 hover:bg-indigo-50 transition shrink-0 dark:hover:bg-indigo-500/15 dark:hover:text-indigo-200 dark:hover:border-indigo-400/30"
           >
             <AlertTriangle className="size-4" />

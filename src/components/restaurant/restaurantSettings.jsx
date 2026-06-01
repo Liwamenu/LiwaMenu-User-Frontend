@@ -798,7 +798,12 @@ const RestaurantSettings = ({ data: inData }) => {
                   <button
                     type="button"
                     onClick={() =>
-                      setSecondPopupContent(<GoogleAnalyticsHelp />)
+                      setSecondPopupContent(
+                        <GoogleAnalyticsHelp
+                          tenant={restaurantData?.tenant || inData?.tenant}
+                          onClose={() => setSecondPopupContent(null)}
+                        />,
+                      )
                     }
                     title={t(
                       "restaurantSettings.google_analytics_help",
