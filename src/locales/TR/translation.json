@@ -421,6 +421,33 @@
     "loading_3d": "Güvenli ödeme sayfası yükleniyor...",
     "cancel_payment": "Ödemeyi İptal Et"
   },
+  "googleAnalytics": {
+    "title": "Google Analytics",
+    "subtitle": "Menünüzün ziyaretçi istatistikleri",
+    "how_to": "Nasıl Kurulur?",
+    "status_active_title": "Google Analytics bağlı",
+    "status_active_desc": "Menünüz ziyaretçi verilerini topluyor. Detaylı raporlar Google Analytics panelinizde görünür.",
+    "status_inactive_title": "Google Analytics henüz bağlı değil",
+    "status_inactive_desc": "İstatistik toplamak için Genel Ayarlar'dan Ölçüm Kimliğinizi (Measurement ID) girin.",
+    "measurement_id": "Ölçüm Kimliği",
+    "open_dashboard": "Google Analytics Panelini Aç",
+    "change_id": "Ölçüm Kimliğini Değiştir",
+    "set_id": "Ölçüm Kimliğini Gir",
+    "embed_note": "Ayrıntılı grafikler ve ziyaretçi raporları güvenlik nedeniyle doğrudan Google Analytics panelinde sunulur. Yukarıdaki butonla kendi panelinize tek tıkla ulaşabilirsiniz."
+  },
+  "gaHelp": {
+    "title": "Google Analytics Kimliği Nasıl Alınır?",
+    "subtitle": "Menünüzün ziyaretçi istatistiklerini toplamak için",
+    "close": "Kapat",
+    "step1": "analytics.google.com adresine girin ve Google hesabınızla oturum açın.",
+    "step2": "Henüz bir hesabınız yoksa 'Ölçmeye başla' diyerek işletmeniz için bir hesap oluşturun.",
+    "step3": "Bir 'Mülk' (Property) oluşturun ve veri akışı olarak 'Web' seçin; menü adresinizi girin.",
+    "step4": "Yönetici (⚙️) → Veri Akışları → web akışınızı açın. Sağ üstte 'Ölçüm Kimliği' (Measurement ID) görünür.",
+    "step5": "G- ile başlayan bu kimliği (örn. G-XXXXXXXXXX) kopyalayıp buradaki Google Analytics alanına yapıştırın ve kaydedin.",
+    "open_ga": "Google Analytics'i Aç",
+    "note": "Kimliği yapıştırdıktan sonra istatistikler birkaç saat içinde Google Analytics panelinizde görünmeye başlar.",
+    "got_it": "Anladım"
+  },
   "restaurantSettings": {
     "title": "{{name}} Restoranı için Ayarlar",
     "tenant": "Tenant",

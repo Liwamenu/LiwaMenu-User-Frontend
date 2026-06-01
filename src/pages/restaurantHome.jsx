@@ -9,6 +9,8 @@ import { DirtyNavProvider } from "../context/DirtyNavContext";
 
 //REDUX
 import { getRestaurant } from "../redux/restaurants/getRestaurantSlice";
+import { getRestaurants } from "../redux/restaurants/getRestaurantsSlice";
+import useSmartRevalidate from "../hooks/useSmartRevalidate";
 
 //PAGES
 import NotFound from "./404";
@@ -51,6 +53,9 @@ import ThemeSelector from "../components/restaurant/themes/qrMenuSelector";
 import TvMenuSelector from "../components/restaurant/themes/tvMenuSelector";
 import KioskSelector from "../components/restaurant/themes/kioskSelector";
 
+//ANALYTICS
+import GoogleAnalytics from "../components/restaurant/googleAnalytics";
+
 const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -82,6 +87,34 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
       dispatch(getRestaurant({ restaurantId: id }));
     }
   }, [data, dispatch, id]);
+
+  // Cross-device / returning-to-tab freshness for the restaurant
+  // entity that feeds Genel Ayarlar + every per-restaurant settings
+  // tab via the `data` prop.
+  //
+  // IMPORTANT — refetch the LIST, not the single:
+  // `data = restaurant || myRestaurant || stateRest` resolves to
+  // `myRestaurant`, which is read from the getRestaurants LIST slice
+  // (see getRestaurantsSlice header: "the source the per-restaurant
+  // pages read from via myRestaurant"). A change made on another
+  // device lands in the backend; only refetching the list slice that
+  // `data` actually resolves from will surface it here. Refetching the
+  // single GetRestaurantById only updates `stateRest` — the third
+  // (fallback) priority — so the fresh value would be ignored while
+  // myRestaurant stays stale. The list endpoint carries the same
+  // entity fields (moneySign, decimalPoint, …) the settings pages
+  // read. Silent so it never flashes the global loader; the list
+  // slice is stale-while-revalidate so nothing blanks. Throttled by
+  // the hook so quick tab-bounces don't spam it.
+  useSmartRevalidate(
+    id ? `restaurant:${id}` : null,
+    // Same params the sidebar uses to populate the list slice
+    // ({ pageNumber: 1, pageSize: 50 }) — calling with different paging
+    // would replace the cached list with a different page and could
+    // drop the target restaurant out of `myRestaurant`'s find().
+    () =>
+      dispatch(getRestaurants({ pageNumber: 1, pageSize: 50, __silent: true })),
+  );
 
   useEffect(() => {
     setShowS1(false);
@@ -187,6 +220,12 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
 
           {/* QR */}
           <Route path="/qr/:id" element={<QRPage data={data} />} />
+
+          {/* GOOGLE ANALYTICS — smart launcher (status + open GA) */}
+          <Route
+            path="/googleAnalytics/:id"
+            element={<GoogleAnalytics data={data} />}
+          />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

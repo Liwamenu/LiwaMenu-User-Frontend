@@ -421,6 +421,33 @@
     "loading_3d": "Loading secure payment page...",
     "cancel_payment": "Cancel Payment"
   },
+  "googleAnalytics": {
+    "title": "Google Analytics",
+    "subtitle": "Visitor statistics for your menu",
+    "how_to": "How to Set Up?",
+    "status_active_title": "Google Analytics connected",
+    "status_active_desc": "Your menu is collecting visitor data. Detailed reports appear in your Google Analytics panel.",
+    "status_inactive_title": "Google Analytics not connected yet",
+    "status_inactive_desc": "To collect statistics, enter your Measurement ID from General Settings.",
+    "measurement_id": "Measurement ID",
+    "open_dashboard": "Open Google Analytics Panel",
+    "change_id": "Change Measurement ID",
+    "set_id": "Enter Measurement ID",
+    "embed_note": "Detailed charts and visitor reports are served directly in the Google Analytics panel for security reasons. Use the button above to reach your own panel in one click."
+  },
+  "gaHelp": {
+    "title": "How to Get a Google Analytics ID?",
+    "subtitle": "To collect visitor statistics for your menu",
+    "close": "Close",
+    "step1": "Go to analytics.google.com and sign in with your Google account.",
+    "step2": "If you don't have an account yet, click 'Start measuring' to create one for your business.",
+    "step3": "Create a 'Property' and choose 'Web' as the data stream; enter your menu address.",
+    "step4": "Admin (⚙️) → Data Streams → open your web stream. The 'Measurement ID' appears at the top right.",
+    "step5": "Copy this ID starting with G- (e.g. G-XXXXXXXXXX), paste it into the Google Analytics field here, and save.",
+    "open_ga": "Open Google Analytics",
+    "note": "After pasting the ID, statistics start appearing in your Google Analytics panel within a few hours.",
+    "got_it": "Got It"
+  },
   "restaurantSettings": {
     "title": "Settings for {{name}} Restaurant",
     "tenant": "Tenant",

@@ -19,6 +19,7 @@ import {
   Monitor,
   QrCode,
   DollarSign,
+  ChartLine,
 } from "lucide-react";
 
 //COMP
@@ -33,8 +34,15 @@ import { getProductsLite } from "../../redux/products/getProductsLiteSlice";
 // Paths that stay reachable even before the tenant is saved (Genel
 // Ayarlar). The "edit" + "settings" entries cover the onboarding
 // flow so a new owner can land on Restoranı Düzenle, fill in basic
-// info, then tenant in Genel Ayarlar.
-const ALWAYS_ALLOWED_PATHS = new Set(["restaurants", "edit", "settings"]);
+// info, then tenant in Genel Ayarlar. "googleAnalytics" is here too —
+// it's a monitoring / settings page (status + launcher), not a
+// menu-building step, so it shouldn't sit behind the ≥1-product gate.
+const ALWAYS_ALLOWED_PATHS = new Set([
+  "restaurants",
+  "edit",
+  "settings",
+  "googleAnalytics",
+]);
 
 // Progressive onboarding gate. Each setup page unlocks the NEXT one
 // only once its own required asset exists, so a manual-setup owner
@@ -261,6 +269,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
       text: t("subSidebar.qr_code"),
       to: `/restaurant/qr/${id}`,
       path: "qr",
+    },
+    {
+      icon: <ChartLine className={ICON_CLS} strokeWidth={ICON_STROKE} />,
+      text: t("subSidebar.google_analytics", "Google Analytics"),
+      to: `/restaurant/googleAnalytics/${id}`,
+      path: "googleAnalytics",
     },
   ];
 

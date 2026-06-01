@@ -24,6 +24,7 @@ import {
   Lock,
   AlertTriangle,
   Pencil,
+  HelpCircle,
 } from "lucide-react";
 
 //COMP
@@ -45,6 +46,9 @@ import {
   resetCheckTenantAvailability,
 } from "../../redux/restaurant/checkTenantAvailabilitySlice";
 import { getPaymentMethods } from "../../redux/restaurant/getPaymentMethodsSlice";
+import { getRestaurants } from "../../redux/restaurants/getRestaurantsSlice";
+import useSmartRevalidate from "../../hooks/useSmartRevalidate";
+import GoogleAnalyticsHelp from "./googleAnalyticsHelp";
 
 const inputCls =
   "w-full h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
@@ -446,11 +450,39 @@ const RestaurantSettings = ({ data: inData }) => {
     dispatch(setRestaurantSettings(normalized));
   };
 
-  // Update state when inData changes
+  // Re-seed the form when the cached restaurant entity changes — but
+  // never while the user has unsaved edits. Before smart-revalidate
+  // this only fired on first load / id change so a blind reset was
+  // safe; now the entity is refreshed on tab focus / nav (cross-device
+  // sync), and an unconditional reset would wipe what the user is
+  // typing. Guard: only re-seed when the form is pristine. Last-write-
+  // wins on Save is the expected behaviour for a form they're actively
+  // editing.
   useEffect(() => {
+    if (!isEqual(restaurantData, restaurantDataBefore)) return;
     setRestaurantData(initialData);
     setRestaurantDataBefore(initialData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
+
+  // Cross-device / returning-to-tab freshness for the restaurant
+  // entity. `inData` (moneySign, decimalPoint, …) comes from the
+  // getRestaurants LIST slice via restaurantHome's `myRestaurant`, so
+  // we refetch the LIST — not the single GetRestaurantById, which only
+  // updates the lower-priority `stateRest` fallback and would leave
+  // `myRestaurant` stale. restaurantHome runs the same revalidate on
+  // window focus; this one fires on in-app navigation TO Genel Ayarlar
+  // (restaurantHome stays mounted across sub-tab switches so its mount
+  // effect wouldn't re-run). Shared throttle key `restaurant:<id>`
+  // dedupes the two so they never double-fetch within the window.
+  useSmartRevalidate(
+    restaurantId ? `restaurant:${restaurantId}` : null,
+    // Match the sidebar's list paging ({ pageNumber: 1, pageSize: 50 })
+    // so the refetch refreshes the same cached list `inData` resolves
+    // from instead of replacing it with a different page.
+    () =>
+      dispatch(getRestaurants({ pageNumber: 1, pageSize: 50, __silent: true })),
+  );
 
   // TOAST SUCCESS
   useEffect(() => {
@@ -755,9 +787,31 @@ const RestaurantSettings = ({ data: inData }) => {
 
               {/* Google Analytics */}
               <div className="mb-3">
-                <label className={labelCls}>
-                  <ChartLine className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
-                  {t("restaurantSettings.google_analytics")}
+                <label className={`${labelCls} flex items-center gap-1.5`}>
+                  <span>
+                    <ChartLine className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
+                    {t("restaurantSettings.google_analytics")}
+                  </span>
+                  {/* (?) — opens the step-by-step "how to get a GA
+                      Measurement ID" guide modal in the second popup
+                      slot, above this settings page. */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSecondPopupContent(<GoogleAnalyticsHelp />)
+                    }
+                    title={t(
+                      "restaurantSettings.google_analytics_help",
+                      "Google Analytics kimliği nasıl alınır?",
+                    )}
+                    aria-label={t(
+                      "restaurantSettings.google_analytics_help",
+                      "Google Analytics kimliği nasıl alınır?",
+                    )}
+                    className="grid place-items-center size-4 rounded-full text-indigo-600 hover:bg-indigo-50 transition dark:hover:bg-indigo-500/15"
+                  >
+                    <HelpCircle className="size-3.5" />
+                  </button>
                 </label>
                 <input
                   type="text"
