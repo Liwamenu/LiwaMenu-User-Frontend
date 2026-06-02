@@ -1,14 +1,17 @@
 // Kiosk / Self-Order theme page.
 //
 // Functionally a copy of the QR Menu theme selector (qrMenuSelector.jsx):
-// same theme catalog, same live-iframe preview of the tenant menu, and
-// it persists through the SAME `setRestaurantTheme` slice — a kiosk
-// renders the very same menu site, so it shares the restaurant's one
-// menu `themeId` (unlike TV themes, which have their own backend field).
+// same theme catalog, same live-iframe preview of the tenant menu. Now
+// persists through its OWN slice (`setRestaurantKioskTheme`) that hits
+// `Restaurants/UpdateRestaurantKioskTheme` and writes `kioskThemeId` —
+// the same per-type endpoint split TV already uses. Previously it
+// reused the QR slice (themeId), which after the QR endpoint rename
+// turned every kiosk pick into a silent QR overwrite.
 //
-// The ONLY difference from the QR page is the device "mockups": instead
-// of phone/tablet frames, the preview is shown inside DIKEY (portrait
-// standing kiosk) and YATAY (landscape counter terminal) kiosk frames.
+// The ONLY visual difference from the QR page is the device "mockups":
+// instead of phone/tablet frames, the preview is shown inside DIKEY
+// (portrait standing kiosk) and YATAY (landscape counter terminal)
+// kiosk frames.
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -28,9 +31,9 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import {
-  setRestaurantTheme,
-  resetSetRestaurantTheme,
-} from "../../../redux/restaurant/setRestaurantThemeSlice";
+  setRestaurantKioskTheme,
+  resetSetRestaurantKioskTheme,
+} from "../../../redux/restaurant/setRestaurantKioskThemeSlice";
 import PageHelp from "../../common/pageHelp";
 // Reuse the QR catalog + tenant-URL helper so the two pages never drift.
 import { THEMES, buildTenantUrl } from "./qrMenuSelector";
@@ -61,13 +64,20 @@ const KioskSelector = ({ data }) => {
   const iframeRef = useRef(null);
 
   const { success, loading } = useSelector(
-    (s) => s.restaurant.setRestaurantTheme,
+    (s) => s.restaurant.setRestaurantKioskTheme,
   );
 
   const [device, setDevice] = useState("vertical");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedThemeId, setSelectedThemeId] = useState(data?.themeId ?? null);
-  const [activeThemeId, setActiveThemeId] = useState(data?.themeId ?? null);
+  // The kiosk theme is its own field on the restaurant entity now
+  // (`kioskThemeId`). Don't fall back to `themeId` — that's the QR
+  // theme and would mis-render the kiosk preview on first mount.
+  const [selectedThemeId, setSelectedThemeId] = useState(
+    data?.kioskThemeId ?? null,
+  );
+  const [activeThemeId, setActiveThemeId] = useState(
+    data?.kioskThemeId ?? null,
+  );
 
   const activeTheme = THEMES.find((th) => th.id === activeThemeId) || null;
 
@@ -80,13 +90,14 @@ const KioskSelector = ({ data }) => {
   const isPending = (id) => pendingThemeId === id && loading;
 
   // Click a theme card → optimistic select + dispatch save immediately.
-  // Uses the same slice as QR themes (the kiosk shows the same menu).
+  // Writes ONLY `kioskThemeId` — QR and TV themes have their own
+  // dedicated endpoints + cached fields.
   const handlePickTheme = (themeId) => {
     if (loading) return;
     if (themeId === activeThemeId) return;
     setSelectedThemeId(themeId);
     setPendingThemeId(themeId);
-    dispatch(setRestaurantTheme({ themeId, restaurantId }));
+    dispatch(setRestaurantKioskTheme({ kioskThemeId: themeId, restaurantId }));
   };
 
   const handleRefreshIframe = () => {
@@ -104,17 +115,17 @@ const KioskSelector = ({ data }) => {
   }, [activeThemeId, device]);
 
   useEffect(() => {
-    if (data?.themeId !== undefined && data?.themeId !== null) {
-      setSelectedThemeId(data.themeId);
-      setActiveThemeId(data.themeId);
+    if (data?.kioskThemeId !== undefined && data?.kioskThemeId !== null) {
+      setSelectedThemeId(data.kioskThemeId);
+      setActiveThemeId(data.kioskThemeId);
     }
   }, [data]);
 
-  // Clear any leftover redux state from a previous page that used the
-  // same slice (e.g. the QR theme page) so the success-effect below
-  // doesn't fire spuriously on mount.
+  // Clear any leftover redux state on mount so the success-effect below
+  // doesn't fire spuriously when navigating into the page (the slice is
+  // dedicated to kiosk now, but the reset is cheap insurance).
   useEffect(() => {
-    dispatch(resetSetRestaurantTheme());
+    dispatch(resetSetRestaurantKioskTheme());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

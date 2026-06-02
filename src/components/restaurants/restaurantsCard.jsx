@@ -5,16 +5,67 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarDays,
+  CreditCard,
   ImageIcon,
   MapPin,
-  ShieldCheck,
-  ShieldX,
+  Monitor,
+  QrCode,
   Sparkles,
+  Tv,
 } from "lucide-react";
 import { formatDateString } from "../../utils/utils";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+
+// The four license types as surfaced on a restaurant entity. `activeKey`
+// / `ownedKey` are the per-type fields the backend ships on every
+// restaurant read (qrLicenseIsActive / qrLicenseId / …). Order is
+// QR → TV → Kiosk → Payment to match the rest of the UI.
+const LICENSE_TYPES = [
+  {
+    key: "qr",
+    Icon: QrCode,
+    titleKey: "restaurants.license_type_qr",
+    activeKey: "qrLicenseIsActive",
+    ownedKey: "qrLicenseId",
+  },
+  {
+    key: "tv",
+    Icon: Tv,
+    titleKey: "restaurants.license_type_tv",
+    activeKey: "tvLicenseIsActive",
+    ownedKey: "tvLicenseId",
+  },
+  {
+    key: "kiosk",
+    Icon: Monitor,
+    titleKey: "restaurants.license_type_kiosk",
+    activeKey: "kioskLicenseIsActive",
+    ownedKey: "kioskLicenseId",
+  },
+  {
+    key: "payment",
+    Icon: CreditCard,
+    titleKey: "restaurants.license_type_payment",
+    activeKey: "paymentIntegrationLicenseIsActive",
+    ownedKey: "paymentIntegrationLicenseId",
+  },
+];
+
+// Derive the visual state for one license-type chip.
+//   active   — backend says this type is active AND bundle isn't expired
+//   expired  — owned but the bundle date passed
+//   inactive — owned but turned off
+//   none     — never purchased
+const licenseTypeState = (r, type) => {
+  const active = !!r?.[type.activeKey] && !r?.licenseIsExpired;
+  const owned = !!r?.[type.ownedKey];
+  if (active) return "active";
+  if (owned && r?.licenseIsExpired) return "expired";
+  if (owned) return "inactive";
+  return "none";
+};
 
 const RestaurantsCard = ({ inData }) => {
   const { t } = useTranslation();
@@ -44,14 +95,15 @@ const RestaurantsCard = ({ inData }) => {
   }
 
   function handleCardOpen(r) {
-    // Same OR-of-three rule as the sidebar gate: any active license
-    // (qr / tv / kiosk) unlocks the restaurant card. Per-feature
-    // gating happens inside the relevant editor page (e.g. qrPage
-    // separately checks qrLicenseIsActive before allowing edits).
+    // Same OR-of-four rule as the sidebar gate: any active license
+    // (qr / tv / kiosk / payment) unlocks the restaurant card.
+    // Per-feature gating happens inside the relevant editor page (e.g.
+    // qrPage separately checks qrLicenseIsActive before allowing edits).
     const anyLicenseActive =
       r.qrLicenseIsActive ||
       r.tvLicenseIsActive ||
-      r.kioskLicenseIsActive;
+      r.kioskLicenseIsActive ||
+      r.paymentIntegrationLicenseIsActive;
     const canOpen = r.isActive && anyLicenseActive && !r.licenseIsExpired;
     if (canOpen) {
       navigate(`/restaurant/edit/${r.id}`, { state: { restaurant: r } });
@@ -92,38 +144,16 @@ export default RestaurantsCard;
 
 const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
   const licenseExpired = Boolean(r.licenseIsExpired);
-  // "Active" = ANY of the three per-type license booleans is true.
-  // The card surfaces a single overall badge for now; once the UI is
-  // ready for per-type detail (3 chips, or a tooltip listing which
-  // license types are active), swap this for a richer derivation.
+  // "Active" = ANY of the four per-type license booleans is true. The
+  // bundle expiry (`licenseIsExpired`) is the single end-date covering
+  // them — when it lapses every per-type chip flips to "expired"
+  // regardless of its own active flag.
   const anyLicenseActive =
     r.qrLicenseIsActive ||
     r.tvLicenseIsActive ||
-    r.kioskLicenseIsActive;
+    r.kioskLicenseIsActive ||
+    r.paymentIntegrationLicenseIsActive;
   const licenseActive = anyLicenseActive && !licenseExpired;
-  // `licenseId` is now split into qr/tv/kiosk variants — treat
-  // "has at least one of them" as the "user purchased something
-  // at some point" signal that distinguishes the inactive vs none
-  // badge states.
-  const hasAnyLicenseId = !!(
-    r.qrLicenseId ||
-    r.tvLicenseId ||
-    r.kioskLicenseId ||
-    r.licenseId
-  );
-  const licenseState = licenseActive
-    ? "active"
-    : licenseExpired
-      ? "expired"
-      : hasAnyLicenseId
-        ? "inactive"
-        : "none";
-  const licenseLabel = {
-    active: t("restaurants.active"),
-    expired: t("restaurants.license_expired"),
-    inactive: t("restaurants.passive"),
-    none: t("restaurants.license_no"),
-  }[licenseState];
 
   return (
     <article
@@ -178,10 +208,33 @@ const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
               />
             </dd>
           </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-[--gr-1]">{t("restaurants.row_license")}</dt>
-            <dd>
-              <LicensePill state={licenseState} label={licenseLabel} />
+          {/* Per-type license chips — was a single aggregate pill that
+              hid which license types were actually active. Now shows
+              all four (QR / TV / Kiosk / Pay) so the owner can see at
+              a glance which features they have, expired = rose, owned-
+              but-off = slate, never-purchased = dim slate. */}
+          <div className="flex flex-col gap-1.5">
+            <dt className="text-[--gr-1]">{t("restaurants.row_licenses")}</dt>
+            <dd className="flex flex-wrap items-center gap-1">
+              {LICENSE_TYPES.map((type) => {
+                const state = licenseTypeState(r, type);
+                return (
+                  <LicenseTypeChip
+                    key={type.key}
+                    type={type}
+                    state={state}
+                    label={t(type.titleKey)}
+                    stateLabel={
+                      {
+                        active: t("restaurants.active"),
+                        expired: t("restaurants.license_expired"),
+                        inactive: t("restaurants.passive"),
+                        none: t("restaurants.license_no"),
+                      }[state]
+                    }
+                  />
+                );
+              })}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
@@ -244,42 +297,24 @@ const StatusPill = ({ active, label }) => (
   </span>
 );
 
-const LicensePill = ({ state, label }) => {
+// One license-type chip. Compact pill with the type icon + short label.
+// `title` attribute carries the full "<Type> · <State>" so hovering
+// shows the human-readable detail without inflating the layout.
+const LicenseTypeChip = ({ type, state, label, stateLabel }) => {
   const variants = {
-    active: {
-      cls: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-      Icon: ShieldCheck,
-      pulse: false,
-    },
-    expired: {
-      cls: "bg-rose-50 text-rose-700 ring-rose-300",
-      Icon: AlertTriangle,
-      pulse: true,
-    },
-    inactive: {
-      cls: "bg-slate-100 text-slate-700 ring-slate-200",
-      Icon: ShieldX,
-      pulse: false,
-    },
-    none: {
-      cls: "bg-slate-100 text-slate-700 ring-slate-200",
-      Icon: ShieldX,
-      pulse: false,
-    },
+    active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    expired: "bg-rose-50 text-rose-700 ring-rose-300",
+    inactive: "bg-slate-100 text-slate-600 ring-slate-200",
+    none: "bg-[--white-2] text-[--gr-1] ring-[--border-1] opacity-60",
   };
-  const v = variants[state] || variants.none;
-  const Icon = v.Icon;
+  const cls = variants[state] || variants.none;
+  const Icon = type.Icon;
   return (
     <span
-      className={`relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${v.cls}`}
+      title={`${label} · ${stateLabel}`}
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ring-1 ${cls}`}
     >
-      {v.pulse && (
-        <span className="absolute -left-1 -top-1 flex size-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400/70" />
-          <span className="relative inline-flex size-2.5 rounded-full bg-rose-500" />
-        </span>
-      )}
-      <Icon className="size-3.5" />
+      <Icon className="size-3" />
       {label}
     </span>
   );
