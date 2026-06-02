@@ -164,8 +164,9 @@ const Products = () => {
   const [showDuplicates, setShowDuplicates] = useState(false);
   // No-image mode: same fetch-all backing, filters down to products
   // missing an imageURL so the user can quickly find what still needs
-  // a photo. Mutually exclusive with duplicates mode (only one special
-  // view is active at a time — UI gets too crowded otherwise).
+  // a photo. Can be combined with duplicates mode — when BOTH are on we
+  // show the intersection (duplicate products that also lack a photo),
+  // which is the typical "which copy do I delete?" cleanup workflow.
   const [showNoImage, setShowNoImage] = useState(false);
   const [allProducts, setAllProducts] = useState(null);
   const [dupLoading, setDupLoading] = useState(false);
@@ -343,16 +344,18 @@ const Products = () => {
     }
   };
 
+  // Both special modes can be active together now. When both are on the
+  // render shows their intersection (duplicate AND photoless). fetchAll
+  // is idempotent enough that turning the second one on just refreshes
+  // the same `allProducts` backing both views.
   const handleToggleDuplicates = (next) => {
     setShowDuplicates(next);
-    if (next) setShowNoImage(false); // mutex
     clearSelection();
     if (next) fetchAllProducts();
   };
 
   const handleToggleNoImage = (next) => {
     setShowNoImage(next);
-    if (next) setShowDuplicates(false); // mutex
     clearSelection();
     if (next) fetchAllProducts();
   };
@@ -463,6 +466,19 @@ const Products = () => {
       .filter((p) => !p.imageURL || !String(p.imageURL).trim())
       .sort((a, b) => norm(a.name).localeCompare(norm(b.name), "tr"));
   }, [allProducts]);
+
+  // Both special filters on at once → intersection: the duplicate
+  // products that ALSO have no image. We filter the duplicate list (so
+  // grouping order is preserved and the "Kopya n/total" badges below can
+  // still be computed against the full `duplicateProducts` group) rather
+  // than the no-image list.
+  const bothSpecial = showDuplicates && showNoImage;
+  const duplicateNoImageProducts = useMemo(() => {
+    if (!bothSpecial) return [];
+    return duplicateProducts.filter(
+      (p) => !p.imageURL || !String(p.imageURL).trim(),
+    );
+  }, [bothSpecial, duplicateProducts]);
 
   // === Client-side search + filter ===
   // We fall into the client-filter branch whenever the user has typed
@@ -1072,7 +1088,92 @@ const Products = () => {
 
         {/* PRODUCT LIST */}
         <div className="p-3 sm:p-5">
-          {showDuplicates ? (
+          {bothSpecial ? (
+            // === Combined view: duplicate AND photoless (intersection) ===
+            // Shown when both special toggles are on. Renders the
+            // duplicate products that also lack an image, keeping the
+            // "Kopya n/total" badge (computed against the full duplicate
+            // group) so each card still reads as a duplicate.
+            dupLoading ? (
+              <div className="grid place-items-center py-12 text-[--gr-1]">
+                <Loader2 className="size-6 animate-spin text-indigo-600" />
+              </div>
+            ) : duplicateNoImageProducts.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[--gr-1]">
+                    {t("productsList.dup_noimage_summary", {
+                      count: duplicateNoImageProducts.length,
+                      defaultValue:
+                        "{{count}} ürün — tekrarlanan ve fotoğrafsız",
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectAllVisible(
+                        duplicateNoImageProducts.map((p) => p.id),
+                      )
+                    }
+                    className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition dark:bg-indigo-500/15 dark:text-indigo-200 dark:border-indigo-400/30"
+                  >
+                    <CheckCheck className="size-3.5" />
+                    {t("productsList.select_visible", "Sayfadakileri seç")}
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {duplicateNoImageProducts.map((product) => {
+                    const norm = (s) => (s || "").trim().toLowerCase();
+                    const group = duplicateProducts.filter(
+                      (p) => norm(p.name) === norm(product.name),
+                    );
+                    const groupSize = group.length;
+                    const indexInGroup =
+                      group.findIndex((p) => p.id === product.id) + 1;
+                    return (
+                      <div key={product.id} className="relative">
+                        <span className="absolute -top-1 -left-1 z-10 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-500 text-white shadow">
+                          <Copy className="size-3" />
+                          {t("productsList.duplicate_badge", {
+                            n: indexInGroup,
+                            total: groupSize,
+                            defaultValue: "Kopya {{n}}/{{total}}",
+                          })}
+                        </span>
+                        <ProductCard
+                          product={product}
+                          onDeleted={refetchProducts}
+                          onEdit={openEditPopup}
+                          onChangeImage={openQuickEditImage}
+                          selectable
+                          selected={selectedIds.has(product.id)}
+                          onToggleSelect={toggleSelectId}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-8 grid place-items-center text-center">
+                <span className="grid place-items-center size-12 rounded-xl bg-emerald-50 text-emerald-600 mb-3 dark:bg-emerald-500/15 dark:text-emerald-300">
+                  <Copy className="size-6" />
+                </span>
+                <h3 className="text-sm font-semibold text-[--black-1]">
+                  {t(
+                    "productsList.no_dup_noimage",
+                    "Hem tekrarlanan hem fotoğrafsız ürün yok",
+                  )}
+                </h3>
+                <p className="text-xs text-[--gr-1] mt-1">
+                  {t(
+                    "productsList.no_dup_noimage_hint",
+                    "Tekrarlanan ürünlerin hepsinde görsel mevcut.",
+                  )}
+                </p>
+              </div>
+            )
+          ) : showDuplicates ? (
             // === Duplicate-finder view ===
             dupLoading ? (
               <div className="grid place-items-center py-12 text-[--gr-1]">
