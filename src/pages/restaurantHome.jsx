@@ -8,7 +8,6 @@ import Sidebar from "../components/subSidebar/subSidebar";
 import { DirtyNavProvider } from "../context/DirtyNavContext";
 
 //REDUX
-import { getRestaurant } from "../redux/restaurants/getRestaurantSlice";
 import { getRestaurants } from "../redux/restaurants/getRestaurantsSlice";
 import useSmartRevalidate from "../hooks/useSmartRevalidate";
 
@@ -84,12 +83,27 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
   );
   const data = restaurant || myRestaurant || stateRest;
 
-  // Fetch restaurant only if we don't already have it (deep-link case).
+  // Fetch the restaurant only if we don't already have it (deep-link /
+  // hard-refresh case). Fetch the LIST, not the single GetRestaurantById:
+  //   1. `data` resolves from `myRestaurant`, read from the getRestaurants
+  //      LIST slice — the list is what actually populates `data`. The
+  //      single slice only feeds the `stateRest` fallback, which
+  //      `myRestaurant` shadows the moment the list lands.
+  //   2. GetRestaurantById currently HANGS on the backend (~30s → abort).
+  //      Worse, it was dispatched without __silent, so loadingMiddleware
+  //      held the full-screen loader for the whole 30s before failing with
+  //      "istek sunucuya ulaşamadı". The list endpoint returns the same
+  //      entity reliably and is silent, so the page paints as soon as it
+  //      lands and nothing freezes. (Owners with >50 restaurants are an
+  //      existing limitation shared by the sidebar + useSmartRevalidate,
+  //      which already page the list at 50.)
   useEffect(() => {
     if (!data) {
-      dispatch(getRestaurant({ restaurantId: id }));
+      dispatch(
+        getRestaurants({ pageNumber: 1, pageSize: 50, __silent: true }),
+      );
     }
-  }, [data, dispatch, id]);
+  }, [data, dispatch]);
 
   // Cross-device / returning-to-tab freshness for the restaurant
   // entity that feeds Genel Ayarlar + every per-restaurant settings
