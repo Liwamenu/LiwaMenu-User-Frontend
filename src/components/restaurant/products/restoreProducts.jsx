@@ -71,10 +71,13 @@ const baseURL = import.meta.env.VITE_BASE_URL;
 // v1 = legacy "metadata snapshot" (name+description+allergens+image).
 //      Restore is UPDATE-only via TR-aware name matching.
 // v2 = full snapshot with IDs + portions + memberships + flags.
-//      Restore is ID-based CREATE-or-UPDATE with a remap table for
-//      newly-created entities (backend currently generates fresh IDs
-//      on Add; the brief at user/BACKUP_RESTORE_ID_PRESERVATION_BRIEF
-//      .md asks for optional id-preservation).
+//      Restore is ID-based CREATE-or-UPDATE. We send the backup id on
+//      every Add (categories, subcategories, products) so a backend
+//      honouring user/BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md persists
+//      the original ids — making restores idempotent (a re-run matches
+//      by id → UPDATE, never a duplicate CREATE). The remap table below
+//      is kept as a safety net for older backends that ignore the id
+//      and mint a fresh one.
 const SUPPORTED_VERSIONS = new Set([1, 2]);
 const SUPPORTED_TYPE = "liwamenu.products.backup";
 
@@ -506,12 +509,12 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
   // sequential to keep an honest progress bar and avoid the same
   // backend-throttling issue that bit the image-fetch loop.
   //
-  // ID remap tables: backend currently generates a fresh UUID on every
-  // Add call (the brief at BACKUP_RESTORE_ID_PRESERVATION_BRIEF asks
-  // for optional id-preservation; once that lands the maps below
-  // become identity). Until then, we capture the new ID from the Add
-  // response (or via a re-fetch fallback) and rewrite downstream
-  // references through these maps.
+  // ID remap tables: we send the backup id on every Add, so a backend
+  // honouring BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md persists it and
+  // these maps collapse to identity. They stay as a safety net for
+  // older backends that ignore the id and mint a fresh one — we capture
+  // the new ID from the Add response (or a re-fetch fallback) and
+  // rewrite downstream references through these maps either way.
   const applyV2 = async () => {
     const api = privateApi();
     const isFullMode = restoreMode === "full";
@@ -644,9 +647,10 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
         fd.append("restaurantId", restaurantId);
         const data = [
           {
-            // ID sent for forward-compat with the brief; backend
-            // ignores it today and generates its own. The new ID
-            // gets captured below via the re-fetch fallback.
+            // Send the backup id so the backend can persist it (per
+            // BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md). Older backends
+            // ignore it and generate their own; either way the live id
+            // is captured below from the response / re-fetch fallback.
             id: backup.id || undefined,
             name: backup.name,
             isActive: backup.isActive ?? true,
@@ -881,7 +885,15 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
     // Helper: build the AddProduct / EditProduct multipart payload.
     const buildProductFormData = (backup, opts) => {
       const fd = new FormData();
-      if (opts.editId) fd.append("id", opts.editId);
+      // Entity id. On EDIT this is the live product id. On CREATE it's
+      // the backup id — a backend honouring
+      // BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md persists the product
+      // with that exact id, which keeps restores idempotent (re-running
+      // matches by id → UPDATE, not a duplicate CREATE). Older backends
+      // ignore the field and mint their own id, so sending it is always
+      // safe (additive per the brief).
+      const entityId = opts.editId || opts.createId;
+      if (entityId) fd.append("id", entityId);
       fd.append("restaurantId", restaurantId);
       fd.append("name", backup.name || "");
       fd.append("description", backup.description ?? "");
@@ -896,9 +908,11 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       fd.append("categoryId", firstCat.categoryId || "");
       fd.append("subCategoryId", firstCat.subCategoryId || "");
       const portions = (backup.portions || []).map((po) => ({
-        // For UPDATE: portion ids round-trip so existing portion rows
-        // are updated in place. For CREATE: ids are stripped (the
-        // backend generates fresh portion rows).
+        // Portion ids round-trip only on EDIT (update rows in place).
+        // On CREATE they're stripped so the backend mints fresh portion
+        // rows — the id-preservation brief covers the top-level product
+        // id, not nested portion ids. Keyed on editId (not entityId) on
+        // purpose so a preserved-id CREATE still gets fresh portions.
         ...(opts.editId && po.id ? { id: po.id } : {}),
         ...(opts.editId ? { productId: opts.editId } : {}),
         name: po.name || "",
@@ -972,6 +986,8 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
         }
         const imageFile = await blobFromZip(backup.image);
         const fd = buildProductFormData(backup, {
+          // Preserve the backup id on create (see buildProductFormData).
+          createId: backup.id || undefined,
           memberships,
           imageFile,
         });
@@ -981,6 +997,11 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
         const newId =
           res?.data?.data?.id ||
           res?.data?.id ||
+          // A preserved-id backend may not echo the id back; fall back to
+          // the backup id we just sent so allergens land on the right
+          // product. Harmless on older backends — the allergen PUT is
+          // wrapped in .catch() so a wrong/missing id just skips them.
+          backup.id ||
           null;
         // Push allergens to the new product if we know its ID.
         if (newId && Array.isArray(backup.allergens) && backup.allergens.length > 0) {
