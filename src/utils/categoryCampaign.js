@@ -38,6 +38,14 @@ export const isCategoryOnCampaign = (categoryId, products) => {
   return members.every((p) => p?.isCampaign === true);
 };
 
+// NOTE: there's intentionally no `isCategoryRecommended` here. Unlike
+// `isCampaign`, the per-product `recommendation` flag is NOT included in
+// the lite product DTO, so a category's recommendation state can't be
+// derived from `liteProducts`. The Edit Category dialog fetches the
+// category's full products on open to read recommendation instead. If
+// the lite DTO ever gains `recommendation`, add the mirror of
+// isCategoryOnCampaign here and switch the dialog back to derived.
+
 // Build a categoryId → boolean map in one pass. Cheaper than calling
 // `isCategoryOnCampaign` once per category for big catalogues, and the
 // shape mirrors what the Price List already consumes.

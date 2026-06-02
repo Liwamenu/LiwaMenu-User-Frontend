@@ -53,8 +53,12 @@ export const getProductsByCategoryId = createAsyncThunk(
   "Products/getProductsByCategoryId",
   async (data, { rejectWithValue }) => {
     try {
+      // Strip the loading-middleware-only `__silent` flag so it isn't
+      // forwarded to the backend as a query param. (loadingMiddleware
+      // reads it from action.meta.arg; the backend must not see it.)
+      const { __silent, ...params } = data || {};
       const res = await api.get(`${baseURL}Products/getProductsByCategoryId`, {
-        params: data,
+        params,
       });
 
       // Same two-step normalization as getProductsSlice / Lite —

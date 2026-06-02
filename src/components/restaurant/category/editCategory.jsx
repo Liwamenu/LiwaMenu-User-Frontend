@@ -78,6 +78,10 @@ const EditCategory = ({
   const [categoryData, setCategoryData] = useState({
     ...category,
     campaign: derivedCampaign,
+    // `featured` (the Şef Tavsiyesi toggle value) starts from the stored
+    // flag, then the on-open products fetch below corrects it to reflect
+    // whether the category's products are actually recommended.
+    featured: !!category?.featured,
   });
   const [preview, setPreview] = useState(
     category?.image
@@ -93,6 +97,17 @@ const EditCategory = ({
   // snapshot false and the cascade would fire on every toggle-ON-save
   // (even when products were already on campaign).
   const [originalCampaign] = useState(derivedCampaign);
+  // Şef Tavsiyesi snapshot. The lite product DTO does NOT carry
+  // `recommendation`, so (unlike campaign, which derives from
+  // liteProducts.isCampaign) we can't read it from `liteProducts`. We
+  // seed from the stored `featured` flag, then correct it from the
+  // category's full products in the on-open effect below — ON when ANY
+  // product is recommended, so a recommended category opens ON and can
+  // be cleared by turning the toggle OFF. The success handler compares
+  // against this snapshot to decide whether to cascade.
+  const [originalRecommendation, setOriginalRecommendation] = useState(
+    !!category?.featured,
+  );
 
   // If the lite payload arrives after the dialog mounts (cold cache),
   // refresh the seeded value — but only when the user hasn't already
@@ -108,6 +123,40 @@ const EditCategory = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derivedCampaign]);
 
+  // Determine the REAL Şef Tavsiyesi state from the category's full
+  // products on open (lite lacks `recommendation`). some-true rule: ON
+  // if any product in the category is recommended — so a category whose
+  // products are recommended opens ON and the user can clear it by
+  // turning the toggle OFF. Silent so opening the dialog doesn't flash
+  // the global loader; skipped once the user touches the toggle so a
+  // late fetch never clobbers a deliberate edit.
+  const userTouchedFeaturedRef = useRef(false);
+  useEffect(() => {
+    if (!category?.id) return;
+    let cancelled = false;
+    (async () => {
+      const action = await dispatch(
+        getProductsByCategoryId({ categoryId: category.id, __silent: true }),
+      );
+      if (cancelled) return;
+      const payload = action?.payload;
+      const products = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload)
+          ? payload
+          : [];
+      dispatch(resetGetProductsByCategoryId());
+      const someRecommended = products.some((p) => p?.recommendation === true);
+      if (userTouchedFeaturedRef.current) return;
+      setOriginalRecommendation(someRecommended);
+      setCategoryData((prev) => ({ ...prev, featured: someRecommended }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category?.id]);
+
   const handleField = (key, value) => {
     setCategoryData((prev) => ({ ...prev, [key]: value }));
   };
@@ -122,6 +171,19 @@ const EditCategory = ({
     handleToggle("campaign");
     setShowCampaignWarning(newCampaignState);
   };
+
+  const handleFeaturedToggle = () => {
+    userTouchedFeaturedRef.current = true;
+    handleToggle("featured");
+  };
+
+  // Whether the recommendation toggle differs from its as-opened
+  // (derived) value — i.e. a save will cascade. Drives the warning box,
+  // which shows a DIFFERENT message for enable (mark all) vs disable
+  // (clear all) so the destructive disable is explicit. Falls back to
+  // hidden once the user toggles back to the original state.
+  const recommendationPending =
+    !!categoryData.featured !== originalRecommendation;
 
   const handleFileChange = (file) => {
     if (preview && preview.startsWith("blob:")) {
@@ -198,20 +260,33 @@ const EditCategory = ({
     }
   };
 
-  // Build the EditProduct FormData needed to flip a single product's
-  // `isCampaign` flag without losing any other field. The endpoint is
-  // full-DTO-replace (per the uncategorizedSafety post-mortem any
-  // omitted portion gets wiped to zero), so we round-trip every field
-  // the lite category-product DTO carries plus the m2m memberships +
-  // their flat backwards-compat aliases. Same shape `editProduct.jsx`'s
-  // own handleSave assembles, just with `isCampaign` overridden.
-  const buildProductCampaignPayload = (product, isCampaign) => {
+  // Build the EditProduct FormData needed to flip a product's
+  // `isCampaign` and/or `recommendation` flags without losing any other
+  // field. The endpoint is full-DTO-replace (per the uncategorizedSafety
+  // post-mortem any omitted portion gets wiped to zero), so we
+  // round-trip every field the lite category-product DTO carries plus
+  // the m2m memberships + their flat backwards-compat aliases. Same
+  // shape `editProduct.jsx`'s own handleSave assembles.
+  //
+  // `overrides` may carry `isCampaign` and/or `recommendation`; each
+  // flag NOT in overrides falls back to the product's current value, so
+  // cascading one flag never clobbers the other (important when both
+  // Kampanya and Şef Tavsiyesi change in the same save).
+  const buildProductPayload = (product, overrides = {}) => {
+    const recommendation =
+      overrides.recommendation !== undefined
+        ? overrides.recommendation
+        : product.recommendation;
+    const isCampaign =
+      overrides.isCampaign !== undefined
+        ? overrides.isCampaign
+        : product.isCampaign;
     const fd = new FormData();
     fd.append("id", product.id);
     fd.append("restaurantId", product.restaurantId || id || "");
     fd.append("name", product.name ?? "");
     fd.append("description", product.description ?? "");
-    fd.append("recommendation", String(!!product.recommendation));
+    fd.append("recommendation", String(!!recommendation));
     fd.append("hide", String(!!product.hide));
     fd.append("freeTagging", String(!!product.freeTagging));
     fd.append("isCampaign", String(!!isCampaign));
@@ -232,16 +307,16 @@ const EditCategory = ({
     return fd;
   };
 
-  // After a successful category save, if the `campaign` flag changed,
-  // cascade the new value to every product in this category. Backend
-  // doesn't propagate yet (see CATEGORY_CAMPAIGN_CASCADE_BRIEF.md for
-  // the long-form ask) so the frontend does the fan-out itself —
-  // fetch the full product DTOs first via `getProductsByCategoryId`
-  // (full payload so portions/prices survive the round-trip), then
-  // PUT each one in parallel with `isCampaign` updated. Progress
-  // surfaces in a single loading toast that swaps to success/partial
-  // on completion.
-  const runCampaignCascade = async () => {
+  // After a successful category save, cascade any changed category-level
+  // flag (Kampanya / Şef Tavsiyesi) down to every product in the
+  // category. Backend doesn't propagate yet (see
+  // CATEGORY_CAMPAIGN_CASCADE_BRIEF.md) so the frontend fans out itself:
+  // fetch the full product DTOs via `getProductsByCategoryId` (full
+  // payload so portions/prices survive the round-trip), then PUT each
+  // one in parallel with the changed flag(s) applied. BOTH flags go in a
+  // SINGLE pass (one PUT per product) so two cascades never race and
+  // clobber each other's value. `overrides` = { isCampaign?, recommendation? }.
+  const runProductCascade = async (overrides) => {
     const action = await dispatch(
       getProductsByCategoryId({ categoryId: categoryData.id }),
     );
@@ -254,7 +329,7 @@ const EditCategory = ({
     dispatch(resetGetProductsByCategoryId());
     if (products.length === 0) return { succeeded: 0, total: 0 };
 
-    const toastId = "campaignCascade";
+    const toastId = "categoryCascade";
     toast.loading(
       t("editCategories.cascade_progress", {
         count: products.length,
@@ -265,9 +340,7 @@ const EditCategory = ({
 
     const results = await Promise.allSettled(
       products.map((p) =>
-        dispatch(
-          editProduct(buildProductCampaignPayload(p, categoryData.campaign)),
-        ),
+        dispatch(editProduct(buildProductPayload(p, overrides))),
       ),
     );
     const succeeded = results.filter(
@@ -288,7 +361,7 @@ const EditCategory = ({
       toast.success(
         t("editCategories.cascade_done", {
           count: succeeded,
-          defaultValue: "{{count}} ürünün Kampanya durumu güncellendi.",
+          defaultValue: "{{count}} ürün güncellendi.",
         }),
         { id: toastId },
       );
@@ -315,13 +388,20 @@ const EditCategory = ({
         ),
       );
       const campaignChanged = !!categoryData.campaign !== originalCampaign;
+      const recommendationChanged =
+        !!categoryData.featured !== originalRecommendation;
       setPopupContent(null);
       toast.success(t("editCategories.success"), { id: "categories" });
       dispatch(resetEditCategory());
       // Fire-and-forget — the popup is already closed so the parent
       // can keep working. Cascade results surface via its own toast.
-      if (campaignChanged) {
-        runCampaignCascade().catch((err) => {
+      // Both changed flags go in ONE cascade pass so they never race.
+      if (campaignChanged || recommendationChanged) {
+        const overrides = {};
+        if (campaignChanged) overrides.isCampaign = categoryData.campaign;
+        if (recommendationChanged)
+          overrides.recommendation = categoryData.featured;
+        runProductCascade(overrides).catch((err) => {
           // eslint-disable-next-line no-console
           console.warn("[editCategory] cascade failed:", err);
         });
@@ -537,7 +617,11 @@ const EditCategory = ({
                 )}
               </div>
 
-              {/* Öne Çıkan */}
+              {/* Şef Tavsiyesi — mirrors Kampanya: initial value is
+                  derived from products' `recommendation` (every-true
+                  rule). On save the change cascades recommendation to
+                  every product in this category. The legacy `featured`
+                  field carries the toggle value. */}
               <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-[--primary-1] transition-colors">
                 <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-2">
                   {t("editCategories.featured")}
@@ -547,11 +631,19 @@ const EditCategory = ({
                     {t("editCategories.status_active")}
                   </span>
                   <CustomToggle
-                    checked={categoryData.featured}
-                    onChange={() => handleToggle("featured")}
+                    checked={!!categoryData.featured}
+                    onChange={handleFeaturedToggle}
                     className="peer-checked:bg-[var(--green-1)] bg-[--border-1] scale-[.7]"
                   />
                 </div>
+                {/* Empty-category footnote: the cascade has nothing to
+                    stamp, so the toggle won't "stick" across reopens
+                    until the category has products. */}
+                {categoryIsEmpty && (
+                  <p className="mt-2 text-[10px] leading-snug text-[--gr-1]">
+                    {t("editCategories.recommendation_empty_hint")}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -564,6 +656,22 @@ const EditCategory = ({
                     {t("addCategory.campaign_warning", {
                       tab: t("addCategory.campaign_warning_tab"),
                     })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Şef Tavsiyesi Uyarısı — saving cascades to every product
+                in this category: ON marks them all recommended, OFF
+                removes the recommendation from all of them. */}
+            {recommendationPending && (
+              <div className="p-4 bg-[--status-orange] text-[--orange-1] dark:text-white rounded-xl border border-[--border-orange] text-sm font-medium transition-all duration-300 ease-in-out">
+                <div className="flex items-center">
+                  <WarnI className="text-[--orange-1] dark:text-white mr-3 size-[1.5rem]" />
+                  <span>
+                    {categoryData.featured
+                      ? t("editCategories.recommendation_warning_on")
+                      : t("editCategories.recommendation_warning_off")}
                   </span>
                 </div>
               </div>

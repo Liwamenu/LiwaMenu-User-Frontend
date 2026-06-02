@@ -519,6 +519,12 @@ function ListTab({
                               labelOn={t("editCategories.status_open")}
                               labelOff={t("editCategories.status_closed")}
                             />
+                            {/* Şef Tavsiyesi badge — reflects the stored
+                                category `featured` flag. (It can't be
+                                derived from products here: the lite DTO
+                                this page loads doesn't carry
+                                `recommendation`. The Edit dialog reads the
+                                real per-product state.) */}
                             {cat.featured && (
                               <FeatureBadge
                                 icon={Star}
