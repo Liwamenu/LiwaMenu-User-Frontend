@@ -79,7 +79,7 @@ const Products = () => {
   const params = useParams();
   const restaurantId = params.id;
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Persist the active page in the URL so navigating back from edit/details
   // (or refreshing) restores the user to the same page in the list.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -144,11 +144,27 @@ const Products = () => {
     },
   ];
 
+  // Source filter by SambaID presence. Products synced from the POS
+  // integration (Pentegrasyon Sync tool) carry a `sambaId`; manually
+  // added ones have `sambaId: null`. There's no backend query param for
+  // this, so it's a pure client-side filter over the full catalogue —
+  // same engage-the-full-list pattern as the highlight dropdown. `null`
+  // value = no filter (all products).
+  const sourceOptions = [
+    { label: t("productsList.source_all", "Tüm Kaynaklar"), value: null },
+    { label: t("productsList.source_sync", "Sync Ürünler"), value: "sync" },
+    {
+      label: t("productsList.source_manual", "Manuel Eklenenler"),
+      value: "manual",
+    },
+  ];
+
   const [productsData, setProductsData] = useState(null);
   const [searchVal, setSearchVal] = useState("");
   const [statusFilter, setStatusFilter] = useState(statusOptions[0]);
   const [categoryFilter, setCategoryFilter] = useState(allCategoryOption);
   const [highlightFilter, setHighlightFilter] = useState(highlightOptions[0]);
+  const [sourceFilter, setSourceFilter] = useState(sourceOptions[0]);
 
   const [pageNumber, setPageNumber] = useState(initialPage);
   // Products page uses a fixed 20 rows per page, independent of the
@@ -217,8 +233,35 @@ const Products = () => {
   const campaignForHighlight = (opt) =>
     opt?.value === "campaign" ? true : null;
 
+  // A product is "synced" (came from the POS integration / Sync tool)
+  // when it carries a SambaID; manual products have none (backend
+  // returns null). Tolerant of "", "0" just in case the backend ever
+  // emits those for manual rows.
+  const hasSambaId = (p) =>
+    p?.sambaId != null &&
+    String(p.sambaId).trim() !== "" &&
+    String(p.sambaId).trim() !== "0";
+
   const isAllCategory = (opt) =>
     !opt || opt.value === ALL_CATEGORIES_VALUE || !opt.id;
+
+  // Re-translate the SELECTED filter labels when the UI language changes
+  // live. The header toggle calls i18n.changeLanguage (no reload), so the
+  // option *lists* recompute in the new language, but the selected option
+  // objects stored in state were built with t() at selection time and
+  // keep their old-language label (e.g. "Tüm Kategoriler" lingering while
+  // the app is in English). Re-map each selection to the current-language
+  // option by its stable value/id. Category names are real data (not
+  // translated), so only the "all" sentinel needs re-mapping.
+  useEffect(() => {
+    setStatusFilter((p) => statusOptions.find((o) => o.value === p?.value) ?? p);
+    setHighlightFilter(
+      (p) => highlightOptions.find((o) => o.value === p?.value) ?? p,
+    );
+    setSourceFilter((p) => sourceOptions.find((o) => o.value === p?.value) ?? p);
+    setCategoryFilter((p) => (isAllCategory(p) ? allCategoryOption : p));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
   function handleFilter(opt, type) {
     if (type === "status") setStatusFilter(opt);
@@ -267,6 +310,7 @@ const Products = () => {
     setStatusFilter(statusOptions[0]);
     setCategoryFilter(allCategoryOption);
     setHighlightFilter(highlightOptions[0]);
+    setSourceFilter(sourceOptions[0]);
     dispatch(
       getProducts({
         restaurantId,
@@ -285,7 +329,8 @@ const Products = () => {
     searchVal ||
     statusFilter?.value !== null ||
     !isAllCategory(categoryFilter) ||
-    highlightFilter?.value !== null;
+    highlightFilter?.value !== null ||
+    sourceFilter?.value !== null;
 
   // Pull *every* product. Used by the duplicate-finder and client-side
   // search modes — both need full DTOs (description, prices, etc.) so
@@ -493,8 +538,9 @@ const Products = () => {
   const searchActive = !!searchVal && searchVal.trim().length > 0;
   const recommendationActive = highlightFilter?.value === "recommendation";
   const campaignActive = highlightFilter?.value === "campaign";
+  const sourceActive = !!sourceFilter?.value;
   const clientFilterActive =
-    searchActive || recommendationActive || campaignActive;
+    searchActive || recommendationActive || campaignActive || sourceActive;
 
   // Pull the full list once when any client-side filter engages (or
   // restart it when content changes via delete/edit). Skipping if
@@ -545,6 +591,10 @@ const Products = () => {
       // never need to AND them.
       if (recommendationActive && !p.recommendation) return false;
       if (campaignActive && !p.isCampaign) return false;
+      // Apply the source (SambaID) filter: sync = has SambaID, manual
+      // = no SambaID.
+      if (sourceFilter?.value === "sync" && !hasSambaId(p)) return false;
+      if (sourceFilter?.value === "manual" && hasSambaId(p)) return false;
       // Match against name (and description as a bonus) — only when
       // a search term is actually present; highlight-only mode skips
       // this so non-matching names aren't filtered out.
@@ -564,6 +614,7 @@ const Products = () => {
     statusFilter,
     recommendationActive,
     campaignActive,
+    sourceFilter,
   ]);
 
   // Snapshot the live filter state in a ref so callbacks captured by
@@ -579,6 +630,7 @@ const Products = () => {
     categoryFilter,
     statusFilter,
     highlightFilter,
+    sourceFilter,
     pageNumber,
     showDuplicates,
     showNoImage,
@@ -589,6 +641,7 @@ const Products = () => {
       categoryFilter,
       statusFilter,
       highlightFilter,
+      sourceFilter,
       pageNumber,
       showDuplicates,
       showNoImage,
@@ -598,6 +651,7 @@ const Products = () => {
     categoryFilter,
     statusFilter,
     highlightFilter,
+    sourceFilter,
     pageNumber,
     showDuplicates,
     showNoImage,
@@ -643,11 +697,13 @@ const Products = () => {
       const highlightActive =
         f.highlightFilter?.value === "recommendation" ||
         f.highlightFilter?.value === "campaign";
+      const sourceFilterActive = !!f.sourceFilter?.value;
       if (
         f.showDuplicates ||
         f.showNoImage ||
         f.searchVal ||
-        highlightActive
+        highlightActive ||
+        sourceFilterActive
       ) {
         // Any client-filter mode → refresh the local allProducts
         // snapshot the UI is rendering from. Without this branch a
@@ -926,6 +982,25 @@ const Products = () => {
                   value={highlightFilter}
                   options={highlightOptions}
                   onChange={(opt) => handleFilter(opt, "highlight")}
+                  isSearchable={false}
+                  className="text-sm font-medium"
+                  className2="relative w-full"
+                  menuPlacement="auto"
+                />
+              </div>
+              {/* Source (SambaID) filter — client-side only, so it
+                  doesn't go through handleFilter (no backend param).
+                  Engages the full-catalogue client filter via
+                  clientFilterActive. */}
+              <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
+                <CustomSelect
+                  label=""
+                  value={sourceFilter}
+                  options={sourceOptions}
+                  onChange={(opt) => {
+                    setSourceFilter(opt);
+                    setPageNumber(1);
+                  }}
                   isSearchable={false}
                   className="text-sm font-medium"
                   className2="relative w-full"
