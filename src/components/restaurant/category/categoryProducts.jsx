@@ -42,8 +42,10 @@ import {
   Inbox,
   ArrowRightLeft,
   Check,
+  CheckCheck,
   AlertTriangle,
   Layers,
+  FolderPlus,
 } from "lucide-react";
 
 import EditProduct from "../products/editProduct";
@@ -66,6 +68,12 @@ import {
   reorderCategoryProducts,
   resetReorderCategoryProducts,
 } from "../../../redux/categories/reorderCategoryProductsSlice";
+import {
+  addCategory,
+  resetAddCategory,
+} from "../../../redux/categories/addCategorySlice";
+import { getCategories } from "../../../redux/categories/getCategoriesSlice";
+import { getMenus } from "../../../redux/menus/getMenusSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -114,6 +122,14 @@ const CategoryProducts = ({
   // this category" is therefore really "move to another category"). The
   // parent page already populates this slice on mount.
   const { categories } = useSelector((s) => s.categories.get);
+  // Menus — used only to decide a sensible default menu assignment when
+  // the user creates a brand-new destination category inline (mirrors
+  // AddCategory: auto-attach the single menu so the new category isn't
+  // born hidden; with 0 or 2+ menus we leave it for the user to assign
+  // via "Kategori Düzenle", and warn in the create UI).
+  const { menus, fetchedFor: menusFetchedFor } = useSelector(
+    (s) => s.menus.get,
+  );
 
   // Local state for the category-side list — initialised from the slice
   // and mutated locally so optimistic add / drag-reorder feel snappy
@@ -134,6 +150,30 @@ const CategoryProducts = ({
 
   // Single search box, filters both columns.
   const [searchVal, setSearchVal] = useState("");
+
+  // Multi-select state — one Set per column (the operations differ:
+  // LEFT = bulk-add to this category, RIGHT = bulk-move to another).
+  // `bulkBusy` gates a whole batch the way `mutatingId` gates a single
+  // row; while a batch is in flight every per-row + bulk action is
+  // disabled so optimistic state can't be clobbered by overlapping work.
+  const [selectedAvailable, setSelectedAvailable] = useState(() => new Set());
+  const [selectedInCategory, setSelectedInCategory] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleAvailable = (id) =>
+    setSelectedAvailable((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const toggleInCategory = (id) =>
+    setSelectedInCategory((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const clearAvailableSelection = () => setSelectedAvailable(new Set());
+  const clearInCategorySelection = () => setSelectedInCategory(new Set());
 
   // The popup wrapper applies `transform: scale(1)` and `backdrop-
   // filter: blur(...)` — both create a new containing block for
@@ -192,6 +232,15 @@ const CategoryProducts = ({
       dispatch(getProductsLite({ restaurantId }));
     }
   }, [restaurantId, liteProducts, liteFetchedFor, dispatch]);
+
+  // Menus for the inline "create new category" default assignment.
+  // Cached by `fetchedFor`, so this is a no-op when the menus slice is
+  // already warm from another page.
+  useEffect(() => {
+    if (restaurantId && (!menus || menusFetchedFor !== restaurantId)) {
+      dispatch(getMenus({ restaurantId, __silent: true }));
+    }
+  }, [restaurantId, menus, menusFetchedFor, dispatch]);
 
   // Sync slice → local for the right column.
   useEffect(() => {
@@ -253,6 +302,76 @@ const CategoryProducts = ({
     if (!q) return availableProducts;
     return availableProducts.filter((p) => normalizeSearch(p.name).includes(q));
   }, [availableProducts, q]);
+
+  // Keep each column's selection valid: drop ids that left the column
+  // (added/moved/removed by a single OR bulk op) so a stale id never
+  // lingers in the Set and inflates the "N selected" count or targets a
+  // product that's no longer there.
+  useEffect(() => {
+    if (!availableProducts) return;
+    const live = new Set(availableProducts.map((p) => p.id));
+    setSelectedAvailable((prev) => {
+      let changed = false;
+      const next = new Set();
+      prev.forEach((id) => (live.has(id) ? next.add(id) : (changed = true)));
+      return changed ? next : prev;
+    });
+  }, [availableProducts]);
+  useEffect(() => {
+    if (!items) return;
+    const live = new Set(items.map((p) => p.id));
+    setSelectedInCategory((prev) => {
+      let changed = false;
+      const next = new Set();
+      prev.forEach((id) => (live.has(id) ? next.add(id) : (changed = true)));
+      return changed ? next : prev;
+    });
+  }, [items]);
+
+  // The actual product objects a bulk op will act on — selection can
+  // hold ids hidden by the current search (selected under a previous
+  // query), so resolve against the FULL column list, not the filtered
+  // view, and act on everything still selected.
+  const selectedAvailableProducts = useMemo(
+    () => (availableProducts || []).filter((p) => selectedAvailable.has(p.id)),
+    [availableProducts, selectedAvailable],
+  );
+  const selectedInCategoryProducts = useMemo(
+    () => (items || []).filter((p) => selectedInCategory.has(p.id)),
+    [items, selectedInCategory],
+  );
+
+  // "Select all" acts on the VISIBLE (filtered) rows only — second click
+  // clears them. Other selected-but-hidden ids are left untouched.
+  const allAvailableVisibleSelected =
+    !!filteredAvailable &&
+    filteredAvailable.length > 0 &&
+    filteredAvailable.every((p) => selectedAvailable.has(p.id));
+  const allInCategoryVisibleSelected =
+    !!filteredItems &&
+    filteredItems.length > 0 &&
+    filteredItems.every((p) => selectedInCategory.has(p.id));
+
+  const toggleSelectAllAvailable = () => {
+    const visible = filteredAvailable || [];
+    setSelectedAvailable((prev) => {
+      const next = new Set(prev);
+      const allSel = visible.length > 0 && visible.every((p) => next.has(p.id));
+      if (allSel) visible.forEach((p) => next.delete(p.id));
+      else visible.forEach((p) => next.add(p.id));
+      return next;
+    });
+  };
+  const toggleSelectAllInCategory = () => {
+    const visible = filteredItems || [];
+    setSelectedInCategory((prev) => {
+      const next = new Set(prev);
+      const allSel = visible.length > 0 && visible.every((p) => next.has(p.id));
+      if (allSel) visible.forEach((p) => next.delete(p.id));
+      else visible.forEach((p) => next.add(p.id));
+      return next;
+    });
+  };
 
   const handleEditProduct = (product) =>
     setSecondPopupContent(<EditProduct product={product} />);
@@ -334,6 +453,8 @@ const CategoryProducts = ({
         product={prod}
         currentCategoryId={categoryId}
         categories={categories}
+        menuCount={(menus || []).length}
+        onCreate={handleCreateCategory}
         t={t}
         onCancel={() => setSecondPopupContent(null)}
         onConfirm={(targetCategoryId) => {
@@ -419,6 +540,256 @@ const CategoryProducts = ({
       dispatch(resetAddProductToCategory());
       dispatch(resetRemoveProductFromCategory());
       setMutatingId(null);
+    }
+  };
+
+  // === Bulk: add every selected left-column product to this category ===
+  // Same many-to-many ADD as the single-row flow, fanned out. Optimistic:
+  // move all selected from the left column to the right in one paint, then
+  // fire the dispatches in parallel and reconcile per item — only the
+  // FAILED ones roll back to the left, successes stay. Mirrors the
+  // single-add's optimistic+rollback contract so a partial failure leaves
+  // a coherent UI.
+  const handleBulkAdd = async () => {
+    if (bulkBusy || mutatingId) return;
+    const prods = selectedAvailableProducts;
+    if (!prods.length) return;
+    setBulkBusy(true);
+
+    const prevItems = items ?? [];
+    const prevLite = liteLocal ?? [];
+    const baseOrder = prevItems.length;
+    const added = prods.map((p, i) => ({
+      ...p,
+      categoryId,
+      sortOrder: baseOrder + i,
+    }));
+    const addIds = new Set(prods.map((p) => p.id));
+
+    // Optimistic move: append to right, drop from left. Update both
+    // `items` and `itemsBefore` so the batch doesn't read as unsaved
+    // drag order.
+    setItems([...prevItems, ...added]);
+    setItemsBefore((prev) => [...(prev ?? []), ...added]);
+    setLiteLocal(prevLite.filter((p) => !addIds.has(p.id)));
+
+    const results = await Promise.allSettled(
+      prods.map((p) =>
+        dispatch(
+          addProductToCategory({
+            productId: p.id,
+            categoryId,
+            subCategoryId: p.subCategoryId ?? null,
+          }),
+        ).then((action) => {
+          if (action?.error) throw action.payload || action.error;
+          return p.id;
+        }),
+      ),
+    );
+
+    const okIds = new Set(
+      results.filter((r) => r.status === "fulfilled").map((r) => r.value),
+    );
+    const failed = prods.filter((p) => !okIds.has(p.id));
+    if (failed.length) {
+      const failIds = new Set(failed.map((p) => p.id));
+      // Roll back ONLY the failures: pull them back out of the right
+      // column and restore them to the left.
+      setItems((cur) => (cur ?? []).filter((p) => !failIds.has(p.id)));
+      setItemsBefore((cur) => (cur ?? []).filter((p) => !failIds.has(p.id)));
+      setLiteLocal((cur) => [...(cur ?? []), ...failed]);
+    }
+
+    if (okIds.size > 0) {
+      toast.success(
+        t("categoryProducts.bulk_add_success", {
+          count: okIds.size,
+          defaultValue: "{{count}} ürün bu kategoriye eklendi.",
+        }),
+        { id: "catProdBulkAdd" },
+      );
+    }
+    if (failed.length > 0) {
+      toast.error(
+        t("categoryProducts.bulk_add_partial", {
+          count: failed.length,
+          defaultValue: "{{count}} ürün eklenemedi.",
+        }),
+        { id: "catProdBulkAddErr" },
+      );
+    }
+
+    dispatch(resetAddProductToCategory());
+    setSelectedAvailable(new Set());
+    setBulkBusy(false);
+  };
+
+  // Open the destination picker for a bulk move, then run it. Reuses the
+  // single-move picker (it just needs a target category); the `count`
+  // prop swaps its copy to the bulk phrasing.
+  const handleBulkMoveRequest = () => {
+    if (bulkBusy || mutatingId) return;
+    const count = selectedInCategoryProducts.length;
+    if (!count) return;
+    setSecondPopupContent(
+      <MoveToCategoryPopup
+        product={null}
+        count={count}
+        currentCategoryId={categoryId}
+        categories={categories}
+        menuCount={(menus || []).length}
+        onCreate={handleCreateCategory}
+        t={t}
+        onCancel={() => setSecondPopupContent(null)}
+        onConfirm={(targetCategoryId) => {
+          setSecondPopupContent(null);
+          executeBulkMove(targetCategoryId);
+        }}
+      />,
+    );
+  };
+
+  // === Bulk: move every selected right-column product to a target cat ===
+  // Per product = ADD to target then REMOVE from this (ordered so the
+  // orphan guard never trips — same as the single move). Products run in
+  // parallel; each is all-or-nothing. Failures roll back into the right
+  // column; the backend reconciles any partial add/remove on next view.
+  const executeBulkMove = async (targetCategoryId) => {
+    if (!targetCategoryId || bulkBusy || mutatingId) return;
+    const prods = selectedInCategoryProducts;
+    if (!prods.length) return;
+    setBulkBusy(true);
+
+    const prevItems = items ?? [];
+    const prevItemsBefore = itemsBefore ?? [];
+    const prevLite = liteLocal ?? [];
+    const moveIds = new Set(prods.map((p) => p.id));
+
+    // Optimistic: drop all selected from the right column, surface them in
+    // the lite cache under the target category (so they'd appear on the
+    // left if that category is opened later).
+    setItems(prevItems.filter((p) => !moveIds.has(p.id)));
+    setItemsBefore(prevItemsBefore.filter((p) => !moveIds.has(p.id)));
+    setLiteLocal([
+      ...prevLite.filter((p) => !moveIds.has(p.id)),
+      ...prods.map((p) => ({ ...p, categoryId: targetCategoryId })),
+    ]);
+
+    const results = await Promise.allSettled(
+      prods.map(async (p) => {
+        const addAction = await dispatch(
+          addProductToCategory({
+            productId: p.id,
+            categoryId: targetCategoryId,
+            subCategoryId: null,
+          }),
+        );
+        if (addAction?.error) throw addAction.payload || addAction.error;
+        const removeAction = await dispatch(
+          removeProductFromCategory({ productId: p.id, categoryId }),
+        );
+        if (removeAction?.error)
+          throw removeAction.payload || removeAction.error;
+        return p.id;
+      }),
+    );
+
+    const okIds = new Set(
+      results.filter((r) => r.status === "fulfilled").map((r) => r.value),
+    );
+    const failed = prods.filter((p) => !okIds.has(p.id));
+    if (failed.length) {
+      const failIds = new Set(failed.map((p) => p.id));
+      setItems((cur) => [...(cur ?? []), ...failed]);
+      setItemsBefore((cur) => [...(cur ?? []), ...failed]);
+      setLiteLocal((cur) => (cur ?? []).filter((p) => !failIds.has(p.id)));
+    }
+
+    if (okIds.size > 0) {
+      const targetCat = (categories || []).find(
+        (c) => c.id === targetCategoryId,
+      );
+      toast.success(
+        t("categoryProducts.bulk_move_success", {
+          count: okIds.size,
+          category: targetCat?.name || "",
+          defaultValue: "{{count}} ürün {{category}} kategorisine taşındı.",
+        }),
+        { id: "catProdBulkMove" },
+      );
+    }
+    if (failed.length > 0) {
+      toast.error(
+        t("categoryProducts.bulk_move_partial", {
+          count: failed.length,
+          defaultValue: "{{count}} ürün taşınamadı.",
+        }),
+        { id: "catProdBulkMoveErr" },
+      );
+    }
+
+    dispatch(resetAddProductToCategory());
+    dispatch(resetRemoveProductFromCategory());
+    setSelectedInCategory(new Set());
+    setBulkBusy(false);
+  };
+
+  // Create a brand-new destination category inline (from the move picker)
+  // and return its id so the caller can move the selection straight into
+  // it. `addCategory`'s response shape isn't relied upon — we resolve the
+  // new id robustly by snapshotting the current ids, refetching the list,
+  // and taking the fresh row that matches the name. Returns the new id, or
+  // null on failure (the picker stays open and we've already toasted).
+  const handleCreateCategory = async (rawName) => {
+    const name = (rawName || "").trim();
+    if (!name) return null;
+
+    const prevIds = new Set((categories || []).map((c) => c.id));
+    // Mirror AddCategory: auto-attach the single menu so the new category
+    // isn't born hidden; otherwise leave menus for the user to assign.
+    const menuIds = (menus || []).length === 1 ? [menus[0].id] : [];
+
+    const fd = new FormData();
+    fd.append("restaurantId", restaurantId);
+    fd.append(
+      "categoriesData",
+      JSON.stringify([
+        { name, isActive: true, featured: false, campaign: false, menuIds },
+      ]),
+    );
+
+    try {
+      const addAction = await dispatch(addCategory(fd));
+      if (addAction?.error) throw addAction.payload || addAction.error;
+
+      // Refetch and diff to find the freshly-created row's id.
+      const catAction = await dispatch(getCategories({ restaurantId }));
+      const fresh = Array.isArray(catAction.payload) ? catAction.payload : [];
+      const nName = normalizeSearch(name);
+      const created =
+        fresh.find(
+          (c) => !prevIds.has(c.id) && normalizeSearch(c.name) === nName,
+        ) || fresh.find((c) => !prevIds.has(c.id));
+      if (!created?.id) throw new Error("created-id-unresolved");
+
+      toast.success(
+        t("categoryProducts.create_success", {
+          name,
+          defaultValue: "{{name}} kategorisi oluşturuldu.",
+        }),
+        { id: "catProdCreate" },
+      );
+      return created.id;
+    } catch (err) {
+      const msg =
+        err?.message_TR ||
+        err?.message ||
+        t("categoryProducts.create_failed", "Kategori oluşturulamadı.");
+      toast.error(msg, { id: "catProdCreate" });
+      return null;
+    } finally {
+      dispatch(resetAddCategory());
     }
   };
 
@@ -554,6 +925,34 @@ const CategoryProducts = ({
           totalCount={availableProducts?.length}
           loading={!liteLocal}
           accent="slate"
+          toolbar={
+            <SelectionBar
+              visibleCount={filteredAvailable?.length || 0}
+              selectedCount={selectedAvailableProducts.length}
+              allVisibleSelected={allAvailableVisibleSelected}
+              onToggleAll={toggleSelectAllAvailable}
+              onClear={clearAvailableSelection}
+              busy={bulkBusy}
+              t={t}
+              action={
+                <button
+                  type="button"
+                  onClick={handleBulkAdd}
+                  disabled={bulkBusy || !!mutatingId}
+                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-md text-xs font-semibold text-white shadow-sm shadow-indigo-500/25 transition hover:brightness-110 active:brightness-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ background: PRIMARY_GRADIENT }}
+                >
+                  {bulkBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <ArrowRight className="size-3.5" strokeWidth={2.5} />
+                  )}
+                  {t("categoryProducts.bulk_add", "Seçilenleri Ekle")} (
+                  {selectedAvailableProducts.length})
+                </button>
+              }
+            />
+          }
         >
           {!liteLocal ? (
             <ColumnLoader />
@@ -579,7 +978,10 @@ const CategoryProducts = ({
                   t={t}
                   onAdd={handleAddToCategory}
                   adding={mutatingId === prod.id}
-                  disabled={!!mutatingId && mutatingId !== prod.id}
+                  disabled={bulkBusy || (!!mutatingId && mutatingId !== prod.id)}
+                  selected={selectedAvailable.has(prod.id)}
+                  onToggleSelect={toggleAvailable}
+                  selectionBusy={bulkBusy}
                 />
               ))}
             </div>
@@ -603,6 +1005,37 @@ const CategoryProducts = ({
           totalCount={items?.length}
           loading={!items}
           accent="indigo"
+          toolbar={
+            <SelectionBar
+              visibleCount={filteredItems?.length || 0}
+              selectedCount={selectedInCategoryProducts.length}
+              allVisibleSelected={allInCategoryVisibleSelected}
+              onToggleAll={toggleSelectAllInCategory}
+              onClear={clearInCategorySelection}
+              busy={bulkBusy}
+              t={t}
+              action={
+                <button
+                  type="button"
+                  onClick={handleBulkMoveRequest}
+                  disabled={bulkBusy || !!mutatingId}
+                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-md text-xs font-semibold text-white shadow-sm shadow-amber-500/25 transition hover:brightness-110 active:brightness-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%)",
+                  }}
+                >
+                  {bulkBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <ArrowRightLeft className="size-3.5" />
+                  )}
+                  {t("categoryProducts.bulk_move", "Seçilenleri Taşı")} (
+                  {selectedInCategoryProducts.length})
+                </button>
+              }
+            />
+          }
         >
           {!items ? (
             <ColumnLoader />
@@ -627,7 +1060,10 @@ const CategoryProducts = ({
                   onEdit={handleEditProduct}
                   onRequestMove={handleRequestMove}
                   removing={mutatingId === prod.id}
-                  disabled={!!mutatingId && mutatingId !== prod.id}
+                  disabled={bulkBusy || (!!mutatingId && mutatingId !== prod.id)}
+                  selected={selectedInCategory.has(prod.id)}
+                  onToggleSelect={toggleInCategory}
+                  selectionBusy={bulkBusy}
                   draggable={false}
                 />
               ))}
@@ -659,8 +1095,12 @@ const CategoryProducts = ({
                             onRequestMove={handleRequestMove}
                             removing={mutatingId === prod.id}
                             disabled={
-                              !!mutatingId && mutatingId !== prod.id
+                              bulkBusy ||
+                              (!!mutatingId && mutatingId !== prod.id)
                             }
+                            selected={selectedInCategory.has(prod.id)}
+                            onToggleSelect={toggleInCategory}
+                            selectionBusy={bulkBusy}
                             draggable
                           />
                         )}
@@ -727,6 +1167,7 @@ const ColumnPane = ({
   totalCount,
   loading,
   accent = "slate",
+  toolbar,
   children,
 }) => {
   const accentMap = {
@@ -782,7 +1223,86 @@ const ColumnPane = ({
           </span>
         )}
       </div>
+      {/* Optional selection strip — non-scrolling, sits between the header
+          and the list so the bulk action stays reachable while scrolling. */}
+      {!loading && toolbar}
       <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
+    </div>
+  );
+};
+
+// Small square checkbox used by the row + select-all controls. Stops
+// click propagation so ticking it never also fires a row-body toggle.
+const RowCheckbox = ({ checked, onChange, disabled, label }) => (
+  <button
+    type="button"
+    role="checkbox"
+    aria-checked={checked}
+    aria-label={label}
+    disabled={disabled}
+    onClick={(e) => {
+      e.stopPropagation();
+      if (!disabled) onChange?.();
+    }}
+    className={`grid place-items-center size-5 rounded-md border-2 transition shrink-0 ${
+      checked
+        ? "border-indigo-600 bg-indigo-600 text-white"
+        : "border-[--border-1] bg-[--white-1] hover:border-indigo-300"
+    } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+  >
+    {checked && <Check className="size-3" strokeWidth={3.5} />}
+  </button>
+);
+
+// Per-column selection strip: select-all toggle + count, and (once
+// anything is picked) a Clear button plus the column's bulk action.
+// Renders nothing when the column has no visible rows to select.
+const SelectionBar = ({
+  visibleCount,
+  selectedCount,
+  allVisibleSelected,
+  onToggleAll,
+  onClear,
+  action,
+  busy,
+  t,
+}) => {
+  if (!visibleCount) return null;
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 border-b border-[--border-1] bg-[--white-2]/40 shrink-0">
+      <RowCheckbox
+        checked={allVisibleSelected}
+        onChange={onToggleAll}
+        disabled={busy}
+        label={t("categoryProducts.select_all", "Tümünü seç")}
+      />
+      <button
+        type="button"
+        onClick={onToggleAll}
+        disabled={busy}
+        className="text-[11px] font-semibold text-[--gr-1] hover:text-[--black-1] transition disabled:opacity-60"
+      >
+        {selectedCount > 0
+          ? t("categoryProducts.selected_count", {
+              count: selectedCount,
+              defaultValue: "{{count}} seçili",
+            })
+          : t("categoryProducts.select_all", "Tümünü seç")}
+      </button>
+      <div className="flex-1 min-w-0" />
+      {selectedCount > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={onClear}
+            disabled={busy}
+            className="text-[11px] font-medium text-[--gr-1] hover:text-rose-600 transition disabled:opacity-60"
+          >
+            {t("categoryProducts.clear_selection", "Temizle")}
+          </button>
+          {action}
+        </>
+      )}
     </div>
   );
 };
@@ -805,19 +1325,42 @@ const EmptyState = ({ icon: Icon, title }) => (
 );
 
 // Left-column row — name + portions count + Add button.
-const AvailableRow = ({ prod, categoryName, t, onAdd, adding, disabled }) => {
+const AvailableRow = ({
+  prod,
+  categoryName,
+  t,
+  onAdd,
+  adding,
+  disabled,
+  selected,
+  onToggleSelect,
+  selectionBusy,
+}) => {
   return (
     <div
       className={`flex items-center gap-3 p-2.5 rounded-xl border bg-[--white-1] transition ${
-        adding
-          ? "border-indigo-300 ring-2 ring-indigo-100"
-          : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
+        selected
+          ? "border-indigo-400 ring-2 ring-indigo-200 bg-indigo-50/40 dark:bg-indigo-500/10 dark:border-indigo-400/40"
+          : adding
+            ? "border-indigo-300 ring-2 ring-indigo-100"
+            : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
       } ${disabled ? "opacity-50" : ""}`}
     >
+      <RowCheckbox
+        checked={!!selected}
+        onChange={() => onToggleSelect?.(prod.id)}
+        disabled={selectionBusy}
+        label={t("categoryProducts.select_product", "Ürünü seç")}
+      />
       <span className="grid place-items-center size-9 rounded-lg bg-[--white-2] text-[--gr-1] shrink-0 ring-1 ring-[--border-1]">
         <Package className="size-4" />
       </span>
-      <div className="min-w-0 flex-1">
+      <div
+        className={`min-w-0 flex-1 ${
+          onToggleSelect && !selectionBusy ? "cursor-pointer" : ""
+        }`}
+        onClick={() => !selectionBusy && onToggleSelect?.(prod.id)}
+      >
         <div className="text-sm font-semibold text-[--black-1] truncate">
           {prod.name}
         </div>
@@ -883,6 +1426,9 @@ const InCategoryRow = ({
   onRequestMove,
   removing,
   disabled,
+  selected,
+  onToggleSelect,
+  selectionBusy,
   draggable,
 }) => {
   const portionsCount = Array.isArray(prod.portions) ? prod.portions.length : 0;
@@ -895,11 +1441,19 @@ const InCategoryRow = ({
       className={`flex items-center gap-2.5 p-2.5 rounded-xl border bg-[--white-1] transition ${
         isDragging
           ? "border-indigo-400 ring-2 ring-indigo-200 shadow-xl"
-          : removing
-            ? "border-amber-300 ring-2 ring-amber-100"
-            : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
+          : selected
+            ? "border-indigo-400 ring-2 ring-indigo-200 bg-indigo-50/40 dark:bg-indigo-500/10 dark:border-indigo-400/40"
+            : removing
+              ? "border-amber-300 ring-2 ring-amber-100"
+              : "border-[--border-1] hover:border-indigo-200 hover:shadow-sm"
       } ${disabled ? "opacity-50" : ""}`}
     >
+      <RowCheckbox
+        checked={!!selected}
+        onChange={() => onToggleSelect?.(prod.id)}
+        disabled={selectionBusy}
+        label={t("categoryProducts.select_product", "Ürünü seç")}
+      />
       {draggable && (
         <button
           type="button"
@@ -910,7 +1464,12 @@ const InCategoryRow = ({
           <GripVertical className="size-4" />
         </button>
       )}
-      <div className="min-w-0 flex-1">
+      <div
+        className={`min-w-0 flex-1 ${
+          onToggleSelect && !selectionBusy ? "cursor-pointer" : ""
+        }`}
+        onClick={() => !selectionBusy && onToggleSelect?.(prod.id)}
+      >
         <div className="text-sm font-semibold text-[--black-1] truncate">
           {prod.name}
         </div>
@@ -959,12 +1518,23 @@ const InCategoryRow = ({
 // the user has to create another category first via the parent page).
 const MoveToCategoryPopup = ({
   product,
+  // When set (>1), the picker is moving a multi-selection rather than a
+  // single product — swaps the subtitle copy accordingly.
+  count,
   currentCategoryId,
   categories,
+  // How many menus the restaurant has — drives the inline create hint
+  // (1 → the new category is auto-attached and visible; otherwise the
+  // user must assign menus afterwards or it stays hidden).
+  menuCount,
+  // async (name) => newCategoryId | null. Creates a category and resolves
+  // its id; null means creation failed (already toasted upstream).
+  onCreate,
   t,
   onCancel,
   onConfirm,
 }) => {
+  const isBulk = typeof count === "number" && count >= 1;
   const targetOptions = useMemo(
     () =>
       (categories || [])
@@ -973,11 +1543,25 @@ const MoveToCategoryPopup = ({
     [categories, currentCategoryId],
   );
   const [selectedId, setSelectedId] = useState(null);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
   const isEmpty = targetOptions.length === 0;
   const canConfirm = !!selectedId;
 
+  // Create-and-move: make the category, then reuse the SAME move path
+  // (onConfirm) with the new id so the picker closes and the selection
+  // lands in the fresh category in one gesture.
+  const handleCreate = async () => {
+    const name = newName.trim();
+    if (!name || creating || !onCreate) return;
+    setCreating(true);
+    const newId = await onCreate(name);
+    setCreating(false);
+    if (newId) onConfirm(newId);
+  };
+
   return (
-    <div className="bg-[--white-1] rounded-2xl shadow-2xl ring-1 ring-[--border-1] w-full max-w-md mx-auto overflow-hidden flex flex-col max-h-[85dvh]">
+    <div className="bg-[--white-1] rounded-2xl shadow-2xl ring-1 ring-[--border-1] w-full max-w-xl mx-auto overflow-hidden flex flex-col max-h-[85dvh]">
       <div
         className="h-0.5 shrink-0"
         style={{ background: PRIMARY_GRADIENT }}
@@ -997,7 +1581,12 @@ const MoveToCategoryPopup = ({
             {t("categoryProducts.move_picker_title", "Kategoriyi Değiştir")}
           </h3>
           <p className="text-[11px] text-[--gr-1] truncate mt-0.5">
-            {product?.name}
+            {isBulk
+              ? t("categoryProducts.move_picker_bulk_subtitle", {
+                  count,
+                  defaultValue: "{{count}} ürün seçildi",
+                })
+              : product?.name}
           </p>
         </div>
         <button
@@ -1011,6 +1600,63 @@ const MoveToCategoryPopup = ({
       </header>
 
       <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3">
+        {/* Create a brand-new destination category inline (full width, at
+            the top), then move the selection straight into it. */}
+        {onCreate && (
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-3 dark:border-indigo-400/30 dark:bg-indigo-500/10">
+            <div className="flex items-center gap-2 mb-2">
+              <FolderPlus className="size-4 text-indigo-600 shrink-0" />
+              <span className="text-xs font-semibold text-[--black-1]">
+                {t("categoryProducts.create_new_title", "Yeni kategori oluştur")}
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreate();
+                  }
+                }}
+                disabled={creating}
+                placeholder={t(
+                  "categoryProducts.create_placeholder",
+                  "Yeni kategori adı",
+                )}
+                className="flex-1 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60"
+              />
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={!newName.trim() || creating}
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                style={{ background: PRIMARY_GRADIENT }}
+              >
+                {creating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FolderPlus className="size-4" />
+                )}
+                {t("categoryProducts.create_and_move", "Oluştur ve Taşı")}
+              </button>
+            </div>
+            <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
+              {menuCount === 1
+                ? t(
+                    "categoryProducts.create_hint_single_menu",
+                    "Yeni kategori menünüze eklenir; görselini sonra Kategori Düzenle'den ekleyebilirsiniz.",
+                  )
+                : t(
+                    "categoryProducts.create_hint_assign_menu",
+                    "Müşteri menüsünde görünmesi için yeni kategoriye sonradan menü atayın (Kategori Düzenle).",
+                  )}
+            </p>
+          </div>
+        )}
+
         {/* Why a destination is required */}
         <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2 dark:bg-amber-500/10 dark:border-amber-400/30">
           <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5 dark:text-amber-300" />
@@ -1022,7 +1668,8 @@ const MoveToCategoryPopup = ({
           </p>
         </div>
 
-        {/* Target list — radio-style clickable rows */}
+        {/* Existing categories — rendered in a TWO-COLUMN grid (sm+) so a
+            long category list stays short instead of one tall column. */}
         {isEmpty ? (
           <div className="rounded-xl border border-dashed border-[--border-1] bg-[--white-2]/60 p-6 grid place-items-center text-center">
             <span className="grid place-items-center size-10 rounded-xl bg-[--white-1] text-[--gr-1] ring-1 ring-[--border-1] mb-2">
@@ -1036,43 +1683,46 @@ const MoveToCategoryPopup = ({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {targetOptions.map((cat) => {
-              const active = selectedId === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedId(cat.id)}
-                  className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition ${
-                    active
-                      ? "border-indigo-300 bg-indigo-50 ring-1 ring-indigo-200 shadow-sm dark:bg-indigo-500/15 dark:border-indigo-400/40 dark:ring-indigo-400/30"
-                      : "border-[--border-1] bg-[--white-1] hover:border-indigo-200 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/10 dark:hover:border-indigo-400/40"
-                  }`}
-                >
-                  <span
-                    className={`grid place-items-center size-5 rounded-full border-2 transition shrink-0 ${
+          <div className="space-y-1.5">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[--gr-1] px-0.5">
+              {t("categoryProducts.move_existing_title", "Mevcut Kategoriler")}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {targetOptions.map((cat) => {
+                const active = selectedId === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedId(cat.id)}
+                    className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition ${
                       active
-                        ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-[--border-1] bg-[--white-1]"
+                        ? "border-indigo-300 bg-indigo-50 ring-1 ring-indigo-200 shadow-sm dark:bg-indigo-500/15 dark:border-indigo-400/40 dark:ring-indigo-400/30"
+                        : "border-[--border-1] bg-[--white-1] hover:border-indigo-200 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/10 dark:hover:border-indigo-400/40"
                     }`}
                   >
-                    {active && (
-                      <Check className="size-3" strokeWidth={3.5} />
-                    )}
-                  </span>
-                  <span
-                    className={`text-sm font-semibold truncate flex-1 min-w-0 ${
-                      active
-                        ? "text-indigo-900 dark:text-indigo-100"
-                        : "text-[--black-1]"
-                    }`}
-                  >
-                    {cat.name || "—"}
-                  </span>
-                </button>
-              );
-            })}
+                    <span
+                      className={`grid place-items-center size-5 rounded-full border-2 transition shrink-0 ${
+                        active
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-[--border-1] bg-[--white-1]"
+                      }`}
+                    >
+                      {active && <Check className="size-3" strokeWidth={3.5} />}
+                    </span>
+                    <span
+                      className={`text-sm font-semibold truncate flex-1 min-w-0 ${
+                        active
+                          ? "text-indigo-900 dark:text-indigo-100"
+                          : "text-[--black-1]"
+                      }`}
+                    >
+                      {cat.name || "—"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
