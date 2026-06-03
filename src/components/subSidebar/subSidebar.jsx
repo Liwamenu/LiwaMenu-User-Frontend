@@ -83,7 +83,16 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
     fetchedRestaurant?.id === id
       ? fetchedRestaurant
       : restaurantsList?.find?.((r) => r.id === id);
-  const isTenantLocked = !currentRestaurant?.tenant;
+  // Lock ONLY once we actually KNOW this restaurant and it has no tenant.
+  // While the restaurant data is still loading (currentRestaurant
+  // undefined — the list slice hasn't populated yet, or is mid silent-
+  // revalidate), DON'T lock: otherwise an existing, tenant-saved
+  // restaurant briefly looks tenant-less and clicking a sidebar item
+  // fired the false "set your tenant first" toast. (`fetchedRestaurant`
+  // is normally null now — restaurantHome resolves the entity from the
+  // list, not the slow single GetRestaurantById — so this guard rests
+  // entirely on the list being present.)
+  const isTenantLocked = !!currentRestaurant && !currentRestaurant.tenant;
 
   // Read the three onboarding-asset slices to drive the progressive
   // gate. Each is stamped with a `fetchedFor` cache key, so we only
