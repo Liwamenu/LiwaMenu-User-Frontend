@@ -29,7 +29,7 @@
 // pragmatic default — same name almost always means the same dish.
 // Counted separately in the summary so the user can spot anomalies.
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -52,6 +52,8 @@ import {
   AlertCircle,
   FolderTree,
   FolderPlus,
+  Tag,
+  CheckCheck,
 } from "lucide-react";
 
 import { usePopup } from "../../../context/PopupContext";
@@ -107,6 +109,136 @@ function normaliseName(s) {
     .replace(/\p{M}+/gu, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Build the v2 restore diff: classify each backup entity as "existing"
+// (a live counterpart was found) or "new". Matching strategy:
+//   - "id":   match backup.id against the live id (manifest 1:1 — the
+//             default; relies on the IDs in the backup still being valid
+//             for this restaurant).
+//   - "name": match by normalised name (category name, product name,
+//             subcategory by parent + name) and IGNORE the manifest IDs
+//             entirely. Lets a backup be restored into a restaurant whose
+//             data has different IDs (recreated, or a different
+//             restaurant) without duplicating items that already exist
+//             under the same name.
+// The "existing" bucket drives UPDATE (full mode); "new" drives CREATE
+// (both modes). Apply uses the matched `live` row's id, so name-matching
+// transparently retargets updates to the right live row.
+function computeV2Diff(
+  parsed,
+  liveCategories,
+  liveSubCategories,
+  products,
+  matchStrategy,
+) {
+  const byName = matchStrategy === "name";
+
+  // ── ID lookups (id mode) ──
+  const liveCatById = new Map(
+    (liveCategories || []).map((c) => [c?.id, c]).filter(([id]) => id),
+  );
+  const liveSubById = new Map(
+    (liveSubCategories || []).map((s) => [s?.id, s]).filter(([id]) => id),
+  );
+  const liveProductById = new Map(
+    (products || []).map((p) => [p?.id || p?.Id, p]).filter(([id]) => id),
+  );
+
+  // ── Name lookups (name mode) ──
+  // name → ARRAY of live rows (preserve order) + a per-key cursor, so
+  // duplicate names pair up by ordinal: the Nth backup entity with a
+  // given name matches the Nth live entity with that name. Without this,
+  // every duplicate collapsed onto the FIRST live row, leaving the 2nd+
+  // live copies unmatched — so their fields/images were never updated
+  // (the "duplicate product images didn't update" bug).
+  const pushTo = (map, key, val) => {
+    const a = map.get(key);
+    if (a) a.push(val);
+    else map.set(key, [val]);
+  };
+  const liveCatsByName = new Map();
+  for (const c of liveCategories || []) {
+    const k = normaliseName(c?.name);
+    if (k) pushTo(liveCatsByName, k, c);
+  }
+  const liveProdsByName = new Map();
+  for (const p of products || []) {
+    const k = normaliseName(p?.name);
+    if (k) pushTo(liveProdsByName, k, p);
+  }
+  const liveSubsByParentName = new Map();
+  for (const s of liveSubCategories || []) {
+    const parent = s?.categoryId ?? s?.CategoryId;
+    const k = normaliseName(s?.name);
+    if (parent && k) pushTo(liveSubsByParentName, `${parent}::${k}`, s);
+  }
+  const catCursor = new Map();
+  const subCursor = new Map();
+  const prodCursor = new Map();
+  // Pop the next not-yet-consumed live row for this name key (ordinal
+  // pairing). Returns null when the key is unknown or exhausted.
+  const takeByName = (listMap, cursorMap, key) => {
+    if (!key) return null;
+    const list = listMap.get(key);
+    if (!list) return null;
+    const idx = cursorMap.get(key) || 0;
+    if (idx >= list.length) return null;
+    cursorMap.set(key, idx + 1);
+    return list[idx];
+  };
+
+  const cats = { existing: [], new: [] };
+  const subs = { existing: [], new: [] };
+  const prods = { existing: [], new: [] };
+
+  for (const bc of parsed.categories || []) {
+    const liveCat = byName
+      ? takeByName(liveCatsByName, catCursor, normaliseName(bc?.name))
+      : bc?.id
+        ? liveCatById.get(bc.id)
+        : null;
+    if (liveCat) cats.existing.push({ backup: bc, live: liveCat });
+    else cats.new.push({ backup: bc });
+
+    for (const bs of bc.subCategories || []) {
+      let liveSub = null;
+      if (byName) {
+        // Scope the sub name lookup to the matched live parent so the
+        // same sub name under different categories doesn't cross-match.
+        if (liveCat) {
+          liveSub = takeByName(
+            liveSubsByParentName,
+            subCursor,
+            `${liveCat.id}::${normaliseName(bs?.name)}`,
+          );
+        }
+      } else {
+        liveSub = bs?.id ? liveSubById.get(bs.id) : null;
+      }
+      if (liveSub) {
+        subs.existing.push({
+          backup: bs,
+          live: liveSub,
+          parentBackupId: bc?.id,
+        });
+      } else {
+        subs.new.push({ backup: bs, parentBackupId: bc?.id });
+      }
+    }
+  }
+
+  for (const bp of parsed.products || []) {
+    const liveProd = byName
+      ? takeByName(liveProdsByName, prodCursor, normaliseName(bp?.name))
+      : bp?.id
+        ? liveProductById.get(bp.id)
+        : null;
+    if (liveProd) prods.existing.push({ backup: bp, live: liveProd });
+    else prods.new.push({ backup: bp });
+  }
+
+  return { cats, subs, prods };
 }
 
 // Bounded-concurrency walk; preserves input order in the result so we
@@ -218,27 +350,54 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
   const [currentSubCategories, setCurrentSubCategories] = useState([]);
   const [categoryDiff, setCategoryDiff] = useState(null); // { newCategoryCount, newSubCategoryCount }
 
-  // Apply toggles — default to whatever the manifest contains.
-  // (v1 only — v2 restore is whole-entity via the radio below.)
-  const [applyImages, setApplyImages] = useState(true);
-  const [applyDescription, setApplyDescription] = useState(true);
-  const [applyAllergens, setApplyAllergens] = useState(true);
-  // Categories toggle — only meaningful if the manifest has a
-  // `categories` section and `includes.categories: true`.
+  // Field toggles — WHICH fields the restore writes. Default OFF: the
+  // user explicitly picks what to restore (no pre-selected defaults).
+  // In v2 these gate the per-field overwrite on matched products; in v1
+  // they gate the metadata UPDATE.
+  const [applyImages, setApplyImages] = useState(false);
+  const [applyDescription, setApplyDescription] = useState(false);
+  const [applyAllergens, setApplyAllergens] = useState(false);
+  // Prices (product portions) — v2 only. Off by default.
+  const [applyPrices, setApplyPrices] = useState(false);
+  // Categories & subcategories — restores the category/subcategory
+  // entities AND product→category memberships. Off by default.
   const [applyCategories, setApplyCategories] = useState(false);
 
-  // v2 only — radio mode for restore semantics:
-  //   "merge" = only CREATE entries that don't already exist by ID
-  //             (existing items are left untouched)
-  //   "full"  = CREATE missing + UPDATE existing with backup data
-  //             (overwrites any post-backup edits on matched items)
-  const [restoreMode, setRestoreMode] = useState("merge");
-  // v2 diff: per-entity-type lists of existing (UPDATE candidates)
-  // vs new (CREATE candidates). Built in handleFile, consumed by
-  // the diff UI and the apply phase.
-  const [v2Diff, setV2Diff] = useState(null);
+  // v2 only — also CREATE backup items that have no live match (matched
+  // items are always UPDATE-only, per-field). Off by default; the user
+  // opts in. Replaces the old merge/full radio.
+  const [createMissing, setCreateMissing] = useState(false);
+  // v2 only — how backup entities are matched to live ones. No default:
+  // the user must choose before applying.
+  //   "id"   = manifest 1:1 (match backup.id ↔ live id)
+  //   "name" = match by category/product name, ignore the manifest IDs
+  //            (restore into a restaurant whose data has different IDs
+  //            without creating duplicates). See computeV2Diff.
+  const [matchStrategy, setMatchStrategy] = useState(null);
+  // v2 diff: per-entity-type lists of existing (UPDATE candidates) vs
+  // new (CREATE candidates). Derived (not stored) so it recomputes when
+  // the user flips the matching strategy without re-parsing the ZIP.
+  const v2Diff = useMemo(() => {
+    if (!manifest || Number(manifest.version) !== 2) return null;
+    return computeV2Diff(
+      manifest,
+      currentCategories,
+      currentSubCategories,
+      currentProducts,
+      matchStrategy,
+    );
+  }, [
+    manifest,
+    currentCategories,
+    currentSubCategories,
+    currentProducts,
+    matchStrategy,
+  ]);
 
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  // Name (with a type prefix) of the entity currently being created /
+  // updated during the apply phase — shown under the progress count.
+  const [progressLabel, setProgressLabel] = useState("");
   const [summary, setSummary] = useState(null); // { updated, failed, ambiguousCount, unmatchedCount, errors: [...] }
 
   const fileInputRef = useRef(null);
@@ -356,7 +515,6 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       let liveCategories = [];
       let liveSubCategories = [];
       let catDiff = null;
-      let v2DiffLocal = null;
       if (Array.isArray(parsed.categories) && parsed.categories.length > 0) {
         const [catsRes, subsRes] = await Promise.all([
           api
@@ -413,62 +571,11 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
         catDiff = { newCategoryCount, newSubCategoryCount };
       }
 
-      // ── v2: ID-based diff (existing vs new per entity type) ──
-      // Built ONLY for v2 backups. v1 backups stay on the name-based
-      // flow above. The "existing" bucket drives UPDATE in full
-      // mode; the "new" bucket drives CREATE in both merge and full.
-      if (Number(parsed.version) === 2) {
-        const liveCatById = new Map(
-          liveCategories.map((c) => [c?.id, c]).filter(([id]) => id),
-        );
-        const liveSubById = new Map(
-          liveSubCategories.map((s) => [s?.id, s]).filter(([id]) => id),
-        );
-        const liveProductById = new Map(
-          (products || [])
-            .map((p) => [p?.id || p?.Id, p])
-            .filter(([id]) => id),
-        );
-
-        const cats = { existing: [], new: [] };
-        const subs = { existing: [], new: [] };
-        const prods = { existing: [], new: [] };
-
-        for (const bc of parsed.categories || []) {
-          const bid = bc?.id;
-          if (bid && liveCatById.has(bid)) {
-            cats.existing.push({ backup: bc, live: liveCatById.get(bid) });
-          } else {
-            cats.new.push({ backup: bc });
-          }
-          for (const bs of bc.subCategories || []) {
-            const sbid = bs?.id;
-            if (sbid && liveSubById.has(sbid)) {
-              subs.existing.push({
-                backup: bs,
-                live: liveSubById.get(sbid),
-                parentBackupId: bid,
-              });
-            } else {
-              subs.new.push({ backup: bs, parentBackupId: bid });
-            }
-          }
-        }
-
-        for (const bp of parsed.products || []) {
-          const bid = bp?.id;
-          if (bid && liveProductById.has(bid)) {
-            prods.existing.push({
-              backup: bp,
-              live: liveProductById.get(bid),
-            });
-          } else {
-            prods.new.push({ backup: bp });
-          }
-        }
-
-        v2DiffLocal = { cats, subs, prods };
-      }
+      // NOTE: the v2 existing-vs-new diff is no longer computed here.
+      // It's derived by the `v2Diff` useMemo from the manifest + the
+      // live data set below, so it recomputes when the user flips the
+      // matching strategy (ID ↔ name) without re-parsing the ZIP. See
+      // computeV2Diff.
 
       setZip(zipInstance);
       setManifest(parsed);
@@ -476,7 +583,6 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       setCurrentCategories(liveCategories);
       setCurrentSubCategories(liveSubCategories);
       setCategoryDiff(catDiff);
-      setV2Diff(v2DiffLocal);
       setMatchInfo({ matched, ambiguous, unmatched });
       setPhase("ready");
     } catch (err) {
@@ -517,7 +623,13 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
   // rewrite downstream references through these maps either way.
   const applyV2 = async () => {
     const api = privateApi();
-    const isFullMode = restoreMode === "full";
+    // In name-matching mode we deliberately IGNORE the manifest IDs, so
+    // newly-created entities must NOT carry the backup id (it may belong
+    // to a different/renamed live row — e.g. cross-restaurant restore).
+    // Let the backend mint fresh ids; cross-references still resolve via
+    // the name-seeded remap tables below.
+    const byName = matchStrategy === "name";
+    const createId = (backupId) => (byName ? undefined : backupId || undefined);
     const { cats, subs, prods } = v2Diff;
 
     // Pull image blob from the ZIP and wrap as File for multipart.
@@ -538,14 +650,24 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       return new File([blob], `restore.${ext}`, { type: mime });
     };
 
-    // Work lists, gated by mode. Merge = only the "new" buckets;
-    // full = new + existing (existing get UPDATE'd with backup data).
-    const catCreate = cats.new;
-    const catUpdate = isFullMode ? cats.existing : [];
-    const subCreate = subs.new;
-    const subUpdate = isFullMode ? subs.existing : [];
-    const prodCreate = prods.new;
-    const prodUpdate = isFullMode ? prods.existing : [];
+    // Work lists, gated by the field selections + "create missing":
+    //   - Matched (existing) products UPDATE only the selected fields —
+    //     runs whenever ANY product-affecting field is on.
+    //   - Unmatched (new) items are CREATE'd only when createMissing.
+    //   - Categories/subcategories are touched only when applyCategories
+    //     (their entities + the product→category memberships).
+    const anyProductField =
+      applyImages ||
+      applyDescription ||
+      applyAllergens ||
+      applyPrices ||
+      applyCategories;
+    const catUpdate = applyCategories ? cats.existing : [];
+    const catCreate = applyCategories && createMissing ? cats.new : [];
+    const subUpdate = applyCategories ? subs.existing : [];
+    const subCreate = applyCategories && createMissing ? subs.new : [];
+    const prodUpdate = anyProductField ? prods.existing : [];
+    const prodCreate = createMissing ? prods.new : [];
 
     const total =
       catCreate.length +
@@ -567,6 +689,18 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
 
     setPhase("applying");
     setProgress({ done: 0, total });
+    setProgressLabel("");
+    // Label shown under the progress count: "<type>: <name>" of the
+    // entity currently being processed.
+    const stepLabel = (type, name) => {
+      const prefix =
+        type === "category"
+          ? t("productsList.restore_step_category", "Kategori")
+          : type === "subcategory"
+            ? t("productsList.restore_step_subcategory", "Alt kategori")
+            : t("productsList.restore_step_product", "Ürün");
+      return `${prefix}: ${name || ""}`;
+    };
 
     const errors = [];
     let created = 0;
@@ -594,6 +728,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
     // Updates first (so any name/sortOrder changes land before
     // creates that might check for duplicates), then creates.
     for (const job of catUpdate) {
+      setProgressLabel(stepLabel("category", job?.backup?.name));
       try {
         const { backup, live } = job;
         const fd = new FormData();
@@ -641,17 +776,19 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       }
     }
     for (const job of catCreate) {
+      setProgressLabel(stepLabel("category", job?.backup?.name));
       try {
         const { backup } = job;
         const fd = new FormData();
         fd.append("restaurantId", restaurantId);
         const data = [
           {
-            // Send the backup id so the backend can persist it (per
-            // BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md). Older backends
-            // ignore it and generate their own; either way the live id
-            // is captured below from the response / re-fetch fallback.
-            id: backup.id || undefined,
+            // ID mode: send the backup id so the backend can persist it
+            // (per BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md). Name mode:
+            // omit it — see createId(). Older backends ignore it and
+            // generate their own; either way the live id is captured
+            // below from the response / re-fetch fallback.
+            id: createId(backup.id),
             name: backup.name,
             isActive: backup.isActive ?? true,
             featured: !!backup.featured,
@@ -735,6 +872,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
 
     // ── Phase B: subcategories ──
     for (const job of subUpdate) {
+      setProgressLabel(stepLabel("subcategory", job?.backup?.name));
       try {
         const { backup, live } = job;
         const parentId =
@@ -775,6 +913,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       }
     }
     for (const job of subCreate) {
+      setProgressLabel(stepLabel("subcategory", job?.backup?.name));
       try {
         const { backup, parentBackupId } = job;
         const parentLiveId = catIdMap.get(parentBackupId);
@@ -789,7 +928,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
         fd.append("restaurantId", restaurantId);
         const data = [
           {
-            id: backup.id || undefined,
+            id: createId(backup.id),
             categoryId: parentLiveId,
             name: backup.name,
             isActive: backup.isActive ?? true,
@@ -882,83 +1021,129 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       return Number.isFinite(n) ? n : 0;
     };
 
-    // Helper: build the AddProduct / EditProduct multipart payload.
-    const buildProductFormData = (backup, opts) => {
-      const fd = new FormData();
-      // Entity id. On EDIT this is the live product id. On CREATE it's
-      // the backup id — a backend honouring
-      // BACKUP_RESTORE_ID_PRESERVATION_BRIEF.md persists the product
-      // with that exact id, which keeps restores idempotent (re-running
-      // matches by id → UPDATE, not a duplicate CREATE). Older backends
-      // ignore the field and mint their own id, so sending it is always
-      // safe (additive per the brief).
-      const entityId = opts.editId || opts.createId;
-      if (entityId) fd.append("id", entityId);
-      fd.append("restaurantId", restaurantId);
-      fd.append("name", backup.name || "");
-      fd.append("description", backup.description ?? "");
-      fd.append("recommendation", !!backup.recommendation);
-      fd.append("hide", !!backup.hide);
-      fd.append("freeTagging", !!backup.freeTagging);
-      fd.append("isCampaign", !!backup.isCampaign);
-      const memberships = opts.memberships || [];
-      fd.append("categories", JSON.stringify(memberships));
-      const firstCat = memberships[0] || {};
-      // Backwards-compat fields — see PRODUCT_M2M_BACKEND_BRIEF.md §3.
-      fd.append("categoryId", firstCat.categoryId || "");
-      fd.append("subCategoryId", firstCat.subCategoryId || "");
-      const portions = (backup.portions || []).map((po) => ({
-        // Portion ids round-trip only on EDIT (update rows in place).
-        // On CREATE they're stripped so the backend mints fresh portion
-        // rows — the id-preservation brief covers the top-level product
-        // id, not nested portion ids. Keyed on editId (not entityId) on
-        // purpose so a preserved-id CREATE still gets fresh portions.
-        ...(opts.editId && po.id ? { id: po.id } : {}),
-        ...(opts.editId ? { productId: opts.editId } : {}),
+    // Helper: portion payload. Pass productId on UPDATE so live portion
+    // ids round-trip (rows update in place); pass null on CREATE so ids
+    // are stripped (backend mints fresh rows).
+    const portionsPayload = (src, productId) =>
+      (src || []).map((po) => ({
+        ...(productId && po.id ? { id: po.id } : {}),
+        ...(productId ? { productId } : {}),
         name: po.name || "",
         price: safePrice(po.price),
         campaignPrice: safePrice(po.campaignPrice),
         specialPrice: safePrice(po.specialPrice),
       }));
-      fd.append("portions", JSON.stringify(portions));
-      if (opts.imageFile) fd.append("image", opts.imageFile);
+
+    // Helper for "restore prices only": keep the LIVE portions (their
+    // ids + names) and overlay the backup prices, matched by portion
+    // name. Falls back to the live price when a portion isn't in the
+    // backup. Safe across id/name matching modes (never sends a foreign
+    // portion id).
+    const mergedPricePortions = (live, backup, productId) => {
+      const byName = new Map();
+      for (const bp of backup.portions || []) {
+        const k = normaliseName(bp.name);
+        if (k && !byName.has(k)) byName.set(k, bp);
+      }
+      return (live.portions || []).map((lp) => {
+        const bp = byName.get(normaliseName(lp.name));
+        return {
+          ...(lp.id ? { id: lp.id } : {}),
+          ...(productId ? { productId } : {}),
+          name: lp.name || "",
+          price: safePrice(bp ? bp.price : lp.price),
+          campaignPrice: safePrice(bp ? bp.campaignPrice : lp.campaignPrice),
+          specialPrice: safePrice(bp ? bp.specialPrice : lp.specialPrice),
+        };
+      });
+    };
+
+    // Helper: build the AddProduct / EditProduct multipart from
+    // ALREADY-RESOLVED field values. EditProduct is full-DTO-replace, so
+    // the caller passes the LIVE value for any field it doesn't want to
+    // overwrite (per the user's field selections).
+    const buildProductFormData = ({
+      id,
+      name,
+      description,
+      recommendation,
+      hide,
+      freeTagging,
+      isCampaign,
+      memberships,
+      portions,
+      imageFile,
+    }) => {
+      const fd = new FormData();
+      if (id) fd.append("id", id);
+      fd.append("restaurantId", restaurantId);
+      fd.append("name", name || "");
+      fd.append("description", description ?? "");
+      fd.append("recommendation", !!recommendation);
+      fd.append("hide", !!hide);
+      fd.append("freeTagging", !!freeTagging);
+      fd.append("isCampaign", !!isCampaign);
+      const mem = memberships || [];
+      fd.append("categories", JSON.stringify(mem));
+      const firstCat = mem[0] || {};
+      // Backwards-compat flat fields — see PRODUCT_M2M_BACKEND_BRIEF.md §3.
+      fd.append("categoryId", firstCat.categoryId || "");
+      fd.append("subCategoryId", firstCat.subCategoryId || "");
+      fd.append("portions", JSON.stringify(portions || []));
+      // Image only appended when a blob is given; omitting it makes the
+      // backend KEEP the product's existing image — that's how we
+      // preserve the live image when "Görseller" isn't selected.
+      if (imageFile) fd.append("image", imageFile);
       return fd;
     };
 
     // ── Phase C: products ──
+    // UPDATE matched products with ONLY the selected fields. Every other
+    // field is taken from the LIVE product so the full-DTO-replace
+    // EditProduct call doesn't wipe anything the user didn't pick.
     for (const job of prodUpdate) {
+      setProgressLabel(stepLabel("product", job?.backup?.name));
       try {
         const { backup, live } = job;
-        const memberships =
-          resolveMemberships(backup.categories).length > 0
-            ? resolveMemberships(backup.categories)
-            : // Preserve live memberships if backup has none (data
-              // sanity — never leave a product orphaned).
-              (live.categories || []).map((m) => ({
-                categoryId: m.categoryId,
-                ...(m.subCategoryId ? { subCategoryId: m.subCategoryId } : {}),
-              }));
-        const imageFile = await blobFromZip(backup.image);
-        const fd = buildProductFormData(backup, {
-          editId: live.id,
+        // Memberships: overwrite only when "Kategori ve Alt Kategori" is
+        // selected; otherwise keep the product's live memberships.
+        const liveMemberships = (live.categories || []).map((m) => ({
+          categoryId: m.categoryId,
+          ...(m.subCategoryId ? { subCategoryId: m.subCategoryId } : {}),
+        }));
+        let memberships = liveMemberships;
+        if (applyCategories) {
+          const resolved = resolveMemberships(backup.categories);
+          if (resolved.length > 0) memberships = resolved; // never orphan
+        }
+        const fd = buildProductFormData({
+          id: live.id,
+          name: live.name, // restore never renames an existing product
+          description: applyDescription
+            ? backup.description ?? ""
+            : live.description ?? "",
+          recommendation: live.recommendation,
+          hide: live.hide,
+          freeTagging: live.freeTagging,
+          isCampaign: live.isCampaign,
           memberships,
-          imageFile,
+          portions: applyPrices
+            ? mergedPricePortions(live, backup, live.id)
+            : portionsPayload(live.portions, live.id),
+          // Image: backup blob when selected; omitted otherwise so the
+          // backend keeps the live image.
+          imageFile: applyImages ? await blobFromZip(backup.image) : null,
         });
         await api.put(`${baseURL}Products/EditProduct`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        // Allergens are a separate endpoint regardless of edit/add.
-        if (Array.isArray(backup.allergens)) {
+        // Allergens (separate endpoint) — only when selected.
+        if (applyAllergens && Array.isArray(backup.allergens)) {
           await api
             .put(`${baseURL}Products/${live.id}/Allergens`, {
               allergens: backup.allergens,
             })
-            .catch(() => {
-              // Allergen update is supplementary — log per the
-              // higher-level error counter only if the whole
-              // EditProduct fails. A single allergen failure
-              // doesn't sink the whole product update.
-            });
+            .catch(() => {});
         }
         updated += 1;
       } catch (err) {
@@ -976,6 +1161,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       }
     }
     for (const job of prodCreate) {
+      setProgressLabel(stepLabel("product", job?.backup?.name));
       try {
         const { backup } = job;
         const memberships = resolveMemberships(backup.categories);
@@ -985,10 +1171,20 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
           continue;
         }
         const imageFile = await blobFromZip(backup.image);
-        const fd = buildProductFormData(backup, {
-          // Preserve the backup id on create (see buildProductFormData).
-          createId: backup.id || undefined,
+        // New products always get the FULL backup data (you can't
+        // half-create a product); the field toggles only gate UPDATES.
+        const fd = buildProductFormData({
+          // ID mode: preserve the backup id (idempotent re-runs). Name
+          // mode: omit it (createId()).
+          id: createId(backup.id),
+          name: backup.name,
+          description: backup.description ?? "",
+          recommendation: backup.recommendation,
+          hide: backup.hide,
+          freeTagging: backup.freeTagging,
+          isCampaign: backup.isCampaign,
           memberships,
+          portions: portionsPayload(backup.portions, null),
           imageFile,
         });
         const res = await api.put(`${baseURL}Products/AddProduct`, fd, {
@@ -1575,9 +1771,15 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
     setCurrentCategories([]);
     setCurrentSubCategories([]);
     setCategoryDiff(null);
-    setV2Diff(null);
-    setRestoreMode("merge");
+    setMatchStrategy(null);
+    setCreateMissing(false);
+    setApplyImages(false);
+    setApplyDescription(false);
+    setApplyAllergens(false);
+    setApplyPrices(false);
+    setApplyCategories(false);
     setProgress({ done: 0, total: 0 });
+    setProgressLabel("");
     setSummary(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -1658,14 +1860,18 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
               matchInfo={matchInfo}
               categoryDiff={categoryDiff}
               v2Diff={v2Diff}
-              restoreMode={restoreMode}
-              setRestoreMode={setRestoreMode}
+              matchStrategy={matchStrategy}
+              setMatchStrategy={setMatchStrategy}
+              createMissing={createMissing}
+              setCreateMissing={setCreateMissing}
               applyImages={applyImages}
               setApplyImages={setApplyImages}
               applyDescription={applyDescription}
               setApplyDescription={setApplyDescription}
               applyAllergens={applyAllergens}
               setApplyAllergens={setApplyAllergens}
+              applyPrices={applyPrices}
+              setApplyPrices={setApplyPrices}
               applyCategories={applyCategories}
               setApplyCategories={setApplyCategories}
             />
@@ -1681,11 +1887,19 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
                   "Ürünler güncelleniyor…",
                 )}
               </p>
-              <p className="text-[12px] text-[--gr-1] mb-4">
+              <p className="text-[12px] text-[--gr-1] mb-1">
                 {t("productsList.restore_progress", "{{done}} / {{total}}", {
                   done: progress.done,
                   total: progress.total,
                 })}
+              </p>
+              {/* Name of the item currently being created/updated. Empty
+                  <p> kept (min-h) so the bar doesn't jump when idle. */}
+              <p
+                className="text-[12px] font-medium text-[--black-2] mb-4 truncate max-w-sm mx-auto min-h-[1.1rem] px-2"
+                title={progressLabel}
+              >
+                {progressLabel}
               </p>
               <div className="max-w-sm mx-auto h-2 rounded-full bg-[--white-2] overflow-hidden">
                 <div
@@ -1723,22 +1937,17 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
                 type="button"
                 onClick={handleApply}
                 disabled={(() => {
-                  // v2: enabled whenever any work would happen given
-                  // the selected mode. Merge needs at least one new
-                  // entry across cats/subs/products. Full additionally
-                  // counts updates of existing entries.
+                  // v2: the user must pick a matching method AND at least
+                  // one field to restore. (If nothing actually matches,
+                  // the apply handler shows a "nothing to apply" toast.)
                   if (Number(manifest?.version) === 2 && v2Diff) {
-                    const newCount =
-                      v2Diff.cats.new.length +
-                      v2Diff.subs.new.length +
-                      v2Diff.prods.new.length;
-                    if (restoreMode === "merge") return newCount === 0;
-                    const totalCount =
-                      newCount +
-                      v2Diff.cats.existing.length +
-                      v2Diff.subs.existing.length +
-                      v2Diff.prods.existing.length;
-                    return totalCount === 0;
+                    const anyField =
+                      applyImages ||
+                      applyDescription ||
+                      applyAllergens ||
+                      applyPrices ||
+                      applyCategories;
+                    return !matchStrategy || !anyField;
                   }
                   // v1 legacy: same gating as before.
                   return (
@@ -1838,14 +2047,18 @@ const ReadyPhase = ({
   matchInfo,
   categoryDiff,
   v2Diff,
-  restoreMode,
-  setRestoreMode,
+  matchStrategy,
+  setMatchStrategy,
+  createMissing,
+  setCreateMissing,
   applyImages,
   setApplyImages,
   applyDescription,
   setApplyDescription,
   applyAllergens,
   setApplyAllergens,
+  applyPrices,
+  setApplyPrices,
   applyCategories,
   setApplyCategories,
 }) => {
@@ -1936,9 +2149,21 @@ const ReadyPhase = ({
       {isV2 && (
         <V2Section
           t={t}
-          v2Diff={v2Diff}
-          restoreMode={restoreMode}
-          setRestoreMode={setRestoreMode}
+          matchStrategy={matchStrategy}
+          setMatchStrategy={setMatchStrategy}
+          incl={incl}
+          applyImages={applyImages}
+          setApplyImages={setApplyImages}
+          applyDescription={applyDescription}
+          setApplyDescription={setApplyDescription}
+          applyAllergens={applyAllergens}
+          setApplyAllergens={setApplyAllergens}
+          applyCategories={applyCategories}
+          setApplyCategories={setApplyCategories}
+          applyPrices={applyPrices}
+          setApplyPrices={setApplyPrices}
+          createMissing={createMissing}
+          setCreateMissing={setCreateMissing}
         />
       )}
 
@@ -2067,21 +2292,19 @@ const ReadyPhase = ({
         </div>
       )}
 
-      {/* Warning — wording switches based on mode. Merge is non-
-          destructive; full mode overwrites and can lose post-backup
-          changes. */}
+      {/* Warning — wording reflects what the current selection will do. */}
       <div className="flex items-start gap-2 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11.5px] leading-snug dark:bg-rose-500/10 dark:border-rose-400/30 dark:text-rose-200">
         <FileWarning className="size-4 shrink-0 mt-0.5" />
         <span>
-          {isV2 && restoreMode === "merge"
+          {isV2 && createMissing
             ? t(
-                "productsList.restore_warning_merge",
-                "Sadece eksik öğeler eklenecek. Mevcut kategoriler, alt kategoriler ve ürünler değiştirilmez.",
+                "productsList.restore_warning_v2_create",
+                "Eşleşen ürünlerin yalnız seçili alanları güncellenir; eşleşmeyen ürünler oluşturulur. Bu işlem geri alınamaz.",
               )
-            : isV2 && restoreMode === "full"
+            : isV2
               ? t(
-                  "productsList.restore_warning_full",
-                  "Yedekteki tüm öğeler oluşturulur veya güncellenir. Yedek alındıktan sonra yaptığın değişiklikler kaybolur. Bu işlem geri alınamaz.",
+                  "productsList.restore_warning_v2_update",
+                  "Eşleşen ürünlerin yalnız seçili alanları yedektekiyle değiştirilir; eşleşmeyenlere dokunulmaz. Bu işlem geri alınamaz.",
                 )
               : t(
                   "productsList.restore_warning",
@@ -2096,83 +2319,145 @@ const ReadyPhase = ({
 // V2 section: radio mode + per-entity-type create/update stat cards.
 // Kept as its own component so the ReadyPhase body stays scannable
 // — this block has ~80 lines of repetitive stat rendering.
-const V2Section = ({ t, v2Diff, restoreMode, setRestoreMode }) => {
-  const { cats, subs, prods } = v2Diff;
-  const newCount =
-    cats.new.length + subs.new.length + prods.new.length;
-  const existingCount =
-    cats.existing.length + subs.existing.length + prods.existing.length;
+const V2Section = ({
+  t,
+  matchStrategy,
+  setMatchStrategy,
+  incl,
+  applyImages,
+  setApplyImages,
+  applyDescription,
+  setApplyDescription,
+  applyAllergens,
+  setApplyAllergens,
+  applyCategories,
+  setApplyCategories,
+  applyPrices,
+  setApplyPrices,
+  createMissing,
+  setCreateMissing,
+}) => {
+  // Field toggles available given what the backup contains. Prices are
+  // always present in a v2 backup (portions are always saved).
+  const fields = [
+    incl.image && {
+      key: "img",
+      label: t("productsList.backup_with_images", "Görseller"),
+      icon: ImageIcon,
+      checked: applyImages,
+      set: setApplyImages,
+    },
+    incl.description && {
+      key: "desc",
+      label: t("productsList.backup_with_description", "Açıklamalar"),
+      icon: FileText,
+      checked: applyDescription,
+      set: setApplyDescription,
+    },
+    incl.allergens && {
+      key: "alg",
+      label: t("productsList.backup_with_allergens", "Alerjen bilgileri"),
+      icon: Wheat,
+      checked: applyAllergens,
+      set: setApplyAllergens,
+    },
+    {
+      key: "price",
+      label: t("productsList.backup_with_prices", "Fiyatlar"),
+      icon: Tag,
+      checked: applyPrices,
+      set: setApplyPrices,
+    },
+    incl.categories && {
+      key: "cat",
+      label: t(
+        "productsList.backup_with_categories",
+        "Kategoriler & Alt Kategoriler",
+      ),
+      icon: FolderTree,
+      checked: applyCategories,
+      set: setApplyCategories,
+    },
+  ].filter(Boolean);
+
+  const allChecked = fields.length > 0 && fields.every((f) => f.checked);
+  const toggleAll = (val) => fields.forEach((f) => f.set(val));
 
   return (
     <>
-      {/* Mode radio */}
+      {/* Matching-strategy radio — no default; the user must pick one
+          before applying (the Apply button is gated on it). */}
       <div>
         <div className="text-[11px] font-bold uppercase tracking-wider text-[--gr-1] mb-2">
-          {t("productsList.restore_v2_mode_title", "Geri yükleme modu")}
+          {t("productsList.restore_v2_match_title", "Eşleştirme yöntemi")}
         </div>
         <div className="space-y-2">
           <ModeRadio
-            checked={restoreMode === "merge"}
-            onChange={() => setRestoreMode("merge")}
+            checked={matchStrategy === "id"}
+            onChange={() => setMatchStrategy("id")}
             label={t(
-              "productsList.restore_v2_mode_merge",
-              "Sadece eksikleri ekle",
+              "productsList.restore_v2_match_id",
+              "Manifest (ID) ile birebir",
             )}
             hint={t(
-              "productsList.restore_v2_mode_merge_hint",
-              "Sadece henüz var olmayan {{count}} öğe oluşturulur. Mevcut kayıtlara dokunulmaz.",
-              { count: newCount },
+              "productsList.restore_v2_match_id_hint",
+              "Yedekteki kimliklere (ID) göre eşleştirir. Aynı restoranın kendi yedeği için idealdir.",
             )}
             tone="indigo"
           />
           <ModeRadio
-            checked={restoreMode === "full"}
-            onChange={() => setRestoreMode("full")}
+            checked={matchStrategy === "name"}
+            onChange={() => setMatchStrategy("name")}
             label={t(
-              "productsList.restore_v2_mode_full",
-              "Tümünü geri yükle",
+              "productsList.restore_v2_match_name",
+              "Kategori ve ürün adına göre",
             )}
             hint={t(
-              "productsList.restore_v2_mode_full_hint",
-              "{{newCount}} öğe oluşturulur + {{existingCount}} mevcut öğe yedekteki haline güncellenir.",
-              { newCount, existingCount },
+              "productsList.restore_v2_match_name_hint",
+              "Kimlikleri yok sayar, isimlere göre eşleştirir. Farklı bir restorana veya kimlikleri değişmiş veriye yüklerken aynı adlı kayıtları çoğaltmaz.",
             )}
             tone="rose"
           />
         </div>
       </div>
 
-      {/* Per-entity-type diff cards */}
+      {/* Which fields to restore — matched products get ONLY these
+          overwritten. Nothing is pre-selected; the user picks. */}
       <div>
         <div className="text-[11px] font-bold uppercase tracking-wider text-[--gr-1] mb-2">
-          {t("productsList.restore_v2_diff_title", "Yedek özeti")}
+          {t("productsList.restore_apply_what", "Neler geri yüklensin?")}
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <V2DiffCard
-            t={t}
-            label={t("productsList.restore_v2_label_categories", "Kategori")}
-            newCount={cats.new.length}
-            existingCount={cats.existing.length}
-            mode={restoreMode}
+        <div className="space-y-2">
+          <ApplyToggle
+            icon={CheckCheck}
+            label={t("productsList.restore_apply_all", "Tümü")}
+            checked={allChecked}
+            onChange={toggleAll}
           />
-          <V2DiffCard
-            t={t}
-            label={t(
-              "productsList.restore_v2_label_subcategories",
-              "Alt Kategori",
-            )}
-            newCount={subs.new.length}
-            existingCount={subs.existing.length}
-            mode={restoreMode}
-          />
-          <V2DiffCard
-            t={t}
-            label={t("productsList.restore_v2_label_products", "Ürün")}
-            newCount={prods.new.length}
-            existingCount={prods.existing.length}
-            mode={restoreMode}
-          />
+          {fields.map((f) => (
+            <ApplyToggle
+              key={f.key}
+              icon={f.icon}
+              label={f.label}
+              checked={f.checked}
+              onChange={f.set}
+            />
+          ))}
         </div>
+      </div>
+
+      {/* Optionally also create backup items that have no live match.
+          Matched items are always update-only (per-field). */}
+      <div>
+        <ApplyToggle
+          icon={FolderPlus}
+          label={t(
+            "productsList.restore_create_missing",
+            "Eşleşmeyen ürünleri de oluştur",
+          )}
+          checked={createMissing}
+          onChange={setCreateMissing}
+        />
       </div>
     </>
   );
