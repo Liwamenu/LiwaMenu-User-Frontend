@@ -72,19 +72,56 @@ const getRestaurantsSlice = createSlice({
         state.loading = true;
         state.success = false;
         state.error = false;
-        state.restaurants = null;
+        // Stale-while-revalidate: KEEP the existing list during refetch.
+        // Nulling it here blanked the list on every (often silent)
+        // revalidate, which made consumers that read it flash an
+        // "unknown restaurant" state for a tick — e.g. subSidebar firing
+        // a false "set your tenant first" lock. The payload is replaced
+        // wholesale in `fulfilled`.
       })
       .addCase(getRestaurants.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
         state.error = false;
-        state.restaurants = action.payload;
+        // The admin list endpoint (GetmyRestaurants) doesn't return
+        // `showWaiterCallButton` — it's a customer-app flag the admin can
+        // write via SetRestaurantSettings but no admin GET reads back. A
+        // settings save patches it into THIS cache (restaurantEntityPatchers),
+        // but a later list refetch would replace the cache wholesale and drop
+        // it again, flipping the Genel Ayarlar toggle back to its default.
+        // Preserve it per-restaurant from the prior cache when the fresh
+        // payload omits it. This is forward-compatible: once the backend adds
+        // the field to the DTO (see RESTAURANT_GETBYID_PERF / waiter-call
+        // brief), `incoming` carries it defined and this no-ops.
+        const incoming = action.payload;
+        const prevData = state.restaurants?.data;
+        if (
+          incoming &&
+          Array.isArray(incoming.data) &&
+          Array.isArray(prevData)
+        ) {
+          const prevById = new Map(prevData.map((r) => [r?.id, r]));
+          incoming.data = incoming.data.map((r) => {
+            const prev = prevById.get(r?.id);
+            if (
+              prev &&
+              r.showWaiterCallButton === undefined &&
+              prev.showWaiterCallButton !== undefined
+            ) {
+              return { ...r, showWaiterCallButton: prev.showWaiterCallButton };
+            }
+            return r;
+          });
+        }
+        state.restaurants = incoming;
       })
       .addCase(getRestaurants.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload;
-        state.restaurants = null;
+        // Keep the last good list on a failed (often silent) refetch —
+        // same stale-while-revalidate rationale as `pending`. Don't blank
+        // the UI just because a background revalidate hiccupped.
       })
       // Cross-slice: when any restaurant-entity-patching settings save
       // succeeds, mutate the cached entry by id so the UI doesn't go stale
