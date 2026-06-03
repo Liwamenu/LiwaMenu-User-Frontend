@@ -314,10 +314,10 @@ export default function BackupProductsModal({ restaurantId }) {
   const [withDescription, setWithDescription] = useState(true);
   const [withAllergens, setWithAllergens] = useState(true);
   // Categories toggle bundles parent categories + subcategories
-  // together. Off by default — the original 3 fields cover ~99% of
-  // "I want my product copy back" cases; categories matter only when
-  // the user accidentally deleted category rows and lost the structure.
-  const [withCategories, setWithCategories] = useState(false);
+  // together. On by default so a backup captures the full menu
+  // structure (a complete backup, not just product copy) — the user can
+  // still untick it for a products-only snapshot.
+  const [withCategories, setWithCategories] = useState(true);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: "" });
 
