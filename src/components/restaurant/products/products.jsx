@@ -759,13 +759,24 @@ const Products = () => {
       <QuickEditImage product={product} onSaved={refetchProducts} />,
     );
 
-  // Mount-time fetch — honors the URL ?page=N so back-nav from edit lands
-  // on the same page the user came from. Skips the network entirely when
-  // the slice already has a cached payload for the SAME (restaurant,
-  // page, pageSize, no-filter) combination, so revisits within a session
-  // are instant. Filter / page changes go through handleFilter and
-  // handlePageChange, which dispatch unconditionally — that's intentional
-  // (the user explicitly asked for fresh data).
+  // Mount-time fetch — honors the URL ?page=N on a fresh mount / hard
+  // refresh so the user lands on the same page. Skips the network when
+  // the slice already has a cached payload for the matching key.
+  //
+  // Deliberately keyed on `[restaurantId]` ONLY (not `initialPage`).
+  // Pagination syncs `pageNumber` into the URL (`?page=N`), and
+  // `initialPage` is re-derived from `searchParams` on every render — so
+  // if this effect also depended on `initialPage` it would re-fire on
+  // every page change and dispatch an UNFILTERED getProducts (it carries
+  // no categoryId/hide/recommendation), racing — and usually beating —
+  // the FILTERED fetch `handlePageChange` dispatches. That made the list
+  // silently revert to a mixed, all-categories view on page change while
+  // the filter dropdown still showed the selected category. Page changes
+  // are owned by `handlePageChange` (filtered); post-edit/delete
+  // refreshes by `refetchProducts` (filter-aware via `filtersRef`). This
+  // effect only
+  // seeds the first page on mount + restaurant switch, when no client
+  // filter is engaged yet, so an unfiltered fetch is the correct seed.
   useEffect(() => {
     const wantedKey = productsCacheKey({
       restaurantId,
@@ -782,7 +793,7 @@ const Products = () => {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restaurantId, initialPage]);
+  }, [restaurantId]);
 
   useEffect(() => {
     if (products) {
