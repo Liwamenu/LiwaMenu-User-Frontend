@@ -83,37 +83,7 @@ const getRestaurantsSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = false;
-        // The admin list endpoint (GetmyRestaurants) doesn't return
-        // `showWaiterCallButton` — it's a customer-app flag the admin can
-        // write via SetRestaurantSettings but no admin GET reads back. A
-        // settings save patches it into THIS cache (restaurantEntityPatchers),
-        // but a later list refetch would replace the cache wholesale and drop
-        // it again, flipping the Genel Ayarlar toggle back to its default.
-        // Preserve it per-restaurant from the prior cache when the fresh
-        // payload omits it. This is forward-compatible: once the backend adds
-        // the field to the DTO (see RESTAURANT_GETBYID_PERF / waiter-call
-        // brief), `incoming` carries it defined and this no-ops.
-        const incoming = action.payload;
-        const prevData = state.restaurants?.data;
-        if (
-          incoming &&
-          Array.isArray(incoming.data) &&
-          Array.isArray(prevData)
-        ) {
-          const prevById = new Map(prevData.map((r) => [r?.id, r]));
-          incoming.data = incoming.data.map((r) => {
-            const prev = prevById.get(r?.id);
-            if (
-              prev &&
-              r.showWaiterCallButton === undefined &&
-              prev.showWaiterCallButton !== undefined
-            ) {
-              return { ...r, showWaiterCallButton: prev.showWaiterCallButton };
-            }
-            return r;
-          });
-        }
-        state.restaurants = incoming;
+        state.restaurants = action.payload;
       })
       .addCase(getRestaurants.rejected, (state, action) => {
         state.loading = false;
