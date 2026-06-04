@@ -528,7 +528,21 @@
     "start_time_label": "Rezervasyon Başlangıç Saati",
     "end_time_label": "Rezervasyon Bitiş Saati",
     "save": "Kaydet",
-    "is_active_label": "Rezervasyonları Aktif Et"
+    "is_active_label": "Rezervasyonları Aktif Et",
+    "embed": {
+      "title": "Web Siteme Göm / Paylaş",
+      "subtitle": "Rezervasyon formunu kendi sitenize ekleyin veya linkini paylaşın",
+      "hint": "Aşağıdaki linki paylaşabilir veya HTML/PHP kodunu sitenize yapıştırabilirsiniz. Form yüksekliği otomatik ayarlanır.",
+      "noTenant": "Gömme kodu ve link oluşturmak için önce Genel Ayarlar'dan alan adınızı (tenant) belirleyip kaydedin.",
+      "inactiveWarning": "Rezervasyon şu anda kapalı — gömülen form ziyaretçilere kapalı görünür. Yukarıdan açıp kaydedin.",
+      "linkTitle": "Paylaşım linki",
+      "htmlTitle": "HTML (iframe)",
+      "phpTitle": "PHP",
+      "open": "Aç",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "copyFailed": "Kopyalanamadı"
+    }
   },
   "externalPage": {
     "title": "{{name}} için Harici Sayfalar",

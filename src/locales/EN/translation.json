@@ -528,7 +528,21 @@
     "start_time_label": "Reservation Start Time",
     "end_time_label": "Reservation End Time",
     "save": "Save",
-    "is_active_label": "Activate Reservations"
+    "is_active_label": "Activate Reservations",
+    "embed": {
+      "title": "Embed on My Website / Share",
+      "subtitle": "Add the reservation form to your own site or share its link",
+      "hint": "Share the link below, or paste the HTML/PHP code into your site. The form height adjusts automatically.",
+      "noTenant": "To generate the embed code and link, first set your domain name (tenant) in General Settings and save.",
+      "inactiveWarning": "Reservations are currently off — the embedded form will appear closed to visitors. Turn it on above and save.",
+      "linkTitle": "Share link",
+      "htmlTitle": "HTML (iframe)",
+      "phpTitle": "PHP",
+      "open": "Open",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Copy failed"
+    }
   },
   "externalPage": {
     "title": "External Pages for {{name}}",
