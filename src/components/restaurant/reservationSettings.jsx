@@ -18,6 +18,7 @@ import {
   Share2,
   Link2,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 
 // COMP
@@ -154,6 +155,9 @@ const RestaurantReservationSettings = ({ data }) => {
   // same gate as the QR-menu URL. The HTML/PHP snippets include a tiny
   // listener that resizes the iframe to the form's reported height so there
   // is no inner scrollbar.
+  // Collapsed by default — the owner expands the embed/share panel only
+  // when they actually want the snippets.
+  const [embedOpen, setEmbedOpen] = useState(false);
   const tenant = (data?.tenant || "").trim();
   const hasTenant = !!tenant;
   const embedUrl = hasTenant
@@ -390,7 +394,14 @@ window.addEventListener("message", function (e) {
               "linear-gradient(90deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)",
           }}
         />
-        <div className="px-4 sm:px-5 py-3 border-b border-[--border-1] flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setEmbedOpen((o) => !o)}
+          aria-expanded={embedOpen}
+          className={`w-full px-4 sm:px-5 py-3 flex items-center gap-3 text-left transition hover:bg-[--white-2]/40 ${
+            embedOpen ? "border-b border-[--border-1]" : ""
+          }`}
+        >
           <span
             className="grid place-items-center size-9 rounded-xl text-white shadow-md shadow-indigo-500/25 shrink-0"
             style={{
@@ -411,8 +422,14 @@ window.addEventListener("message", function (e) {
               )}
             </p>
           </div>
-        </div>
+          <ChevronDown
+            className={`size-4 text-[--gr-1] shrink-0 transition-transform duration-200 ${
+              embedOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
 
+        {embedOpen && (
         <div className="p-4 sm:p-5 space-y-3">
           {!hasTenant ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2 dark:bg-amber-500/10 dark:border-amber-400/30">
@@ -468,6 +485,7 @@ window.addEventListener("message", function (e) {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );
