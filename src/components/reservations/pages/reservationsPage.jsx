@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import CustomSelect from "../../common/customSelector";
 import CustomPagination from "../../common/pagination";
 import ConfirmDeleteModal from "../../common/confirmDeleteModal";
+import ConfirmActionModal from "../../common/confirmActionModal";
 import FilterReservations from "../components/filterReservations";
 import { useReservations } from "../../../context/reservationsContext";
 import { usePopup } from "../../../context/PopupContext";
@@ -85,6 +86,38 @@ const ReservationsPage = () => {
         confirmLabel={t("reservationsPage.delete_confirm")}
         onConfirm={async () => {
           await handleDelete(reservation.id);
+          setSecondPopupContent(null);
+        }}
+      />,
+    );
+  };
+
+  // Approve/Reject must never be a single click — gate both behind an
+  // "emin misiniz?" confirmation. `status` is the backend wire value
+  // ("Accepted" | "Denied"); the success/danger variant + copy follow
+  // from it. The modal awaits handleUpdateStatus (which now returns its
+  // dispatch promise) before closing so the button shows a spinner.
+  const openStatusConfirm = (reservation, status) => {
+    const isAccept = status === "Accepted";
+    setSecondPopupContent(
+      <ConfirmActionModal
+        variant={isAccept ? "success" : "danger"}
+        title={
+          isAccept
+            ? t("reservationsPage.confirm_accept_title")
+            : t("reservationsPage.confirm_reject_title")
+        }
+        targetName={reservation.fullName || "—"}
+        description={
+          isAccept
+            ? t("reservationsPage.confirm_accept_description")
+            : t("reservationsPage.confirm_reject_description")
+        }
+        confirmLabel={
+          isAccept ? t("reservationsPage.accept") : t("reservationsPage.reject")
+        }
+        onConfirm={async () => {
+          await handleUpdateStatus(reservation.id, status, "");
           setSecondPopupContent(null);
         }}
       />,
@@ -419,7 +452,7 @@ const ReservationsPage = () => {
                         <>
                           <button
                             onClick={() =>
-                              handleUpdateStatus(reservation.id, "Accepted", "")
+                              openStatusConfirm(reservation, "Accepted")
                             }
                             disabled={updateLoading}
                             className="flex-1 lg:w-full px-4 py-2 bg-[--primary-1] hover:opacity-90 text-white rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
@@ -433,8 +466,9 @@ const ReservationsPage = () => {
                               // gönderilebilir" if we send "Rejected" —
                               // verified live. The display label is still
                               // "Reddedildi" / "Rejected", only the wire
-                              // value changes.
-                              handleUpdateStatus(reservation.id, "Denied", "")
+                              // value changes. Confirmed via openStatusConfirm
+                              // before the request fires.
+                              openStatusConfirm(reservation, "Denied")
                             }
                             disabled={updateLoading}
                             className="flex-1 lg:w-full px-4 py-2 bg-[--white-1] hover:bg-[--light-4] text-[--red-2] border border-[--red-1] rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"

@@ -149,8 +149,10 @@ export const ReservationsProvider = ({ children }) => {
     dispatch(getReservations(buildQuery(custom)));
   };
 
+  // Returns the dispatch promise chain so callers (e.g. the confirm
+  // modal) can `await` it and only close once the request settles.
   const handleUpdateStatus = (reservationId, status, note = "") => {
-    dispatch(
+    return dispatch(
       updateReservationStatus({
         reservationId,
         status,
