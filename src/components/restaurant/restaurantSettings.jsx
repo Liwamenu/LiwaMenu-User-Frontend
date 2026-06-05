@@ -327,6 +327,10 @@ const RestaurantSettings = ({ data: inData }) => {
       // restaurant that doesn't run table service via QR menus).
       // `??` so an existing `false` is preserved.
       showWaiterCallButton: inData?.showWaiterCallButton ?? true,
+      // When waiter calls are on, auto-resolve each incoming call a few
+      // seconds after it arrives (handled admin-side by WaiterCallsProvider).
+      // Default ON. `??` preserves an existing `false`.
+      autoResolveWaiterCalls: inData?.autoResolveWaiterCalls ?? true,
     }),
     [inData],
   );
@@ -1142,6 +1146,34 @@ const RestaurantSettings = ({ data: inData }) => {
                       }))
                     }
                   />
+                  {/* Sub-setting: only meaningful while waiter calls are on.
+                      When enabled, an incoming call is auto-marked resolved
+                      ~5s after it arrives (WaiterCallsProvider handles the
+                      timer admin-side). */}
+                  {restaurantData?.showWaiterCallButton && (
+                    <div className="mt-3 pt-3 border-t border-[--border-1]">
+                      <CustomToggle
+                        label={t(
+                          "restaurantSettings.auto_resolve_waiter_calls",
+                          "Çağrıları Otomatik Çöz",
+                        )}
+                        className2="text-sm font-medium text-[--black-1]"
+                        checked={restaurantData?.autoResolveWaiterCalls}
+                        onChange={() =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            autoResolveWaiterCalls: !prev?.autoResolveWaiterCalls,
+                          }))
+                        }
+                      />
+                      <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
+                        {t(
+                          "restaurantSettings.auto_resolve_waiter_calls_hint",
+                          "Açıkken, gelen garson çağrısı 5 saniye sonra otomatik olarak çözüldü işaretlenir.",
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

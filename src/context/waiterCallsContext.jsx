@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { getAuth, privateApi } from "../redux/api";
@@ -51,8 +58,28 @@ export const WaiterCallsProvider = ({ children }) => {
   const sessionId = useSelector((s) => s.auth.login.sessionId);
   const isAuthenticated = !!getAuth()?.token;
   const { waiterCalls, error } = useSelector((s) => s.waiterCalls.get);
+  // Restaurant list cache — lets us read each call's restaurant's
+  // `autoResolveWaiterCalls` setting (default ON when the restaurant
+  // isn't in the cache yet).
+  const restaurantsList = useSelector(
+    (s) => s.restaurants?.getRestaurants?.restaurants?.data,
+  );
 
   const [calls, setCalls] = useState(null);
+  // Latest `calls`, readable inside the auto-resolve timer without
+  // re-arming it; plus a registry of pending timers to clear on unmount.
+  const callsRef = useRef([]);
+  const autoResolveTimersRef = useRef(new Set());
+  useEffect(() => {
+    callsRef.current = calls || [];
+  }, [calls]);
+  useEffect(
+    () => () => {
+      autoResolveTimersRef.current.forEach((t) => clearTimeout(t));
+      autoResolveTimersRef.current.clear();
+    },
+    [],
+  );
   const [filter, setFilter] = useState(waiterCallsFilterInitialState);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalCount, setTotalCount] = useState(null);
@@ -79,7 +106,9 @@ export const WaiterCallsProvider = ({ children }) => {
     });
   };
 
-  const handleResolve = (id) => {
+  // `silent` skips the success toast — used by the auto-resolve timer so
+  // automatic resolutions don't spam a toast per call.
+  const handleResolve = (id, { silent = false } = {}) => {
     dispatch(resolveWaiterCall({ waiterCallId: id }))
       .then((result) => {
         if (resolveWaiterCall.fulfilled.match(result)) {
@@ -88,12 +117,21 @@ export const WaiterCallsProvider = ({ children }) => {
               call.id === id ? { ...call, isResolved: true } : call,
             ),
           );
-          toast.success(i18n.t("waiterCalls.resolve_success"));
+          if (!silent) toast.success(i18n.t("waiterCalls.resolve_success"));
         }
       })
       .finally(() => {
         dispatch(resetResolveWaiterCall());
       });
+  };
+
+  // Per-restaurant "Çağrıları Otomatik Çöz" setting. Defaults to ON when
+  // the restaurant isn't found in the cache (matches the settings-form
+  // default), so the automation works before the list is loaded / before
+  // the backend ships the field.
+  const isAutoResolveEnabled = (restaurantId) => {
+    const r = (restaurantsList || []).find((x) => x?.id === restaurantId);
+    return r?.autoResolveWaiterCalls ?? true;
   };
 
   // Hard-delete a waiter call. Optimistic: drop the row + decrement
@@ -317,6 +355,10 @@ export const WaiterCallsProvider = ({ children }) => {
         normalizedPayload.IsResolved ?? normalizedPayload.isResolved ?? false,
     };
 
+    const alreadyExists = (callsRef.current || []).some(
+      (c) => c.id === incomingId,
+    );
+
     setCalls((prev) => {
       const current = prev || [];
       const exists = current.some((c) => c.id === incomingId);
@@ -327,6 +369,25 @@ export const WaiterCallsProvider = ({ children }) => {
     playWaiterCallSound();
 
     setTotalCount((prev) => (typeof prev === "number" ? prev + 1 : 1));
+
+    // Auto-resolve: when enabled for this call's restaurant, mark the call
+    // resolved ~5s after it arrives. Guarded so a call the staff already
+    // resolved or deleted in those 5s isn't re-resolved (callsRef gives the
+    // latest list at fire time). Skipped for duplicate pushes.
+    if (
+      !alreadyExists &&
+      !newCall.isResolved &&
+      isAutoResolveEnabled(newCall.restaurantId)
+    ) {
+      const tid = setTimeout(() => {
+        autoResolveTimersRef.current.delete(tid);
+        const still = (callsRef.current || []).find(
+          (c) => c.id === incomingId && !c.isResolved,
+        );
+        if (still) handleResolve(incomingId, { silent: true });
+      }, 5000);
+      autoResolveTimersRef.current.add(tid);
+    }
   }, [lastPushMessage]);
 
   const value = useMemo(
