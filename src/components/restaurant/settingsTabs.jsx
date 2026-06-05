@@ -106,7 +106,7 @@ const SettingsTabs = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`-mt-[2px] inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-t-none rounded-b-[6px] border border-t-4 text-xs sm:text-sm font-medium shadow-md transition-all duration-300 active:scale-[0.97] ${
+                className={`-mt-[2px] inline-flex items-center justify-center sm:justify-start gap-2 grow sm:grow-0 basis-[calc(50%-3px)] sm:basis-auto min-w-0 px-3 sm:px-5 py-2.5 rounded-t-none rounded-b-[6px] border border-t-4 text-xs sm:text-sm font-medium shadow-md transition-all duration-300 active:scale-[0.97] ${
                   active
                     ? "z-10 bg-indigo-600 text-white border-indigo-600 border-t-indigo-400"
                     : "z-0 bg-[--white-2] text-[--gr-1] border-[--border-1] border-t-transparent hover:bg-[--white-1] hover:text-indigo-600 hover:border-t-[--border-1]"
