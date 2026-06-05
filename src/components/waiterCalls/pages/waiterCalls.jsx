@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Trash2,
   Utensils,
-  Hash,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -224,19 +223,17 @@ const WaiterCallCard = ({ call, t, onResolve, onDelete, getTimeAgo }) => {
           : "border-[--border-1] bg-[--white-1] hover:border-indigo-300 hover:shadow-sm"
       }`}
     >
-      {/* TABLE BADGE */}
+      {/* TABLE BADGE — only the table name, no icon/label. Width is
+          ~50% wider than the old 80px square (now 120px on sm+) so the
+          name has more room; height unchanged. */}
       <div
-        className={`flex items-center gap-2 sm:flex-col sm:gap-0.5 sm:size-20 sm:justify-center px-3 sm:px-2 py-2 sm:py-0 rounded-lg shrink-0 transition-colors ${
+        className={`flex items-center justify-center sm:h-20 sm:w-[7.5rem] px-3 sm:px-2 py-2 sm:py-0 rounded-lg shrink-0 transition-colors ${
           resolved
             ? "bg-[--white-2] text-[--gr-1] ring-1 ring-[--border-1]"
             : "text-white shadow-md shadow-indigo-500/25"
         }`}
         style={!resolved ? { background: PRIMARY_GRADIENT } : undefined}
       >
-        <Hash className="size-3.5 sm:size-3 sm:opacity-80" />
-        <span className="text-[10px] font-bold uppercase tracking-wider sm:opacity-90">
-          {t("waiterCalls.table")}
-        </span>
         <span className="text-base sm:text-lg font-bold leading-none break-all text-center">
           {call.tableNumber}
         </span>
