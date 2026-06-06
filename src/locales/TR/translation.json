@@ -459,6 +459,19 @@
     "note": "Kimliği yapıştırdıktan sonra istatistikler birkaç saat içinde Google Analytics panelinizde görünmeye başlar.",
     "got_it": "Anladım"
   },
+  "gReviewHelp": {
+    "title": "Google Yorum Bağlantısı Nasıl Alınır?",
+    "subtitle": "Müşterilerin işletmeniz hakkında yorum yazması için",
+    "close": "Kapat",
+    "lead": "Müşterilerin işletmeniz hakkında yorum yazabilmesi için:",
+    "step1": "Google Benim İşletmem (Google Business Profile) profilinize gidin.",
+    "step2": "İşletme profilinizde 'Yorumları oku' bağlantısına tıklayın.",
+    "step3": "Açılan pencerede 'Daha fazla yorum alın' altındaki Paylaş simgesini seçin.",
+    "step4": "Bağlantıyı kopyalayıp buradaki 'Google Yorum Bağlantısı' alanına yapıştırın ve kaydedin.",
+    "open_business": "Google İşletme Profilini Aç",
+    "note": "Bu bağlantı, müşteriyi doğrudan Google'da yorum yazma ekranına götürür.",
+    "got_it": "Anladım"
+  },
   "restaurantSettings": {
     "title": "{{name}} Restoranı için Ayarlar",
     "tenant": "Tenant",
@@ -476,6 +489,10 @@
     "google_analytics": "Google Analytics",
     "google_analytics_placeholder": "Google Analytics Measurement-ID'nizi yazınız",
     "google_analytics_hint": "websitesinden ulaşabilirsiniz.",
+    "google_review_link": "Google Yorum Bağlantısı",
+    "google_review_link_placeholder": "https://g.page/r/XXXXXXXXXXXX/review",
+    "google_review_link_hint": "İşletme profilinizdeki \"Yorum iste\" bağlantısını yapıştırın; müşteriler doğrudan yorum yazma ekranını görür.",
+    "google_review_link_help": "Google yorum bağlantısı nasıl alınır?",
     "menu_language": "Varsayılan Menü Dili",
     "menu_language_placeholder": "örn: tr, en",
     "slogan1": "Sayfa Üstü Slogan",

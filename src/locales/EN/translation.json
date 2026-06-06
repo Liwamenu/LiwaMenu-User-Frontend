@@ -459,6 +459,19 @@
     "note": "After pasting the ID, statistics start appearing in your Google Analytics panel within a few hours.",
     "got_it": "Got It"
   },
+  "gReviewHelp": {
+    "title": "How to Get Your Google Review Link?",
+    "subtitle": "So customers can leave a review about your business",
+    "close": "Close",
+    "lead": "So your customers can leave a review about your business:",
+    "step1": "Open your Google Business Profile (Google My Business).",
+    "step2": "Click the 'Read reviews' link on your business profile.",
+    "step3": "In the dialog, choose the Share icon under 'Get more reviews'.",
+    "step4": "Copy the link and paste it into the 'Google Review Link' field here, then save.",
+    "open_business": "Open Google Business Profile",
+    "note": "This link takes customers straight to the write-a-review screen on Google.",
+    "got_it": "Got It"
+  },
   "restaurantSettings": {
     "title": "Settings for {{name}} Restaurant",
     "tenant": "Tenant",
@@ -476,6 +489,10 @@
     "google_analytics": "Google Analytics",
     "google_analytics_placeholder": "Enter your Google Analytics Measurement-ID",
     "google_analytics_hint": "is where you can get it.",
+    "google_review_link": "Google Review Link",
+    "google_review_link_placeholder": "https://g.page/r/XXXXXXXXXXXX/review",
+    "google_review_link_hint": "Paste the \"Ask for reviews\" link from your Business Profile; customers land straight on the write-a-review screen.",
+    "google_review_link_help": "How to get your Google review link?",
     "menu_language": "Default Menu Language",
     "menu_language_placeholder": "e.g. tr, en",
     "slogan1": "Top of Page Slogan",

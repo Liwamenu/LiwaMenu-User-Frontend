@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   Pencil,
   HelpCircle,
+  Star,
 } from "lucide-react";
 
 //COMP
@@ -49,6 +50,7 @@ import { getPaymentMethods } from "../../redux/restaurant/getPaymentMethodsSlice
 import { getRestaurants } from "../../redux/restaurants/getRestaurantsSlice";
 import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 import GoogleAnalyticsHelp from "./googleAnalyticsHelp";
+import GoogleReviewHelp from "./googleReviewHelp";
 
 const inputCls =
   "w-full h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
@@ -295,6 +297,7 @@ const RestaurantSettings = ({ data: inData }) => {
       // maxTableOrderDistanceMeter 500 m.
       maxDistance: inData?.maxDistance ?? 5,
       googleAnalytics: inData?.googleAnalytics,
+      googleReviewLink: inData?.googleReviewLink,
       // `||` not `??` for menuLang — the language picker can't render
       // an empty string, and "" is a meaningless value here (unlike a
       // numeric 0). null / undefined / "" all fall back to "tr".
@@ -789,64 +792,134 @@ const RestaurantSettings = ({ data: inData }) => {
                 </div>
               </div>
 
-              {/* Google Analytics */}
-              <div className="mb-3">
-                <label className={`${labelCls} flex items-center gap-1.5`}>
-                  <span>
-                    <ChartLine className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
-                    {t("restaurantSettings.google_analytics")}
-                  </span>
-                  {/* (?) — opens the step-by-step "how to get a GA
-                      Measurement ID" guide modal in the second popup
-                      slot, above this settings page. */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSecondPopupContent(
-                        <GoogleAnalyticsHelp
-                          tenant={restaurantData?.tenant || inData?.tenant}
-                          onClose={() => setSecondPopupContent(null)}
-                        />,
-                      )
+              {/* Google Analytics + Google yorum bağlantısı (yan yana) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 items-start">
+                {/* Google Analytics */}
+                <div>
+                  <label className={`${labelCls} flex items-center gap-1.5`}>
+                    <span>
+                      <ChartLine className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
+                      {t("restaurantSettings.google_analytics")}
+                    </span>
+                    {/* (?) — opens the step-by-step "how to get a GA
+                        Measurement ID" guide modal in the second popup
+                        slot, above this settings page. */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSecondPopupContent(
+                          <GoogleAnalyticsHelp
+                            tenant={restaurantData?.tenant || inData?.tenant}
+                            onClose={() => setSecondPopupContent(null)}
+                          />,
+                        )
+                      }
+                      title={t(
+                        "restaurantSettings.google_analytics_help",
+                        "Google Analytics kimliği nasıl alınır?",
+                      )}
+                      aria-label={t(
+                        "restaurantSettings.google_analytics_help",
+                        "Google Analytics kimliği nasıl alınır?",
+                      )}
+                      className="grid place-items-center size-4 rounded-full text-indigo-600 hover:bg-indigo-50 transition dark:hover:bg-indigo-500/15"
+                    >
+                      <HelpCircle className="size-3.5" />
+                    </button>
+                  </label>
+                  <input
+                    type="text"
+                    className={inputCls}
+                    placeholder={t(
+                      "restaurantSettings.google_analytics_placeholder",
+                    )}
+                    value={restaurantData?.googleAnalytics ?? ""}
+                    onChange={(e) =>
+                      setRestaurantData((prev) => ({
+                        ...prev,
+                        googleAnalytics: e.target.value,
+                      }))
                     }
-                    title={t(
-                      "restaurantSettings.google_analytics_help",
-                      "Google Analytics kimliği nasıl alınır?",
+                  />
+                  <p className="text-[10px] text-[--gr-1] mt-1">
+                    <a
+                      href="https://analytics.google.com/analytics/web"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 underline-offset-2 hover:underline"
+                    >
+                      analytics.google.com
+                    </a>{" "}
+                    {t("restaurantSettings.google_analytics_hint")}
+                  </p>
+                </div>
+
+                {/* Google Yorum Bağlantısı — müşteriyi doğrudan "yorum yaz"
+                    ekranına götüren Google İşletme bağlantısı. Tema bu değeri
+                    okuyup bir "Değerlendir" butonu gösterecek. */}
+                <div>
+                  <label className={`${labelCls} flex items-center gap-1.5`}>
+                    <span>
+                      <Star className="size-3 inline-block -mt-0.5 mr-1 text-indigo-600" />
+                      {t(
+                        "restaurantSettings.google_review_link",
+                        "Google Yorum Bağlantısı",
+                      )}
+                    </span>
+                    {/* (?) — opens the step-by-step "how to get your Google
+                        review link" guide in the second popup slot. */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSecondPopupContent(
+                          <GoogleReviewHelp
+                            onClose={() => setSecondPopupContent(null)}
+                          />,
+                        )
+                      }
+                      title={t(
+                        "restaurantSettings.google_review_link_help",
+                        "Google yorum bağlantısı nasıl alınır?",
+                      )}
+                      aria-label={t(
+                        "restaurantSettings.google_review_link_help",
+                        "Google yorum bağlantısı nasıl alınır?",
+                      )}
+                      className="grid place-items-center size-4 rounded-full text-indigo-600 hover:bg-indigo-50 transition dark:hover:bg-indigo-500/15"
+                    >
+                      <HelpCircle className="size-3.5" />
+                    </button>
+                  </label>
+                  <input
+                    type="text"
+                    className={inputCls}
+                    placeholder={t(
+                      "restaurantSettings.google_review_link_placeholder",
+                      "https://g.page/r/XXXXXXXXXXXX/review",
                     )}
-                    aria-label={t(
-                      "restaurantSettings.google_analytics_help",
-                      "Google Analytics kimliği nasıl alınır?",
+                    value={restaurantData?.googleReviewLink ?? ""}
+                    onChange={(e) =>
+                      setRestaurantData((prev) => ({
+                        ...prev,
+                        googleReviewLink: e.target.value,
+                      }))
+                    }
+                  />
+                  <p className="text-[10px] text-[--gr-1] mt-1">
+                    <a
+                      href="https://business.google.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 underline-offset-2 hover:underline"
+                    >
+                      business.google.com
+                    </a>{" "}
+                    {t(
+                      "restaurantSettings.google_review_link_hint",
+                      'İşletme profilinizdeki "Yorum iste" bağlantısını yapıştırın; müşteriler doğrudan yorum yazma ekranını görür.',
                     )}
-                    className="grid place-items-center size-4 rounded-full text-indigo-600 hover:bg-indigo-50 transition dark:hover:bg-indigo-500/15"
-                  >
-                    <HelpCircle className="size-3.5" />
-                  </button>
-                </label>
-                <input
-                  type="text"
-                  className={inputCls}
-                  placeholder={t(
-                    "restaurantSettings.google_analytics_placeholder",
-                  )}
-                  value={restaurantData?.googleAnalytics ?? ""}
-                  onChange={(e) =>
-                    setRestaurantData((prev) => ({
-                      ...prev,
-                      googleAnalytics: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-[10px] text-[--gr-1] mt-1">
-                  <a
-                    href="https://analytics.google.com/analytics/web"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-600 underline-offset-2 hover:underline"
-                  >
-                    analytics.google.com
-                  </a>{" "}
-                  {t("restaurantSettings.google_analytics_hint")}
-                </p>
+                  </p>
+                </div>
               </div>
 
               {/* Sloganlar */}
