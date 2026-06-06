@@ -29,6 +29,35 @@ import useSmartRevalidate from "../../hooks/useSmartRevalidate";
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
+// Social links are STORED as full URLs but ENTERED as just a handle on top
+// of a fixed, read-only prefix (e.g. the user types "liwacafe" and we store
+// "https://instagram.com/liwacafe"). YouTube/TikTok prefixes already include
+// the leading "@". These helpers convert between the stored URL and handle.
+const stripHandle = (raw) =>
+  String(raw || "")
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/^\++/, "")
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "")
+    .replace(/\s+/g, "");
+
+const extractHandle = (prefix, url) => {
+  if (!url) return "";
+  let h = String(url)
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "");
+  const domain = prefix.replace(/@+$/, ""); // prefix without the trailing "@"
+  if (h.toLowerCase().startsWith(domain.toLowerCase())) h = h.slice(domain.length);
+  return h.replace(/^@+/, "").replace(/^\/+/, "").replace(/\/+$/, "").trim();
+};
+
+const buildSocialUrl = (prefix, handle) => {
+  const clean = stripHandle(handle);
+  return clean ? `https://${prefix}${clean}` : "";
+};
+
 // Per-platform branding so each row is recognisable at a glance.
 const PLATFORMS = [
   {
@@ -38,6 +67,7 @@ const PLATFORMS = [
     Icon: FiFacebook,
     color: "#1877F2",
     tint: "rgba(24, 119, 242, 0.08)",
+    prefix: "facebook.com/",
     fallbackHref: "https://facebook.com",
   },
   {
@@ -47,6 +77,7 @@ const PLATFORMS = [
     Icon: FiInstagram,
     color: "#E4405F",
     tint: "rgba(228, 64, 95, 0.08)",
+    prefix: "instagram.com/",
     fallbackHref: "https://instagram.com",
   },
   {
@@ -56,6 +87,7 @@ const PLATFORMS = [
     Icon: BsTiktok,
     color: "#000000",
     tint: "rgba(0, 0, 0, 0.06)",
+    prefix: "tiktok.com/@",
     fallbackHref: "https://tiktok.com",
   },
   {
@@ -65,6 +97,7 @@ const PLATFORMS = [
     Icon: FiYoutube,
     color: "#FF0000",
     tint: "rgba(255, 0, 0, 0.07)",
+    prefix: "youtube.com/@",
     fallbackHref: "https://youtube.com",
   },
   {
@@ -74,6 +107,7 @@ const PLATFORMS = [
     Icon: BsWhatsapp,
     color: "#25D366",
     tint: "rgba(37, 211, 102, 0.1)",
+    prefix: "wa.me/",
     fallbackHrefFromPhone: (phone) => (phone ? `https://wa.me/${phone}` : "https://wa.me/"),
   },
 ];
@@ -188,20 +222,21 @@ const SocialMedias = ({ data: restaurant }) => {
                 Icon,
                 color,
                 tint,
+                prefix,
                 fallbackHref,
                 fallbackHrefFromPhone,
               }) => {
                 const value = socialMediasData?.[key] || "";
                 const hasValue = !!value.trim();
+                // The user edits only the handle on top of the fixed prefix;
+                // the stored value stays a full URL.
+                const handle = extractHandle(prefix, value);
                 const href =
                   value ||
                   (fallbackHrefFromPhone
                     ? fallbackHrefFromPhone(restaurant?.phoneNumber)
                     : fallbackHref);
-                const placeholder =
-                  placeholderKey === "socialMedias.whatsapp_placeholder"
-                    ? t(placeholderKey, { phone: restaurant?.phoneNumber })
-                    : t(placeholderKey);
+                const placeholder = t(placeholderKey);
 
                 return (
                   <div
@@ -242,21 +277,30 @@ const SocialMedias = ({ data: restaurant }) => {
 
                     {/* Input */}
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <input
-                        type="text"
-                        inputMode="url"
-                        autoComplete="off"
-                        spellCheck={false}
-                        className="flex-1 min-w-0 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 font-mono text-[12.5px]"
-                        placeholder={placeholder}
-                        value={value}
-                        onChange={(e) =>
-                          setSocialMediasData((prev) => ({
-                            ...(prev || {}),
-                            [key]: e.target.value,
-                          }))
-                        }
-                      />
+                      {/* Fixed read-only prefix + handle-only input. The
+                          user types just the username/number; we store the
+                          full URL (prefix already includes "@" for YT/TikTok
+                          and country code is reminded for WhatsApp). */}
+                      <div className="flex items-stretch flex-1 min-w-0 h-10 rounded-lg border border-[--border-1] bg-[--white-1] overflow-hidden transition focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100">
+                        <span className="grid place-items-center pl-3 pr-1.5 bg-[--white-2]/60 text-[--gr-1] text-[12.5px] font-mono whitespace-nowrap select-none shrink-0 border-r border-[--border-1]">
+                          {prefix}
+                        </span>
+                        <input
+                          type="text"
+                          inputMode={key === "whatsappUrl" ? "tel" : "text"}
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="flex-1 min-w-0 h-full px-2 bg-transparent text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none border-0 font-mono text-[12.5px]"
+                          placeholder={placeholder}
+                          value={handle}
+                          onChange={(e) =>
+                            setSocialMediasData((prev) => ({
+                              ...(prev || {}),
+                              [key]: buildSocialUrl(prefix, e.target.value),
+                            }))
+                          }
+                        />
+                      </div>
                       <a
                         href={href}
                         target="_blank"
@@ -301,11 +345,17 @@ const SocialMedias = ({ data: restaurant }) => {
                       <Star className="size-4" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-[--black-1] truncate flex items-center gap-1">
-                        {t(
-                          "restaurantSettings.google_review_link",
-                          "Google Yorum Bağlantısı",
-                        )}
+                      <div className="text-sm font-semibold text-[--black-1] flex items-center gap-1">
+                        {/* No `truncate` on the row: in the narrow w-44
+                            column it clipped the (?) help button (overflow
+                            hidden). Let the label wrap instead so the full
+                            text AND the (?) stay visible. */}
+                        <span className="min-w-0 leading-tight">
+                          {t(
+                            "restaurantSettings.google_review_link",
+                            "Google Yorum Bağlantısı",
+                          )}
+                        </span>
                         <button
                           type="button"
                           onClick={() =>
