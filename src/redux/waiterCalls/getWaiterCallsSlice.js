@@ -49,8 +49,11 @@ export const getWaiterCalls = createAsyncThunk(
   "Notifications/GetWaiterCalls",
   async (data, { rejectWithValue }) => {
     try {
+      // Strip the loading-middleware control flag so background polls
+      // (`__silent: true`) don't leak it to the backend as a query param.
+      const { __silent, ...params } = data || {};
       const res = await api.get(`${baseURL}Notifications/GetWaiterCalls`, {
-        params: data,
+        params,
       });
 
       // console.log(res.data);

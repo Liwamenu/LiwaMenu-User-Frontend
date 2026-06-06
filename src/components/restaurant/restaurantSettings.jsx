@@ -1148,7 +1148,7 @@ const RestaurantSettings = ({ data: inData }) => {
                   />
                   {/* Sub-setting: only meaningful while waiter calls are on.
                       When enabled, an incoming call is auto-marked resolved
-                      ~5s after it arrives (WaiterCallsProvider handles the
+                      ~1 min after it arrives (WaiterCallsProvider handles the
                       timer admin-side). */}
                   {restaurantData?.showWaiterCallButton && (
                     <div className="mt-3 pt-3 border-t border-[--border-1]">
@@ -1169,7 +1169,7 @@ const RestaurantSettings = ({ data: inData }) => {
                       <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
                         {t(
                           "restaurantSettings.auto_resolve_waiter_calls_hint",
-                          "Açıkken, gelen garson çağrısı 5 saniye sonra otomatik olarak çözüldü işaretlenir.",
+                          "Açıkken, gelen garson çağrısı 1 dakika sonra otomatik olarak çözüldü işaretlenir.",
                         )}
                       </p>
                     </div>

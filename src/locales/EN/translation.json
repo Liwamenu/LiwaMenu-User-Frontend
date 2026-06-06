@@ -485,7 +485,7 @@
     "hide_restaurant": "Out of Service",
     "show_waiter_call_button": "Show Waiter Call Button",
     "auto_resolve_waiter_calls": "Auto-resolve Calls",
-    "auto_resolve_waiter_calls_hint": "When on, an incoming waiter call is automatically marked resolved 5 seconds after it arrives.",
+    "auto_resolve_waiter_calls_hint": "When on, an incoming waiter call is automatically marked resolved 1 minute after it arrives.",
     "max_distance": "Maximum Distance (km)",
     "max_distance_note": "For delivery",
     "max_distance_placeholder": "Enter maximum distance",

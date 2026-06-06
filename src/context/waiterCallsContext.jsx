@@ -39,6 +39,10 @@ export const waiterCallsFilterInitialState = {
   tableNumber: null,
 };
 
+// How long after a waiter call arrives before "Çağrıları Otomatik Çöz"
+// silently marks it resolved. 1 dakika.
+const AUTO_RESOLVE_DELAY_MS = 60_000;
+
 const WaiterCallsContext = createContext();
 export const useWaiterCalls = () => useContext(WaiterCallsContext);
 
@@ -69,7 +73,7 @@ export const WaiterCallsProvider = ({ children }) => {
   // Latest `calls`, readable inside the auto-resolve timer without
   // re-arming it; plus a registry of pending timers to clear on unmount.
   const callsRef = useRef([]);
-  const autoResolveTimersRef = useRef(new Set());
+  const autoResolveTimersRef = useRef(new Map());
   useEffect(() => {
     callsRef.current = calls || [];
   }, [calls]);
@@ -109,7 +113,15 @@ export const WaiterCallsProvider = ({ children }) => {
   // `silent` skips the success toast — used by the auto-resolve timer so
   // automatic resolutions don't spam a toast per call.
   const handleResolve = (id, { silent = false } = {}) => {
-    dispatch(resolveWaiterCall({ waiterCallId: id }))
+    // `silent` (used by auto-resolve) also suppresses the global
+    // full-screen loader via `__silent` so background resolutions don't
+    // flash the spinner; the slice strips the flag before the request body.
+    dispatch(
+      resolveWaiterCall({
+        waiterCallId: id,
+        ...(silent ? { __silent: true } : {}),
+      }),
+    )
       .then((result) => {
         if (resolveWaiterCall.fulfilled.match(result)) {
           setCalls((prev) =>
@@ -355,40 +367,88 @@ export const WaiterCallsProvider = ({ children }) => {
         normalizedPayload.IsResolved ?? normalizedPayload.isResolved ?? false,
     };
 
-    const alreadyExists = (callsRef.current || []).some(
-      (c) => c.id === incomingId,
-    );
+    // Ignore duplicate pushes (same call delivered more than once).
+    const exists = (callsRef.current || []).some((c) => c.id === incomingId);
+    if (exists) return;
 
-    setCalls((prev) => {
-      const current = prev || [];
-      const exists = current.some((c) => c.id === incomingId);
-      if (exists) return current;
-      return [newCall, ...current];
-    });
-
+    setCalls((prev) => [newCall, ...(prev || [])]);
+    setTotalCount((prev) => (typeof prev === "number" ? prev + 1 : 1));
     playWaiterCallSound();
 
-    setTotalCount((prev) => (typeof prev === "number" ? prev + 1 : 1));
-
-    // Auto-resolve: when enabled for this call's restaurant, mark the call
-    // resolved ~5s after it arrives. Guarded so a call the staff already
-    // resolved or deleted in those 5s isn't re-resolved (callsRef gives the
-    // latest list at fire time). Skipped for duplicate pushes.
-    if (
-      !alreadyExists &&
-      !newCall.isResolved &&
-      isAutoResolveEnabled(newCall.restaurantId)
-    ) {
-      const tid = setTimeout(() => {
-        autoResolveTimersRef.current.delete(tid);
-        const still = (callsRef.current || []).find(
-          (c) => c.id === incomingId && !c.isResolved,
-        );
-        if (still) handleResolve(incomingId, { silent: true });
-      }, 5000);
-      autoResolveTimersRef.current.add(tid);
-    }
+    // NOTE: auto-resolve is NOT armed here anymore — the dedicated effect
+    // below watches the whole `calls` list, so it covers this push AND
+    // calls loaded from the GET / already on screen.
   }, [lastPushMessage]);
+
+  // ── Auto-resolve active calls ──────────────────────────────────────
+  // For every UNRESOLVED call whose restaurant has "Çağrıları Otomatik
+  // Çöz" enabled, schedule a silent resolve ~1 min after the call arrived.
+  // Unlike the old push-only timer, this watches the entire `calls` list,
+  // so it also clears calls loaded from the GET or already on screen when
+  // the setting was turned on. Age-aware: a fresh call still waits the full
+  // delay; one that's already older resolves almost immediately. Timers are
+  // deduped per call id (Map) so re-renders / polls don't double-schedule,
+  // and they self-clean on fire and on unmount.
+  useEffect(() => {
+    if (!calls?.length) return;
+    const timers = autoResolveTimersRef.current;
+    calls.forEach((call) => {
+      if (!call || call.isResolved || timers.has(call.id)) return;
+      if (!isAutoResolveEnabled(call.restaurantId)) return;
+      const arrived = new Date(call.createdDateTime).getTime();
+      const age = Number.isFinite(arrived) ? Date.now() - arrived : 0;
+      const delay = Math.max(0, AUTO_RESOLVE_DELAY_MS - age);
+      const tid = setTimeout(() => {
+        timers.delete(call.id);
+        const still = (callsRef.current || []).find(
+          (c) => c.id === call.id && !c.isResolved,
+        );
+        if (still) handleResolve(call.id, { silent: true });
+      }, delay);
+      timers.set(call.id, tid);
+    });
+  }, [calls, restaurantsList]);
+
+  // ── Keep the list live without a manual refresh ────────────────────
+  // FCM push is best-effort (and frequently doesn't arrive on localhost),
+  // which left the page stale until a reload. Poll the current page on a
+  // short interval and immediately when the tab regains focus. Silent, so
+  // the global full-screen loader never flashes. This also feeds the
+  // auto-resolve effect above with newly-arrived calls. Polls are skipped
+  // while the tab is hidden to avoid pointless background traffic.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const poll = () => {
+      if (document.visibilityState !== "visible") return;
+      dispatch(
+        getWaiterCalls({
+          pageNumber,
+          pageSize: pageSize.value,
+          dateRange: filter.dateRange,
+          startDateTime: filter.endDateTime
+            ? formatDate(filter.startDateTime)
+            : null,
+          endDateTime: filter.endDateTime
+            ? formatDate(filter.endDateTime)
+            : null,
+          isResolved: filter.isResolved.value,
+          tableNUmber: filter.tableNumber,
+          __silent: true,
+        }),
+      );
+    };
+    const intervalId = setInterval(poll, 15000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", poll);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", poll);
+    };
+  }, [isAuthenticated, sessionId, pageNumber, pageSize.value, filter, dispatch]);
 
   const value = useMemo(
     () => ({

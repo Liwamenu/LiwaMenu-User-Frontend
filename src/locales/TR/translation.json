@@ -485,7 +485,7 @@
     "hide_restaurant": "Restoran Servis Dışı",
     "show_waiter_call_button": "Garson Çağır Butonu Göster",
     "auto_resolve_waiter_calls": "Çağrıları Otomatik Çöz",
-    "auto_resolve_waiter_calls_hint": "Açıkken, gelen garson çağrısı 5 saniye sonra otomatik olarak çözüldü işaretlenir.",
+    "auto_resolve_waiter_calls_hint": "Açıkken, gelen garson çağrısı 1 dakika sonra otomatik olarak çözüldü işaretlenir.",
     "max_distance": "Maksimum Mesafe (km)",
     "max_distance_note": "Paket servisi için",
     "max_distance_placeholder": "Maksimum mesafe giriniz",

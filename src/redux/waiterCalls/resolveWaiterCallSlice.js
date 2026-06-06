@@ -49,9 +49,12 @@ export const resolveWaiterCall = createAsyncThunk(
   "Notifications/ResolveWaiterCall",
   async (data, { rejectWithValue }) => {
     try {
+      // Strip the loading-middleware control flag so it never lands in the
+      // PUT body (auto-resolve passes `__silent: true`).
+      const { __silent, ...body } = data || {};
       const res = await api.put(
         `${baseURL}Notifications/ResolveWaiterCall`,
-        data,
+        body,
       );
 
       console.log(res);
