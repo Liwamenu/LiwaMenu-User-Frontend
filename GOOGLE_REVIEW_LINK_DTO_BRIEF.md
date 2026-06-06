@@ -31,9 +31,17 @@ A nullable `string googleReviewLink` on the restaurant entity:
    (`googleAnalytics`, `showWaiterCallButton`, …). Default `null` / empty
    for existing rows.
 
+4. **Also accept it on `PUT Restaurants/SetSocialLinks`** and persist to the
+   **same** `restaurant.googleReviewLink` column. The admin surfaces this one
+   value in BOTH the "Genel" and "Sosyal Medya" tabs — saving in either tab
+   must update the same field so they stay in sync. (Returning it from
+   `GET Restaurants/GetSocialLinks` is optional — the Sosyal Medya tab reads
+   the value from the restaurant entity, not from GetSocialLinks.)
+
 No schema change beyond the additive (nullable) column; no contract break —
-one extra string on the settings write + two read responses. Treat it as a
-plain opaque string (don't validate/transform the URL server-side).
+one extra string on two settings writes (SetRestaurantSettings +
+SetSocialLinks) + the two restaurant read responses. Treat it as a plain
+opaque string (don't validate/transform the URL server-side).
 
 ## Frontend code references
 - Input + initialData: `src/components/restaurant/restaurantSettings.jsx`
@@ -52,12 +60,16 @@ entity, mirroring the existing `googleAnalytics` exactly:
 
 1. Accept + persist it on PUT /api/Restaurants/SetRestaurantSettings (the
    admin already sends it in the settings payload).
-2. Return it in the restaurant projection of GET
+2. ALSO accept + persist it on PUT /api/Restaurants/SetSocialLinks, writing
+   to the SAME restaurant.googleReviewLink column (the admin sends the same
+   field from the Social Media tab; both tabs must stay in sync).
+3. Return it in the restaurant projection of GET
    /api/Restaurants/GetmyRestaurants AND GET /api/Restaurants/GetRestaurantById,
    camelCase (`googleReviewLink`), same as googleAnalytics.
-3. Nullable; no default needed. Store as an opaque string (no URL validation).
+4. Nullable; no default needed. Store as an opaque string (no URL validation).
 
 Additive only — no schema change beyond the column, no contract break.
-Verify: set it via SetRestaurantSettings, then GET both endpoints and
-confirm they return the saved value.
+Verify: set it via SetRestaurantSettings, GET both endpoints and confirm the
+value; then set a different value via SetSocialLinks and confirm the same
+GETs reflect it (proving both writes hit one column).
 ```

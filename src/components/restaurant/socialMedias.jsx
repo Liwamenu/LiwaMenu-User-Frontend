@@ -7,11 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { FiFacebook, FiInstagram, FiYoutube } from "react-icons/fi";
 import { BsTiktok, BsWhatsapp } from "react-icons/bs";
-import { Share2, Save, ExternalLink, Check } from "lucide-react";
+import { Share2, Save, ExternalLink, Check, Star, HelpCircle } from "lucide-react";
 
 // COMP
 import SettingsTabs from "./settingsTabs";
+import GoogleReviewHelp from "./googleReviewHelp";
 import { useDirtyTracking } from "../../context/DirtyNavContext";
+import { usePopup } from "../../context/PopupContext";
 
 // REDUX
 import {
@@ -84,6 +86,7 @@ const SocialMedias = ({ data: restaurant }) => {
     (s) => s.restaurant.setSocialMedias,
   );
   const { t } = useTranslation();
+  const { setSecondPopupContent } = usePopup();
 
   const [socialMediasData, setSocialMediasData] = useState(null);
   const [socialMediasDataBefore, setSocialMediasDataBefore] = useState(null);
@@ -107,8 +110,16 @@ const SocialMedias = ({ data: restaurant }) => {
       // never wipes unsaved edits. On first load both are null →
       // isEqual true → seeds normally.
       if (isEqual(socialMediasData, socialMediasDataBefore)) {
-        setSocialMediasData(data);
-        setSocialMediasDataBefore(data);
+        // `googleReviewLink` is a restaurant-entity field shared with the
+        // "Genel" tab (NOT part of the social-links payload) — seed it from
+        // the restaurant entity so both tabs show the same value. Saving
+        // here sends it back and the patcher syncs the cached entity.
+        const seeded = {
+          ...data,
+          googleReviewLink: restaurant?.googleReviewLink ?? "",
+        };
+        setSocialMediasData(seeded);
+        setSocialMediasDataBefore(seeded);
       }
       dispatch(resetGetSocialMedias());
     }
@@ -265,6 +276,111 @@ const SocialMedias = ({ data: restaurant }) => {
                 );
               },
             )}
+
+            {/* Google review link — same restaurant-entity value as the
+                "Genel" tab; editable + saved here too, kept in sync. */}
+            {(() => {
+              const value = socialMediasData?.googleReviewLink || "";
+              const hasValue = !!value.trim();
+              return (
+                <div
+                  className={`group flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border transition-all ${
+                    hasValue
+                      ? "border-[--border-1] bg-[--white-1] shadow-sm"
+                      : "border-[--border-1] bg-[--white-2]/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 w-full sm:w-44 shrink-0">
+                    <span
+                      className="grid place-items-center size-9 rounded-lg shrink-0"
+                      style={{
+                        background: "rgba(79,70,229,0.08)",
+                        color: "#4f46e5",
+                      }}
+                    >
+                      <Star className="size-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-[--black-1] truncate flex items-center gap-1">
+                        {t(
+                          "restaurantSettings.google_review_link",
+                          "Google Yorum Bağlantısı",
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSecondPopupContent(
+                              <GoogleReviewHelp
+                                onClose={() => setSecondPopupContent(null)}
+                              />,
+                            )
+                          }
+                          title={t(
+                            "restaurantSettings.google_review_link_help",
+                            "Google yorum bağlantısı nasıl alınır?",
+                          )}
+                          aria-label={t(
+                            "restaurantSettings.google_review_link_help",
+                            "Google yorum bağlantısı nasıl alınır?",
+                          )}
+                          className="grid place-items-center size-4 rounded-full text-indigo-600 hover:bg-indigo-50 transition shrink-0 dark:hover:bg-indigo-500/15"
+                        >
+                          <HelpCircle className="size-3.5" />
+                        </button>
+                      </div>
+                      <div className="text-[10px] font-medium uppercase tracking-wider text-[--gr-2] flex items-center gap-1">
+                        {hasValue ? (
+                          <>
+                            <Check
+                              className="size-3 text-emerald-500"
+                              strokeWidth={3}
+                            />
+                            <span className="text-emerald-600">linked</span>
+                          </>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <input
+                      type="text"
+                      inputMode="url"
+                      autoComplete="off"
+                      spellCheck={false}
+                      className="flex-1 min-w-0 h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 font-mono text-[12.5px]"
+                      placeholder={t(
+                        "restaurantSettings.google_review_link_placeholder",
+                        "https://g.page/r/XXXXXXXXXXXX/review",
+                      )}
+                      value={value}
+                      onChange={(e) =>
+                        setSocialMediasData((prev) => ({
+                          ...(prev || {}),
+                          googleReviewLink: e.target.value,
+                        }))
+                      }
+                    />
+                    <a
+                      href={value || "https://business.google.com/"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={t("socialMedias.open_link")}
+                      aria-label={t("socialMedias.open_link")}
+                      className={`grid place-items-center size-10 rounded-lg border transition shrink-0 ${
+                        hasValue
+                          ? "border-[--border-1] text-[--black-2] hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50"
+                          : "border-[--border-1] text-[--gr-2] hover:border-[--border-1] hover:bg-[--white-2]"
+                      }`}
+                    >
+                      <ExternalLink className="size-4" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* SUBMIT */}

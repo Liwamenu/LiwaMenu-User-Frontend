@@ -30,6 +30,13 @@ const PATCH_THUNK_PREFIXES = new Set([
   "Restaurants/SetRestaurantReservationSettings",
   "Restaurants/SetAnnouncementSettings",
   "Restaurants/SetSurveySettings",
+  // Social-links save also carries `googleReviewLink` — a restaurant-entity
+  // field surfaced in BOTH the "Sosyal Medya" and "Genel" tabs. Merging the
+  // dispatched arg keeps the cached entity's `googleReviewLink` in sync so
+  // the other tab reads the saved value without a reload. The arg's social
+  // URL fields (facebookUrl, …) are harmless extras on the entity, and the
+  // payload has `restaurantId` but no standalone `id` to collide with.
+  "Restaurants/SetSocialMedias",
 ]);
 
 const FULFILLED = "/fulfilled";
