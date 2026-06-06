@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import i18n from "../config/i18n";
 
 import { getAuth } from "../redux/api";
@@ -51,6 +52,12 @@ export const ReservationsProvider = ({ children }) => {
   // initial fetch effect below picks up the freshly-stored token + restaurantId.
   const sessionId = useSelector((s) => s.auth.login.sessionId);
   const isAuthenticated = !!getAuth()?.token;
+
+  // Only poll while the Reservations page is open (the provider is mounted
+  // app-wide) — these just need to stay fresh while viewed.
+  const location = useLocation();
+  const onReservationsPage = location.pathname.startsWith("/reservations");
+
   const auth = getAuth();
   const restaurantId =
     auth?.restaurantId ||
@@ -327,6 +334,38 @@ export const ReservationsProvider = ({ children }) => {
 
     playNewReservationSound();
   }, [lastPushMessage, restaurantId]);
+
+  // ── Keep the reservations list live while the page is open ─────────
+  // FCM push is best-effort; poll the current page every 15s and on tab
+  // focus, silently (no full-screen loader), so new / updated bookings
+  // show without a manual refresh. Skipped while the tab is hidden and
+  // when the Reservations page isn't open.
+  useEffect(() => {
+    if (!isAuthenticated || !onReservationsPage) return undefined;
+    const poll = () => {
+      if (document.visibilityState !== "visible") return;
+      dispatch(getReservations({ ...buildQuery(), __silent: true }));
+    };
+    const intervalId = setInterval(poll, 15000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", poll);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", poll);
+    };
+  }, [
+    isAuthenticated,
+    onReservationsPage,
+    restaurantId,
+    pageNumber,
+    pageSize.value,
+    filter,
+    dispatch,
+  ]);
 
   const value = useMemo(
     () => ({

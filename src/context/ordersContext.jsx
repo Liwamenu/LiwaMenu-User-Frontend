@@ -8,6 +8,7 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import i18n from "../config/i18n";
 import { formatDate } from "../utils/utils";
 import { normalizeKeysDeep } from "../utils/normalizeKeys";
@@ -54,6 +55,13 @@ export const OrdersProvider = ({ children }) => {
   // this, the provider (mounted at app root) never re-renders after login.
   const sessionId = useSelector((s) => s.auth.login.sessionId);
   const isAuthenticated = !!getAuth()?.token;
+
+  // Only poll while the Orders page is actually open (the provider is
+  // mounted app-wide). Unlike waiter calls — which auto-resolve in the
+  // background regardless of page — orders just need to stay fresh while
+  // viewed, so scoping avoids needless app-wide traffic.
+  const location = useLocation();
+  const onOrdersPage = location.pathname.startsWith("/orders");
 
   const localItemsPerPage = JSON.parse(
     localStorage.getItem("ITEMS_PER_PAGE"),
@@ -218,58 +226,62 @@ export const OrdersProvider = ({ children }) => {
     }
   }, [lastPushMessage]);
 
+  // Build the GetOrders query from the current filter + pagination.
+  // Shared by manual pagination, page-size changes and the silent poll
+  // (pass `{ __silent: true }`; the slice strips that flag).
+  const buildOrdersParams = (overrides = {}) => ({
+    pageNumber,
+    pageSize: pageSize.value,
+    dateRange: filter.dateRange,
+    startDateTime: filter.endDateTime ? formatDate(filter.startDateTime) : null,
+    endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
+    status: filter.statusId,
+    restaurantIds: filter.restaurantIds?.length ? filter.restaurantIds : null,
+    paymentMethodId: filter.paymentMethodId || null,
+    orderType: filter.orderType || null,
+    minTotalAmount:
+      filter.minTotalAmount !== "" ? Number(filter.minTotalAmount) : null,
+    maxTotalAmount:
+      filter.maxTotalAmount !== "" ? Number(filter.maxTotalAmount) : null,
+    ...overrides,
+  });
+
   const handlePageChange = (number) => {
-    dispatch(
-      getOrders({
-        pageNumber: number,
-        pageSize: pageSize.value,
-        dateRange: filter.dateRange,
-        startDateTime: filter.endDateTime
-          ? formatDate(filter.startDateTime)
-          : null,
-        endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
-        status: filter.statusId,
-        restaurantIds: filter.restaurantIds?.length
-          ? filter.restaurantIds
-          : null,
-        paymentMethodId: filter.paymentMethodId || null,
-        orderType: filter.orderType || null,
-        minTotalAmount:
-          filter.minTotalAmount !== "" ? Number(filter.minTotalAmount) : null,
-        maxTotalAmount:
-          filter.maxTotalAmount !== "" ? Number(filter.maxTotalAmount) : null,
-      }),
-    );
+    dispatch(getOrders(buildOrdersParams({ pageNumber: number })));
   };
 
   const handleItemsPerPage = (number) => {
-    dispatch(
-      getOrders({
-        pageNumber,
-        pageSize: number,
-        dateRange: filter.dateRange,
-        startDateTime: filter.endDateTime
-          ? formatDate(filter.startDateTime)
-          : null,
-        endDateTime: filter.endDateTime ? formatDate(filter.endDateTime) : null,
-        status: filter.statusId,
-        restaurantIds: filter.restaurantIds?.length
-          ? filter.restaurantIds
-          : null,
-        paymentMethodId: filter.paymentMethodId || null,
-        orderType: filter.orderType || null,
-        minTotalAmount:
-          filter.minTotalAmount !== "" ? Number(filter.minTotalAmount) : null,
-        maxTotalAmount:
-          filter.maxTotalAmount !== "" ? Number(filter.maxTotalAmount) : null,
-      }),
-    );
+    dispatch(getOrders(buildOrdersParams({ pageSize: number })));
 
     const localData = { label: `${number}`, value: number };
     localStorage.removeItem("ITEMS_PER_PAGE");
     localStorage.setItem("ITEMS_PER_PAGE", JSON.stringify(localData));
     setPageSize({ label: `${number}`, value: number });
   };
+
+  // ── Keep the orders list live while the page is open ───────────────
+  // FCM push is best-effort; poll the current page every 15s and on tab
+  // focus, silently (no full-screen loader), so new orders / status
+  // changes appear without a manual refresh. Skipped while the tab is
+  // hidden and when the Orders page isn't open.
+  useEffect(() => {
+    if (!isAuthenticated || !onOrdersPage) return undefined;
+    const poll = () => {
+      if (document.visibilityState !== "visible") return;
+      dispatch(getOrders(buildOrdersParams({ __silent: true })));
+    };
+    const intervalId = setInterval(poll, 15000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", poll);
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", poll);
+    };
+  }, [isAuthenticated, onOrdersPage, pageNumber, pageSize.value, filter, dispatch]);
 
   // Hard-delete an order. Optimistic: drop the row + clear the
   // drawer selection immediately, snapshot for rollback, dispatch
