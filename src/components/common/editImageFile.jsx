@@ -41,6 +41,19 @@ import { usePopup } from "../../context/PopupContext";
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 
+// The cropper rasterizes onto a <canvas> and re-encodes the result as
+// JPEG (canvas.toBlob(..., "image/jpeg") below). So the produced File MUST
+// be labelled JPEG too. The old code kept the SOURCE name + type on those
+// JPEG bytes — e.g. a "photo.webp" / "image/webp" wrapper around JPEG data.
+// That name/type/bytes mismatch made the backend reject the upload for
+// WEBP (its extension / magic-byte check failed); JPEG/PNG happened to
+// slip through. Normalising the filename's extension to .jpg keeps the
+// name, the MIME type and the actual bytes consistent.
+const toJpegFileName = (name) => {
+  const base = (name || "image").replace(/\.[^/.]+$/, "").trim();
+  return `${base || "image"}.jpg`;
+};
+
 // Aspect-ratio presets surfaced as pill buttons. The numeric value is
 // what cropperjs expects; `NaN` switches the cropper to free-form mode.
 const ASPECT_PRESETS = [
@@ -82,11 +95,12 @@ const EditImageFile = ({ file, onSave }) => {
     const canvas = cropper.getCroppedCanvas();
     canvas.toBlob((blob) => {
       if (blob) {
-        // Re-wrap the blob as a File so consumers get a value with
-        // .name + .type — original filename is preserved so backend
-        // upload validation against extensions still works.
-        const croppedFile = new File([blob], file.name, {
-          type: file.type,
+        // Re-wrap the JPEG blob as a File. Name + type MUST match the
+        // bytes (JPEG) — keeping the source .webp/.png name + type here is
+        // what caused WEBP uploads to fail (mismatched extension vs JPEG
+        // content). See toJpegFileName above.
+        const croppedFile = new File([blob], toJpegFileName(file.name), {
+          type: "image/jpeg",
           lastModified: Date.now(),
         });
         onSave(croppedFile);
