@@ -26,6 +26,8 @@ import {
   Pencil,
   HelpCircle,
   Star,
+  MessageCircle,
+  Phone,
 } from "lucide-react";
 
 //COMP
@@ -334,6 +336,15 @@ const RestaurantSettings = ({ data: inData }) => {
       // seconds after it arrives (handled admin-side by WaiterCallsProvider).
       // Default ON. `??` preserves an existing `false`.
       autoResolveWaiterCalls: inData?.autoResolveWaiterCalls ?? true,
+      // WhatsApp Sipariş — Paket Sipariş'in kardeşi, ayrı kanal. Sipariş
+      // kaydı oluşturulmaz; müşteri tarafı sepeti wa.me linkiyle WhatsApp'a
+      // aktarır. Bu alanlar yalnızca yapılandırma; backend taşır.
+      whatsappOrder: inData?.whatsappOrder ?? false,
+      whatsappOrderPhone: inData?.whatsappOrderPhone,
+      whatsappOrderDiscountRate: inData?.whatsappOrderDiscountRate,
+      whatsappOrderDeliveryFee: inData?.whatsappOrderDeliveryFee,
+      whatsappOrderMinAmount: inData?.whatsappOrderMinAmount,
+      whatsappOrderMaxDistance: inData?.whatsappOrderMaxDistance ?? 5,
     }),
     [inData],
   );
@@ -414,6 +425,18 @@ const RestaurantSettings = ({ data: inData }) => {
       return;
     }
 
+    // WhatsApp Sipariş açıkken sipariş numarası zorunlu (müşteri tarafı
+    // wa.me/<numara> linkini bu değerden kurar).
+    if (
+      restaurantData?.whatsappOrder &&
+      !restaurantData?.whatsappOrderPhone?.trim()
+    ) {
+      toast.error(t("restaurantSettings.whatsapp_phone_required"), {
+        id: "whatsapp-phone-required",
+      });
+      return;
+    }
+
     // Paket Sipariş + Masada Sipariş numeric fields must never be sent as null
     // or empty — coerce missing values to 0 at save time.
     const numericDefaults = {
@@ -423,6 +446,10 @@ const RestaurantSettings = ({ data: inData }) => {
       maxDistance: 0,
       tableOrderDiscountRate: 0,
       maxTableOrderDistanceMeter: 0,
+      whatsappOrderDiscountRate: 0,
+      whatsappOrderDeliveryFee: 0,
+      whatsappOrderMinAmount: 0,
+      whatsappOrderMaxDistance: 0,
     };
     const normalized = { ...restaurantData };
     for (const key of Object.keys(numericDefaults)) {
@@ -437,7 +464,12 @@ const RestaurantSettings = ({ data: inData }) => {
     // here they're already clean. As a final safety net coerce any
     // stale string ("1.000" loaded from the backend, a paste, etc.)
     // into a numeric value the backend will accept.
-    for (const k of ["deliveryFee", "minOrderAmount"]) {
+    for (const k of [
+      "deliveryFee",
+      "minOrderAmount",
+      "whatsappOrderDeliveryFee",
+      "whatsappOrderMinAmount",
+    ]) {
       const v = normalized[k];
       if (typeof v === "string") {
         const n = parseFloat(v.replace(",", "."));
@@ -1160,6 +1192,151 @@ const RestaurantSettings = ({ data: inData }) => {
                       />
                     </div>
                   </>
+                )}
+              </div>
+            </div>
+
+            {/* WHATSAPP SİPARİŞ */}
+            <div>
+              <SectionHeader
+                icon={MessageCircle}
+                label={t("restaurantSettings.whatsapp_order")}
+                iconClassName="text-emerald-600"
+              />
+              {/* Emerald tint (WhatsApp markası) — Paket (mavi) ve Masa
+                  (kehribar) yanında üçüncü sipariş kanalı. Sipariş kaydı
+                  oluşmaz; müşteri sepeti wa.me linkiyle WhatsApp'a aktarır,
+                  bu alanlar yapılandırma olarak tema tarafından kullanılır. */}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+                <div
+                  className={`flex items-center justify-between gap-3 ${
+                    restaurantData?.whatsappOrder
+                      ? "pb-3 mb-3 border-b border-emerald-200/70 dark:border-emerald-900/40"
+                      : ""
+                  }`}
+                >
+                  <span className="text-sm font-medium text-[--black-1] whitespace-nowrap">
+                    {t("restaurantSettings.whatsapp_order")}
+                  </span>
+                  <CustomToggle
+                    label=""
+                    swap
+                    className1="!w-auto !shrink-0"
+                    checked={restaurantData?.whatsappOrder}
+                    onChange={() =>
+                      setRestaurantData((prev) => ({
+                        ...prev,
+                        whatsappOrder: !restaurantData.whatsappOrder,
+                      }))
+                    }
+                  />
+                </div>
+                {restaurantData?.whatsappOrder && (
+                  <div className="space-y-3">
+                    {/* Sipariş alınacak WhatsApp numarası (zorunlu). */}
+                    <div>
+                      <label className={`${labelCls} flex items-center gap-1`}>
+                        <Phone className="size-3 text-emerald-600" />
+                        {t(
+                          "restaurantSettings.whatsapp_order_phone",
+                          "WhatsApp Sipariş Numarası",
+                        )}
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="tel"
+                        autoComplete="off"
+                        className={inputCls}
+                        placeholder={t(
+                          "restaurantSettings.whatsapp_order_phone_placeholder",
+                          "Ülke kodlu, örn. 905551112233",
+                        )}
+                        value={restaurantData?.whatsappOrderPhone ?? ""}
+                        onChange={(e) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            whatsappOrderPhone: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-[10px] text-[--gr-1] mt-1">
+                        {t(
+                          "restaurantSettings.whatsapp_order_phone_hint",
+                          "Sipariş bu numaraya WhatsApp üzerinden iletilir. Ülke kodu dahil, sadece rakam.",
+                        )}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <NumberWithSuffix
+                        label={t("restaurantSettings.online_order_discount")}
+                        suffix="%"
+                        value={restaurantData?.whatsappOrderDiscountRate}
+                        onChange={(v) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            whatsappOrderDiscountRate: v,
+                          }))
+                        }
+                        placeholder={t(
+                          "restaurantSettings.online_order_discount_placeholder",
+                        )}
+                      />
+                      <NumberWithSuffix
+                        label={t("restaurantSettings.delivery_fee")}
+                        suffix={moneySign}
+                        value={restaurantData?.whatsappOrderDeliveryFee}
+                        onChange={(v) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            whatsappOrderDeliveryFee: v,
+                          }))
+                        }
+                        placeholder={t(
+                          "restaurantSettings.delivery_fee_placeholder",
+                        )}
+                        currencyDecimals={
+                          Number.isFinite(Number(restaurantData?.decimalPoint))
+                            ? Number(restaurantData.decimalPoint)
+                            : 2
+                        }
+                        maxDigits={9}
+                      />
+                      <NumberWithSuffix
+                        label={t("restaurantSettings.min_order_amount")}
+                        suffix={moneySign}
+                        value={restaurantData?.whatsappOrderMinAmount}
+                        onChange={(v) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            whatsappOrderMinAmount: v,
+                          }))
+                        }
+                        placeholder={t(
+                          "restaurantSettings.min_order_amount_placeholder",
+                        )}
+                        currencyDecimals={
+                          Number.isFinite(Number(restaurantData?.decimalPoint))
+                            ? Number(restaurantData.decimalPoint)
+                            : 2
+                        }
+                        maxDigits={9}
+                      />
+                      <NumberWithSuffix
+                        label={t("restaurantSettings.max_distance")}
+                        suffix="km"
+                        value={restaurantData?.whatsappOrderMaxDistance}
+                        onChange={(v) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            whatsappOrderMaxDistance: v,
+                          }))
+                        }
+                        placeholder={t(
+                          "restaurantSettings.max_distance_placeholder",
+                        )}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
