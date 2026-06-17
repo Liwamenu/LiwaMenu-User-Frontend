@@ -1,14 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ChevronDown,
-  Globe,
-  MessageCircle,
-  ShieldCheck,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { ChevronDown, Globe, MessageCircle } from "lucide-react";
 
 // Brand contact number rendered as a click-to-WhatsApp link. Strip
 // the leading 0 from the local format and prepend +90 so wa.me opens
@@ -18,6 +11,7 @@ const WHATSAPP_DISPLAY = "0850 840 78 07";
 
 import i18n from "../../config/i18n";
 import LanguagesEnums from "../../enums/languagesEnums";
+import { BrandFeatureList } from "./brandFeatures";
 
 const LANG_STORAGE_KEY = "liwamenu_lang";
 
@@ -73,12 +67,6 @@ const AuthShell = ({
 
   const currentLang = LanguagesEnums.find((l) => l.value === selectedLang);
 
-  const features = [
-    { icon: Sparkles, text: t("auth.brand_feature_1") },
-    { icon: Zap, text: t("auth.brand_feature_2") },
-    { icon: ShieldCheck, text: t("auth.brand_feature_3") },
-  ];
-
   const widthClass = MAX_W_CLASS[maxWidth] || MAX_W_CLASS.md;
 
   return (
@@ -110,23 +98,14 @@ const AuthShell = ({
           </Link>
         </div>
 
-        <div className="relative z-10 max-w-md">
-          <h2 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+        <div className="relative z-10 w-full max-w-xl">
+          <h2 className="text-3xl xl:text-4xl font-bold leading-tight mb-3">
             {t("auth.brand_headline")}
           </h2>
-          <p className="text-white/80 text-base xl:text-lg leading-relaxed mb-10">
+          <p className="text-white/80 text-sm xl:text-base leading-relaxed mb-7 max-w-md">
             {t("auth.brand_description")}
           </p>
-          <ul className="space-y-4">
-            {features.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3">
-                <span className="grid place-items-center size-9 rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-                  <Icon className="size-4" />
-                </span>
-                <span className="text-white/90">{text}</span>
-              </li>
-            ))}
-          </ul>
+          <BrandFeatureList />
         </div>
 
         <div className="relative z-10 text-xs text-white/70">

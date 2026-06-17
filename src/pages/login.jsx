@@ -6,31 +6,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
-  BadgePercent,
   Bell,
-  CalendarCheck,
-  CalendarClock,
   Check,
   ChevronDown,
-  ConciergeBell,
   Eye,
   EyeOff,
   Globe,
-  Languages,
   Lock,
   Mail,
-  Megaphone,
   MessageCircle,
-  Palette,
   RefreshCw,
-  Share2,
   ShieldCheck,
-  ShoppingBag,
-  Star,
-  Store,
-  Utensils,
 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
 
 // Brand WhatsApp link reused from the AuthShell pattern — Login keeps
 // its own custom auth shell so the constants are duplicated here
@@ -54,6 +41,9 @@ import LanguagesEnums from "../enums/languagesEnums";
 
 // ICONS
 import LoadingI from "../assets/anim/loading";
+
+// COMP
+import { BrandFeatureList } from "../components/auth/brandFeatures";
 
 const LANG_STORAGE_KEY = "liwamenu_lang";
 
@@ -165,22 +155,6 @@ function Login() {
     if (token) navigate("/restaurants");
   }, [token]);
 
-  const features = [
-    { icon: ConciergeBell, text: t("auth.feat_waiter_call") },
-    { icon: Languages, text: t("auth.feat_languages") },
-    { icon: Utensils, text: t("auth.feat_table_order") },
-    { icon: ShoppingBag, text: t("auth.feat_takeaway") },
-    { icon: FaWhatsapp, text: t("auth.feat_whatsapp_order") },
-    { icon: CalendarCheck, text: t("auth.feat_reservations") },
-    { icon: Palette, text: t("auth.feat_themes") },
-    { icon: BadgePercent, text: t("auth.feat_campaigns") },
-    { icon: Megaphone, text: t("auth.feat_announcements") },
-    { icon: CalendarClock, text: t("auth.feat_scheduled_menu") },
-    { icon: Star, text: t("auth.feat_google_review") },
-    { icon: Share2, text: t("auth.feat_social_media") },
-    { icon: Store, text: t("auth.feat_working_hours") },
-  ];
-
   return (
     <section className="light min-h-[100dvh] flex bg-white">
       {/* LEFT — BRAND PANEL (lg+) */}
@@ -214,18 +188,7 @@ function Login() {
             {t("auth.brand_description")}
           </p>
 
-          <ul className="grid grid-cols-2 gap-x-5 gap-y-3">
-            {features.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2.5">
-                <span className="grid place-items-center size-8 shrink-0 rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-                  <Icon className="size-4" />
-                </span>
-                <span className="text-sm text-white/90 leading-tight">
-                  {text}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <BrandFeatureList />
         </div>
 
         <div className="relative z-10 -mx-12 xl:-mx-16 -mb-12 xl:-mb-16 text-center text-xs text-white/85 bg-indigo-950/50 ring-1 ring-white/10 px-5 py-3 backdrop-blur-sm">
