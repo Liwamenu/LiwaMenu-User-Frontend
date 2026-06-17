@@ -4,7 +4,16 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowRight, Inbox, Mail, MailCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Inbox,
+  Mail,
+  MailCheck,
+  RefreshCw,
+  ShieldCheck,
+} from "lucide-react";
 
 //REDUX
 import {
@@ -20,6 +29,17 @@ import AuthField from "../components/auth/AuthField";
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 const RESEND_COOLDOWN = 60;
+
+// Simple arithmetic captcha (same pattern as Login) — a lightweight guard
+// against scripted flooding of the password-reset endpoint. Regenerated
+// after every attempt so each send needs a fresh solve.
+function generateCaptcha() {
+  return {
+    num1: Math.floor(Math.random() * 9) + 1,
+    num2: Math.floor(Math.random() * 9) + 1,
+    answer: "",
+  };
+}
 
 // Backend error messages sometimes embed a literal "<br/>" to put the
 // e-mail address on its own line (e.g. "x@y.com<br/>Adresi ile sistemde
@@ -46,15 +66,30 @@ const ForgotPassword = () => {
 
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [captcha, setCaptcha] = useState(() => generateCaptcha());
 
-  const sendLink = (e) => {
-    e?.preventDefault();
+  const captchaValid =
+    captcha.answer !== "" &&
+    parseInt(captcha.answer, 10) === captcha.num1 + captcha.num2;
+  const refreshCaptcha = () => setCaptcha(generateCaptcha());
+
+  // Raw request — used by the resend button, which is gated by its own
+  // 60s cooldown rather than the captcha.
+  const submitRequest = () => {
     dispatch(forgotPassword({ toAddress: email }));
+  };
+
+  // Form submit — captcha-gated to block scripted flooding.
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    if (loading || !email || !captchaValid) return;
+    submitRequest();
   };
 
   useEffect(() => {
     if (success) {
       setSent(true);
+      setCaptcha(generateCaptcha());
       dispatch(resetForgotPassword());
       toast.success(t("forgotPassword.link_sent"));
     }
@@ -73,6 +108,7 @@ const ForgotPassword = () => {
           )}`
         : error.message;
       toast.error(<span>{toMessageNodes(message)}</span>);
+      setCaptcha(generateCaptcha());
       dispatch(resetForgotPassword());
     }
   }, [success, error, dispatch, t, email]);
@@ -83,7 +119,7 @@ const ForgotPassword = () => {
         <EmailSentStep
           email={email}
           loading={loading}
-          onResend={() => sendLink()}
+          onResend={() => submitRequest()}
           onBack={() => setSent(false)}
         />
       </AuthShell>
@@ -104,7 +140,7 @@ const ForgotPassword = () => {
         </Link>
       }
     >
-      <form onSubmit={sendLink} className="space-y-4" noValidate>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <AuthField
           id="email"
           label={t("forgotPassword.email_label")}
@@ -121,9 +157,54 @@ const ForgotPassword = () => {
           {t("forgotPassword.help_text")}
         </p>
 
+        {/* Captcha — lightweight flood guard, same pattern as Login */}
+        <div
+          className={`flex items-center gap-3 rounded-xl border bg-white px-3.5 py-2.5 transition ${
+            captchaValid ? "border-green-200 bg-green-50/40" : "border-slate-200"
+          }`}
+        >
+          <ShieldCheck
+            className={`size-5 shrink-0 ${
+              captchaValid ? "text-green-600" : "text-[--primary-1]"
+            }`}
+          />
+          <span className="text-sm font-semibold text-slate-700 select-none whitespace-nowrap">
+            {captcha.num1} + {captcha.num2} =
+          </span>
+          <input
+            id="fp-captcha"
+            name="captchaAnswer"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={2}
+            value={captcha.answer}
+            onChange={(e) =>
+              setCaptcha((c) => ({
+                ...c,
+                answer: e.target.value.replace(/\D/g, ""),
+              }))
+            }
+            className="w-14 h-9 px-2 text-center rounded-lg border border-slate-200 bg-white text-slate-900 outline-none transition focus:border-[--primary-1] focus:ring-2 focus:ring-indigo-100 font-semibold"
+          />
+          {captchaValid && (
+            <span className="grid place-items-center size-6 rounded-full bg-green-100 text-green-700">
+              <Check className="size-3.5" strokeWidth={3} />
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={refreshCaptcha}
+            aria-label={t("auth.captcha_refresh")}
+            className="ml-auto grid place-items-center size-8 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+          >
+            <RefreshCw className="size-4" />
+          </button>
+        </div>
+
         <button
           type="submit"
-          disabled={loading || !email}
+          disabled={loading || !email || !captchaValid}
           className="group w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl text-white text-base font-semibold shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:brightness-110 active:brightness-95 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
           style={{ background: PRIMARY_GRADIENT }}
         >
