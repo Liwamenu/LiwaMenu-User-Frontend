@@ -6,20 +6,31 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
+  BadgePercent,
   Bell,
+  CalendarCheck,
+  CalendarClock,
   Check,
   ChevronDown,
+  ConciergeBell,
   Eye,
   EyeOff,
   Globe,
+  Languages,
   Lock,
   Mail,
+  Megaphone,
   MessageCircle,
+  Palette,
   RefreshCw,
+  Share2,
   ShieldCheck,
-  Sparkles,
-  Zap,
+  ShoppingBag,
+  Star,
+  Store,
+  Utensils,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
 // Brand WhatsApp link reused from the AuthShell pattern — Login keeps
 // its own custom auth shell so the constants are duplicated here
@@ -155,9 +166,19 @@ function Login() {
   }, [token]);
 
   const features = [
-    { icon: Sparkles, text: t("auth.brand_feature_1") },
-    { icon: Zap, text: t("auth.brand_feature_2") },
-    { icon: ShieldCheck, text: t("auth.brand_feature_3") },
+    { icon: ConciergeBell, text: t("auth.feat_waiter_call") },
+    { icon: Languages, text: t("auth.feat_languages") },
+    { icon: Utensils, text: t("auth.feat_table_order") },
+    { icon: ShoppingBag, text: t("auth.feat_takeaway") },
+    { icon: FaWhatsapp, text: t("auth.feat_whatsapp_order") },
+    { icon: CalendarCheck, text: t("auth.feat_reservations") },
+    { icon: Palette, text: t("auth.feat_themes") },
+    { icon: BadgePercent, text: t("auth.feat_campaigns") },
+    { icon: Megaphone, text: t("auth.feat_announcements") },
+    { icon: CalendarClock, text: t("auth.feat_scheduled_menu") },
+    { icon: Star, text: t("auth.feat_google_review") },
+    { icon: Share2, text: t("auth.feat_social_media") },
+    { icon: Store, text: t("auth.feat_working_hours") },
   ];
 
   return (
@@ -185,21 +206,23 @@ function Login() {
           </Link>
         </div>
 
-        <div className="relative z-10 max-w-md">
-          <h2 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+        <div className="relative z-10 w-full max-w-xl">
+          <h2 className="text-3xl xl:text-4xl font-bold leading-tight mb-3">
             {t("auth.brand_headline")}
           </h2>
-          <p className="text-white/80 text-base xl:text-lg leading-relaxed mb-10">
+          <p className="text-white/80 text-sm xl:text-base leading-relaxed mb-7 max-w-md">
             {t("auth.brand_description")}
           </p>
 
-          <ul className="space-y-4">
+          <ul className="grid grid-cols-2 gap-x-5 gap-y-3">
             {features.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3">
-                <span className="grid place-items-center size-9 rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
+              <li key={text} className="flex items-center gap-2.5">
+                <span className="grid place-items-center size-8 shrink-0 rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
                   <Icon className="size-4" />
                 </span>
-                <span className="text-white/90">{text}</span>
+                <span className="text-sm text-white/90 leading-tight">
+                  {text}
+                </span>
               </li>
             ))}
           </ul>
