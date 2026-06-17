@@ -79,7 +79,7 @@ const EditUserPassword = () => {
   const canSubmit =
     !loading &&
     passwordsMatch &&
-    userPassword.password.length >= 4 &&
+    userPassword.password.length >= 5 &&
     userPassword.currentPassword.length > 0;
 
   return (
@@ -118,7 +118,7 @@ const EditUserPassword = () => {
               onChange={(e) =>
                 setUserPassword((prev) => ({ ...prev, password: e }))
               }
-              minLength={4}
+              minLength={5}
               maxLength={32}
             />
             <CustomInput
@@ -131,7 +131,7 @@ const EditUserPassword = () => {
               onChange={(e) =>
                 setUserPassword((prev) => ({ ...prev, confirmPassword: e }))
               }
-              minLength={4}
+              minLength={5}
               maxLength={32}
             />
           </div>

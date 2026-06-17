@@ -1471,7 +1471,7 @@
     "current_password": "Mevcut Şifre",
     "current_password_placeholder": "Şu an kullandığınız şifre",
     "password": "Yeni Şifre",
-    "password_placeholder": "En az 4 karakter",
+    "password_placeholder": "En az 5 karakter",
     "confirm_password": "Şifre Tekrar",
     "confirm_password_placeholder": "Yeni şifreyi tekrar girin",
     "save": "Şifreyi Güncelle",
@@ -1480,7 +1480,7 @@
     "error": "Şifre güncellenemedi. Lütfen tekrar deneyin.",
     "passwords_not_match": "Şifreler eşleşmiyor.",
     "passwords_match": "Şifreler eşleşiyor.",
-    "hint": "Güçlü bir şifre seçin: en az 4 karakter, harf ve rakam karışımı önerilir."
+    "hint": "Güçlü bir şifre seçin: en az 5 karakter, harf ve rakam karışımı önerilir."
   },
   "activeSessions": {
     "title": "Aktif Oturumlar",

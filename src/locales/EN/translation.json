@@ -1407,7 +1407,7 @@
     "current_password": "Current Password",
     "current_password_placeholder": "Your current password",
     "password": "New Password",
-    "password_placeholder": "At least 4 characters",
+    "password_placeholder": "At least 5 characters",
     "confirm_password": "Confirm Password",
     "confirm_password_placeholder": "Re-enter your new password",
     "save": "Update Password",
@@ -1416,7 +1416,7 @@
     "error": "Could not update the password. Please try again.",
     "passwords_not_match": "Passwords do not match.",
     "passwords_match": "Passwords match.",
-    "hint": "Pick a strong password: at least 4 characters, mixing letters and numbers is recommended."
+    "hint": "Pick a strong password: at least 5 characters, mixing letters and numbers is recommended."
   },
   "sambaTables": {
     "open_button": "SambaPOS Tables",
