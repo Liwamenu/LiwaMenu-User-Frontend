@@ -21,6 +21,21 @@ const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 const RESEND_COOLDOWN = 60;
 
+// Backend error messages sometimes embed a literal "<br/>" to put the
+// e-mail address on its own line (e.g. "x@y.com<br/>Adresi ile sistemde
+// kayıtlı bir kullanıcı bulunamadı"). react-hot-toast renders a string as
+// plain text, so the tag showed up verbatim. Split on the <br> variants
+// and insert real line-break nodes. Everything between the tags stays a
+// plain string (rendered as escaped text), so no arbitrary backend HTML
+// is injected.
+const toMessageNodes = (msg) => {
+  const text = String(msg ?? "").trim();
+  if (!text) return text;
+  return text
+    .split(/<br\s*\/?>/i)
+    .flatMap((part, i) => (i === 0 ? [part] : [<br key={i} />, part]));
+};
+
 const ForgotPassword = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -44,10 +59,23 @@ const ForgotPassword = () => {
       toast.success(t("forgotPassword.link_sent"));
     }
     if (error) {
-      toast.error(error.message);
+      // The backend only reports "user not found" in message_EN; its
+      // message_TR is a vague "Şifre sıfırlama e-postası gönderilemedi".
+      // Detect that case and show a clearer message with the typed e-mail
+      // on its own line; otherwise fall back to the localized message.
+      const isUserNotFound = /user\s*not\s*found/i.test(
+        error?.data?.message_EN || "",
+      );
+      const message = isUserNotFound
+        ? `${email.trim()}<br/>${t(
+            "forgotPassword.user_not_found",
+            "Adresi ile sistemde kayıtlı bir kullanıcı bulunamadı",
+          )}`
+        : error.message;
+      toast.error(<span>{toMessageNodes(message)}</span>);
       dispatch(resetForgotPassword());
     }
-  }, [success, error, dispatch, t]);
+  }, [success, error, dispatch, t, email]);
 
   if (sent) {
     return (

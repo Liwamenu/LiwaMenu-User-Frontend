@@ -50,7 +50,14 @@ export const forgotPassword = createAsyncThunk(
       return res.data;
     } catch (err) {
       console.log(err);
-      return rejectWithValue({ message: pickAxiosErrorMessage(err) });
+      // Keep `message` (localized, backward-compatible) but also pass the
+      // raw ResponsBase as `data` so the page can detect the "user not
+      // found" case (backend only says it in message_EN; message_TR is a
+      // generic "…gönderilemedi") and show a clearer message.
+      return rejectWithValue({
+        message: pickAxiosErrorMessage(err),
+        data: err?.response?.data ?? null,
+      });
     }
   }
 );

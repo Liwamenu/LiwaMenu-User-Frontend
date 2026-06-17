@@ -176,6 +176,7 @@
     "send": "Send Reset Link",
     "back_to_login": "Back to sign in",
     "link_sent": "Password reset link sent",
+    "user_not_found": "No account is registered with this e-mail address",
     "email_sent_title": "Check your email",
     "email_sent_message": "we've sent a password reset link.",
     "email_sent_instruction": "Open your inbox and click the link to set a new password.",

@@ -176,6 +176,7 @@
     "send": "Sıfırlama Bağlantısı Gönder",
     "back_to_login": "Girişe geri dön",
     "link_sent": "Şifre sıfırlama bağlantısı gönderildi",
+    "user_not_found": "Adresi ile sistemde kayıtlı bir kullanıcı bulunamadı",
     "email_sent_title": "E-postanı kontrol et",
     "email_sent_message": "adresine şifre sıfırlama bağlantısı gönderdik.",
     "email_sent_instruction": "Mailini açıp bağlantıya tıklayarak yeni şifreni belirleyebilirsin.",
