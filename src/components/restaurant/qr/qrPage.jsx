@@ -17,6 +17,7 @@ import {
   Trash2,
   ExternalLink,
   Database,
+  AlertTriangle,
 } from "lucide-react";
 
 // COMP
@@ -88,13 +89,12 @@ const QRPage = ({ data: restaurant }) => {
     gradientStart: "#000000",
     gradientEnd: "#000000",
     logo: null,
-    // Logo ON by default — matches the original behaviour where the
-    // restaurant's brand mark sits in the centre of every QR. The
-    // table-number badge is an opt-in alternative (switching it on
-    // auto-disables the logo so the centre never holds two overlays
-    // at once).
-    includeLogo: true,
-    includeTableNumber: false,
+    // Default: table number ON in the centre, brand logo OFF. The two are
+    // mutually exclusive (only one centre overlay at a time). Most
+    // restaurants generate a QR per table, so the centred table number is
+    // the more useful default; the logo stays an opt-in alternative.
+    includeLogo: false,
+    includeTableNumber: true,
     size: 1024,
     tenant: restaurant?.tenant || "demo",
     restaurantId: restaurant?.id || null,
@@ -868,6 +868,19 @@ const QRPage = ({ data: restaurant }) => {
                 </div>
               )}
             </Section>
+
+            {/* Kullanım uyarısı (kırmızı) — Garson Çağrısı / Masada Sipariş
+                kullanılacaksa her masaya ayrı QR; aksi halde aşağıdaki sabit
+                QR tüm masalarda yeterli. */}
+            <div className="flex items-start gap-2 p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-200">
+              <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed font-medium">
+                {t(
+                  "qrPage.usage_warning",
+                  "Garson Çağrısı ve Masada Sipariş özelliklerini aktif olarak kullanacaksanız her masa için ayrı QR Kod oluşturmalısınız. Bu özellikleri kullanmayacaksanız aşağıdaki sabit QR Kod linkini tüm masalarda kullanabilirsiniz.",
+                )}
+              </p>
+            </div>
 
             {/* Live preview */}
             <Section

@@ -415,6 +415,15 @@ const RestaurantSettings = ({ data: inData }) => {
       return;
     }
 
+    // Tenant (alt alan adı) zorunlu — QR/menü adresinin temeli. Boşken
+    // kaydetmeye izin verme.
+    if (!restaurantData?.tenant?.trim()) {
+      toast.error(t("restaurantSettings.tenant_required"), {
+        id: "tenant-required",
+      });
+      return;
+    }
+
     if (
       restaurantData?.onlineOrder &&
       !(Number(restaurantData?.maxDistance) > 0)
