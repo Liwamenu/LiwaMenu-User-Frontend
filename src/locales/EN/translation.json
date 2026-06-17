@@ -1481,6 +1481,28 @@
     "license_missing": "Cannot generate QR codes: Please acquire a restaurant license first.",
     "license_inactive": "Cannot generate QR codes: Restaurant license is inactive."
   },
+  "activeSessions": {
+    "title": "Active Sessions",
+    "info": "Devices with access to your account. If you see a session you don't recognize, close it and change your password.",
+    "this_device": "This device",
+    "close": "Close",
+    "close_others": "Sign out other devices",
+    "refresh": "Refresh",
+    "unknown_location": "Unknown location",
+    "unknown_device": "Unknown device",
+    "loading": "Loading sessions…",
+    "load_error": "Session info can't be loaded right now.",
+    "retry": "Retry",
+    "empty": "No active sessions found.",
+    "closed": "Session closed.",
+    "close_error": "Couldn't close the session.",
+    "close_confirm_title": "Close session",
+    "close_confirm_desc": "are you sure you want to close the session on this device? It will have to sign in again.",
+    "others_closed": "All other devices were signed out.",
+    "others_error": "The operation failed.",
+    "close_others_confirm_title": "Sign out other devices",
+    "close_others_confirm_desc": "All sessions except this device will be closed. Continue?"
+  },
   "profilePage": {
     "title": "Profile",
     "edit_profile": "Edit Profile",

@@ -161,6 +161,13 @@ axiosPrivate.interceptors.response.use(
     let errorMessage = "";
     toast.dismiss();
 
+    // Per-request opt-out: slices can pass `axiosConfig: { skipErrorToast:true }`
+    // to handle errors inline instead of firing the global toast (e.g. a
+    // feature whose backend endpoint isn't live yet). It's a config-only flag,
+    // never sent as a header, so it can't trigger a CORS preflight. The 401
+    // clear-auth + redirect still runs regardless — only the toast is skipped.
+    const skipErrorToast = error?.config?.skipErrorToast === true;
+
     if (error.response?.status === 401) {
       clearAuth();
       errorMessage = t("apiErrors.unauthorized");
@@ -176,7 +183,7 @@ axiosPrivate.interceptors.response.use(
       // only when the backend sent no diagnostic.
       const backend = pickBackendMessage(error?.response?.data);
       errorMessage = backend || t("apiErrors.inactive_account");
-      toast.error(errorMessage, { id: "403" });
+      if (!skipErrorToast) toast.error(errorMessage, { id: "403" });
     } else if (error.response) {
       const resErr = pickBackendMessage(error?.response?.data);
       if (resErr) {
@@ -198,10 +205,10 @@ axiosPrivate.interceptors.response.use(
             });
         }
       }
-      toast.error(errorMessage, { id: "api-error" });
+      if (!skipErrorToast) toast.error(errorMessage, { id: "api-error" });
     } else if (error.request) {
       errorMessage = t("apiErrors.no_response");
-      toast.error(errorMessage, { id: "no-server-error" });
+      if (!skipErrorToast) toast.error(errorMessage, { id: "no-server-error" });
     } else {
       // Avoid stacking the prefix when the message already carries it.
       const prefix = t("apiErrors.generic", { message: "" }).trim();
@@ -210,7 +217,7 @@ axiosPrivate.interceptors.response.use(
       } else {
         errorMessage = error.message;
       }
-      toast.error(errorMessage, { id: "random-error" });
+      if (!skipErrorToast) toast.error(errorMessage, { id: "random-error" });
     }
 
     return Promise.reject({ ...error, message: errorMessage });

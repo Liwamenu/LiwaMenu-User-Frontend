@@ -1482,6 +1482,28 @@
     "passwords_match": "Şifreler eşleşiyor.",
     "hint": "Güçlü bir şifre seçin: en az 4 karakter, harf ve rakam karışımı önerilir."
   },
+  "activeSessions": {
+    "title": "Aktif Oturumlar",
+    "info": "Hesabınıza erişimi olan cihazlar. Tanımadığınız bir oturum görürseniz kapatın ve şifrenizi değiştirin.",
+    "this_device": "Bu cihaz",
+    "close": "Kapat",
+    "close_others": "Diğer cihazları çıkış yaptır",
+    "refresh": "Yenile",
+    "unknown_location": "Bilinmeyen konum",
+    "unknown_device": "Bilinmeyen cihaz",
+    "loading": "Oturumlar yükleniyor…",
+    "load_error": "Oturum bilgileri şu anda yüklenemiyor.",
+    "retry": "Tekrar dene",
+    "empty": "Aktif oturum bulunamadı.",
+    "closed": "Oturum kapatıldı.",
+    "close_error": "Oturum kapatılamadı.",
+    "close_confirm_title": "Oturumu kapat",
+    "close_confirm_desc": "cihazındaki oturumu kapatmak istediğinize emin misiniz? O cihaz tekrar giriş yapmak zorunda kalacak.",
+    "others_closed": "Diğer tüm cihazlar çıkış yapıldı.",
+    "others_error": "İşlem başarısız oldu.",
+    "close_others_confirm_title": "Diğer cihazları çıkış yaptır",
+    "close_others_confirm_desc": "Bu cihaz hariç tüm oturumlar kapatılacak. Devam edilsin mi?"
+  },
   "profilePage": {
     "title": "Profil",
     "edit_profile": "Profili Düzenle",

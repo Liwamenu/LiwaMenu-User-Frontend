@@ -7,6 +7,7 @@ import { User, Shield } from "lucide-react";
 //COMP
 import EditUserProfile from "./pages/editUserProfile";
 import EditUserPassword from "./pages/editUserPassword";
+import ActiveSessions from "./pages/activeSessions";
 
 //REDUX
 import { getAuth } from "../../redux/api";
@@ -107,7 +108,10 @@ const ProfilePage = () => {
           {selected === 0 ? (
             <EditUserProfile user={userData} />
           ) : (
-            <EditUserPassword user={userData} />
+            <div className="space-y-6">
+              <EditUserPassword user={userData} />
+              <ActiveSessions />
+            </div>
           )}
         </div>
       </div>
