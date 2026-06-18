@@ -352,6 +352,7 @@
     "restaurant_section_label": "Restaurant",
     "package_section_label": "License Package",
     "select_restaurant_first": "Please select a restaurant first to see available packages.",
+    "loading_packages": "Loading packages…",
     "yearly": "Yearly",
     "monthly": "Monthly",
     "selected": "Selected",

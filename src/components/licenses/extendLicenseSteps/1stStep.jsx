@@ -1,6 +1,6 @@
 //MOD
 import toast from "react-hot-toast";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import {
   CreditCard,
   Info,
   Landmark,
+  Loader2,
   Package,
   ShieldCheck,
   Sparkles,
@@ -22,10 +23,7 @@ import { formatPrice, groupedLicensePackages } from "../../../utils/utils";
 import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
 // REDUX
-import {
-  getLicensePackages,
-  resetGetLicensePackages,
-} from "../../../redux/licensePackages/getLicensePackagesSlice";
+import { getLicensePackages } from "../../../redux/licensePackages/getLicensePackagesSlice";
 import {
   addItemToCart,
   removeItemFromCart,
@@ -49,30 +47,30 @@ const FirstStep = ({
   const { currentLicense, restaurant } = location?.state || {};
   const { restaurantName, restaurantId, userId } = currentLicense || {};
 
-  const { success, licensePackages } = useSelector(
+  const { loading, licensePackages } = useSelector(
     (state) => state.licensePackages.getLicensePackages,
   );
   const cartItems = useSelector((state) => state.cart.items);
 
-  const [packagesData, setPackagesData] = useState(null);
-
-  // GET LICENSE PACKAGES
+  // Fetch the catalog only when it isn't already cached in the store, so
+  // repeat visits are instant. The fetch is silenced (SILENT_THUNKS), so the
+  // page opens immediately; only the package list shows an inline loader.
   useEffect(() => {
-    if (!packagesData) {
-      dispatch(getLicensePackages());
-    }
-  }, [packagesData]);
+    if (!licensePackages?.data) dispatch(getLicensePackages());
+  }, [licensePackages, dispatch]);
 
-  // SET PACKAGES (grouped)
-  useEffect(() => {
-    if (success && licensePackages?.data) {
-      const updated = licensePackages.data
-        .filter((p) => p.isActive)
-        .map((p) => ({ ...p, price: p.userPrice }));
-      setPackagesData(groupedLicensePackages(updated));
-      dispatch(resetGetLicensePackages());
-    }
-  }, [success]);
+  // Grouped, active-only packages derived straight from the cached store
+  // data (no local copy / reset, so the cache survives across visits).
+  const packagesData = useMemo(() => {
+    const data = licensePackages?.data;
+    if (!data) return null;
+    const updated = data
+      .filter((p) => p.isActive)
+      .map((p) => ({ ...p, price: p.userPrice }));
+    return groupedLicensePackages(updated);
+  }, [licensePackages]);
+
+  const packagesLoading = loading && !packagesData;
 
   // SET RESTAURANT DATA from current license
   useEffect(() => {
@@ -179,7 +177,14 @@ const FirstStep = ({
             {t("extendLicense.package_section_label")}
           </label>
 
-          {!packagesData?.length ? (
+          {packagesLoading ? (
+            <div className="rounded-xl border border-[--border-1] bg-[--white-1] px-4 py-8 flex items-center justify-center gap-2 text-[--gr-1]">
+              <Loader2 className="size-4 animate-spin" />
+              <span className="text-xs">
+                {t("addLicense.loading_packages")}
+              </span>
+            </div>
+          ) : !packagesData?.length ? (
             <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
               <Info className="size-4 shrink-0 mt-0.5" />
               <span>{t("extendLicense.no_packages")}</span>

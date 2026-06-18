@@ -15,6 +15,12 @@ const SILENT_THUNKS = new Set([
   // inline loading state while the request finishes; the user can
   // still navigate around in the meantime.
   "Menus/GetMenusByRestaurantId",
+  // The license catalog, fetched when opening the Extend / Purchase
+  // license pages, is slow on the backend (see
+  // LICENSE_PACKAGES_PERF_BRIEF.md). Behind the full-screen spinner it made
+  // the whole page look frozen for ~5-6s. Silenced so the page opens
+  // instantly with an inline loader on the package list instead.
+  "LicensePackages/GetLicensePackages",
   // Examples (uncomment when needed):
   // "Orders/getOrders",
   // "WaiterCalls/getWaiterCalls",

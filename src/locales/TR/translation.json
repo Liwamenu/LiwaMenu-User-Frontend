@@ -352,6 +352,7 @@
     "restaurant_section_label": "Restoran",
     "package_section_label": "Lisans Paketi",
     "select_restaurant_first": "Lisans paketlerini görmek için önce bir restoran seçin.",
+    "loading_packages": "Paketler yükleniyor…",
     "yearly": "Yıllık",
     "monthly": "Aylık",
     "selected": "Seçildi",

@@ -1,12 +1,13 @@
 //MODULES
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Check,
   Info,
+  Loader2,
   Package,
   Sparkles,
   Store,
@@ -24,10 +25,7 @@ import {
 import { getLicenseTypeLabel } from "../../../enums/licenseTypeEnums";
 
 //REDUX
-import {
-  getLicensePackages,
-  resetGetLicensePackages,
-} from "../../../redux/licensePackages/getLicensePackagesSlice";
+import { getLicensePackages } from "../../../redux/licensePackages/getLicensePackagesSlice";
 import { getRestaurants } from "../../../redux/restaurants/getRestaurantsSlice";
 import {
   getRestaurantLicenses,
@@ -50,7 +48,7 @@ const FirstStep = ({
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  const { success, licensePackages } = useSelector(
+  const { loading, licensePackages } = useSelector(
     (state) => state.licensePackages.getLicensePackages,
   );
   const { restaurants } = useSelector(
@@ -62,9 +60,6 @@ const FirstStep = ({
 
   const cartItems = useSelector((state) => state.cart.items);
 
-  const [restaurantsData, setRestaurantsData] = useState(null);
-  const [licensePackagesData, setLicensePackagesData] = useState(null);
-
   function getTotalPrice() {
     const result = cartItems.reduce(
       (acc, item) => acc + parseFloat(item.price),
@@ -73,37 +68,37 @@ const FirstStep = ({
     return formatPrice(result);
   }
 
-  // GET LICENSE PACKAGES
+  // GET LICENSE PACKAGES — only when not already cached (instant repeat
+  // visits); silenced (SILENT_THUNKS) so the page opens immediately.
   useEffect(() => {
-    if (!licensePackagesData) {
-      dispatch(getLicensePackages());
-    }
-  }, [licensePackagesData]);
+    if (!licensePackages?.data) dispatch(getLicensePackages());
+  }, [licensePackages, dispatch]);
 
-  // SET PACKAGES
-  useEffect(() => {
-    if (success) {
-      const updatedData = licensePackages.data
+  // Grouped, active-only packages derived from the cached store data.
+  const licensePackagesData = useMemo(() => {
+    const data = licensePackages?.data;
+    if (!data) return null;
+    return groupedLicensePackages(
+      data
         .filter((P) => P.isActive)
-        .map((pkg) => ({ ...pkg, price: pkg.userPrice }));
-      setLicensePackagesData(groupedLicensePackages(updatedData));
-      dispatch(resetGetLicensePackages());
-    }
-  }, [success]);
+        .map((pkg) => ({ ...pkg, price: pkg.userPrice })),
+    );
+  }, [licensePackages]);
 
-  // GET RESTAURANTS
-  useEffect(() => {
-    if (!restaurant && !restaurantsData) {
-      dispatch(getRestaurants({}));
-    }
-  }, [restaurant, restaurantsData]);
+  const packagesLoading = loading && !licensePackagesData;
 
-  // SET RESTAURANTS
+  // GET RESTAURANTS — only if not cached; __silent so the restaurant
+  // dropdown doesn't freeze the page behind the global spinner.
   useEffect(() => {
-    if (restaurants) {
-      setRestaurantsData(formatSelectorData(restaurants.data, false));
+    if (!restaurant && !restaurants) {
+      dispatch(getRestaurants({ __silent: true }));
     }
-  }, [restaurants]);
+  }, [restaurant, restaurants, dispatch]);
+
+  const restaurantsData = useMemo(
+    () => (restaurants ? formatSelectorData(restaurants.data, false) : null),
+    [restaurants],
+  );
 
   // FETCH RESTAURANT LICENSES (so we can warn for duplicates)
   useEffect(() => {
@@ -222,6 +217,13 @@ const FirstStep = ({
             <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
               <Info className="size-4 shrink-0 mt-0.5" />
               <span>{t("addLicense.select_restaurant_first")}</span>
+            </div>
+          ) : packagesLoading ? (
+            <div className="rounded-xl border border-[--border-1] bg-[--white-1] px-4 py-8 flex items-center justify-center gap-2 text-[--gr-1]">
+              <Loader2 className="size-4 animate-spin" />
+              <span className="text-xs">
+                {t("addLicense.loading_packages")}
+              </span>
             </div>
           ) : (
             <div className="space-y-3">
