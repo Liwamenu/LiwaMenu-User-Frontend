@@ -1,27 +1,32 @@
 import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowRight,
   CalendarDays,
-  CreditCard,
   ImageIcon,
   MapPin,
   Monitor,
   QrCode,
-  Sparkles,
+  ShieldCheck,
   Tv,
 } from "lucide-react";
-import { formatDateString } from "../../utils/utils";
+import { formatDateDMY, getRemainingDays } from "../../utils/utils";
+import { privateApi } from "../../redux/api";
+import { usePopup } from "../../context/PopupContext";
+import RestaurantLicensesModal from "./restaurantLicensesModal";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
+const baseURL = import.meta.env.VITE_BASE_URL;
 
-// The four license types as surfaced on a restaurant entity. `activeKey`
-// / `ownedKey` are the per-type fields the backend ships on every
-// restaurant read (qrLicenseIsActive / qrLicenseId / …). Order is
-// QR → TV → Kiosk → Payment to match the rest of the UI.
+// The license types shown on a restaurant card. `activeKey` / `ownedKey`
+// are the per-type fields the backend ships on every restaurant read
+// (qrLicenseIsActive / qrLicenseId / …). Payment ("Ödeme") was removed at
+// the owner's request. `match` substrings map a fetched license record's
+// `licensePackageType` to the right row for its own end date.
 const LICENSE_TYPES = [
   {
     key: "qr",
@@ -29,6 +34,7 @@ const LICENSE_TYPES = [
     titleKey: "restaurants.license_type_qr",
     activeKey: "qrLicenseIsActive",
     ownedKey: "qrLicenseId",
+    match: "qr",
   },
   {
     key: "tv",
@@ -36,6 +42,7 @@ const LICENSE_TYPES = [
     titleKey: "restaurants.license_type_tv",
     activeKey: "tvLicenseIsActive",
     ownedKey: "tvLicenseId",
+    match: "tv",
   },
   {
     key: "kiosk",
@@ -43,13 +50,7 @@ const LICENSE_TYPES = [
     titleKey: "restaurants.license_type_kiosk",
     activeKey: "kioskLicenseIsActive",
     ownedKey: "kioskLicenseId",
-  },
-  {
-    key: "payment",
-    Icon: CreditCard,
-    titleKey: "restaurants.license_type_payment",
-    activeKey: "paymentIntegrationLicenseIsActive",
-    ownedKey: "paymentIntegrationLicenseId",
+    match: "kiosk",
   },
 ];
 
@@ -67,9 +68,72 @@ const licenseTypeState = (r, type) => {
   return "none";
 };
 
+// Per-card fetch of the restaurant's individual license records (each
+// carries its OWN endDateTime). The list entity only has a single bundle
+// date, so the per-type dates have to come from here. Kept in LOCAL state
+// via a direct call (not the shared getRestaurantLicenses slice, which the
+// detail modal owns and would clobber across cards). `skipErrorToast` keeps
+// it quiet — a card just shows status-only if the call fails.
+function useRestaurantLicenses(restaurantId) {
+  const [licenses, setLicenses] = useState(null);
+  useEffect(() => {
+    if (!restaurantId) return;
+    let alive = true;
+    privateApi()
+      .get(`${baseURL}Licenses/GetLicensesByRestaurantId`, {
+        params: { restaurantId },
+        skipErrorToast: true,
+      })
+      .then((res) => {
+        if (!alive) return;
+        const d = res?.data?.data ?? res?.data;
+        setLicenses(Array.isArray(d) ? d : []);
+      })
+      .catch(() => alive && setLicenses([]));
+    return () => {
+      alive = false;
+    };
+  }, [restaurantId]);
+  return licenses;
+}
+
+// Pick the most relevant (latest end date) license record for a type.
+const pickRecordForType = (licenses, type) => {
+  const matches = (licenses || []).filter((l) =>
+    String(l?.licensePackageType || "")
+      .toLowerCase()
+      .includes(type.match),
+  );
+  if (!matches.length) return null;
+  return matches.reduce((a, b) =>
+    new Date(b?.endDateTime || 0) > new Date(a?.endDateTime || 0) ? b : a,
+  );
+};
+
+// Resolve a row's state + own end date. Prefer the fetched license record
+// (accurate per-license date + active flag); fall back to the restaurant
+// entity flags when no record is available yet / exists.
+const resolveRow = (r, type, licenses) => {
+  const rec = pickRecordForType(licenses, type);
+  if (rec) {
+    const expired = rec.endDateTime && getRemainingDays(rec.endDateTime) <= 0;
+    return {
+      state: expired ? "expired" : rec.isActive ? "active" : "inactive",
+      date: rec.endDateTime || null,
+    };
+  }
+  return { state: licenseTypeState(r, type), date: null };
+};
+
 const RestaurantsCard = ({ inData }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { setPopupContent } = usePopup();
+
+  function handleManageLicenses(e, r) {
+    e?.stopPropagation();
+    setPopupContent(<RestaurantLicensesModal restaurant={r} />);
+  }
 
   function goToLicensePurchase(r) {
     if (r.licenseId) {
@@ -87,11 +151,6 @@ const RestaurantsCard = ({ inData }) => {
     } else {
       navigate("/licenses/add-license", { state: { restaurant: r } });
     }
-  }
-
-  function handleLicenseClick(e, r) {
-    e?.stopPropagation();
-    goToLicensePurchase(r);
   }
 
   function handleCardOpen(r) {
@@ -133,7 +192,7 @@ const RestaurantsCard = ({ inData }) => {
           r={r}
           t={t}
           onOpen={() => handleCardOpen(r)}
-          onLicense={(e) => handleLicenseClick(e, r)}
+          onManage={(e) => handleManageLicenses(e, r)}
         />
       ))}
     </div>
@@ -142,7 +201,7 @@ const RestaurantsCard = ({ inData }) => {
 
 export default RestaurantsCard;
 
-const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
+const RestaurantCard = ({ r, t, onOpen, onManage }) => {
   const licenseExpired = Boolean(r.licenseIsExpired);
   // "Active" = ANY of the four per-type license booleans is true. The
   // bundle expiry (`licenseIsExpired`) is the single end-date covering
@@ -154,6 +213,10 @@ const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
     r.kioskLicenseIsActive ||
     r.paymentIntegrationLicenseIsActive;
   const licenseActive = anyLicenseActive && !licenseExpired;
+
+  // Per-license end dates (each record has its own) — the list entity only
+  // carries one bundle date, so fetch the restaurant's licenses here.
+  const licenses = useRestaurantLicenses(r.id);
 
   return (
     <article
@@ -208,21 +271,23 @@ const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
               />
             </dd>
           </div>
-          {/* Per-type license chips — was a single aggregate pill that
-              hid which license types were actually active. Now shows
-              all four (QR / TV / Kiosk / Pay) so the owner can see at
-              a glance which features they have, expired = rose, owned-
-              but-off = slate, never-purchased = dim slate. */}
+          {/* Per-type license status — one row per type (QR / TV / Kiosk /
+              Pay) with an explicit Active / Expired / Passive / None badge
+              so the owner sees each license's state at a glance. Full
+              per-license dates + extend live in the "Manage licenses"
+              modal below. */}
           <div className="flex flex-col gap-1.5">
             <dt className="text-[--gr-1]">{t("restaurants.row_licenses")}</dt>
-            <dd className="flex flex-wrap items-center gap-1">
+            <dd className="flex flex-col gap-2">
               {LICENSE_TYPES.map((type) => {
-                const state = licenseTypeState(r, type);
+                const { state, date } = resolveRow(r, type, licenses);
                 return (
-                  <LicenseTypeChip
+                  <LicenseStatusRow
                     key={type.key}
                     type={type}
                     state={state}
+                    date={date}
+                    endLabel={t("restaurants.row_end_date")}
                     label={t(type.titleKey)}
                     stateLabel={
                       {
@@ -237,46 +302,26 @@ const RestaurantCard = ({ r, t, onOpen, onLicense }) => {
               })}
             </dd>
           </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt
-              className={`flex items-center gap-1.5 ${
-                licenseExpired ? "text-rose-600" : "text-[--gr-1]"
-              }`}
-            >
-              {licenseExpired ? (
-                <AlertTriangle className="size-3.5" />
-              ) : (
-                <CalendarDays className="size-3.5" />
-              )}
-              {t("restaurants.row_end_date")}
-            </dt>
-            <dd
-              className={`font-semibold ${
-                licenseExpired ? "text-rose-600" : "text-[--black-1]"
-              }`}
-            >
-              {r.licenseEnd
-                ? formatDateString({ dateString: r.licenseEnd })
-                : "—"}
-            </dd>
-          </div>
         </dl>
 
-        {/* License CTA — only when not active */}
-        {!licenseActive && (
-          <button
-            type="button"
-            onClick={onLicense}
-            className="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl text-white text-sm font-semibold shadow-md shadow-indigo-500/20 transition hover:shadow-indigo-500/30 hover:brightness-110 active:brightness-95"
-            style={{ background: PRIMARY_GRADIENT }}
-          >
-            <Sparkles className="size-3.5" />
-            {r.licenseIsExpired
-              ? t("restaurants.license_extend")
-              : t("restaurants.license_get")}
-            <ArrowRight className="size-3.5" />
-          </button>
-        )}
+        {/* Manage licenses — opens the per-license detail modal (status,
+            each license's own end date + per-license extend). Styled
+            primary when no active license to nudge purchase/renewal,
+            secondary otherwise. */}
+        <button
+          type="button"
+          onClick={onManage}
+          className={`mt-auto w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition ${
+            licenseActive
+              ? "text-[--black-2] bg-[--white-2] border border-[--border-1] hover:bg-[--gr-3]"
+              : "text-white shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 hover:brightness-110 active:brightness-95"
+          }`}
+          style={licenseActive ? undefined : { background: PRIMARY_GRADIENT }}
+        >
+          <ShieldCheck className="size-3.5" />
+          {t("restaurants.manage_licenses")}
+          <ArrowRight className="size-3.5" />
+        </button>
       </div>
     </article>
   );
@@ -297,25 +342,61 @@ const StatusPill = ({ active, label }) => (
   </span>
 );
 
-// One license-type chip. Compact pill with the type icon + short label.
-// `title` attribute carries the full "<Type> · <State>" so hovering
-// shows the human-readable detail without inflating the layout.
-const LicenseTypeChip = ({ type, state, label, stateLabel }) => {
+// One license-type row: the type (icon + label) with its OWN end date on a
+// sub-line on the left, and an explicit status badge on the right. Active =
+// emerald, expired = rose, passive (owned but off) = slate, none (never
+// purchased) = dim. Showing the state word — not just a color — plus the
+// per-license date makes each license unmistakable.
+const LicenseStatusRow = ({ type, state, date, endLabel, label, stateLabel }) => {
   const variants = {
-    active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    expired: "bg-rose-50 text-rose-700 ring-rose-300",
-    inactive: "bg-slate-100 text-slate-600 ring-slate-200",
-    none: "bg-[--white-2] text-[--gr-1] ring-[--border-1] opacity-60",
+    active: {
+      badge: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+      dot: "bg-emerald-500",
+    },
+    expired: {
+      badge: "bg-rose-50 text-rose-700 ring-rose-300",
+      dot: "bg-rose-500",
+    },
+    inactive: {
+      badge: "bg-slate-100 text-slate-600 ring-slate-200",
+      dot: "bg-slate-400",
+    },
+    none: {
+      badge: "bg-[--white-2] text-[--gr-1] ring-[--border-1]",
+      dot: "bg-slate-300",
+    },
   };
-  const cls = variants[state] || variants.none;
+  const v = variants[state] || variants.none;
   const Icon = type.Icon;
+  const expired = state === "expired";
   return (
-    <span
-      title={`${label} · ${stateLabel}`}
-      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ring-1 ${cls}`}
-    >
-      <Icon className="size-3" />
-      {label}
-    </span>
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0">
+        <span className="flex items-center gap-1.5 text-[--gr-1] min-w-0">
+          <Icon className="size-3.5 shrink-0" />
+          <span className="truncate">{label}</span>
+        </span>
+        {date && (
+          <span
+            className={`flex items-center gap-1 text-[10px] mt-0.5 pl-5 ${
+              expired ? "text-rose-600" : "text-[--gr-1]"
+            }`}
+          >
+            {expired ? (
+              <AlertTriangle className="size-2.5 shrink-0" />
+            ) : (
+              <CalendarDays className="size-2.5 shrink-0" />
+            )}
+            {endLabel} : {formatDateDMY(date)}
+          </span>
+        )}
+      </div>
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 shrink-0 ${v.badge}`}
+      >
+        <span className={`size-1.5 rounded-full ${v.dot}`} />
+        {stateLabel}
+      </span>
+    </div>
   );
 };

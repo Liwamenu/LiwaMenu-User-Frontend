@@ -2,6 +2,17 @@ import toast from "react-hot-toast";
 import i18n from "../config/i18n";
 // import licenseTypeIds from "../enums/licenseTypeIds";
 
+// Zero-padded DD.MM.YYYY (e.g. "07.05.2028"). Returns "" for an invalid
+// date. formatDateString doesn't pad single digits, so this is used where
+// a fixed xx.xx.xxxx form is required (e.g. license end dates).
+export function formatDateDMY(dateString) {
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return "";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
+
 export function formatDateString({
   dateString,
   letDay = true,

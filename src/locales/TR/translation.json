@@ -300,7 +300,24 @@
     "license_extend": "Uzat",
     "license_get": "Lisans Al",
     "license_no": "Lisansı Yok",
-    "license_expired": "Süresi Doldu"
+    "license_expired": "Süresi Doldu",
+    "manage_licenses": "Lisansları Yönet"
+  },
+  "restaurantLicensesModal": {
+    "title": "Lisans Yönetimi",
+    "close": "Kapat",
+    "loading": "Lisanslar yükleniyor…",
+    "load_error": "Lisanslar yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Bu restoran için henüz lisans bulunmuyor.",
+    "add": "Lisans Al",
+    "unknown_type": "Lisans",
+    "days_left": "{{count}} gün kaldı",
+    "remaining": "Kalan Süre",
+    "extend": "Uzat",
+    "status_active": "Aktif",
+    "status_passive": "Pasif",
+    "status_expired": "Süresi Doldu"
   },
   "licenses": {
     "title": "Lisanslar",

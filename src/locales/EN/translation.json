@@ -300,7 +300,24 @@
     "license_extend": "Extend",
     "license_get": "Get License",
     "license_no": "No License",
-    "license_expired": "Expired"
+    "license_expired": "Expired",
+    "manage_licenses": "Manage Licenses"
+  },
+  "restaurantLicensesModal": {
+    "title": "License Management",
+    "close": "Close",
+    "loading": "Loading licenses…",
+    "load_error": "Couldn't load licenses.",
+    "retry": "Retry",
+    "empty": "This restaurant has no licenses yet.",
+    "add": "Get License",
+    "unknown_type": "License",
+    "days_left": "{{count}} days left",
+    "remaining": "Time Left",
+    "extend": "Extend",
+    "status_active": "Active",
+    "status_passive": "Passive",
+    "status_expired": "Expired"
   },
   "licenses": {
     "title": "Licenses",
