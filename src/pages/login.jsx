@@ -86,10 +86,13 @@ function Login() {
       ? LanguagesEnums.find((l) => l.value === saved)
       : null;
     if (!matched) {
-      // No manual selection — defer to i18n's resolved language (detector → navigator)
-      const currentIso = i18n.language?.split("-")[0]?.toLowerCase();
-      matched =
-        LanguagesEnums.find((l) => l.id === currentIso) || LanguagesEnums[0];
+      // No saved preference → mirror the marketing site exactly: Turkish
+      // browser → TR, anything else → EN (was: default to TR, which left
+      // every non-TR/non-EN browser in Turkish).
+      const iso = (navigator.language || "").toLowerCase().startsWith("tr")
+        ? "tr"
+        : "en";
+      matched = LanguagesEnums.find((l) => l.id === iso) || LanguagesEnums[0];
     }
     setSelectedLang(matched.value);
     i18n.changeLanguage(matched.id.toLowerCase());

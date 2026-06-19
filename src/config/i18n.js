@@ -33,7 +33,12 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "tr",
+    // Mirror the marketing site's rule: Turkish browser → TR, anything else
+    // → EN. The detector returns the browser language; supportedLngs filters
+    // it, and an unsupported one (de/fr/ar/…) lands on this fallback. Was
+    // "tr", which made every non-TR/non-EN browser open in Turkish while the
+    // site opened in English.
+    fallbackLng: "en",
     supportedLngs: SUPPORTED,
     // If user is logged in with explicit defaultLang, force it (skips detection).
     lng: userDefaultLangIso,

@@ -40,9 +40,12 @@ const AuthShell = ({
       ? LanguagesEnums.find((l) => l.value === saved)
       : null;
     if (!matched) {
-      const currentIso = i18n.language?.split("-")[0]?.toLowerCase();
-      matched =
-        LanguagesEnums.find((l) => l.id === currentIso) || LanguagesEnums[0];
+      // No saved preference → mirror the marketing site exactly: Turkish
+      // browser → TR, anything else → EN (was: default to TR).
+      const iso = (navigator.language || "").toLowerCase().startsWith("tr")
+        ? "tr"
+        : "en";
+      matched = LanguagesEnums.find((l) => l.id === iso) || LanguagesEnums[0];
     }
     setSelectedLang(matched.value);
     i18n.changeLanguage(matched.id.toLowerCase());
