@@ -56,7 +56,7 @@ export default function Pricing({ t }: Props) {
 
               <div className="mt-10 flex flex-col sm:flex-row gap-3">
                 <a
-                  href="https://www.liwamenu.com/login"
+                  href="/login"
                   className="flex-1 inline-flex items-center justify-center px-6 py-3.5 text-base font-bold text-indigo-900 bg-white rounded-xl hover:bg-indigo-50 transition-all shadow-lg"
                 >
                   {t.pricing.cta}
@@ -74,19 +74,19 @@ export default function Pricing({ t }: Props) {
                   <div className="w-10 h-10 rounded-full bg-amber-400/20 flex items-center justify-center">
                     <ShieldCheck className="w-5 h-5 text-amber-300" />
                   </div>
-                  <span className="text-xs font-semibold text-indigo-100 leading-tight">30 Gün İade</span>
+                  <span className="text-xs font-semibold text-indigo-100 leading-tight">{t.pricing.refund}</span>
                 </div>
                 <div className="flex flex-col items-center text-center gap-2">
                   <div className="w-10 h-10 rounded-full bg-amber-400/20 flex items-center justify-center">
                     <Headphones className="w-5 h-5 text-amber-300" />
                   </div>
-                  <span className="text-xs font-semibold text-indigo-100 leading-tight">7/24 Destek</span>
+                  <span className="text-xs font-semibold text-indigo-100 leading-tight">{t.pricing.support}</span>
                 </div>
                 <div className="flex flex-col items-center text-center gap-2">
                   <div className="w-10 h-10 rounded-full bg-amber-400/20 flex items-center justify-center">
                     <Zap className="w-5 h-5 text-amber-300" />
                   </div>
-                  <span className="text-xs font-semibold text-indigo-100 leading-tight">Anında Aktif</span>
+                  <span className="text-xs font-semibold text-indigo-100 leading-tight">{t.pricing.instant}</span>
                 </div>
               </div>
             </div>

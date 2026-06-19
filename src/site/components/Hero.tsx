@@ -71,7 +71,7 @@ export default function Hero({ t }: Props) {
               className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
             >
               <a
-                href="https://www.liwamenu.com/login"
+                href="/login"
                 className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30 text-center"
               >
                 {t.hero.cta}

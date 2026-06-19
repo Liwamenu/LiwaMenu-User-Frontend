@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Users, RefreshCw, Languages, ShoppingCart, CalendarCheck } from 'lucide-react'
+import { Users, RefreshCw, ShoppingCart, CodeXml, CalendarCheck } from 'lucide-react'
 import SectionBadge from './SectionBadge'
 
 interface Props {
@@ -15,7 +15,7 @@ const GoogleIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const icons = [Users, RefreshCw, Languages, ShoppingCart, CalendarCheck, GoogleIcon]
+const icons = [Users, RefreshCw, ShoppingCart, CodeXml, CalendarCheck, GoogleIcon]
 const colors = [
   'bg-blue-50 text-blue-600',
   'bg-emerald-50 text-emerald-600',

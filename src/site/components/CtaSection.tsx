@@ -45,7 +45,7 @@ export default function CtaSection({ t }: Props) {
               className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
             >
               <a
-                href="https://www.liwamenu.com/login"
+                href="/login"
                 className="inline-flex items-center px-10 py-4 text-lg font-bold text-indigo-700 bg-white rounded-xl hover:bg-gray-50 transition-all shadow-xl"
               >
                 {t.cta.button}

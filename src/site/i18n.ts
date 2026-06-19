@@ -32,10 +32,10 @@ const translations = {
       subtitle: 'Tek bir platformda ihtiyacınız olan her şey',
       cards: [
         { title: 'Daha Fazla Müşteri', desc: 'Profesyonel dijital menü ile müşterilerinizi etkileyin. Google görünürlüğünüzü artırın.' },
-        { title: 'Kolay Güncelleme', desc: 'Fiyat, ürün ve menü değişikliklerini tek tıkla yapın. Basılı menü masraflarına son.' },
-        { title: 'Çoklu Dil Desteği', desc: '11 dilde menü sunun. Yabancı misafirleriniz kendi dillerinde menüyü okusun.' },
-        { title: 'Sipariş Yönetimi', desc: 'Masadan sipariş, online sipariş, ödeme seçenekleri ve anlık takip.' },
-        { title: 'Rezervasyon Sistemi', desc: 'Müşterileriniz online rezervasyon yapsın. SMS doğrulama ile güvenli.' },
+        { title: 'Kolay Güncelleme', desc: 'Oransal veya sabit tutar yazarak dilediğiniz kategorilere tek hamlede fiyat güncellemesi yapın.' },
+        { title: 'Daha Fazla Sipariş Alın', desc: 'Müşterileriniz dilerse menü üzerinden siparişlerini kendileri verebilir. Bu sayede sipariş süreci hızlanır, müşteriler beklemeden kolayca sipariş oluşturabilir ve servis yoğunluğu azalır. Daha az personel ile daha verimli hizmet sunabilir, daha fazla sipariş alarak işletmenizin gelirini artırabilirsiniz.' },
+        { title: 'Kendi Sitenizde Yayınlayın', desc: 'Hazır iframe kodları ile dilerseniz menüyü kendi sitenizde yayınlayabilirsiniz.' },
+        { title: 'Rezervasyon Sistemi', desc: 'Müşterileriniz online rezervasyon yapsın. SMS doğrulama ile sahte rezervasyon önlenmektedir. Rezervasyon seçenekleri çalışma günü ve saatleri ile uyumludur.' },
         { title: 'Google Yorum Bağlantısı', desc: 'Google işletme profilinizi ve yorum linkinizi paylaşarak Google görünürlüğünüzü artırın.' },
       ],
     },
@@ -76,7 +76,7 @@ const translations = {
         },
         {
           title: 'Alerjen Bilgileri',
-          desc: 'AB 14 temel alerjen bildirimi. "İçerir" ve "İçerebilir" ayrımı ile yasal uyumluluk.',
+          desc: 'Türk Gıda Kodeksine göre 14 temel alerjen bildirimi. "İçerir" ve "İçerebilir" ayrımı ile yasal uyumluluk.',
           icon: 'shield',
         },
         {
@@ -101,12 +101,12 @@ const translations = {
         },
         {
           title: 'Paket Servis Siparişi',
-          desc: 'Müşterileriniz paket servis siparişi verebilir. Adres, telefon ve özel notlarla kolay teslimat.',
+          desc: 'Müşterileriniz paket servis siparişi verebilir. Adres, telefon ve özel notlarla kolay teslimat. Müşteri konumu siparişle birlikte restorana iletilmektedir.',
           icon: 'truck',
         },
         {
           title: 'WhatsApp Siparişi',
-          desc: 'Tek tıkla WhatsApp üzerinden sipariş gönderme. Hızlı, kolay ve doğrudan iletişim.',
+          desc: 'Tek tıkla WhatsApp üzerinden sipariş gönderme. Hızlı, kolay ve doğrudan iletişim. Müşteri konumu siparişle birlikte restorana iletilmektedir.',
           icon: 'whatsapp',
         },
         {
@@ -186,6 +186,9 @@ const translations = {
       cta: 'Hemen Başla',
       secondary: 'Demo İncele',
       taxNote: 'Fiyatlara KDV dahildir.',
+      refund: '30 Gün İade',
+      support: '7/24 Destek',
+      instant: 'Anında Aktif',
     },
     cta: {
       title: "LiwaMenu ile dijital menünüzü bugün alın!",
@@ -274,10 +277,10 @@ const translations = {
       subtitle: 'Everything you need in a single platform',
       cards: [
         { title: 'More Customers', desc: 'Impress your customers with a professional digital menu. Boost your Google visibility.' },
-        { title: 'Easy Updates', desc: 'Change prices, products and menus with a single click. No more printed menu costs.' },
-        { title: 'Multi-Language', desc: 'Offer menus in 11 languages. Let foreign guests read the menu in their own language.' },
-        { title: 'Order Management', desc: 'Table ordering, online ordering, payment options and real-time tracking.' },
-        { title: 'Reservation System', desc: 'Let customers make online reservations. Secure with SMS verification.' },
+        { title: 'Easy Updates', desc: 'Update prices for any category in one move by entering a percentage or fixed amount.' },
+        { title: 'Take More Orders', desc: 'Your customers can place their own orders right from the menu. This speeds up the ordering process, lets guests order easily without waiting, and eases service load. You serve more efficiently with fewer staff and grow your revenue by taking more orders.' },
+        { title: 'Publish On Your Website', desc: 'Embed your menu on your own website with ready-to-use iframe codes.' },
+        { title: 'Reservation System', desc: 'Let customers make online reservations. Email verification prevents fake reservations. Reservation options align with your working days and hours.' },
         { title: 'Google Review Link', desc: 'Share your Google business profile and review link to boost your Google visibility.' },
       ],
     },
@@ -308,7 +311,7 @@ const translations = {
         },
         {
           title: 'Reservation System',
-          desc: 'Online reservation with date, time and guest count. SMS verification code and confirmation receipt.',
+          desc: 'Online reservation with date, time and guest count. Email verification code and confirmation receipt.',
           icon: 'calendar',
         },
         {
@@ -343,12 +346,12 @@ const translations = {
         },
         {
           title: 'Takeaway Orders',
-          desc: 'Customers can place takeaway orders with delivery address, phone and special notes for easy delivery.',
+          desc: 'Customers can place takeaway orders with delivery address, phone and special notes for easy delivery. Customer location is sent to the restaurant along with the order.',
           icon: 'truck',
         },
         {
           title: 'WhatsApp Ordering',
-          desc: 'Send orders via WhatsApp with a single tap. Fast, easy and direct communication.',
+          desc: 'Send orders via WhatsApp with a single tap. Fast, easy and direct communication. Customer location is sent to the restaurant along with the order.',
           icon: 'whatsapp',
         },
         {
@@ -384,8 +387,8 @@ const translations = {
       {
         label: 'RESERVATIONS',
         title: 'Book your table with online reservations',
-        desc: 'Customers can make reservations online without calling. Select date, time slot, guest count and special requests. Secure with SMS verification, professional with confirmation receipt.',
-        bullets: ['Calendar date picker', 'Flexible time slots', 'SMS verification code', 'Printable confirmation receipt', 'Aligned with restaurant working hours', 'Reservation limit settings'],
+        desc: 'Customers can make reservations online without calling. Select date, time slot, guest count and special requests. Secure with email verification, professional with confirmation receipt.',
+        bullets: ['Calendar date picker', 'Flexible time slots', 'Email verification code', 'Printable confirmation receipt', 'Aligned with restaurant working hours', 'Reservation limit settings'],
       },
       {
         label: 'MULTILINGUAL MENU',
@@ -428,6 +431,9 @@ const translations = {
       cta: 'Get Started',
       secondary: 'View Demo',
       taxNote: 'Tax included.',
+      refund: '30-Day Refund',
+      support: '24/7 Support',
+      instant: 'Instant Activation',
     },
     cta: {
       title: 'Get your digital menu with LiwaMenu today!',

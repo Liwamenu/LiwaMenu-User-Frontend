@@ -120,12 +120,23 @@ export default function Header({ lang, onLangChange, t }: Props) {
             </a>
           </div>
 
-          <button
-            className="lg:hidden p-2 cursor-pointer text-gray-700"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile: Admin Panel button stays in the header bar (not hidden
+              in the drawer), next to the hamburger. */}
+          <div className="lg:hidden flex items-center gap-2">
+            <a
+              href="/login"
+              className="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 whitespace-nowrap"
+            >
+              {t.nav.login}
+            </a>
+            <button
+              className="p-2 cursor-pointer text-gray-700"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Menu"
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -170,13 +181,6 @@ export default function Header({ lang, onLangChange, t }: Props) {
               {lang === 'tr' ? 'English' : 'Türkçe'}
             </button>
           </div>
-          <a
-            href="https://www.liwamenu.com/login"
-            onClick={() => setMobileOpen(false)}
-            className="block text-center px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl"
-          >
-            {t.nav.login}
-          </a>
         </div>
       )}
     </header>
