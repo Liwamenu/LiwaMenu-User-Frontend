@@ -159,6 +159,15 @@ const EditUserPassword = () => {
               </p>
             </div>
           )}
+
+          {/* Heads-up: changing the password revokes sessions on other
+              devices (backend keeps this device signed in). */}
+          <div className="flex items-start gap-2 p-2.5 rounded-lg bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:ring-indigo-400/30 dark:text-indigo-200">
+            <ShieldCheck className="size-3.5 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-snug">
+              {t("editUserPassword.other_devices_note")}
+            </p>
+          </div>
         </div>
       </div>
 

@@ -1498,7 +1498,8 @@
     "error": "Şifre güncellenemedi. Lütfen tekrar deneyin.",
     "passwords_not_match": "Şifreler eşleşmiyor.",
     "passwords_match": "Şifreler eşleşiyor.",
-    "hint": "Güçlü bir şifre seçin: en az 5 karakter, harf ve rakam karışımı önerilir."
+    "hint": "Güçlü bir şifre seçin: en az 5 karakter, harf ve rakam karışımı önerilir.",
+    "other_devices_note": "Şifrenizi değiştirdiğinizde diğer cihazlardaki oturumlar kapatılacaktır."
   },
   "activeSessions": {
     "title": "Aktif Oturumlar",

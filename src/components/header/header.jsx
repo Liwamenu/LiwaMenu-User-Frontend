@@ -7,6 +7,7 @@ import { User, LogOut, ChevronRight } from "lucide-react";
 
 //COMP
 import { usePopup } from "../../context/PopupContext";
+import { useFirebase } from "../../context/firebase";
 import { getTheme, setTheme } from "../../utils/localStorage";
 import { SettingsI, MenuI, SunI, MoonI } from "../../assets/icon";
 
@@ -14,7 +15,7 @@ import { SettingsI, MenuI, SunI, MoonI } from "../../assets/icon";
 import LanguagesEnums from "../../enums/languagesEnums";
 
 //REDUX
-import { clearAuth } from "../../redux/api";
+import { clearAuth, getAuth } from "../../redux/api";
 import {
   updateUserLang,
   resetUpdateUserLangSlice,
@@ -95,6 +96,7 @@ function Header({ openSidebar, setOpenSidebar }) {
   const location = useLocation();
   const headerSettingsRef = useRef();
   const { t, i18n } = useTranslation();
+  const { pushToken } = useFirebase();
 
   const KEY = import.meta.env.VITE_LOCAL_KEY;
   const userString = localStorage.getItem(KEY);
@@ -124,11 +126,32 @@ function Header({ openSidebar, setOpenSidebar }) {
     (s) => s.user.updateUserLang,
   );
 
-  // LOGOUT — purely client-side: drop the persisted auth + reset Redux,
-  // no backend call so the user can sign out even when offline / when the
-  // session has already expired on the server.
+  // LOGOUT — clears the persisted auth + Redux instantly, so it always works
+  // (offline, or when the session already expired). Before that, fire a
+  // best-effort, non-blocking POST /Auth/logout to revoke the current server
+  // session and unregister the push token, so the device leaves the "active
+  // sessions" list right away instead of lingering until the token expires.
+  // `keepalive: true` lets the request outlive the navigation below; the
+  // server identifies the session from the JWT. Any error is swallowed —
+  // logout must never be blocked by this call.
   const handleLogout = () => {
     setOpen(false);
+    const auth = getAuth();
+    if (auth?.token) {
+      try {
+        fetch(`${import.meta.env.VITE_BASE_URL}Auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth.token}`,
+          },
+          body: JSON.stringify({ pushToken: pushToken || null }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {
+        // ignore — never block logout on the revoke call
+      }
+    }
     clearAuth();
     dispatch({ type: "LOGOUT" });
     window.location.href = "/login";

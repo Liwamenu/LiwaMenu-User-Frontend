@@ -1434,7 +1434,8 @@
     "error": "Could not update the password. Please try again.",
     "passwords_not_match": "Passwords do not match.",
     "passwords_match": "Passwords match.",
-    "hint": "Pick a strong password: at least 5 characters, mixing letters and numbers is recommended."
+    "hint": "Pick a strong password: at least 5 characters, mixing letters and numbers is recommended.",
+    "other_devices_note": "Changing your password will sign out your sessions on other devices."
   },
   "sambaTables": {
     "open_button": "SambaPOS Tables",
