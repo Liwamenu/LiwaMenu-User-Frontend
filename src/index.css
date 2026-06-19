@@ -503,6 +503,50 @@ input[type="number"] {
   background-color: var(--light-3) !important;
 }
 
+/* =========================================================================
+   Marketing landing (src/site, mounted at "/"). Everything is scoped to
+   .site-root so it never leaks into the admin panel. The merged-in site was
+   Tailwind 4 + Nunito; here it runs on the admin's Tailwind 3 build.
+   ========================================================================= */
+.site-root {
+  font-family: "Nunito", system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+  background-color: #e9eff9;
+}
+
+/* Neutralize the admin's global `section { min-height: 100dvh }` for the
+   marketing sections (they size to content). `:where()` keeps this at the
+   same (0,0,1) specificity as that rule — so source order wins here — while
+   the hero's own `min-h-[90vh]` utility (higher specificity) still applies. */
+:where(.site-root) section {
+  min-height: 0;
+}
+
+/* No image dragging on the landing (was a global rule in the site). */
+.site-root img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Horizontal auto-scroll marquee used by the templates/platforms rows. */
+@keyframes site-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.site-root .animate-scroll {
+  animation: site-scroll 40s linear infinite;
+  width: max-content;
+  padding-left: 2rem;
+}
+.site-root .animate-scroll:hover {
+  animation-play-state: paused;
+}
+
 /* .light .react-tel-input .country-list {
   background-color: #f9fafb !important;
 } */

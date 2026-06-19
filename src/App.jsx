@@ -18,6 +18,9 @@ import VerifyEmail from "./pages/verifyEmail";
 import SetNewPassword from "./pages/setNewPassword";
 import ForgotPassword from "./pages/forgotPassword";
 
+//SITE — marketing landing shown at "/" (merged liwamenu.com)
+import SiteLanding from "./site/App";
+
 //REDUX & i18n
 import { getAuth } from "./redux/api";
 import { getUser } from "./redux/user/getUserSlice";
@@ -49,6 +52,16 @@ function App() {
     <div>
       <Popup />
       <Routes>
+        {/* Marketing site — public landing at "/" (Yönetim Paneli → /login).
+            Exact "/" outranks the protected "/*" splat below. */}
+        <Route
+          path="/"
+          element={
+            <div className="site-root">
+              <SiteLanding />
+            </div>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/*" element={<VerifyEmail />} />
