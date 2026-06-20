@@ -550,6 +550,7 @@
     "whatsapp_order_phone": "WhatsApp Order Number",
     "whatsapp_order_phone_placeholder": "With country code, e.g. 905551112233",
     "whatsapp_order_phone_hint": "Orders are sent to this number via WhatsApp. Digits only, including country code.",
+    "whatsapp_uses_package": "Discount, delivery fee, minimum amount and distance are the same as Package Order.",
     "whatsapp_phone_required": "Order number is required when WhatsApp Order is enabled.",
     "in_person_order": "In-Person Order",
     "table_order_discount": "Table Order Discount",

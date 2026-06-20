@@ -494,6 +494,15 @@ const RestaurantSettings = ({ data: inData }) => {
       normalized.decimalPoint = String(Number.isFinite(n) ? n : 2);
     }
 
+    // WhatsApp Sipariş, Paket Sipariş ile aynı parametreleri kullanır:
+    // iskonto / teslimat / min. tutar / mesafe. Ayrı UI alanı yok — kaydederken
+    // Paket değerlerini WhatsApp alanlarına yansıtıyoruz (müşteri tarafı
+    // whatsappOrder* alanlarını okur).
+    normalized.whatsappOrderDiscountRate = normalized.onlineOrderDiscountRate;
+    normalized.whatsappOrderDeliveryFee = normalized.deliveryFee;
+    normalized.whatsappOrderMinAmount = normalized.minOrderAmount;
+    normalized.whatsappOrderMaxDistance = normalized.maxDistance;
+
     setRestaurantData(normalized);
     dispatch(setRestaurantSettings(normalized));
   };
@@ -1275,76 +1284,15 @@ const RestaurantSettings = ({ data: inData }) => {
                         )}
                       </p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      <NumberWithSuffix
-                        label={t("restaurantSettings.online_order_discount")}
-                        suffix="%"
-                        value={restaurantData?.whatsappOrderDiscountRate}
-                        onChange={(v) =>
-                          setRestaurantData((prev) => ({
-                            ...prev,
-                            whatsappOrderDiscountRate: v,
-                          }))
-                        }
-                        placeholder={t(
-                          "restaurantSettings.online_order_discount_placeholder",
-                        )}
-                      />
-                      <NumberWithSuffix
-                        label={t("restaurantSettings.delivery_fee")}
-                        suffix={moneySign}
-                        value={restaurantData?.whatsappOrderDeliveryFee}
-                        onChange={(v) =>
-                          setRestaurantData((prev) => ({
-                            ...prev,
-                            whatsappOrderDeliveryFee: v,
-                          }))
-                        }
-                        placeholder={t(
-                          "restaurantSettings.delivery_fee_placeholder",
-                        )}
-                        currencyDecimals={
-                          Number.isFinite(Number(restaurantData?.decimalPoint))
-                            ? Number(restaurantData.decimalPoint)
-                            : 2
-                        }
-                        maxDigits={9}
-                      />
-                      <NumberWithSuffix
-                        label={t("restaurantSettings.min_order_amount")}
-                        suffix={moneySign}
-                        value={restaurantData?.whatsappOrderMinAmount}
-                        onChange={(v) =>
-                          setRestaurantData((prev) => ({
-                            ...prev,
-                            whatsappOrderMinAmount: v,
-                          }))
-                        }
-                        placeholder={t(
-                          "restaurantSettings.min_order_amount_placeholder",
-                        )}
-                        currencyDecimals={
-                          Number.isFinite(Number(restaurantData?.decimalPoint))
-                            ? Number(restaurantData.decimalPoint)
-                            : 2
-                        }
-                        maxDigits={9}
-                      />
-                      <NumberWithSuffix
-                        label={t("restaurantSettings.max_distance")}
-                        suffix="km"
-                        value={restaurantData?.whatsappOrderMaxDistance}
-                        onChange={(v) =>
-                          setRestaurantData((prev) => ({
-                            ...prev,
-                            whatsappOrderMaxDistance: v,
-                          }))
-                        }
-                        placeholder={t(
-                          "restaurantSettings.max_distance_placeholder",
-                        )}
-                      />
-                    </div>
+                    {/* İskonto / Teslimat / Min. Tutar / Mesafe için ayrı alan
+                        yok — WhatsApp siparişi bu değerlerde Paket Sipariş ile
+                        aynısını kullanır (kaydederken otomatik eşitlenir). */}
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                      {t(
+                        "restaurantSettings.whatsapp_uses_package",
+                        "İskonto, teslimat ücreti, minimum tutar ve mesafe Paket Sipariş ile aynı kullanılır.",
+                      )}
+                    </p>
                   </div>
                 )}
               </div>
