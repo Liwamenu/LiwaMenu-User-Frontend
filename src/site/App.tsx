@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { detectLang, setLang, t } from './i18n'
+import { detectLang, setLang, t, applySiteSeo } from './i18n'
 import type { Lang } from './i18n'
 import Header from './components/Header'
 import Hero from './components/Hero'
@@ -16,6 +16,11 @@ import Footer from './components/Footer'
 
 function App() {
   const [lang, setCurrentLang] = useState<Lang>(detectLang)
+
+  // Localize SEO meta (<title>, description, OG, <html lang>) for the active language.
+  useEffect(() => {
+    applySiteSeo(lang)
+  }, [lang])
 
   useEffect(() => {
     const prevent = (e: MouseEvent) => e.preventDefault()

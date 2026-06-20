@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Mail, MessageCircle, ChevronDown } from 'lucide-react'
+import { SITE_LANGS } from '../i18n'
 import type { Lang } from '../i18n'
 
 interface Props {
@@ -12,7 +13,10 @@ interface Props {
 export default function Header({ lang, onLangChange, t }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const contactRef = useRef<HTMLDivElement>(null)
+  const langRef = useRef<HTMLDivElement>(null)
+  const current = SITE_LANGS.find((l) => l.code === lang) || SITE_LANGS[0]
 
   useEffect(() => {
     if (!contactOpen) return
@@ -31,6 +35,22 @@ export default function Header({ lang, onLangChange, t }: Props) {
       document.removeEventListener('keydown', onKey)
     }
   }, [contactOpen])
+
+  useEffect(() => {
+    if (!langOpen) return
+    const onClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLangOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [langOpen])
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
@@ -105,13 +125,42 @@ export default function Header({ lang, onLangChange, t }: Props) {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
-            <button
-              onClick={() => onLangChange(lang === 'tr' ? 'en' : 'tr')}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-all cursor-pointer"
-            >
-              <img src={lang === 'tr' ? 'https://flagcdn.com/w40/tr.png' : 'https://flagcdn.com/w40/gb.png'} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
-              {lang === 'tr' ? 'TR' : 'EN'}
-            </button>
+            <div className="relative" ref={langRef}>
+              <button
+                onClick={() => setLangOpen((v) => !v)}
+                aria-expanded={langOpen}
+                aria-haspopup="menu"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-all cursor-pointer"
+              >
+                <img src={`https://flagcdn.com/w40/${current.flag}.png`} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
+                <span className="uppercase">{current.code}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {langOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    className="absolute right-0 mt-3 w-48 max-h-80 overflow-y-auto bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50"
+                    role="menu"
+                  >
+                    {SITE_LANGS.map((l) => (
+                      <button
+                        key={l.code}
+                        onClick={() => { onLangChange(l.code); setLangOpen(false) }}
+                        role="menuitem"
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-indigo-50 transition-colors ${l.code === lang ? 'text-indigo-600 font-semibold bg-indigo-50/60' : 'text-gray-700'}`}
+                      >
+                        <img src={`https://flagcdn.com/w40/${l.flag}.png`} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
+                        {l.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <a
               href="/login"
               className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20"
@@ -169,17 +218,17 @@ export default function Header({ lang, onLangChange, t }: Props) {
             </a>
           </div>
 
-          <div className="pt-2 border-t border-gray-100 flex items-center gap-3">
-            <button
-              onClick={() => {
-                onLangChange(lang === 'tr' ? 'en' : 'tr')
-                setMobileOpen(false)
-              }}
-              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 cursor-pointer"
-            >
-              <img src={lang === 'tr' ? 'https://flagcdn.com/w40/gb.png' : 'https://flagcdn.com/w40/tr.png'} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
-              {lang === 'tr' ? 'English' : 'Türkçe'}
-            </button>
+          <div className="pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
+            {SITE_LANGS.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => { onLangChange(l.code); setMobileOpen(false) }}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${l.code === lang ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <img src={`https://flagcdn.com/w40/${l.flag}.png`} alt="" className="w-5 h-3.5 object-cover rounded-sm" />
+                {l.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
