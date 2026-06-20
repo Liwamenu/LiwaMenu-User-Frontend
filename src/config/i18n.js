@@ -8,6 +8,14 @@ import LanguagesEnums from "../enums/languagesEnums";
 import trTranslation from "../locales/TR/translation.json";
 import enTranslation from "../locales/EN/translation.json";
 import esTranslation from "../locales/ES/translation.json";
+import deTranslation from "../locales/DE/translation.json";
+import frTranslation from "../locales/FR/translation.json";
+import itTranslation from "../locales/IT/translation.json";
+import arTranslation from "../locales/AR/translation.json";
+import azTranslation from "../locales/AZ/translation.json";
+import ruTranslation from "../locales/RU/translation.json";
+import elTranslation from "../locales/EL/translation.json";
+import zhTranslation from "../locales/ZH/translation.json";
 
 const KEY = import.meta.env.VITE_LOCAL_KEY;
 const userString = localStorage.getItem(KEY);
@@ -19,9 +27,15 @@ const userDefaultLangIso = LanguagesEnums.find(
 const resources = {
   tr: { translation: trTranslation },
   en: { translation: enTranslation },
-  // Spanish: partial coverage; missing keys fall back to EN (fallbackLng).
-  // Sections are translated incrementally — see src/locales/ES/translation.json.
   es: { translation: esTranslation },
+  de: { translation: deTranslation },
+  fr: { translation: frTranslation },
+  it: { translation: itTranslation },
+  ar: { translation: arTranslation },
+  az: { translation: azTranslation },
+  ru: { translation: ruTranslation },
+  el: { translation: elTranslation },
+  zh: { translation: zhTranslation },
 };
 
 const SUPPORTED = Object.keys(resources);
