@@ -76,12 +76,6 @@ export default function Hero({ t }: Props) {
               >
                 {t.hero.cta}
               </a>
-              <a
-                href="https://demo.liwamenu.com/?tableNumber=Masa-46"
-                className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white border border-white/20 rounded-xl hover:bg-white/10 transition-all text-center"
-              >
-                {t.hero.secondary}
-              </a>
             </motion.div>
 
             <motion.div
