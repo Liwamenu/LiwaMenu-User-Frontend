@@ -7,6 +7,7 @@ import LanguagesEnums from "../enums/languagesEnums";
 // Import translation files from locales
 import trTranslation from "../locales/TR/translation.json";
 import enTranslation from "../locales/EN/translation.json";
+import esTranslation from "../locales/ES/translation.json";
 
 const KEY = import.meta.env.VITE_LOCAL_KEY;
 const userString = localStorage.getItem(KEY);
@@ -18,6 +19,9 @@ const userDefaultLangIso = LanguagesEnums.find(
 const resources = {
   tr: { translation: trTranslation },
   en: { translation: enTranslation },
+  // Spanish: partial coverage; missing keys fall back to EN (fallbackLng).
+  // Sections are translated incrementally — see src/locales/ES/translation.json.
+  es: { translation: esTranslation },
 };
 
 const SUPPORTED = Object.keys(resources);
@@ -60,5 +64,15 @@ i18n
       escapeValue: false,
     },
   });
+
+// Keep <html lang> in sync with the active language so CSS text-transform
+// (e.g. uppercase status badges) uses correct locale casing — otherwise the
+// page stayed lang="tr" and uppercased Spanish "Activo" as "ACTİVO".
+i18n.on("languageChanged", (lng) => {
+  if (typeof document !== "undefined" && lng) document.documentElement.lang = lng;
+});
+if (typeof document !== "undefined" && i18n.language) {
+  document.documentElement.lang = i18n.language;
+}
 
 export default i18n;
