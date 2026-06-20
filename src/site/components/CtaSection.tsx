@@ -70,7 +70,7 @@ export default function CtaSection({ t }: Props) {
               <img src="/images/mobilimages/12.png" alt="" className="w-[160px] rounded-2xl shadow-2xl" loading="lazy" />
             </div>
             <div className="z-10">
-              <img src="/images/mobilimages/27.png" alt="" className="w-[200px] md:w-[220px] rounded-2xl shadow-2xl" loading="lazy" />
+              <img src="/images/mobilimages/footmockup.png" alt="" className="w-[200px] md:w-[220px] rounded-2xl shadow-2xl" loading="lazy" />
             </div>
             <div className="opacity-60 rotate-6 translate-y-4">
               <img src="/images/mobilimages/30.png" alt="" className="w-[160px] rounded-2xl shadow-2xl" loading="lazy" />
