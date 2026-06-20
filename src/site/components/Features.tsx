@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Palette, Languages, QrCode, ShoppingCart, CalendarCheck, BellRing,
@@ -35,13 +35,7 @@ const iconMap: Record<string, any> = {
 }
 
 export default function Features({ t, lang }: Props) {
-  const [activeIdx, setActiveIdx] = useState<number | null>(null)
   const [modalImage, setModalImage] = useState<string | null>(null)
-  const [isTouch, setIsTouch] = useState(false)
-
-  useEffect(() => {
-    setIsTouch(window.matchMedia('(hover: none)').matches)
-  }, [])
 
   const handleBellClick = () => {
     setModalImage(lang === 'tr' ? '/images/mobilimages/callwaiter.png' : '/images/mobilimages/callwaiterEN.png')
@@ -58,16 +52,11 @@ export default function Features({ t, lang }: Props) {
           <p className="mt-4 text-lg text-gray-500">{t.features.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start">
+        {/* 3-column grid; each card has an indigo title tab straddling an orange border. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-9">
           {t.features.items.map((item: any, i: number) => {
             const Icon = iconMap[item.icon] || Palette
-            const isActive = activeIdx === i
             const isBell = item.icon === 'bell'
-
-            const desktopHandlers = !isTouch ? {
-              onMouseEnter: () => setActiveIdx(i),
-              onMouseLeave: () => setActiveIdx(null),
-            } : {}
 
             return (
               <motion.div
@@ -75,45 +64,20 @@ export default function Features({ t, lang }: Props) {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                {...desktopHandlers}
-                onClick={() => {
-                  if (isTouch) setActiveIdx(isActive ? null : i)
-                  if (isBell) handleBellClick()
-                }}
-                style={{ perspective: '900px' }}
-                className="relative bg-white rounded-2xl border border-gray-100 cursor-pointer overflow-hidden"
+                transition={{ duration: 0.4, delay: (i % 3) * 0.06 }}
+                onClick={isBell ? handleBellClick : undefined}
+                className={`relative bg-white rounded-2xl border-2 border-orange-300 pt-7 pb-5 px-5 transition-all duration-300 hover:shadow-lg hover:border-orange-400 hover:-translate-y-0.5 ${isBell ? 'cursor-pointer' : ''}`}
               >
-                <div className="p-6 pb-4">
-                  <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mb-4">
+                <span className="absolute -top-3 left-4 inline-block whitespace-nowrap px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white text-[13px] font-bold shadow-sm shadow-indigo-600/30">
+                  {item.title}
+                </span>
+
+                <div className="flex items-start gap-3.5">
+                  <div className="shrink-0 w-11 h-11 rounded-lg bg-indigo-50 flex items-center justify-center">
                     <Icon className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900">
-                    {item.title}
-                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
                 </div>
-
-                <motion.div
-                  initial={false}
-                  animate={{
-                    maxHeight: isActive ? 240 : 0,
-                    rotateX: isActive ? 0 : -90,
-                    opacity: isActive ? 1 : 0,
-                  }}
-                  transition={{
-                    duration: 0.9,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  style={{
-                    transformOrigin: 'top center',
-                    overflow: 'hidden',
-                    backgroundColor: '#4f46e5',
-                  }}
-                >
-                  <p className="text-sm leading-relaxed text-indigo-100 px-6 py-5">
-                    {item.desc}
-                  </p>
-                </motion.div>
               </motion.div>
             )
           })}
