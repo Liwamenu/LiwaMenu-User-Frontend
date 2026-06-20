@@ -30,7 +30,7 @@ import { getAuth } from "../redux/api";
 import { login, resetLoginState } from "../redux/auth/loginSlice";
 
 //UTILS
-import { suggestEmailDomain } from "../utils/utils";
+import { suggestEmailDomain, isValidEmail } from "../utils/utils";
 
 // CONTEXT
 import { useFirebase } from "../context/firebase";
@@ -131,6 +131,12 @@ function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (!emailOrPhone || !password || !captchaValid || loading) return;
+    // The field accepts email OR phone. When an email is entered (contains
+    // "@"), enforce a valid format; phone logins (no "@") skip this.
+    if (emailOrPhone.includes("@") && !isValidEmail(emailOrPhone)) {
+      toast.error(t("auth.invalid_email"));
+      return;
+    }
     dispatch(login({ emailOrPhone, password, pushToken: pushToken || null }));
   };
 

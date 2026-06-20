@@ -26,6 +26,9 @@ import LoadingI from "../assets/anim/loading";
 import AuthShell from "../components/auth/AuthShell";
 import AuthField from "../components/auth/AuthField";
 
+//UTILS
+import { isValidEmail } from "../utils/utils";
+
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
 const RESEND_COOLDOWN = 60;
@@ -83,6 +86,10 @@ const ForgotPassword = () => {
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (loading || !email || !captchaValid) return;
+    if (!isValidEmail(email)) {
+      toast.error(t("forgotPassword.invalid_email"));
+      return;
+    }
     submitRequest();
   };
 

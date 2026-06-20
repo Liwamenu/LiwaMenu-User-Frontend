@@ -240,6 +240,14 @@ export function formatEmail(email) {
   return formattedEmail;
 }
 
+// Client-side email format check used by login / register / forgot-password.
+// Requires local@domain with a final dot and a TLD of at least 2 chars — i.e.
+// after "@" there must be a domain part and a "." (so "a@b.co" passes; "x@y",
+// "x@yz", "a@b.c" fail). The backend still does the authoritative validation;
+// this just catches obvious typos before submit.
+export const isValidEmail = (value) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value ?? "").trim());
+
 export function toNameCase(value) {
   if (!value) return value;
   return value.replace(

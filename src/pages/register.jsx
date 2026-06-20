@@ -27,7 +27,7 @@ import AuthPhoneField from "../components/auth/AuthPhoneField";
 import { EmailSuggestion } from "./login";
 
 // FUNC
-import { formatEmail, toNameCase } from "../utils/utils";
+import { formatEmail, toNameCase, isValidEmail } from "../utils/utils";
 
 // REDUX
 import { registerUser, resetRgisterState } from "../redux/auth/registerSlice";
@@ -76,18 +76,11 @@ const Register = () => {
       toast.error(t("register.fill_all_fields"));
       return;
     }
-    // Lightweight email syntax check: must contain `@`, with at
-    // least one character before it and a domain part of 3+ chars
-    // that includes a dot ("a@b.c" passes, "x@y" / "x@yz" fail).
-    // Backend still does the authoritative validation; this just
-    // catches obvious typos before we open the confirm modal.
-    {
-      const at = email.indexOf("@");
-      const domain = at >= 0 ? email.slice(at + 1) : "";
-      if (at < 1 || domain.length < 3 || !domain.includes(".")) {
-        toast.error(t("register.invalid_email"));
-        return;
-      }
+    // Email format: local@domain.tld with a 2+ char TLD (after "@" a domain
+    // and a dot). Backend does the authoritative check; this catches typos.
+    if (!isValidEmail(email)) {
+      toast.error(t("register.invalid_email"));
+      return;
     }
     if (password.length < 5) {
       toast.error(t("register.password_too_short", { min: 5 }));
