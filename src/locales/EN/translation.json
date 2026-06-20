@@ -1495,7 +1495,14 @@
     "generate": "Generate QR ({{count}})",
     "toast_no_selection": "Pick at least one table to generate.",
     "toast_generated": "Generated QR for {{count}} tables.",
-    "toast_fetch_failed": "SambaPOS hasn't sent any tables."
+    "toast_fetch_failed": "SambaPOS hasn't sent any tables.",
+    "delete_selected": "Delete Selected",
+    "delete_confirm_title": "{{count}} tables will be deleted",
+    "delete_confirm_desc": "The selected tables will be permanently deleted. This action cannot be undone.",
+    "delete_confirm_yes": "Yes, Delete ({{count}})",
+    "delete_success": "{{count}} tables deleted.",
+    "delete_failed": "Could not delete tables.",
+    "delete_not_ready": "The table deletion service is not ready yet."
   },
   "qrPage": {
     "header_title": "QR Batch Studio",

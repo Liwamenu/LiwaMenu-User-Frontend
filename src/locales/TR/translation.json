@@ -1479,7 +1479,14 @@
     "generate": "QR Oluştur ({{count}})",
     "toast_no_selection": "QR oluşturmak için en az bir masa seçili olmalı.",
     "toast_generated": "{{count}} masa için QR oluşturuldu.",
-    "toast_fetch_failed": "SambaPOS'dan Masalar Gönderilmemiş."
+    "toast_fetch_failed": "SambaPOS'dan Masalar Gönderilmemiş.",
+    "delete_selected": "Seçili Masaları Sil",
+    "delete_confirm_title": "{{count}} masa silinecek",
+    "delete_confirm_desc": "Seçili masalar kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "delete_confirm_yes": "Evet, Sil ({{count}})",
+    "delete_success": "{{count}} masa silindi.",
+    "delete_failed": "Masalar silinemedi.",
+    "delete_not_ready": "Masa silme servisi henüz hazır değil."
   },
   "qrPage": {
     "header_title": "QR Toplu Üretim Stüdyosu",

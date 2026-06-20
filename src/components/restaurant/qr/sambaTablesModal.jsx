@@ -21,12 +21,18 @@ import {
   CheckSquare,
   Square,
   QrCode,
+  Trash2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import {
   getSambaTables,
   resetGetSambaTablesState,
 } from "../../../redux/sambaTables/getSambaTablesSlice";
+import {
+  deleteSambaTables,
+  resetDeleteSambaTablesState,
+} from "../../../redux/sambaTables/deleteSambaTablesSlice";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -42,11 +48,15 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
   const { loading, success, error, tables } = useSelector(
     (s) => s.sambaTables.get,
   );
+  const { loading: deleting } = useSelector((s) => s.sambaTables.del);
 
   // `excluded` is the user's negative selection — Set of names they
   // unchecked. Default behaviour: everything checked (empty Set).
   const [excluded, setExcluded] = useState(() => new Set());
   const [searchVal, setSearchVal] = useState("");
+  // Two-step guard for the destructive "delete selected" action.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   // Fire the fetch on mount + whenever the parent reopens us with a
   // different restaurant. Reset state on unmount so the next open
@@ -57,6 +67,7 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
     }
     return () => {
       dispatch(resetGetSambaTablesState());
+      dispatch(resetDeleteSambaTablesState());
     };
   }, [restaurantId, dispatch]);
 
@@ -120,8 +131,35 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
     onClose();
   };
 
+  // Delete the currently-selected (checked) tables. Two-step: the toolbar
+  // button arms `confirmingDelete`, then the banner's confirm fires this.
+  const confirmDelete = async () => {
+    if (!remaining.length || deleting) return;
+    setDeleteError(null);
+    try {
+      await dispatch(
+        deleteSambaTables({ restaurantId, names: remaining }),
+      ).unwrap();
+      toast.success(
+        t("sambaTables.delete_success", { count: remaining.length }),
+      );
+      setExcluded(new Set());
+      setConfirmingDelete(false);
+      dispatch(getSambaTables({ restaurantId })); // refresh the list
+    } catch (err) {
+      const status = err?.status ?? err?.response?.status;
+      // Show the failure INLINE in the confirm dialog (not just a toast) so
+      // it's never silent — keeps the dialog open with a clear reason.
+      setDeleteError(
+        status === 404 || status === 0
+          ? t("sambaTables.delete_not_ready")
+          : err?.message_TR || t("sambaTables.delete_failed"),
+      );
+    }
+  };
+
   return (
-    <div className="bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-2xl mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col max-h-[90dvh]">
+    <div className="relative bg-[--white-1] text-[--black-1] rounded-2xl w-full max-w-2xl mx-auto shadow-2xl ring-1 ring-[--border-1] overflow-hidden flex flex-col max-h-[90dvh]">
       {/* Gradient accent strip */}
       <div className="h-0.5 shrink-0" style={{ background: PRIMARY_GRADIENT }} />
 
@@ -197,6 +235,23 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
                 {t("sambaTables.select_all")}
               </>
             )}
+          </button>
+          {/* Delete the selected (checked) tables — destructive, guarded
+              by the confirm banner below. */}
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setConfirmingDelete(true);
+            }}
+            disabled={!remaining.length || deleting || confirmingDelete}
+            title={t("sambaTables.delete_selected")}
+            className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-semibold hover:bg-rose-100 hover:border-rose-300 transition shrink-0 disabled:opacity-50 dark:bg-rose-500/15 dark:text-rose-200 dark:border-rose-400/30"
+          >
+            <Trash2 className="size-3.5" />
+            <span className="hidden sm:inline">
+              {t("sambaTables.delete_selected")}
+            </span>
           </button>
         </div>
       )}
@@ -279,6 +334,63 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
           </button>
         </div>
       </footer>
+
+      {/* Destructive confirm — centered overlay so it can't be missed.
+          Failures show inline (deleteError) instead of a silent no-op. */}
+      {confirmingDelete && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[1px] p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-[--white-1] border border-[--border-1] shadow-2xl p-5">
+            <div className="flex items-start gap-3">
+              <span className="grid place-items-center size-10 rounded-xl bg-rose-100 text-rose-600 shrink-0 dark:bg-rose-500/15 dark:text-rose-300">
+                <AlertTriangle className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-[--black-1]">
+                  {t("sambaTables.delete_confirm_title", {
+                    count: remaining.length,
+                  })}
+                </h3>
+                <p className="text-xs text-[--gr-1] mt-1">
+                  {t("sambaTables.delete_confirm_desc")}
+                </p>
+                {deleteError && (
+                  <p className="mt-2.5 text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-2 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-400/30">
+                    {deleteError}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="h-9 px-4 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-2] text-sm font-medium hover:bg-[--white-2] transition disabled:opacity-50"
+              >
+                {t("sambaTables.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition disabled:opacity-60"
+              >
+                {deleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                {t("sambaTables.delete_confirm_yes", {
+                  count: remaining.length,
+                })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
