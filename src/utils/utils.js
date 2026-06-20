@@ -248,6 +248,57 @@ export function formatEmail(email) {
 export const isValidEmail = (value) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value ?? "").trim());
 
+// Stable per-browser device id, generated once and persisted. Sent on login
+// so the backend can keep ONE session per device (upsert) instead of inserting
+// a new session row on every login — otherwise the same browser shows up as
+// many "devices" in Active Sessions. Survives logout (kept in localStorage).
+const DEVICE_ID_KEY = "liwamenu_device_id";
+export function getDeviceId() {
+  try {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id) {
+      id =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : "dev-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return "dev-unknown";
+  }
+}
+
+// Human-readable device label from the user agent (e.g. "Chrome · Windows"),
+// shown in the Active Sessions list so the user can recognise each device.
+export function getDeviceName() {
+  if (typeof navigator === "undefined") return "Web";
+  const ua = navigator.userAgent || "";
+  const browser = /edg\//i.test(ua)
+    ? "Edge"
+    : /opr\/|opera/i.test(ua)
+      ? "Opera"
+      : /chrome|crios/i.test(ua)
+        ? "Chrome"
+        : /firefox|fxios/i.test(ua)
+          ? "Firefox"
+          : /safari/i.test(ua)
+            ? "Safari"
+            : "Web";
+  const os = /windows/i.test(ua)
+    ? "Windows"
+    : /android/i.test(ua)
+      ? "Android"
+      : /iphone|ipad|ipod/i.test(ua)
+        ? "iOS"
+        : /mac os x|macintosh/i.test(ua)
+          ? "macOS"
+          : /linux/i.test(ua)
+            ? "Linux"
+            : "";
+  return os ? `${browser} · ${os}` : browser;
+}
+
 export function toNameCase(value) {
   if (!value) return value;
   return value.replace(

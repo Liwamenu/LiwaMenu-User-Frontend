@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api, { pickAxiosErrorMessage } from "../api";
 import { setTranslationLanguage } from "../../config/i18n";
+import { getDeviceId, getDeviceName } from "../../utils/utils";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -53,6 +54,10 @@ export const login = createAsyncThunk(
         password,
         pushToken: pushToken || null,
         deviceType: "web",
+        // Stable per-browser id + readable name so the backend can keep ONE
+        // session per device (upsert) instead of a new row per login.
+        deviceId: getDeviceId(),
+        deviceName: getDeviceName(),
       });
 
       // console.log(res);
