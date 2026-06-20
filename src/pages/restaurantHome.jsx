@@ -26,6 +26,7 @@ import ExternalPage from "../components/restaurant/externalPage";
 import Products from "../components/restaurant/products/products";
 import PriceList from "../components/restaurant/products/priceList";
 import AddProduct from "../components/restaurant/products/addProduct";
+import ImportExternal from "../components/restaurant/products/importExternal";
 import EditProduct from "../components/restaurant/products/editProduct";
 
 //CATEGORIES
@@ -174,6 +175,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
       add: "/add-product/:id",
       edit: "/products/:id/edit/:prodId",
       priceList: "/price-list/:id",
+      import: "/import-external/:id",
     },
   };
 
@@ -221,6 +223,10 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           {/* PRODUCTS */}
           <Route path={P.prods.list} element={<Products data={data} />} />
           <Route path={P.prods.add} element={<AddProduct data={data} />} />
+          <Route
+            path={P.prods.import}
+            element={<ImportExternal data={data} />}
+          />
           <Route path={P.prods.priceList} element={<PriceList data={data} />} />
           <Route path={P.prods.edit} element={<EditProduct data={data} />} />
 

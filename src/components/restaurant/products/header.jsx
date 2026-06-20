@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Package, PlusCircle } from "lucide-react";
+import { Package, PlusCircle, DownloadCloud } from "lucide-react";
 
 const ProductsHeader = () => {
   const params = useParams();
@@ -22,6 +22,11 @@ const ProductsHeader = () => {
       label: t("productsHeader.add_product"),
       path: "add-product",
       icon: PlusCircle,
+    },
+    {
+      label: t("productsHeader.import_external"),
+      path: "import-external",
+      icon: DownloadCloud,
     },
   ];
 
