@@ -57,8 +57,14 @@ const SetNewPassword = () => {
   useEffect(() => {
     if (success) {
       toast.success(t("setNewPassword.success"));
-      dispatch(resetSetNewPassword());
-      const tid = setTimeout(() => navigate("/login"), 1200);
+      // Defer the slice reset until the redirect actually fires. Resetting
+      // here flips `success` back to false, which re-runs this effect and
+      // triggers its cleanup (clearTimeout) before the 1200ms elapses — so
+      // the navigate never happened and the user was stuck on this screen.
+      const tid = setTimeout(() => {
+        dispatch(resetSetNewPassword());
+        navigate("/login");
+      }, 1200);
       return () => clearTimeout(tid);
     }
     if (error) {
