@@ -25,6 +25,7 @@ import {
 
 import { usePopup } from "../../../context/PopupContext";
 import { formatPrice } from "../../../utils/utils";
+import { pickLocalizedPackageName } from "../../../utils/localizedNames";
 
 import {
   basketGrandTotal,
@@ -301,7 +302,11 @@ const PackagesTable = ({ packages, t }) => {
               >
                 <Td>
                   <span className="font-semibold text-[--black-1]">
-                    {p.licensePackageName || "—"}
+                    {/* Picks `licensePackageName` (TR) or
+                        `licensePackageNameEn` (anything else) based on
+                        the active i18n language. Fallback to the other
+                        when one side is missing. */}
+                    {pickLocalizedPackageName(p) || "—"}
                   </span>
                 </Td>
                 <Td>
