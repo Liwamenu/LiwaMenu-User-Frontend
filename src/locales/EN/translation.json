@@ -1890,6 +1890,8 @@
     "type_link": "Link Payment",
     "license_qr": "QR License",
     "license_tv": "TV License",
+    "license_kiosk": "Kiosk License",
+    "license_payment": "Payment Integration License",
     "filter_button": "Filter",
     "filter_title": "Filters",
     "filter_date_range": "Date Range",

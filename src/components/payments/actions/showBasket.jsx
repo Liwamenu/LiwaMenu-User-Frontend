@@ -11,6 +11,7 @@
 import { useTranslation } from "react-i18next";
 import {
   Building2,
+  CreditCard,
   FileText,
   Hash,
   Monitor,
@@ -54,11 +55,15 @@ const TYPE_CHIP = {
 const PKG_ICON = {
   QRLicensePackage: QrCode,
   TVLicensePackage: Monitor,
+  KioskLicensePackage: Monitor,
+  PaymentIntegrationLicensePackage: CreditCard,
 };
 
 const PKG_LABEL_KEY = {
   QRLicensePackage: "paymentsPage.license_qr",
   TVLicensePackage: "paymentsPage.license_tv",
+  KioskLicensePackage: "paymentsPage.license_kiosk",
+  PaymentIntegrationLicensePackage: "paymentsPage.license_payment",
 };
 
 // 0 = Ay (month), 1 = Yıl (year). Matches src/enums/licensePackagesTimeId.js

@@ -95,6 +95,14 @@ const TYPE_META = {
 const LICENSE_PKG_META = {
   QRLicensePackage: { icon: QrCode, labelKey: "paymentsPage.license_qr" },
   TVLicensePackage: { icon: Monitor, labelKey: "paymentsPage.license_tv" },
+  KioskLicensePackage: {
+    icon: Monitor,
+    labelKey: "paymentsPage.license_kiosk",
+  },
+  PaymentIntegrationLicensePackage: {
+    icon: CreditCard,
+    labelKey: "paymentsPage.license_payment",
+  },
 };
 
 const PaymentsTable = ({ payments }) => {
