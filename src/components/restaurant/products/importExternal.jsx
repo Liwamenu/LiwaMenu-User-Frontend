@@ -52,6 +52,23 @@ const FIELD_DEFS = [
   { key: "image", labelKey: "field_image" },
 ];
 
+// Source platforms. The user picks one so the backend routes to the matching
+// adapter instead of guessing — far more reliable than scraping an arbitrary
+// JS-rendered SPA. "generic" keeps the open-URL fallback. Brand names stay
+// literal; only "generic" is translated. `placeholder` shows the expected URL
+// shape for the chosen platform.
+const PLATFORM_DEFS = [
+  { value: "generic", labelKey: "platform_generic" },
+  { value: "dijitalmenu", label: "dijital.menu", placeholder: "https://isletmeniz.dijital.menu/" },
+  { value: "tvmenu", label: "TV Menü", placeholder: "https://tvmenu.tr/qr/XXXX" },
+  { value: "yemeksepeti", label: "Yemeksepeti", placeholder: "https://www.yemeksepeti.com/restaurant/..." },
+  { value: "getir", label: "Getir Yemek", placeholder: "https://getir.com/yemek/restoran/..." },
+  { value: "trendyolgo", label: "Trendyol Go", placeholder: "https://tgoyemek.com/restoranlar/123456" },
+  { value: "migros", label: "Migros Yemek", placeholder: "https://www.migros.com.tr/yemek/..." },
+  { value: "ubereats", label: "Uber Eats", placeholder: "https://www.ubereats.com/store/..." },
+  { value: "talabat", label: "Talabat", placeholder: "https://www.talabat.com/uae/restaurant/..." },
+];
+
 const ImportExternal = () => {
   const { id: restaurantId } = useParams();
   const navigate = useNavigate();
@@ -59,6 +76,7 @@ const ImportExternal = () => {
   const { t } = useTranslation();
 
   const [url, setUrl] = useState("");
+  const [platform, setPlatform] = useState("generic");
   const [fields, setFields] = useState({
     category: true,
     name: true,
@@ -83,6 +101,19 @@ const ImportExternal = () => {
     () => FIELD_DEFS.filter((f) => fields[f.key]).map((f) => f.key),
     [fields],
   );
+
+  const platformOptions = useMemo(
+    () =>
+      PLATFORM_DEFS.map((p) => ({
+        value: p.value,
+        label: p.label || t(`importExternal.${p.labelKey}`),
+      })),
+    [t],
+  );
+  const currentPlatform =
+    PLATFORM_DEFS.find((p) => p.value === platform) || PLATFORM_DEFS[0];
+  const urlPlaceholder =
+    currentPlatform.placeholder || t("importExternal.url_placeholder");
 
   // "Only images selected" → switch to the product↔image matching flow.
   const imagesOnly =
@@ -134,7 +165,7 @@ const ImportExternal = () => {
       // instead of the global red toast.
       const res = await api.post(
         `${baseURL}ImportExternal/Scan`,
-        { restaurantId, url: url.trim(), fields: selectedFieldList },
+        { restaurantId, url: url.trim(), platform, fields: selectedFieldList },
         { skipErrorToast: true },
       );
       const payload = res?.data?.data ?? res?.data ?? {};
@@ -198,14 +229,14 @@ const ImportExternal = () => {
         toast.error(t("importExternal.no_matches"));
         return;
       }
-      body = { restaurantId, fields: selectedFieldList, mode: "images", imageMatches: imgMatches };
+      body = { restaurantId, platform, fields: selectedFieldList, mode: "images", imageMatches: imgMatches };
     } else {
       const included = items.filter((_, i) => includeRows.has(i));
       if (included.length === 0) {
         toast.error(t("importExternal.no_rows"));
         return;
       }
-      body = { restaurantId, fields: selectedFieldList, mode: "create", items: included };
+      body = { restaurantId, platform, fields: selectedFieldList, mode: "create", items: included };
     }
 
     setApplying(true);
@@ -267,6 +298,24 @@ const ImportExternal = () => {
 
         {/* STEP 1 — URL + field selection */}
         <div className="px-4 sm:px-5 py-4 border-b border-[--border-1] bg-[--white-2]/40">
+          {/* Platform picker — routes the backend to the right adapter */}
+          <label className="block text-xs font-semibold text-[--gr-1] mb-1.5">
+            {t("importExternal.platform_label")}
+          </label>
+          <div className="mb-3 sm:max-w-xs">
+            <CustomSelect
+              label=""
+              value={
+                platformOptions.find((o) => o.value === platform) ||
+                platformOptions[0]
+              }
+              options={platformOptions}
+              onChange={(opt) => setPlatform(opt?.value || "generic")}
+              className="text-sm"
+              className2="relative w-full"
+              menuPlacement="auto"
+            />
+          </div>
           <label className="block text-xs font-semibold text-[--gr-1] mb-1.5">
             {t("importExternal.url_label")}
           </label>
@@ -278,7 +327,7 @@ const ImportExternal = () => {
               <input
                 type="url"
                 inputMode="url"
-                placeholder={t("importExternal.url_placeholder")}
+                placeholder={urlPlaceholder}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleScan()}

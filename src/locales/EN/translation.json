@@ -1117,6 +1117,8 @@
     "subtitle": "Paste the URL of your menu on another platform and auto-import products, prices and images.",
     "url_label": "Menu / Page URL",
     "url_placeholder": "https://example-platform.com/your-menu",
+    "platform_label": "Source Platform",
+    "platform_generic": "Other / Generic URL",
     "scan_btn": "Scan",
     "fields_label": "Fields to import",
     "field_category": "Category",

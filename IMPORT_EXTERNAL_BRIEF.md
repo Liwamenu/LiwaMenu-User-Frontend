@@ -15,6 +15,65 @@ Aktar" tab on the Products page). Until these endpoints exist the FE shows a gra
 
 ---
 
+## ⚠️ UPDATE (2026-06-22) — Scan is deployed but can't read JS-rendered menus
+
+`ImportExternal/Scan` is **deployed and returns the correct contract** (verified: HTTP 200 +
+`{ source, categories, items }`). BUT live testing against real QR-menu platforms shows it
+only parses **static HTML / OpenGraph** — it does **not execute JavaScript**, so it returns
+nothing usable for the client-rendered SPA menus that almost every modern QR-menu platform
+uses. Net effect: no categories/products/images come through, so nothing lists in the panel.
+
+**Evidence — 6 real sources tested, ALL fail to yield a menu:**
+
+| URL | Scan returned | Why |
+|---|---|---|
+| `tvmenu.tr/qr/gqJk` (Hacı Milcan) | `items: []`, `categories: []` | JS-rendered; static HTML is only a notification popup |
+| `efendioglukebap.dijital.menu` | 1 bogus item = page title + `og:image` | JS-rendered; host 403s naive scrapers |
+| `yemeksepeti.com/restaurant/srmv/zeyrek-doner` | 1 bogus item (OG card) | JS-rendered SPA + strong anti-bot |
+| `getir.com/yemek/restoran/harvey-burger-…` | **HTTP 403** (blocked) | Anti-bot blocks the fetch entirely |
+| `tgoyemek.com/restoranlar/130914` (Trendyol Go) | 1 bogus item = page `<title>` | JS-rendered SPA |
+| `migros.com.tr/yemek/ozgur-usta-…` (Migros Yemek) | 1 bogus item = page `<title>` | JS-rendered SPA |
+| `talabat.com/uae/restaurant/991/pizza-2-go1` (Talabat) | 1 bogus item = page `<title>` | JS-rendered SPA (menu via API) |
+| `ubereats.com/store/flipside-burgers…` | **HTTP 403** (blocked) | Aggressive anti-bot — page can't even be fetched (its menu JSON is embedded via React Query once loaded) |
+
+Every modern QR-menu and food-delivery platform is a client-rendered SPA; several also have
+anti-bot (Getir and Uber Eats return **403** to any non-browser client). The static-HTML/OG
+scraper extracts a real menu from **none** of them — it only ever returns the page's
+OpenGraph card as one fake "item".
+
+**Two difficulty tiers the adapters must handle:**
+- **Fetchable but JS-rendered** (dijital.menu, tvmenu, Trendyol Go, Migros, Yemeksepeti, Talabat): the
+  HTML loads, but the menu arrives via JS/XHR → needs headless render **or** the platform's API.
+- **Anti-bot blocked (403)** (Getir, Uber Eats): the page can't even be fetched by a plain
+  client → needs a real browser (correct UA / TLS fingerprint, possibly a residential proxy)
+  **or** the platform's internal API. Uber Eats embeds the full menu as JSON in-page once it
+  renders, so a render-capable fetch is enough — the blocker is purely the 403.
+
+**Required to make this actually work:**
+
+1. **Render JavaScript before extracting (primary fix).** Use a headless browser
+   (Playwright / Puppeteer / headless Chromium): load the URL, wait for the menu to render
+   (network-idle or a menu selector), then extract from the **rendered** DOM. This is the
+   universal solution — works regardless of platform.
+2. **Per-platform API adapters (required for the big platforms).** Detect the platform by host
+   and call its underlying JSON menu API directly. For the delivery giants (Yemeksepeti, Getir,
+   Trendyol Go, Migros, Uber Eats) anti-bot (Cloudflare / DataDome) will likely defeat even a headless
+   browser — their internal menu JSON APIs (the same ones their own apps call) are the most
+   reliable source, so plan adapters there. For QR-menu platforms (`*.dijital.menu`, `tvmenu.tr`,
+   `*.menulux.*`, `adisyo`, …) either a headless render or their simpler JSON API works. Find
+   each API via the browser DevTools → Network (the page fetches its menu as JSON); e.g.
+   dijital.menu asset URLs expose a company id (`assets.dijital.menu/companies/<id>/…`).
+3. **Send a realistic browser User-Agent + headers** (dijital.menu returns 403 otherwise);
+   keep the SSRF / timeout / size limits already specified below.
+4. Keep the existing JSON-LD / microdata / heuristic-HTML / LLM extraction chain — it just
+   needs the **rendered** HTML as input instead of the raw shell.
+
+**Acceptance (re-test):** scanning the two URLs above returns the real **categories**,
+**products** (name + price/portions) and **image URLs**. The frontend already lists and
+selectively imports them — this is purely a scraper enhancement, no FE change needed.
+
+---
+
 ## Endpoint 1 — Scan (preview)
 `POST {VITE_BASE_URL}ImportExternal/Scan`  · auth: Bearer (same as other private endpoints)
 
@@ -22,10 +81,17 @@ Aktar" tab on the Products page). Until these endpoints exist the FE shows a gra
 ```json
 {
   "restaurantId": "<guid>",
+  "platform": "yemeksepeti",
   "url": "https://other-platform.com/the-menu",
   "fields": ["category", "name", "portion", "price", "image"]
 }
 ```
+- `platform` = **which source the user picked in the panel dropdown** — route straight to that
+  adapter, no auto-detection. One of: `generic`, `dijitalmenu`, `tvmenu`, `yemeksepeti`,
+  `getir`, `trendyolgo`, `migros`, `ubereats`, `talabat` (extend as adapters are added). `generic` = open-URL
+  fallback (headless render + heuristic). **Apply sends the same `platform`.** This is the
+  recommended model: the user knows their source, so each platform is a targeted adapter
+  (ideally its JSON API) rather than a guess — see the UPDATE section above.
 - `fields` = which fields the user ticked. Only these need to be populated in the response
   (e.g. an images-only scan can return just `name` + `imageURL` per item).
 

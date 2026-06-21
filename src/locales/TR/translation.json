@@ -1118,6 +1118,8 @@
     "subtitle": "Başka bir platformdaki menünüzün URL'sini girin; ürünleri, fiyatları ve görselleri otomatik içeri aktarın.",
     "url_label": "Menü / Sayfa URL'si",
     "url_placeholder": "https://ornek-platform.com/menunuz",
+    "platform_label": "Kaynak Platform",
+    "platform_generic": "Diğer / Genel URL",
     "scan_btn": "Tara",
     "fields_label": "İçeri aktarılacak alanlar",
     "field_category": "Kategori",
