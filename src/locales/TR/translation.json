@@ -1120,6 +1120,7 @@
     "url_placeholder": "https://ornek-platform.com/menunuz",
     "platform_label": "Kaynak Platform",
     "platform_generic": "Diğer / Genel URL",
+    "platform_hint": "Seçtiğiniz yöntemi kullanan herhangi bir alan adını girebilirsiniz; ilgili platformun kendi domaini olmak zorunda değil (kendi özel alan adınız da olabilir).",
     "scan_btn": "Tara",
     "fields_label": "İçeri aktarılacak alanlar",
     "field_category": "Kategori",

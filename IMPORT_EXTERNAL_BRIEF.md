@@ -92,6 +92,11 @@ selectively imports them — this is purely a scraper enhancement, no FE change 
   fallback (headless render + heuristic). **Apply sends the same `platform`.** This is the
   recommended model: the user knows their source, so each platform is a targeted adapter
   (ideally its JSON API) rather than a guess — see the UPDATE section above.
+- **`platform` is the engine/method, not a fixed host.** Do **not** validate or hard-code the
+  URL's domain against the chosen platform: many menus run the same engine on white-label /
+  custom domains (e.g. a `dijital.menu`-powered menu served from the restaurant's own domain).
+  The adapter for a platform must accept **any** URL the user pastes and apply that engine's
+  parsing to it. The FE intentionally does not restrict the URL host.
 - `fields` = which fields the user ticked. Only these need to be populated in the response
   (e.g. an images-only scan can return just `name` + `imageURL` per item).
 

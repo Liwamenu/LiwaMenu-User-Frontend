@@ -1119,6 +1119,7 @@
     "url_placeholder": "https://example-platform.com/your-menu",
     "platform_label": "Source Platform",
     "platform_generic": "Other / Generic URL",
+    "platform_hint": "You can enter any domain that uses the selected method — it doesn't have to be that platform's own domain (your custom domain works too).",
     "scan_btn": "Scan",
     "fields_label": "Fields to import",
     "field_category": "Category",

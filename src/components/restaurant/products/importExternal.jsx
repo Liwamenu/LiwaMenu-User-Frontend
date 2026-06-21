@@ -302,7 +302,7 @@ const ImportExternal = () => {
           <label className="block text-xs font-semibold text-[--gr-1] mb-1.5">
             {t("importExternal.platform_label")}
           </label>
-          <div className="mb-3 sm:max-w-xs">
+          <div className="mb-1.5 sm:max-w-xs">
             <CustomSelect
               label=""
               value={
@@ -316,6 +316,9 @@ const ImportExternal = () => {
               menuPlacement="auto"
             />
           </div>
+          <p className="mb-3 text-[11px] text-[--gr-1] leading-relaxed">
+            {t("importExternal.platform_hint")}
+          </p>
           <label className="block text-xs font-semibold text-[--gr-1] mb-1.5">
             {t("importExternal.url_label")}
           </label>
