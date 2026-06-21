@@ -11,6 +11,7 @@
 import { useTranslation } from "react-i18next";
 import {
   Building2,
+  CreditCard,
   FileText,
   Hash,
   Monitor,
@@ -25,6 +26,7 @@ import {
 
 import { usePopup } from "../../../context/PopupContext";
 import { formatPrice } from "../../../utils/utils";
+import { pickLocalizedPackageName } from "../../../utils/localizedNames";
 
 import {
   basketGrandTotal,
@@ -53,11 +55,15 @@ const TYPE_CHIP = {
 const PKG_ICON = {
   QRLicensePackage: QrCode,
   TVLicensePackage: Monitor,
+  KioskLicensePackage: Monitor,
+  PaymentIntegrationLicensePackage: CreditCard,
 };
 
 const PKG_LABEL_KEY = {
   QRLicensePackage: "paymentsPage.license_qr",
   TVLicensePackage: "paymentsPage.license_tv",
+  KioskLicensePackage: "paymentsPage.license_kiosk",
+  PaymentIntegrationLicensePackage: "paymentsPage.license_payment",
 };
 
 // 0 = Ay (month), 1 = Yıl (year). Matches src/enums/licensePackagesTimeId.js
@@ -301,7 +307,11 @@ const PackagesTable = ({ packages, t }) => {
               >
                 <Td>
                   <span className="font-semibold text-[--black-1]">
-                    {p.licensePackageName || "—"}
+                    {/* Picks `licensePackageName` (TR) or
+                        `licensePackageNameEn` (anything else) based on
+                        the active i18n language. Fallback to the other
+                        when one side is missing. */}
+                    {pickLocalizedPackageName(p) || "—"}
                   </span>
                 </Td>
                 <Td>

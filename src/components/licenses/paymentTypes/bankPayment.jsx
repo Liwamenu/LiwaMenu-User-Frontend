@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   ArrowRight,
+  CreditCard,
   Monitor,
   QrCode,
   ReceiptText,
@@ -38,6 +39,8 @@ const PRIMARY_GRADIENT =
 const LICENSE_TYPE_ICONS = {
   QRLicensePackage: QrCode,
   TVLicensePackage: Monitor,
+  KioskLicensePackage: Monitor,
+  PaymentIntegrationLicensePackage: CreditCard,
 };
 
 const getLicenseMeta = (item) => ({

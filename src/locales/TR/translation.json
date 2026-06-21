@@ -1891,6 +1891,8 @@
     "type_link": "Link Ödeme",
     "license_qr": "QR Lisans",
     "license_tv": "TV Lisans",
+    "license_kiosk": "Kiosk Lisans",
+    "license_payment": "Ödeme Entegrasyonu Lisansı",
     "filter_button": "Filtrele",
     "filter_title": "Filtreler",
     "filter_date_range": "Tarih Aralığı",

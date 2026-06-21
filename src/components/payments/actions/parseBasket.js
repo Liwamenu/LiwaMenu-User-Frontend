@@ -54,6 +54,19 @@ const normalizePackage = (p, legacyParent) => {
     licenseId: p.licenseId ?? p.LicenseId ?? legacyParent?.LicenseId ?? null,
     licensePackageId: p.licensePackageId ?? p.LicensePackageId ?? null,
     licensePackageName: p.licensePackageName ?? p.LicensePackageName ?? "",
+    // English display name — backend started shipping `nameEn` on the
+    // LicensePackage entity; whether the persisted basket carries it
+    // through is a backend-side decision. We tolerate camelCase /
+    // PascalCase / UPPER-CASE EN suffixes so any of those flow through
+    // without a parser tweak. The viewer pairs both fields with
+    // `pickLocalizedPackageName` and picks based on the active i18n
+    // language.
+    licensePackageNameEn:
+      p.licensePackageNameEn ??
+      p.LicensePackageNameEn ??
+      p.licensePackageNameEN ??
+      p.LicensePackageNameEN ??
+      "",
     licensePackageType: p.licensePackageType ?? p.LicensePackageType ?? "",
     licensePackageTypeId: num(p.licensePackageTypeId ?? p.LicensePackageTypeId),
     licensePackageTime: num(p.licensePackageTime ?? p.LicensePackageTime),
