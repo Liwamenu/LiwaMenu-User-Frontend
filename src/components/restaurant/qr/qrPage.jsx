@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Database,
   AlertTriangle,
+  X,
 } from "lucide-react";
 
 // COMP
@@ -103,6 +104,16 @@ const QRPage = ({ data: restaurant }) => {
   const id = useParams()["*"].split("/")[1];
   const [config, setConfig] = useState(initialData);
   const [generatedItems, setGeneratedItems] = useState([]);
+  // Remembers the last SambaPOS table-name selection so the user can
+  // re-skin (color/logo) and hit "Toplu Oluştur" again without reopening
+  // the picker.
+  const [sambaNames, setSambaNames] = useState([]);
+  // Which input drives "Toplu Oluştur": the manual form (range/prefix/
+  // suffix) or the remembered SambaPOS selection. The range fields default
+  // to 1–5, so "empty form" can't be detected by value — we track intent
+  // instead. Generating from the picker → "samba"; editing any table field
+  // → back to "form".
+  const [generationMode, setGenerationMode] = useState("form");
   const [isGenerating, setIsGenerating] = useState(false);
   const { setPopupContent } = usePopup();
 
@@ -406,6 +417,13 @@ const QRPage = ({ data: restaurant }) => {
     return newItems;
   };
 
+  // Editing any table field means the user wants manual control, so switch
+  // off the remembered SambaPOS source — "Toplu Oluştur" then uses the form.
+  const setTableField = (patch) => {
+    setConfig((c) => ({ ...c, ...patch }));
+    setGenerationMode("form");
+  };
+
   const handleGenerateBatch = async () => {
     if (!checkLicense()) return;
     setIsGenerating(true);
@@ -426,7 +444,22 @@ const QRPage = ({ data: restaurant }) => {
     //     appending a number. Bail out if there is nothing to identify the
     //     table at all (no prefix, no suffix, no range).
     const plan = [];
-    if (!startValid && !endValid) {
+    // Source of the batch: the remembered SambaPOS selection (when the user
+    // generated from the picker and hasn't touched the form since) wins over
+    // the manual range/prefix-suffix — so re-skinning + "Toplu Oluştur"
+    // rebuilds the same tables even though the range defaults to 1–5.
+    let fromSamba = false;
+    if (generationMode === "samba" && sambaNames.length) {
+      fromSamba = true;
+      sambaNames.forEach((name) =>
+        plan.push({
+          id: name,
+          tableId: name,
+          badge: deriveBadgeFromName(name),
+        }),
+      );
+    } else if (!startValid && !endValid) {
+      // Single QR from prefix/suffix only (no range, no SambaPOS source).
       const tableId = `${prefix}${suffix}`;
       if (!tableId) {
         toast.error(t("qrPage.toast_no_input"), { id: "qr_page" });
@@ -448,7 +481,12 @@ const QRPage = ({ data: restaurant }) => {
 
     setGeneratedItems(newItems);
     setIsGenerating(false);
-    if (plan.length === 1 && !startValid && !endValid) {
+    if (fromSamba) {
+      toast.success(
+        t("sambaTables.toast_generated", { count: newItems.length }),
+        { id: "qr_page" },
+      );
+    } else if (plan.length === 1 && !startValid && !endValid) {
       toast.success(
         t("qrPage.toast_generated_single", { id: plan[0].tableId }),
         { id: "qr_page" },
@@ -497,6 +535,11 @@ const QRPage = ({ data: restaurant }) => {
       toast.error(t("sambaTables.toast_no_selection"), { id: "qr_page" });
       return;
     }
+    // Remember this selection (and switch "Toplu Oluştur" to the SambaPOS
+    // source) so the user can re-skin and regenerate without reopening the
+    // picker — editing a table field later switches back to the form.
+    setSambaNames(names);
+    setGenerationMode("samba");
     setIsGenerating(true);
     clearGeneratedItems();
 
@@ -607,6 +650,9 @@ const QRPage = ({ data: restaurant }) => {
   // which the parent keeps fresh — fetching again was pure waste.
 
   const tableCount = (() => {
+    // SambaPOS source active → the count is the remembered selection.
+    if (generationMode === "samba" && sambaNames.length)
+      return sambaNames.length;
     const s = parseInt(config.tableStart, 10);
     const e = parseInt(config.tableEnd, 10);
     const sValid = Number.isFinite(s) && s >= 1;
@@ -708,18 +754,14 @@ const QRPage = ({ data: restaurant }) => {
                   value={config.tablePrefix}
                   label={t("qrPage.table_prefix")}
                   className="py-[7px] mt-2 text-sm bg-[--white-1]"
-                  onChange={(v) =>
-                    setConfig((c) => ({ ...c, tablePrefix: v || "" }))
-                  }
+                  onChange={(v) => setTableField({ tablePrefix: v || "" })}
                 />
                 <CustomInput
                   type="text"
                   value={config.tableSuffix}
                   label={t("qrPage.table_suffix")}
                   className="py-[7px] mt-2 text-sm bg-[--white-1]"
-                  onChange={(v) =>
-                    setConfig((c) => ({ ...c, tableSuffix: v || "" }))
-                  }
+                  onChange={(v) => setTableField({ tableSuffix: v || "" })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-2.5">
@@ -729,12 +771,9 @@ const QRPage = ({ data: restaurant }) => {
                   label={t("qrPage.table_start")}
                   className="py-[7px] mt-2 text-sm bg-[--white-1]"
                   onChange={(v) =>
-                    setConfig((c) => ({
-                      ...c,
-                      // Keep the raw string so the field can be cleared.
-                      // Numeric coercion happens at batch-generate time.
-                      tableStart: v,
-                    }))
+                    // Keep the raw string so the field can be cleared;
+                    // numeric coercion happens at batch-generate time.
+                    setTableField({ tableStart: v })
                   }
                 />
                 <CustomInput
@@ -742,14 +781,35 @@ const QRPage = ({ data: restaurant }) => {
                   value={config.tableEnd}
                   label={t("qrPage.table_end")}
                   className="py-[7px] mt-2 text-sm bg-[--white-1]"
-                  onChange={(v) =>
-                    setConfig((c) => ({
-                      ...c,
-                      tableEnd: v,
-                    }))
-                  }
+                  onChange={(v) => setTableField({ tableEnd: v })}
                 />
               </div>
+
+              {/* Remembered SambaPOS selection — lets the user re-skin and
+                  regenerate the same tables via "Toplu Oluştur" without
+                  reopening the picker. The × forgets the selection. */}
+              {generationMode === "samba" && sambaNames.length > 0 && (
+                <div className="flex items-start gap-2 mt-1 p-2.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-400/30 dark:bg-indigo-500/10 dark:text-indigo-200">
+                  <Database className="size-3.5 shrink-0 mt-0.5" />
+                  <p className="text-[11px] leading-relaxed flex-1 min-w-0">
+                    {t("sambaTables.remembered_hint", {
+                      count: sambaNames.length,
+                    })}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSambaNames([]);
+                      setGenerationMode("form");
+                    }}
+                    title={t("sambaTables.remembered_clear")}
+                    aria-label={t("sambaTables.remembered_clear")}
+                    className="grid place-items-center size-5 rounded text-indigo-500 hover:text-indigo-700 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition shrink-0"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              )}
             </Section>
 
             {/* Visual section */}

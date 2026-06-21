@@ -3,10 +3,11 @@
 // tables they don't want a QR for, then hands the remaining names back
 // to the parent so it can run them through the existing QR generator.
 //
-// The list is sorted alphabetically (Turkish-aware) and filterable. By
-// default every table is selected; the user "removes" entries simply by
-// unchecking them. Re-opening the modal resets the selection so the
-// flow is repeatable.
+// The list is sorted alphabetically (Turkish-aware) and filterable.
+// Nothing is selected by default — the user explicitly checks the tables
+// they want. "Select all" only affects the rows currently matching the
+// search filter. Re-opening the modal resets the selection so the flow
+// is repeatable.
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,9 +51,10 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
   );
   const { loading: deleting } = useSelector((s) => s.sambaTables.del);
 
-  // `excluded` is the user's negative selection — Set of names they
-  // unchecked. Default behaviour: everything checked (empty Set).
-  const [excluded, setExcluded] = useState(() => new Set());
+  // `selected` is the user's positive selection — Set of names they
+  // checked. Default behaviour: nothing selected (empty Set) so the user
+  // must explicitly pick the tables they want.
+  const [selected, setSelected] = useState(() => new Set());
   const [searchVal, setSearchVal] = useState("");
   // Two-step guard for the destructive "delete selected" action.
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -90,12 +92,12 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
   }, [sortedTables, searchVal]);
 
   const remaining = useMemo(
-    () => sortedTables.filter((n) => !excluded.has(n)),
-    [sortedTables, excluded],
+    () => sortedTables.filter((n) => selected.has(n)),
+    [sortedTables, selected],
   );
 
   const toggleOne = (name) => {
-    setExcluded((prev) => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
       else next.add(name);
@@ -103,19 +105,22 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
     });
   };
 
-  const allVisibleIncluded =
+  const allVisibleSelected =
     visibleTables.length > 0 &&
-    visibleTables.every((n) => !excluded.has(n));
+    visibleTables.every((n) => selected.has(n));
 
+  // "Select all" / "Deselect all" — scoped to the rows currently matching
+  // the search filter, so searching then selecting all picks only the
+  // filtered subset, never the whole list.
   const toggleAllVisible = () => {
-    setExcluded((prev) => {
+    setSelected((prev) => {
       const next = new Set(prev);
-      if (allVisibleIncluded) {
-        // All currently visible are checked → uncheck all of them.
-        visibleTables.forEach((n) => next.add(n));
-      } else {
-        // At least one visible is unchecked → check them all.
+      if (allVisibleSelected) {
+        // Every visible row is already selected → unselect just those.
         visibleTables.forEach((n) => next.delete(n));
+      } else {
+        // Some visible rows are unselected → select all the visible ones.
+        visibleTables.forEach((n) => next.add(n));
       }
       return next;
     });
@@ -143,7 +148,7 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
       toast.success(
         t("sambaTables.delete_success", { count: remaining.length }),
       );
-      setExcluded(new Set());
+      setSelected(new Set());
       setConfirmingDelete(false);
       dispatch(getSambaTables({ restaurantId })); // refresh the list
     } catch (err) {
@@ -224,7 +229,7 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
             onClick={toggleAllVisible}
             className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-2] text-xs font-semibold hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition shrink-0"
           >
-            {allVisibleIncluded ? (
+            {allVisibleSelected ? (
               <>
                 <Square className="size-3.5" />
                 {t("sambaTables.deselect_all")}
@@ -271,27 +276,27 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
               </li>
             )}
             {visibleTables.map((name) => {
-              const isExcluded = excluded.has(name);
+              const isSelected = selected.has(name);
               return (
                 <li key={name}>
                   <label
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition cursor-pointer ${
-                      isExcluded
-                        ? "border-[--border-1] bg-[--white-2]/40 opacity-60"
-                        : "border-[--border-1] bg-[--white-1] hover:border-indigo-300 hover:shadow-sm"
+                      isSelected
+                        ? "border-indigo-300 bg-indigo-50/70 shadow-sm dark:bg-indigo-500/10 dark:border-indigo-400/40"
+                        : "border-[--border-1] bg-[--white-1] hover:border-indigo-300 hover:bg-[--white-2]/40"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={!isExcluded}
+                      checked={isSelected}
                       onChange={() => toggleOne(name)}
                       className="size-4 rounded border-[--border-1] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
                     />
                     <span
                       className={`flex-1 min-w-0 text-sm truncate ${
-                        isExcluded
-                          ? "text-[--gr-1] line-through"
-                          : "text-[--black-1] font-medium"
+                        isSelected
+                          ? "text-[--black-1] font-semibold"
+                          : "text-[--black-2] font-medium"
                       }`}
                     >
                       {name}
