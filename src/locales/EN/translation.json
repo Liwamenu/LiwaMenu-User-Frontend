@@ -459,7 +459,10 @@
     "secure_3d_title": "3D Secure Verification",
     "secure_3d_subtitle": "You've been redirected to your bank's secure page. Complete the verification.",
     "loading_3d": "Loading secure payment page...",
-    "cancel_payment": "Cancel Payment"
+    "cancel_payment": "Cancel Payment",
+    "confirm_pending_title": "Confirming payment result...",
+    "confirm_pending_desc": "If your payment went through, your license will be assigned shortly. You can check it on the Licenses page.",
+    "go_to_licenses": "Go to Licenses"
   },
   "googleAnalytics": {
     "title": "Google Analytics",

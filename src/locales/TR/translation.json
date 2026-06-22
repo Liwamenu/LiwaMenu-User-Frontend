@@ -459,7 +459,10 @@
     "secure_3d_title": "3D Secure Doğrulama",
     "secure_3d_subtitle": "Bankanızın güvenli sayfasına yönlendirildiniz. Doğrulamayı tamamlayın.",
     "loading_3d": "Güvenli ödeme sayfası yükleniyor...",
-    "cancel_payment": "Ödemeyi İptal Et"
+    "cancel_payment": "Ödemeyi İptal Et",
+    "confirm_pending_title": "Ödeme sonucu doğrulanıyor...",
+    "confirm_pending_desc": "Ödemeniz alındıysa lisansınız kısa süre içinde tanımlanır. Lisanslarım sayfasından kontrol edebilirsiniz.",
+    "go_to_licenses": "Lisanslara Git"
   },
   "googleAnalytics": {
     "title": "Google Analytics",

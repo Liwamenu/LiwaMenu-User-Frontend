@@ -8,6 +8,10 @@ import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 
 //REDUX
 import { resetExtendByOnlinePay } from "../../../redux/licenses/extendLicense/extendByOnlinePaySlice";
+import { resetGetRestaurants } from "../../../redux/restaurants/getRestaurantsSlice";
+import { resetGetUserLicenses } from "../../../redux/licenses/getUserLicensesSlice";
+import { resetGetLicenses } from "../../../redux/licenses/getLicensesSlice";
+import { usePaymentSettleWatch } from "../stepsAssets/usePaymentSettleWatch";
 
 const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
   const { t } = useTranslation();
@@ -20,7 +24,11 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
   const iframeRef = useRef(null);
   const settledRef = useRef(false);
   const [htmlResponse, setHtmlResponse] = useState(null);
+  const [settleTimedOut, setSettleTimedOut] = useState(false);
   const { data } = useSelector((state) => state.licenses.extendByPay);
+
+  const { restaurant } = location.state || {};
+  const restaurantId = restaurant?.id;
 
   // PayTR loads cross-origin for 3DS then redirects back to our merchant
   // return URL — at that point we can read the iframe's location again,
@@ -33,6 +41,11 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
     setPaymentStatus(status);
     if (status === "success") {
       toast.success("Ödeme başarılı 😃", { id: "payment_success" });
+      // Invalidate cached lists so the extended license shows up without a
+      // hard reload (restaurant cards + license pages).
+      dispatch(resetGetRestaurants());
+      dispatch(resetGetUserLicenses());
+      dispatch(resetGetLicenses());
     } else {
       toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
     }
@@ -108,6 +121,16 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
     return () => clearInterval(id);
   }, [htmlResponse]);
 
+  // Authoritative settle signal: the iframe handoff (URL read / postMessage)
+  // is unreliable cross-origin, so also poll the backend — when the license
+  // set changes, payment has settled. Timeout avoids an infinite spinner.
+  usePaymentSettleWatch({
+    restaurantId,
+    active: !!htmlResponse,
+    onConfirmed: () => finish("success"),
+    onTimeout: () => setSettleTimedOut(true),
+  });
+
   return (
     <div className="flex flex-col">
       {/* Header */}
@@ -147,6 +170,26 @@ const FourthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
           </div>
         )}
       </div>
+
+      {/* Settle-confirmation timeout — never leave the user stuck on the
+          spinner; the payment may still have succeeded (backend webhook). */}
+      {settleTimedOut && (
+        <div className="mx-4 sm:mx-5 mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <p className="text-sm font-semibold">
+            {t("payment.confirm_pending_title")}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed">
+            {t("payment.confirm_pending_desc")}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate(currentPath.replace("/extend-license", ""))}
+            className="mt-2.5 inline-flex items-center justify-center h-9 px-4 rounded-lg bg-[--primary-1] text-white text-xs font-semibold hover:brightness-110 transition"
+          >
+            {t("payment.go_to_licenses")}
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="border-t border-[--border-1] bg-[--white-2]/40 px-4 sm:px-5 py-3 flex items-center justify-end">
