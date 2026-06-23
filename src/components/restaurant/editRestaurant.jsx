@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Building2,
   Phone,
@@ -110,6 +111,8 @@ async function resizeImageToMaxEdge(file, maxEdge = 1000) {
 const EditRestaurant = ({ data: restaurant }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const routeLocation = useLocation();
   const toastId = useRef();
 
   // Derive formatted restaurant object
@@ -324,6 +327,32 @@ const EditRestaurant = ({ data: restaurant }) => {
     } else if (success) {
       toast.dismiss(toastId.current);
       toast.success(t("restaurants.update_success"));
+      // restaurantHome derives `data` as `location.state.restaurant ||
+      // myRestaurant || stateRest`, and that navigation snapshot takes
+      // priority AND survives a hard reload (React Router restores it from
+      // history.state). Without refreshing it, a save + reload restores the
+      // pre-edit values (e.g. the phone's country prefix snaps back). Sync
+      // the snapshot with the saved fields so it matches the backend.
+      if (routeLocation.state?.restaurant) {
+        navigate(routeLocation.pathname, {
+          replace: true,
+          state: {
+            ...routeLocation.state,
+            restaurant: {
+              ...routeLocation.state.restaurant,
+              name: restaurantData.name,
+              phoneNumber: restaurantData.phoneNumber,
+              latitude: restaurantData.latitude,
+              longitude: restaurantData.longitude,
+              city: restaurantData.city,
+              district: restaurantData.district,
+              neighbourhood: restaurantData.neighbourhood,
+              address: restaurantData.address,
+              isActive: restaurantData.isActive,
+            },
+          },
+        });
+      }
       dispatch(resetUpdateRestaurant());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
