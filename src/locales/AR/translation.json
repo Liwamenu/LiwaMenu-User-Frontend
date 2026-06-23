@@ -138,7 +138,10 @@
     "feat_google_review": "مشاركة رابط تقييم Google",
     "feat_social_media": "نشر حسابات التواصل الاجتماعي",
     "feat_working_hours": "ميزات تراعي ساعات العمل",
-    "footer_credit": "LiwaMenu هي شركة تابعة لـ LiwaSoft."
+    "footer_credit": "LiwaMenu هي شركة تابعة لـ LiwaSoft.",
+    "processing": "جارٍ المعالجة...",
+    "resending_code": "جارٍ إعادة إرسال رمز التأكيد...",
+    "code_sent": "تم إرسال رمز التأكيد إلى بريدك الإلكتروني."
   },
   "register": {
     "title": "إنشاء حساب",
@@ -300,7 +303,10 @@
     "license_get": "الحصول على ترخيص",
     "license_no": "لا يوجد ترخيص",
     "license_expired": "منتهي الصلاحية",
-    "manage_licenses": "إدارة التراخيص"
+    "manage_licenses": "إدارة التراخيص",
+    "max_file_size": "بحد أقصى {{size}} ميجابايت",
+    "change": "تغيير",
+    "remove": "إزالة"
   },
   "restaurantLicensesModal": {
     "title": "إدارة التراخيص",
@@ -349,7 +355,16 @@
     "no_licenses": "لا توجد رخص بعد",
     "no_licenses_description": "ابدأ بشراء رخصة لمطعمك.",
     "no_results": "لا توجد نتائج",
-    "no_results_description": "جرب تعديل معايير البحث أو الفلترة."
+    "no_results_description": "جرب تعديل معايير البحث أو الفلترة.",
+    "status_update_success": "تم {{status}} الترخيص بنجاح 🥳🥳",
+    "deactivated": "إلغاء التفعيل",
+    "activated": "التفعيل",
+    "status_title": "حالة الترخيص",
+    "status_label": "الحالة:",
+    "action_label": "الإجراء:",
+    "deactivate": "إلغاء التفعيل",
+    "activate": "تفعيل",
+    "passive_note_label": "ملاحظة الإلغاء:"
   },
   "addLicense": {
     "title": "شراء ترخيص",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "انقر أو اسحب وأفلت الإيصال لرفعه.",
     "note_label": "ملاحظة",
     "note_placeholder": "ملاحظة (اختياري)",
-    "after_check_msg": "بعد التحقق من الإيصال، ستُضاف التراخيص التالية:"
+    "after_check_msg": "بعد التحقق من الإيصال، ستُضاف التراخيص التالية:",
+    "delete": "حذف",
+    "processing": "جارٍ المعالجة 🤩...",
+    "delete_success": "تم حذف الترخيص بنجاح 🥳🥳",
+    "delete_license_title": "حذف الترخيص",
+    "marketplace": "السوق",
+    "license_duration": "مدة الترخيص",
+    "year_count": "{{count}} سنوات",
+    "price": "السعر",
+    "delete_confirm": "هل أنت متأكد من رغبتك في حذف الترخيص؟",
+    "delete_sure": "نعم، احذف",
+    "breadcrumb_users": "المستخدمون",
+    "breadcrumb_restaurants": "المطاعم"
   },
   "extendLicense": {
     "title": "تمديد الترخيص",
@@ -456,7 +483,23 @@
     "secure_3d_title": "التحقق بتقنية 3D Secure",
     "secure_3d_subtitle": "تمت إعادة توجيهك إلى الصفحة الآمنة لبنكك. أكمل عملية التحقق.",
     "loading_3d": "جارٍ تحميل صفحة الدفع الآمنة...",
-    "cancel_payment": "إلغاء الدفع"
+    "cancel_payment": "إلغاء الدفع",
+    "credit_card": "بطاقة ائتمان",
+    "invalid_card_number": "رقم بطاقة غير صحيح",
+    "month": "الشهر",
+    "year": "السنة",
+    "card_holder_name_label": "اسم حامل البطاقة:",
+    "card_number_label": "رقم البطاقة:",
+    "card_expiry_month_label": "شهر انتهاء البطاقة:",
+    "card_expiry_year_label": "سنة انتهاء البطاقة:",
+    "card_security_code_label": "رمز أمان البطاقة:",
+    "payment_failed_title": "فشل الدفع! 😔",
+    "payment_failed_desc": "فشلت عمليتك بسبب خطأ تقني. يرجى المحاولة مرة أخرى.",
+    "payment_success_typing": "تمت عملية الدفع بنجاح.",
+    "processing_title": "جارٍ معالجة الدفع",
+    "processing_desc": "يرجى عدم مغادرة الصفحة، عمليتك قيد التنفيذ...",
+    "payment_success_toast": "تم الدفع بنجاح 😃",
+    "payment_failed_toast": "فشل الدفع 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "هل أنت متأكد أنك تريد حذف طريقة الدفع {{name}}؟",
     "delete": "حذف",
     "delete_success": "تم حذف طريقة الدفع.",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "active_count": "{{enabled}} / {{total}} مفعّل",
+    "close": "إغلاق"
   },
   "editCategories": {
     "no_changes": "لم يتم إجراء أي تغييرات.",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "نوع الملف غير صالح",
     "bulk_too_large": "الحد الأقصى {{size}}MB",
     "view_list": "قائمة",
-    "view_tile": "بلاط"
+    "view_tile": "بلاط",
+    "product_count_fallback": "3 منتجات"
   },
   "categoryProducts": {
     "title": "منتجات الفئة",
@@ -935,7 +981,8 @@
     "status": "الحالة",
     "featured": "توصية الشيف",
     "campaign_warning": "يمكنك تحديد سعر العرض من تبويب {{tab}}.",
-    "campaign_warning_tab": "قائمة الأسعار"
+    "campaign_warning_tab": "قائمة الأسعار",
+    "category_image_alt": "الفئة"
   },
   "editSubCategories": {
     "title": "تعديل الفئات الفرعية لمطعم {{name}}",
@@ -974,7 +1021,8 @@
     "select_category": "اختر فئة",
     "delete": "حذف",
     "save": "حفظ",
-    "success": "تمت إضافة الفئات الفرعية بنجاح."
+    "success": "تمت إضافة الفئات الفرعية بنجاح.",
+    "unknown_category": "فئة غير معروفة"
   },
   "addSubCategory": {
     "add": "إضافة فئة فرعية",
@@ -990,7 +1038,8 @@
     "info": "تُستخدم الفئات الفرعية لتجميع المنتجات ضمن الفئات الرئيسية بشكل أكثر تفصيلاً. على سبيل المثال: تحت فئة 'الحساء' يمكنك إضافة 'الحساء الساخن' و'الحساء البارد'.",
     "cancel": "إلغاء",
     "save": "حفظ",
-    "success": "تمت إضافة الفئة الفرعية بنجاح."
+    "success": "تمت إضافة الفئة الفرعية بنجاح.",
+    "image_alt": "الفئة الفرعية"
   },
   "editSubCategory": {
     "title": "تعديل الفئة الفرعية",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "إدارة المنتجات",
     "price_list": "قائمة الأسعار",
-    "add_product": "إضافة منتج"
+    "add_product": "إضافة منتج",
+    "products_of_restaurant": "منتجات مطعم {{name}}",
+    "delete_product": "حذف المنتج",
+    "category": "الفئة",
+    "category_select": "اختر الفئة",
+    "sub_category": "الفئة الفرعية",
+    "sub_category_select": "اختر الفئة الفرعية",
+    "product_name": "اسم المنتج",
+    "description": "الوصف",
+    "chef_recommendation": "توصية الشيف",
+    "hide": "إخفاء",
+    "portions": "الحصص",
+    "add_portion": "إضافة حصة",
+    "portion_name": "اسم الحصة",
+    "portion_price": "سعر الحصة",
+    "delete_portion": "حذف الحصة",
+    "add_tag": "إضافة علامة",
+    "tag_name_with_example": "اسم العلامة (مثال: اختيار البهارات)",
+    "tag_select": "اختر العلامة",
+    "min_selection": "الحد الأدنى للاختيار",
+    "max_selection": "الحد الأقصى للاختيار",
+    "delete_tag": "حذف العلامة",
+    "add_option": "إضافة خيار",
+    "option_name": "اسم الخيار",
+    "option_select": "اختر الخيار",
+    "price": "السعر",
+    "max_quantity_short": "الحد الأقصى",
+    "max_quantity": "الحد الأقصى للاختيار",
+    "delete": "حذف",
+    "add_new_product": "إضافة منتج جديد",
+    "save": "حفظ"
   },
   "allergens": {
     "title": "مسببات الحساسية",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "manifest.json غير موجود — هذا الملف ليس نسخة احتياطية صالحة من Liwa.",
     "restore_error_wrong_type": "هذا الملف ليس نسخة احتياطية لمنتجات Liwa.",
     "restore_error_wrong_version": "صيغة ملف النسخة الاحتياطية هذه غير مدعومة (قد يلزم إصدار أحدث).",
-    "restore_error_malformed": "بنية ملف النسخة الاحتياطية غير صالحة."
+    "restore_error_malformed": "بنية ملف النسخة الاحتياطية غير صالحة.",
+    "restore_err_category_update": "[تحديث الفئة] {{name}}",
+    "restore_err_category_create": "[إنشاء الفئة] {{name}}",
+    "restore_err_subcategory_update": "[تحديث الفئة الفرعية] {{name}}",
+    "restore_err_subcategory_create": "[إنشاء الفئة الفرعية] {{name}}",
+    "restore_err_product_update": "[تحديث المنتج] {{name}}",
+    "restore_err_product_create": "[إنشاء المنتج] {{name}}",
+    "restore_err_category": "[الفئة] {{name}}",
+    "restore_err_subcategory": "[الفئة الفرعية] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "لا توجد صورة",
@@ -1570,7 +1657,10 @@
     "col_product": "المنتج",
     "col_portion": "الحصة",
     "option_name_placeholder": "اسم الخيار",
-    "price_placeholder": "السعر"
+    "price_placeholder": "السعر",
+    "all_categories": "جميع الفئات",
+    "all_products": "جميع المنتجات",
+    "all_portions": "جميع الحصص"
   },
   "surveySettings": {
     "title": "تحليلات آراء عملاء مطعم {{name}}",
@@ -1593,7 +1683,8 @@
     "create": "إنشاء",
     "update": "تحديث",
     "added_success": "تمت إضافة الاستبيان.",
-    "updated_success": "تم تحديث الاستبيان."
+    "updated_success": "تم تحديث الاستبيان.",
+    "categories": "فئة"
   },
   "qrThemeSelector": {
     "title": "إعدادات السمة لـ {{name}}",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "أقصى",
     "clear": "مسح",
     "apply": "تطبيق"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu هي إحدى شركات LiwaSoft.",
+    "customer_service": "خدمة العملاء",
+    "phone_verification_message": "أرسلنا رمز تأكيد إلى رقم هاتفك. يرجى التحقق من رسائل SMS وإدخال الرمز لإتمام عملية التحقق.",
+    "email_verification_message": "أرسلنا رمز تأكيد إلى عنوان بريدك الإلكتروني. يرجى التحقق من رسائل بريدك الإلكتروني وإدخال الرمز لإتمام عملية التحقق.",
+    "time_is_up": "انتهى الوقت! حاول مرة أخرى",
+    "verification_sent": "تم إرسال رمز التحقق",
+    "confirmation": "تأكيد",
+    "phone_label": "الهاتف",
+    "continue": "متابعة",
+    "processing": "جارٍ المعالجة...",
+    "code_verified": "تم التحقق من رمز التأكيد",
+    "code_sent": "تم إرسال رمز التأكيد",
+    "confirm": "تأكيد",
+    "verification_code": "رمز التحقق",
+    "resend": "إعادة الإرسال",
+    "verify": "تحقق"
+  },
+  "invoice": {
+    "name_title": "الاسم/اللقب التجاري",
+    "vkn_tckn": "الرقم الضريبي أو الرقم الوطني",
+    "tax_office": "دائرة الضرائب",
+    "trade_registry_number": "رقم السجل التجاري",
+    "mersis_number": "رقم Mersis",
+    "city": "المدينة",
+    "select_city": "اختر المدينة",
+    "district": "المنطقة",
+    "select_district": "اختر المنطقة",
+    "neighbourhood": "الحي",
+    "select_neighbourhood": "اختر الحي",
+    "address": "العنوان",
+    "name": "الاسم"
   }
 }

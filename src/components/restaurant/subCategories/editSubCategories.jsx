@@ -223,7 +223,7 @@ const EditSubCategories = ({ data: restaurant }) => {
                 <div key={categoryId} className="mb-6">
                   <h2 className="text-lg font-semibold mb-2">
                     {formattedCategoriesData.find((c) => c.id === categoryId)
-                      ?.name || "Bilinmeyen Kategori"}
+                      ?.name || t("editSubCategories.unknown_category")}
                   </h2>
 
                   <DragDropContext

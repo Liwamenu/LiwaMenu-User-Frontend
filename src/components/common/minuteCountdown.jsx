@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAnimate } from "framer-motion";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
@@ -51,6 +52,7 @@ const CountdownItem = ({ unit, endTime, text, minutes, setMinutes }) => {
 };
 
 const useTimer = (unit, endTime, minutes, setMinutes) => {
+  const { t } = useTranslation();
   const [ref, animate] = useAnimate();
   const intervalRef = useRef(null);
   const timeRef = useRef(0);
@@ -69,7 +71,7 @@ const useTimer = (unit, endTime, minutes, setMinutes) => {
     if (minutes === 0) return;
     if (distance <= 0) {
       clearInterval(intervalRef.current);
-      toast("Süreniz doldu! Tekrar deneyin", { id: "time-is-up" });
+      toast(t("common.time_is_up"), { id: "time-is-up" });
       setTime("00");
       setMinutes(0);
       return;

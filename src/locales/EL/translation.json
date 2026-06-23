@@ -138,7 +138,10 @@
     "feat_google_review": "Κοινοποίηση συνδέσμου Google αξιολόγησης",
     "feat_social_media": "Δημοσίευση λογαριασμών κοινωνικών δικτύων",
     "feat_working_hours": "Λειτουργίες ανάλογα με τις ώρες λειτουργίας",
-    "footer_credit": "Το LiwaMenu είναι θυγατρική εταιρεία της LiwaSoft."
+    "footer_credit": "Το LiwaMenu είναι θυγατρική εταιρεία της LiwaSoft.",
+    "processing": "Επεξεργασία...",
+    "resending_code": "Επαναποστολή κωδικού επιβεβαίωσης...",
+    "code_sent": "Ο κωδικός επιβεβαίωσης στάλθηκε στο email σας."
   },
   "register": {
     "title": "Εγγραφή",
@@ -300,7 +303,10 @@
     "license_get": "Αποκτήστε Άδεια",
     "license_no": "Χωρίς Άδεια",
     "license_expired": "Ληγμένη",
-    "manage_licenses": "Διαχείριση Αδειών"
+    "manage_licenses": "Διαχείριση Αδειών",
+    "max_file_size": "Μέγιστο {{size}}MB",
+    "change": "Αλλαγή",
+    "remove": "Αφαίρεση"
   },
   "restaurantLicensesModal": {
     "title": "Διαχείριση Αδειών",
@@ -349,7 +355,16 @@
     "no_licenses": "Δεν υπάρχουν άδειες ακόμα",
     "no_licenses_description": "Ξεκινήστε αγοράζοντας μια άδεια για το εστιατόριό σας.",
     "no_results": "Δεν βρέθηκαν αποτελέσματα",
-    "no_results_description": "Δοκιμάστε να τροποποιήσετε τα κριτήρια αναζήτησης ή φιλτραρίσματος."
+    "no_results_description": "Δοκιμάστε να τροποποιήσετε τα κριτήρια αναζήτησης ή φιλτραρίσματος.",
+    "status_update_success": "Η άδεια {{status}} με επιτυχία 🥳🥳",
+    "deactivated": "Απενεργοποιήθηκε",
+    "activated": "Ενεργοποιήθηκε",
+    "status_title": "Κατάσταση Άδειας",
+    "status_label": "Κατάσταση:",
+    "action_label": "Ενέργεια:",
+    "deactivate": "Απενεργοποίηση",
+    "activate": "Ενεργοποίηση",
+    "passive_note_label": "Σημείωση Απενεργοποίησης:"
   },
   "addLicense": {
     "title": "Αγορά Άδειας",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "Κάντε κλικ ή σύρετε και αποθέστε την απόδειξή σας για μεταφόρτωση.",
     "note_label": "Σημείωση",
     "note_placeholder": "Σημείωση (προαιρετικό)",
-    "after_check_msg": "Μόλις επαληθευτεί η απόδειξή σας, θα προστεθούν οι παρακάτω άδειες:"
+    "after_check_msg": "Μόλις επαληθευτεί η απόδειξή σας, θα προστεθούν οι παρακάτω άδειες:",
+    "delete": "Διαγραφή",
+    "processing": "Επεξεργασία 🤩...",
+    "delete_success": "Η άδεια διαγράφηκε με επιτυχία 🥳🥳",
+    "delete_license_title": "Διαγραφή άδειας",
+    "marketplace": "Αγορά",
+    "license_duration": "Διάρκεια Άδειας",
+    "year_count": "{{count}} Ετών",
+    "price": "Τιμή",
+    "delete_confirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε την άδεια;",
+    "delete_sure": "Ναι, διαγραφή",
+    "breadcrumb_users": "Χρήστες",
+    "breadcrumb_restaurants": "Εστιατόρια"
   },
   "extendLicense": {
     "title": "Επέκταση Άδειας",
@@ -456,7 +483,23 @@
     "secure_3d_title": "Επαλήθευση 3D Secure",
     "secure_3d_subtitle": "Ανακατευθυνθήκατε στη ασφαλή σελίδα της τράπεζάς σας. Ολοκληρώστε την επαλήθευση.",
     "loading_3d": "Φόρτωση ασφαλούς σελίδας πληρωμής...",
-    "cancel_payment": "Ακύρωση Πληρωμής"
+    "cancel_payment": "Ακύρωση Πληρωμής",
+    "credit_card": "Πιστωτική Κάρτα",
+    "invalid_card_number": "Λανθασμένος αριθμός κάρτας",
+    "month": "Μήνας",
+    "year": "Έτος",
+    "card_holder_name_label": "Όνομα Κατόχου Κάρτας:",
+    "card_number_label": "Αριθμός Κάρτας:",
+    "card_expiry_month_label": "Μήνας Λήξης Κάρτας:",
+    "card_expiry_year_label": "Έτος Λήξης Κάρτας:",
+    "card_security_code_label": "Κωδικός Ασφαλείας Κάρτας:",
+    "payment_failed_title": "Η Πληρωμή Απέτυχε! 😔",
+    "payment_failed_desc": "Η συναλλαγή σας απέτυχε λόγω τεχνικού σφάλματος. Δοκιμάστε ξανά.",
+    "payment_success_typing": "Η πληρωμή σας ολοκληρώθηκε με επιτυχία.",
+    "processing_title": "Επεξεργασία Πληρωμής",
+    "processing_desc": "Μην φύγετε από τη σελίδα, η συναλλαγή σας βρίσκεται σε εξέλιξη...",
+    "payment_success_toast": "Η πληρωμή ολοκληρώθηκε με επιτυχία 😃",
+    "payment_failed_toast": "Η πληρωμή απέτυχε 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε τη μέθοδο πληρωμής {{name}};",
     "delete": "Διαγραφή",
     "delete_success": "Η μέθοδος πληρωμής διαγράφηκε.",
-    "cancel": "Ακύρωση"
+    "cancel": "Ακύρωση",
+    "active_count": "{{enabled}} / {{total}} ενεργές",
+    "close": "Κλείσιμο"
   },
   "editCategories": {
     "no_changes": "Δεν έγιναν αλλαγές.",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "Μη έγκυρος τύπος αρχείου",
     "bulk_too_large": "Μέγιστο {{size}}MB",
     "view_list": "Λίστα",
-    "view_tile": "Πλακίδια"
+    "view_tile": "Πλακίδια",
+    "product_count_fallback": "3 προϊόντα"
   },
   "categoryProducts": {
     "title": "Προϊόντα Κατηγορίας",
@@ -935,7 +981,8 @@
     "status": "Κατάσταση",
     "featured": "Σύσταση Σεφ",
     "campaign_warning": "Μπορείτε να ορίσετε την τιμή προσφοράς από την καρτέλα {{tab}}.",
-    "campaign_warning_tab": "Τιμοκατάλογος"
+    "campaign_warning_tab": "Τιμοκατάλογος",
+    "category_image_alt": "Κατηγορία"
   },
   "editSubCategories": {
     "title": "Επεξεργασία Υποκατηγοριών για το Εστιατόριο {{name}}",
@@ -974,7 +1021,8 @@
     "select_category": "Επιλογή κατηγορίας",
     "delete": "Διαγραφή",
     "save": "Αποθήκευση",
-    "success": "Οι υποκατηγορίες προστέθηκαν επιτυχώς."
+    "success": "Οι υποκατηγορίες προστέθηκαν επιτυχώς.",
+    "unknown_category": "Άγνωστη Κατηγορία"
   },
   "addSubCategory": {
     "add": "Προσθήκη Υποκατηγορίας",
@@ -990,7 +1038,8 @@
     "info": "Οι υποκατηγορίες χρησιμοποιούνται για την ομαδοποίηση προϊόντων εντός κύριων κατηγοριών με μεγαλύτερη λεπτομέρεια. Για παράδειγμα: στην κατηγορία «Σούπες» μπορείτε να έχετε «Ζεστές Σούπες» και «Κρύες Σούπες».",
     "cancel": "Ακύρωση",
     "save": "Αποθήκευση",
-    "success": "Η υποκατηγορία προστέθηκε επιτυχώς."
+    "success": "Η υποκατηγορία προστέθηκε επιτυχώς.",
+    "image_alt": "Υποκατηγορία"
   },
   "editSubCategory": {
     "title": "Επεξεργασία Υποκατηγορίας",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "Διαχείριση Προϊόντων",
     "price_list": "Κατάλογος Τιμών",
-    "add_product": "Προσθήκη Προϊόντος"
+    "add_product": "Προσθήκη Προϊόντος",
+    "products_of_restaurant": "Προϊόντα Εστιατορίου {{name}}",
+    "delete_product": "Διαγραφή Προϊόντος",
+    "category": "Κατηγορία",
+    "category_select": "Επιλέξτε Κατηγορία",
+    "sub_category": "Υποκατηγορία",
+    "sub_category_select": "Επιλέξτε Υποκατηγορία",
+    "product_name": "Όνομα Προϊόντος",
+    "description": "Περιγραφή",
+    "chef_recommendation": "Πρόταση του σεφ",
+    "hide": "Απόκρυψη",
+    "portions": "Μερίδες",
+    "add_portion": "Προσθήκη Μερίδας",
+    "portion_name": "Όνομα Μερίδας",
+    "portion_price": "Τιμή Μερίδας",
+    "delete_portion": "Διαγραφή Μερίδας",
+    "add_tag": "Προσθήκη Ετικέτας",
+    "tag_name_with_example": "Όνομα Ετικέτας (π.χ.: Επιλογή Μπαχαρικών)",
+    "tag_select": "Επιλέξτε Ετικέτα",
+    "min_selection": "Ελάχ. Επιλογή",
+    "max_selection": "Μέγ. Επιλογή",
+    "delete_tag": "Διαγραφή Ετικέτας",
+    "add_option": "Προσθήκη Επιλογής",
+    "option_name": "Όνομα Επιλογής",
+    "option_select": "Επιλέξτε Επιλογή",
+    "price": "Τιμή",
+    "max_quantity_short": "Μέγ. Επιλογή",
+    "max_quantity": "Μέγιστη Επιλογή",
+    "delete": "Διαγραφή",
+    "add_new_product": "Προσθήκη Νέου Προϊόντος",
+    "save": "Αποθήκευση"
   },
   "allergens": {
     "title": "Αλλεργιογόνα",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "Το manifest.json δεν βρέθηκε — αυτό δεν είναι έγκυρο αντίγραφο ασφαλείας Liwa.",
     "restore_error_wrong_type": "Αυτό το αρχείο δεν είναι αντίγραφο ασφαλείας προϊόντων Liwa.",
     "restore_error_wrong_version": "Η μορφή αυτού του αρχείου αντιγράφου ασφαλείας δεν υποστηρίζεται (ενδέχεται να απαιτείται νεότερη έκδοση).",
-    "restore_error_malformed": "Η δομή του αρχείου αντιγράφου ασφαλείας είναι μη έγκυρη."
+    "restore_error_malformed": "Η δομή του αρχείου αντιγράφου ασφαλείας είναι μη έγκυρη.",
+    "restore_err_category_update": "[Ενημέρωση κατηγορίας] {{name}}",
+    "restore_err_category_create": "[Δημιουργία κατηγορίας] {{name}}",
+    "restore_err_subcategory_update": "[Ενημέρωση υποκατηγορίας] {{name}}",
+    "restore_err_subcategory_create": "[Δημιουργία υποκατηγορίας] {{name}}",
+    "restore_err_product_update": "[Ενημέρωση προϊόντος] {{name}}",
+    "restore_err_product_create": "[Δημιουργία προϊόντος] {{name}}",
+    "restore_err_category": "[Κατηγορία] {{name}}",
+    "restore_err_subcategory": "[Υποκατηγορία] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "Χωρίς Εικόνα",
@@ -1570,7 +1657,10 @@
     "col_product": "Προϊόν",
     "col_portion": "Μερίδα",
     "option_name_placeholder": "Όνομα επιλογής",
-    "price_placeholder": "Τιμή"
+    "price_placeholder": "Τιμή",
+    "all_categories": "Όλες οι Κατηγορίες",
+    "all_products": "Όλα τα Προϊόντα",
+    "all_portions": "Όλες οι Μερίδες"
   },
   "surveySettings": {
     "title": "Αναλυτικά Σχόλια Πελατών Εστιατορίου {{name}}",
@@ -1593,7 +1683,8 @@
     "create": "Δημιουργία",
     "update": "Ενημέρωση",
     "added_success": "Η έρευνα προστέθηκε.",
-    "updated_success": "Η έρευνα ενημερώθηκε."
+    "updated_success": "Η έρευνα ενημερώθηκε.",
+    "categories": "κατηγορία"
   },
   "qrThemeSelector": {
     "title": "Ρυθμίσεις Θέματος για {{name}}",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "Μέγ.",
     "clear": "Εκκαθάριση",
     "apply": "Εφαρμογή"
+  },
+  "common": {
+    "footer_credit": "Το LiwaMenu είναι θυγατρική της LiwaSoft.",
+    "customer_service": "Εξυπηρέτηση Πελατών",
+    "phone_verification_message": "στείλαμε έναν κωδικό επιβεβαίωσης στον αριθμό τηλεφώνου σας. Ελέγξτε τα SMS σας και εισαγάγετε τον κωδικό για την επαλήθευση.",
+    "email_verification_message": "στείλαμε έναν κωδικό επιβεβαίωσης στη διεύθυνση email σας. Ελέγξτε τα μηνύματα του email σας και εισαγάγετε τον κωδικό για την επαλήθευση.",
+    "time_is_up": "Ο χρόνος σας έληξε! Δοκιμάστε ξανά",
+    "verification_sent": "Ο κωδικός επαλήθευσης στάλθηκε",
+    "confirmation": "Επιβεβαίωση",
+    "phone_label": "Τηλέφωνο",
+    "continue": "Συνέχεια",
+    "processing": "Επεξεργασία...",
+    "code_verified": "Ο κωδικός επιβεβαίωσης επαληθεύτηκε",
+    "code_sent": "Ο κωδικός επιβεβαίωσης στάλθηκε",
+    "confirm": "Επιβεβαίωση",
+    "verification_code": "Κωδικός επαλήθευσης",
+    "resend": "Επαναποστολή",
+    "verify": "Επαλήθευση"
+  },
+  "invoice": {
+    "name_title": "Όνομα/Επωνυμία",
+    "vkn_tckn": "ΑΦΜ ή Αριθμός Ταυτότητας",
+    "tax_office": "Εφορία",
+    "trade_registry_number": "Αρ. Εμπορικού Μητρώου",
+    "mersis_number": "Αριθμός Mersis",
+    "city": "Πόλη",
+    "select_city": "Επιλέξτε πόλη",
+    "district": "Περιοχή",
+    "select_district": "Επιλέξτε περιοχή",
+    "neighbourhood": "Συνοικία",
+    "select_neighbourhood": "Επιλέξτε συνοικία",
+    "address": "Διεύθυνση",
+    "name": "Όνομα"
   }
 }

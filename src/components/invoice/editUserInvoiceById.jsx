@@ -1,4 +1,5 @@
 //COMP
+import { useTranslation } from "react-i18next";
 import CustomInput from "../common/customInput";
 import CustomSelect from "../common/customSelector";
 import CustomTextarea from "../common/customTextarea";
@@ -10,13 +11,14 @@ const EditUserInvoiceById = ({
   userInvoice,
   setUserInvoice,
 }) => {
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex gap-4 max-sm:flex-col">
         <CustomInput
           required={true}
-          label="İsim/Ünvan"
-          placeholder="İsim/Ünvan"
+          label={t("invoice.name_title")}
+          placeholder={t("invoice.name_title")}
           className="py-[.45rem] text-sm"
           value={userInvoice.title || ""}
           maxLength={100}
@@ -33,8 +35,8 @@ const EditUserInvoiceById = ({
       <div className="flex gap-4 max-sm:flex-col">
         <CustomInput
           required={true}
-          label="VKN veya TCKN"
-          placeholder="VKN veya TCKN"
+          label={t("invoice.vkn_tckn")}
+          placeholder={t("invoice.vkn_tckn")}
           className="py-[.45rem] text-sm"
           minLength={10}
           maxLength={11}
@@ -52,8 +54,8 @@ const EditUserInvoiceById = ({
         />
         <CustomInput
           required={true}
-          label="Vergi Dairesi"
-          placeholder="Vergi Dairesi"
+          label={t("invoice.tax_office")}
+          placeholder={t("invoice.tax_office")}
           className="py-[.45rem] text-sm"
           maxLength={30}
           value={userInvoice.taxOffice || ""}
@@ -70,8 +72,8 @@ const EditUserInvoiceById = ({
       <div className="flex gap-4 max-sm:flex-col">
         <CustomInput
           type="text"
-          label="Tic.Sic.No"
-          placeholder="Tic.Sic.No"
+          label={t("invoice.trade_registry_number")}
+          placeholder={t("invoice.trade_registry_number")}
           className="py-[.45rem] text-sm"
           maxLength={20}
           value={userInvoice.tradeRegistryNumber || ""}
@@ -86,8 +88,8 @@ const EditUserInvoiceById = ({
         />
         <CustomInput
           type="text"
-          label="Mersis No"
-          placeholder="Mersis No"
+          label={t("invoice.mersis_number")}
+          placeholder={t("invoice.mersis_number")}
           className="py-[.45rem] text-sm"
           maxLength={20}
           value={userInvoice.mersisNumber || ""}
@@ -104,16 +106,16 @@ const EditUserInvoiceById = ({
       <div className="flex gap-4 max-sm:flex-col">
         <CustomSelect
           required={true}
-          label="Şehir"
-          placeholder="Ad"
+          label={t("invoice.city")}
+          placeholder={t("invoice.name")}
           style={{ padding: "1px 0px" }}
           className="text-sm"
           value={
             userInvoice.city?.value
               ? userInvoice.city
-              : { value: null, label: "Şehir seç" }
+              : { value: null, label: t("invoice.select_city") }
           }
-          options={[{ value: null, label: "Şehir seç" }, ...cities]}
+          options={[{ value: null, label: t("invoice.select_city") }, ...cities]}
           onChange={(selectedOption) => {
             setUserInvoice((prev) => {
               return {
@@ -125,16 +127,16 @@ const EditUserInvoiceById = ({
         />
         <CustomSelect
           required={true}
-          label="İlçe"
-          placeholder="Ad"
+          label={t("invoice.district")}
+          placeholder={t("invoice.name")}
           style={{ padding: "1px 0px" }}
           className="text-sm"
           value={
             userInvoice.district?.value
               ? userInvoice.district
-              : { value: null, label: "İlçe seç" }
+              : { value: null, label: t("invoice.select_district") }
           }
-          options={[{ value: null, label: "İlçe seç" }, ...districts]}
+          options={[{ value: null, label: t("invoice.select_district") }, ...districts]}
           onChange={(selectedOption) => {
             setUserInvoice((prev) => {
               return {
@@ -148,16 +150,16 @@ const EditUserInvoiceById = ({
       <div className="flex gap-4 max-sm:flex-col">
         <CustomSelect
           required={true}
-          label="Mahalle"
-          placeholder="Ad"
+          label={t("invoice.neighbourhood")}
+          placeholder={t("invoice.name")}
           style={{ padding: "1px 0px" }}
           className="text-sm"
           value={
             userInvoice.neighbourhood?.value
               ? userInvoice.neighbourhood
-              : { value: null, label: "Mahalle Seç" }
+              : { value: null, label: t("invoice.select_neighbourhood") }
           }
-          options={[{ value: null, label: "Mahalle Seç" }, ...neighs]}
+          options={[{ value: null, label: t("invoice.select_neighbourhood") }, ...neighs]}
           onChange={(selectedOption) => {
             setUserInvoice((prev) => {
               return {
@@ -169,8 +171,8 @@ const EditUserInvoiceById = ({
         />
         <CustomTextarea
           required={true}
-          label="Adres"
-          placeholder="Adres"
+          label={t("invoice.address")}
+          placeholder={t("invoice.address")}
           className="pb-14 text-sm"
           value={userInvoice.address || ""}
           onChange={(e) => {

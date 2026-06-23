@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AsteriskI } from "../../../assets/icon";
 import { getCardProvider } from "../../../utils/utils";
 
@@ -14,6 +15,7 @@ import JCB from "../../../assets/img/card/JCB.png";
 import Troy from "../../../assets/img/card/Troy.png";
 
 function CardFront({ cardData }) {
+  const { t } = useTranslation();
   const { userName, cardNumber, month, year } = cardData;
 
   const cleanNumber = cardNumber.replace(/\D/g, "");
@@ -49,7 +51,9 @@ function CardFront({ cardData }) {
     <main className="flip-card-front absolute flex flex-col w-full h-full px-5 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl">
       <header className="flex justify-between items-start w-full">
         <div className="flex flex-col">
-          <p className="text-[--white-1] font-bold text-start">Kredi Kartı</p>
+          <p className="text-[--white-1] font-bold text-start">
+            {t("payment.credit_card")}
+          </p>
           <div className="flex flex-col mt-3.5 w-full">
             <img
               loading="lazy"
@@ -132,7 +136,7 @@ function CardFront({ cardData }) {
 
         <div className="flex justify-between w-full pt-1.5">
           <div className="w-full text-[14px] font-bold flex justify-start items-center">
-            {userName ? userName.toUpperCase() : "KART SAHIBI"}
+            {userName ? userName.toUpperCase() : t("payment.card_holder").toUpperCase()}
           </div>
 
           <div className="flex items-center">

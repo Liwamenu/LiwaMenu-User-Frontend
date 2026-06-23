@@ -509,7 +509,7 @@ const EditCategory = ({
                     <img
                       src={preview}
                       className="max-h-40 w-auto object-cover rounded-md"
-                      alt="Kategori"
+                      alt={t("addCategory.category_image_alt")}
                     />
                   </div>
                 ) : (

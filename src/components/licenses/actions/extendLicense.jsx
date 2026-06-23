@@ -1,11 +1,13 @@
 // MODULES
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // COMPONENTS
 import { ExtendI } from "../../../assets/icon";
 import ActionButton from "../../common/actionButton";
 
 const ExtendLicense = ({ licenseData }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, restaurant } = location.state || {};
@@ -21,7 +23,7 @@ const ExtendLicense = ({ licenseData }) => {
   return (
     <ActionButton
       element={<ExtendI className="w-[1.1rem]" />}
-      element2="Lisans Uzat"
+      element2={t("licenses.extend")}
       onClick={handleClick}
     />
   );

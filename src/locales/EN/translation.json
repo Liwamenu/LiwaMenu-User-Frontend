@@ -139,7 +139,10 @@
     "feat_google_review": "Share Google Review Link",
     "feat_social_media": "Publish Social Media Accounts",
     "feat_working_hours": "Business-Hours-Aware Features",
-    "footer_credit": "LiwaMenu is a LiwaSoft subsidiary."
+    "footer_credit": "LiwaMenu is a LiwaSoft subsidiary.",
+    "processing": "Processing...",
+    "resending_code": "Resending Verification Code...",
+    "code_sent": "Verification Code Sent to Your Email."
   },
   "register": {
     "title": "Sign up",
@@ -290,7 +293,6 @@
     "neighbourhood_select": "Select Neighbourhood",
     "latitude": "Latitude",
     "longitude": "Longitude",
-    "close": "Close",
     "map_save": "Save",
     "map_close": "Close",
     "map_search_placeholder": "Search a place, address, or business",
@@ -303,7 +305,10 @@
     "license_get": "Get License",
     "license_no": "No License",
     "license_expired": "Expired",
-    "manage_licenses": "Manage Licenses"
+    "manage_licenses": "Manage Licenses",
+    "max_file_size": "Maximum {{size}}MB",
+    "change": "Change",
+    "remove": "Remove"
   },
   "restaurantLicensesModal": {
     "title": "License Management",
@@ -352,7 +357,16 @@
     "no_licenses": "No licenses yet",
     "no_licenses_description": "Get started by purchasing a license for your restaurant.",
     "no_results": "No results found",
-    "no_results_description": "Try adjusting your search or filter criteria."
+    "no_results_description": "Try adjusting your search or filter criteria.",
+    "status_update_success": "License successfully {{status}} 🥳🥳",
+    "deactivated": "Deactivated",
+    "activated": "Activated",
+    "status_title": "License Status",
+    "status_label": "Status:",
+    "action_label": "Action:",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "passive_note_label": "Inactive Note:"
   },
   "addLicense": {
     "title": "Purchase License",
@@ -401,7 +415,19 @@
     "upload_receipt_msg": "Click or drag and drop your receipt to upload.",
     "note_label": "Note",
     "note_placeholder": "Note (optional)",
-    "after_check_msg": "Once your receipt is verified, the following licenses will be added:"
+    "after_check_msg": "Once your receipt is verified, the following licenses will be added:",
+    "delete": "Delete",
+    "processing": "Processing 🤩...",
+    "delete_success": "License deleted successfully 🥳🥳",
+    "delete_license_title": "Delete license",
+    "marketplace": "Marketplace",
+    "license_duration": "License Duration",
+    "year_count": "{{count}} Year(s)",
+    "price": "Price",
+    "delete_confirm": "Are you sure you want to delete this license?",
+    "delete_sure": "Yes, delete it",
+    "breadcrumb_users": "Users",
+    "breadcrumb_restaurants": "Restaurants"
   },
   "extendLicense": {
     "title": "Extend License",
@@ -462,7 +488,23 @@
     "cancel_payment": "Cancel Payment",
     "confirm_pending_title": "Confirming payment result...",
     "confirm_pending_desc": "If your payment went through, your license will be assigned shortly. You can check it on the Licenses page.",
-    "go_to_licenses": "Go to Licenses"
+    "go_to_licenses": "Go to Licenses",
+    "credit_card": "Credit Card",
+    "invalid_card_number": "Invalid card number",
+    "month": "Month",
+    "year": "Year",
+    "card_holder_name_label": "Cardholder Name:",
+    "card_number_label": "Card Number:",
+    "card_expiry_month_label": "Card Expiry Month:",
+    "card_expiry_year_label": "Card Expiry Year:",
+    "card_security_code_label": "Card Security Code:",
+    "payment_failed_title": "Payment Failed! 😔",
+    "payment_failed_desc": "Your transaction failed due to a technical error. Please try again.",
+    "payment_success_typing": "Your payment was successful.",
+    "processing_title": "Processing Payment",
+    "processing_desc": "Please don't leave the page, your transaction is in progress...",
+    "payment_success_toast": "Payment successful 😃",
+    "payment_failed_toast": "Payment failed 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -759,7 +801,9 @@
     "delete_confirm": "Are you sure you want to delete the {{name}} payment method?",
     "delete": "Delete",
     "delete_success": "Payment method deleted.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "active_count": "{{enabled}} / {{total}} active",
+    "close": "Close"
   },
   "editCategories": {
     "no_changes": "No changes made.",
@@ -814,7 +858,8 @@
     "bulk_invalid_file": "Invalid file type",
     "bulk_too_large": "Maximum {{size}}MB",
     "view_list": "List",
-    "view_tile": "Tile"
+    "view_tile": "Tile",
+    "product_count_fallback": "3 products"
   },
   "categoryProducts": {
     "title": "Category Products",
@@ -942,7 +987,8 @@
     "status": "Status",
     "featured": "Chef's Recommendation",
     "campaign_warning": "You can set the campaign price from the {{tab}} tab.",
-    "campaign_warning_tab": "Price List"
+    "campaign_warning_tab": "Price List",
+    "category_image_alt": "Category"
   },
   "editSubCategories": {
     "title": "Edit Subcategories for {{name}} Restaurant",
@@ -981,7 +1027,8 @@
     "select_category": "Select category",
     "delete": "Delete",
     "save": "Save",
-    "success": "Subcategories added successfully."
+    "success": "Subcategories added successfully.",
+    "unknown_category": "Unknown Category"
   },
   "addSubCategory": {
     "add": "Add Subcategory",
@@ -997,7 +1044,8 @@
     "info": "Subcategories are used to group products within main categories in more detail. For example: under the 'Soups' category you can have 'Hot Soups' and 'Cold Soups'.",
     "cancel": "Cancel",
     "save": "Save",
-    "success": "Subcategory added successfully."
+    "success": "Subcategory added successfully.",
+    "image_alt": "Subcategory"
   },
   "editSubCategory": {
     "title": "Edit Subcategory",
@@ -1113,7 +1161,37 @@
     "manage": "Product Management",
     "price_list": "Price List",
     "add_product": "Add Product",
-    "import_external": "Import from Other Sources"
+    "import_external": "Import from Other Sources",
+    "products_of_restaurant": "Products of {{name}} Restaurant",
+    "delete_product": "Delete Product",
+    "category": "Category",
+    "category_select": "Select Category",
+    "sub_category": "Subcategory",
+    "sub_category_select": "Select Subcategory",
+    "product_name": "Product Name",
+    "description": "Description",
+    "chef_recommendation": "Chef's recommendation",
+    "hide": "Hide",
+    "portions": "Portions",
+    "add_portion": "Add Portion",
+    "portion_name": "Portion Name",
+    "portion_price": "Portion Price",
+    "delete_portion": "Delete Portion",
+    "add_tag": "Add Tag",
+    "tag_name_with_example": "Tag Name (e.g. Spice Selection)",
+    "tag_select": "Select Tag",
+    "min_selection": "Min Selection",
+    "max_selection": "Max Selection",
+    "delete_tag": "Delete Tag",
+    "add_option": "Add Option",
+    "option_name": "Option Name",
+    "option_select": "Select Option",
+    "price": "Price",
+    "max_quantity_short": "Max Selection",
+    "max_quantity": "Maximum Selection",
+    "delete": "Delete",
+    "add_new_product": "Add New Product",
+    "save": "Save"
   },
   "importExternal": {
     "title": "Import from Other Sources",
@@ -1310,7 +1388,15 @@
     "restore_error_missing_manifest": "manifest.json not found — this is not a valid Liwa backup.",
     "restore_error_wrong_type": "This file is not a Liwa product backup.",
     "restore_error_wrong_version": "This backup file format is not supported (a newer version may be required).",
-    "restore_error_malformed": "Backup file structure is invalid."
+    "restore_error_malformed": "Backup file structure is invalid.",
+    "restore_err_category_update": "[Update category] {{name}}",
+    "restore_err_category_create": "[Create category] {{name}}",
+    "restore_err_subcategory_update": "[Update subcategory] {{name}}",
+    "restore_err_subcategory_create": "[Create subcategory] {{name}}",
+    "restore_err_product_update": "[Update product] {{name}}",
+    "restore_err_product_create": "[Create product] {{name}}",
+    "restore_err_category": "[Category] {{name}}",
+    "restore_err_subcategory": "[Subcategory] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "No Image",
@@ -1626,7 +1712,10 @@
     "col_product": "Product",
     "col_portion": "Portion",
     "option_name_placeholder": "Option name",
-    "price_placeholder": "Price"
+    "price_placeholder": "Price",
+    "all_categories": "All Categories",
+    "all_products": "All Products",
+    "all_portions": "All Portions"
   },
   "surveySettings": {
     "title": "{{name}} Restaurant Customer Feedback Analytics",
@@ -1649,7 +1738,8 @@
     "create": "Create",
     "update": "Update",
     "added_success": "Survey added.",
-    "updated_success": "Survey updated."
+    "updated_success": "Survey updated.",
+    "categories": "categories"
   },
   "qrThemeSelector": {
     "title": "Theme Settings for {{name}}",
@@ -2936,5 +3026,38 @@
     "max_placeholder": "Max",
     "clear": "Clear",
     "apply": "Apply"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu is a LiwaSoft affiliate.",
+    "customer_service": "Customer Service",
+    "phone_verification_message": "we sent a verification code to your phone number. Please check your SMS messages and enter the code to complete verification.",
+    "email_verification_message": "we sent a verification code to your email address. Please check your email and enter the code to complete verification.",
+    "time_is_up": "Time's up! Please try again",
+    "verification_sent": "Verification Code Sent",
+    "confirmation": "Confirmation",
+    "phone_label": "Phone",
+    "continue": "Continue",
+    "processing": "Processing...",
+    "code_verified": "Verification Code Confirmed",
+    "code_sent": "Verification Code Sent",
+    "confirm": "Confirm",
+    "verification_code": "Verification Code",
+    "resend": "Resend",
+    "verify": "Verify"
+  },
+  "invoice": {
+    "name_title": "Name/Title",
+    "vkn_tckn": "Tax ID or National ID",
+    "tax_office": "Tax Office",
+    "trade_registry_number": "Trade Registry No.",
+    "mersis_number": "MERSIS No.",
+    "city": "City",
+    "select_city": "Select city",
+    "district": "District",
+    "select_district": "Select district",
+    "neighbourhood": "Neighbourhood",
+    "select_neighbourhood": "Select neighbourhood",
+    "address": "Address",
+    "name": "Name"
   }
 }

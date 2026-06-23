@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import imgUrl from "../../assets/img/bg-4.png";
 import { useEffect, useRef, useState } from "react";
 import LanguagesEnums from "../../enums/languagesEnums";
 import i18n from "../../config/i18n";
 
 const GlassFrame = ({ component, className, className2 }) => {
+  const { t } = useTranslation();
   const langRef = useRef();
   const LANG_STORAGE_KEY = "liwamenu_lang";
 
@@ -109,10 +111,10 @@ const GlassFrame = ({ component, className, className2 }) => {
         {component}
       </div>
       <div className="absolute bottom-0 left-0 right-0 z-[999] text-white font-extralight p-1 text-xs bg-indigo-500/60 max-sm:text-center">
-        LiwaMenu bir LiwaSoft iştirakidir.{" "}
+        {t("common.footer_credit")}{" "}
         <span className="max-sm:hidden">- </span>
         <span className="max-sm:block">
-          Müşteri Hizmetleri :{" "}
+          {t("common.customer_service")} :{" "}
           <a href="tel:08508407807" className="text-lime-400">
             0850 840 78 07
           </a>

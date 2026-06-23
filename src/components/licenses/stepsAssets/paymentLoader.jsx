@@ -1,6 +1,8 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function PaymentLoader({ type }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 bg-black backdrop-blur-md flex items-center justify-center z-50">
       <div className="bg-white backdrop-blur rounded-3xl p-10 shadow-2xl max-w-md w-full mx-4 relative overflow-hidden">
@@ -13,10 +15,10 @@ export function PaymentLoader({ type }) {
 
           <div className="text-center space-y-3">
             <h2 className="text-2xl font-semibold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
-              Ödeme İşleniyor
+              {t("payment.processing_title")}
             </h2>
             <p className="text-gray-600">
-              Lütfen sayfadan ayrılmayın, işleminiz devam ediyor...
+              {t("payment.processing_desc")}
             </p>
           </div>
 

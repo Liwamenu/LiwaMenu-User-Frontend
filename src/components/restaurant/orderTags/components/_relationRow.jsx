@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import CustomSelect from "../../../common/customSelector";
 import { DeleteI } from "../../../../assets/icon";
 
@@ -9,6 +10,7 @@ const RelationRow = ({
   onDelete,
   relation,
 }) => {
+  const { t } = useTranslation();
   const filteredProducts = useMemo(() => {
     if (relation.categoryId === "*") return products;
     // m2m: a product belongs to the picked category when ANY of its
@@ -36,7 +38,7 @@ const RelationRow = ({
 
   const categoryOptions = useMemo(
     () => [
-      { value: "*", label: "* Tüm Kategoriler" },
+      { value: "*", label: `* ${t("orderTags.all_categories")}` },
       ...categories.map((c) => ({ value: c.id, label: c.name })),
     ],
     [categories],
@@ -44,16 +46,17 @@ const RelationRow = ({
 
   const productOptions = useMemo(
     () => [
-      { value: "*", label: "* Tüm Ürünler" },
+      { value: "*", label: `* ${t("orderTags.all_products")}` },
       ...filteredProducts.map((p) => ({ value: p.id, label: p.name })),
     ],
     [filteredProducts],
   );
 
   const portionOptions = useMemo(() => {
-    if (!selectedProduct) return [{ value: "*", label: "* Tüm Porsiyonlar" }];
+    if (!selectedProduct)
+      return [{ value: "*", label: `* ${t("orderTags.all_portions")}` }];
     return [
-      { value: "*", label: "* Tüm Porsiyonlar" },
+      { value: "*", label: `* ${t("orderTags.all_portions")}` },
       ...selectedProduct.portions.map((port) => ({
         value: port.id,
         label: port.name,

@@ -138,7 +138,10 @@
     "feat_google_review": "分享 Google 评价链接",
     "feat_social_media": "发布社交媒体账号",
     "feat_working_hours": "根据营业时间智能展示功能",
-    "footer_credit": "LiwaMenu 是 LiwaSoft 旗下品牌。"
+    "footer_credit": "LiwaMenu 是 LiwaSoft 旗下品牌。",
+    "processing": "处理中...",
+    "resending_code": "正在重新发送验证码...",
+    "code_sent": "验证码已发送至您的邮箱。"
   },
   "register": {
     "title": "注册",
@@ -300,7 +303,10 @@
     "license_get": "获取许可证",
     "license_no": "无许可证",
     "license_expired": "已过期",
-    "manage_licenses": "管理许可证"
+    "manage_licenses": "管理许可证",
+    "max_file_size": "最大 {{size}}MB",
+    "change": "更换",
+    "remove": "移除"
   },
   "restaurantLicensesModal": {
     "title": "许可证管理",
@@ -349,7 +355,16 @@
     "no_licenses": "暂无许可证",
     "no_licenses_description": "请为您的餐厅购买许可证以开始使用。",
     "no_results": "未找到结果",
-    "no_results_description": "请尝试调整搜索条件或筛选条件。"
+    "no_results_description": "请尝试调整搜索条件或筛选条件。",
+    "status_update_success": "许可证已成功{{status}} 🥳🥳",
+    "deactivated": "已停用",
+    "activated": "已启用",
+    "status_title": "许可证状态",
+    "status_label": "状态：",
+    "action_label": "操作：",
+    "deactivate": "停用",
+    "activate": "启用",
+    "passive_note_label": "停用备注："
   },
   "addLicense": {
     "title": "购买许可证",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "点击或拖放收据以上传。",
     "note_label": "备注",
     "note_placeholder": "备注（可选）",
-    "after_check_msg": "收据核实后，以下许可证将被添加："
+    "after_check_msg": "收据核实后，以下许可证将被添加：",
+    "delete": "删除",
+    "processing": "处理中 🤩...",
+    "delete_success": "许可证已成功删除 🥳🥳",
+    "delete_license_title": "删除许可证",
+    "marketplace": "市场",
+    "license_duration": "许可证时长",
+    "year_count": "{{count}} 年",
+    "price": "价格",
+    "delete_confirm": "确定要删除该许可证吗？",
+    "delete_sure": "确定删除",
+    "breadcrumb_users": "用户",
+    "breadcrumb_restaurants": "餐厅"
   },
   "extendLicense": {
     "title": "延长许可证",
@@ -456,7 +483,23 @@
     "secure_3d_title": "3D Secure 验证",
     "secure_3d_subtitle": "您已被重定向至银行的安全页面，请完成验证。",
     "loading_3d": "正在加载安全支付页面...",
-    "cancel_payment": "取消支付"
+    "cancel_payment": "取消支付",
+    "credit_card": "信用卡",
+    "invalid_card_number": "卡号有误",
+    "month": "月",
+    "year": "年",
+    "card_holder_name_label": "持卡人姓名：",
+    "card_number_label": "卡号：",
+    "card_expiry_month_label": "卡片有效期（月）：",
+    "card_expiry_year_label": "卡片有效期（年）：",
+    "card_security_code_label": "卡片安全码：",
+    "payment_failed_title": "支付失败！😔",
+    "payment_failed_desc": "由于技术故障，您的交易失败了。请重试。",
+    "payment_success_typing": "您的支付已成功。",
+    "processing_title": "支付处理中",
+    "processing_desc": "请勿离开页面，您的交易正在进行中...",
+    "payment_success_toast": "支付成功 😃",
+    "payment_failed_toast": "支付失败 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "确定要删除 {{name}} 支付方式吗？",
     "delete": "删除",
     "delete_success": "支付方式已删除。",
-    "cancel": "取消"
+    "cancel": "取消",
+    "active_count": "{{enabled}} / {{total}} 已启用",
+    "close": "关闭"
   },
   "editCategories": {
     "no_changes": "未做任何更改。",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "文件类型无效",
     "bulk_too_large": "最大 {{size}}MB",
     "view_list": "列表",
-    "view_tile": "磁贴"
+    "view_tile": "磁贴",
+    "product_count_fallback": "3 个产品"
   },
   "categoryProducts": {
     "title": "分类商品",
@@ -935,7 +981,8 @@
     "status": "状态",
     "featured": "主厨推荐",
     "campaign_warning": "您可在 {{tab}} 标签页中设置活动价格。",
-    "campaign_warning_tab": "价格列表"
+    "campaign_warning_tab": "价格列表",
+    "category_image_alt": "分类"
   },
   "editSubCategories": {
     "title": "编辑 {{name}} 餐厅的子分类",
@@ -974,7 +1021,8 @@
     "select_category": "选择分类",
     "delete": "删除",
     "save": "保存",
-    "success": "子分类添加成功。"
+    "success": "子分类添加成功。",
+    "unknown_category": "未知分类"
   },
   "addSubCategory": {
     "add": "添加子分类",
@@ -990,7 +1038,8 @@
     "info": "子分类用于在主分类下对商品进行更细化的分组。例如：在「汤品」分类下可以设置「热汤」和「凉汤」。",
     "cancel": "取消",
     "save": "保存",
-    "success": "子分类添加成功。"
+    "success": "子分类添加成功。",
+    "image_alt": "子分类"
   },
   "editSubCategory": {
     "title": "编辑子分类",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "产品管理",
     "price_list": "价格列表",
-    "add_product": "添加产品"
+    "add_product": "添加产品",
+    "products_of_restaurant": "{{name}} 餐厅的产品",
+    "delete_product": "删除产品",
+    "category": "分类",
+    "category_select": "选择分类",
+    "sub_category": "子分类",
+    "sub_category_select": "选择子分类",
+    "product_name": "产品名称",
+    "description": "描述",
+    "chef_recommendation": "厨师推荐",
+    "hide": "隐藏",
+    "portions": "份量",
+    "add_portion": "添加份量",
+    "portion_name": "份量名称",
+    "portion_price": "份量价格",
+    "delete_portion": "删除份量",
+    "add_tag": "添加标签",
+    "tag_name_with_example": "标签名称（例如：调味选择）",
+    "tag_select": "选择标签",
+    "min_selection": "最少选择",
+    "max_selection": "最多选择",
+    "delete_tag": "删除标签",
+    "add_option": "添加选项",
+    "option_name": "选项名称",
+    "option_select": "选择选项",
+    "price": "价格",
+    "max_quantity_short": "最多选择",
+    "max_quantity": "最多选择数量",
+    "delete": "删除",
+    "add_new_product": "添加新产品",
+    "save": "保存"
   },
   "allergens": {
     "title": "过敏原",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "未找到 manifest.json — 这不是有效的 Liwa 备份文件。",
     "restore_error_wrong_type": "此文件不是 Liwa 产品备份文件。",
     "restore_error_wrong_version": "此备份文件格式不受支持（可能需要更新版本）。",
-    "restore_error_malformed": "备份文件结构无效。"
+    "restore_error_malformed": "备份文件结构无效。",
+    "restore_err_category_update": "[更新分类] {{name}}",
+    "restore_err_category_create": "[创建分类] {{name}}",
+    "restore_err_subcategory_update": "[更新子分类] {{name}}",
+    "restore_err_subcategory_create": "[创建子分类] {{name}}",
+    "restore_err_product_update": "[更新产品] {{name}}",
+    "restore_err_product_create": "[创建产品] {{name}}",
+    "restore_err_category": "[分类] {{name}}",
+    "restore_err_subcategory": "[子分类] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "无图片",
@@ -1570,7 +1657,10 @@
     "col_product": "商品",
     "col_portion": "份量",
     "option_name_placeholder": "选项名称",
-    "price_placeholder": "价格"
+    "price_placeholder": "价格",
+    "all_categories": "全部分类",
+    "all_products": "全部产品",
+    "all_portions": "全部份量"
   },
   "surveySettings": {
     "title": "{{name}} 餐厅客户反馈分析",
@@ -1593,7 +1683,8 @@
     "create": "创建",
     "update": "更新",
     "added_success": "问卷已添加。",
-    "updated_success": "问卷已更新。"
+    "updated_success": "问卷已更新。",
+    "categories": "分类"
   },
   "qrThemeSelector": {
     "title": "{{name}} 的主题设置",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "最大值",
     "clear": "清除",
     "apply": "应用"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu 是 LiwaSoft 旗下产品。",
+    "customer_service": "客户服务",
+    "phone_verification_message": "我们已向您的手机号发送了一条验证码。请查看您的短信，并输入验证码以完成验证。",
+    "email_verification_message": "我们已向您的邮箱发送了一条验证码。请查看您的邮件，并输入验证码以完成验证。",
+    "time_is_up": "时间已到！请重试",
+    "verification_sent": "验证码已发送",
+    "confirmation": "确认",
+    "phone_label": "电话",
+    "continue": "继续",
+    "processing": "处理中...",
+    "code_verified": "验证码已通过验证",
+    "code_sent": "验证码已发送",
+    "confirm": "确认",
+    "verification_code": "验证码",
+    "resend": "重新发送",
+    "verify": "验证"
+  },
+  "invoice": {
+    "name_title": "姓名/名称",
+    "vkn_tckn": "税号或身份证号",
+    "tax_office": "税务机关",
+    "trade_registry_number": "商业登记号",
+    "mersis_number": "Mersis 编号",
+    "city": "城市",
+    "select_city": "选择城市",
+    "district": "区县",
+    "select_district": "选择区县",
+    "neighbourhood": "街道/社区",
+    "select_neighbourhood": "选择街道/社区",
+    "address": "地址",
+    "name": "姓名"
   }
 }

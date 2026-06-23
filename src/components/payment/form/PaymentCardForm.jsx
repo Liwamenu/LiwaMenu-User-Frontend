@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import CustomInput from "../../common/customInput";
 import { isValidCardNumber } from "../../../utils/utils";
 
 const PaymentCardForm = ({ setFlip, cardData, setCardData }) => {
+  const { t } = useTranslation();
   const yearRef = useRef(null);
   const cvvRef = useRef(null);
 
@@ -58,7 +60,7 @@ const PaymentCardForm = ({ setFlip, cardData, setCardData }) => {
           <CustomInput
             // label="Kart Sahibi"
             type="text"
-            placeholder="Kart Sahibi"
+            placeholder={t("payment.card_holder")}
             className="text-[13px] py-[6px] sm:mt-[4px] mt-[4px]"
             className2="mt-[0] sm:mt-[0]"
             required
@@ -77,10 +79,10 @@ const PaymentCardForm = ({ setFlip, cardData, setCardData }) => {
         </div>
         <div className="w-full">
           <CustomInput
-            label={invalidCardNumber === false ? "Hatalı kart numarası" : ""}
+            label={invalidCardNumber === false ? t("payment.invalid_card_number") : ""}
             className5="text-[--red-1] text-[.7rem]"
             type="text"
-            placeholder="Kart No"
+            placeholder={t("payment.card_number")}
             className={`text-[13px] py-[6px] sm:mt-[4px] mt-[4px] z-10 ${
               !invalidCardNumber && "border-[--red-1]"
             }`}
@@ -103,7 +105,7 @@ const PaymentCardForm = ({ setFlip, cardData, setCardData }) => {
           <CustomInput
             // label="Ay"
             type="number"
-            placeholder="Ay"
+            placeholder={t("payment.month")}
             className="text-[13px] py-[6px] sm:mt-[4px] mt-[4px]"
             className2="mt-[0] sm:mt-[0]"
             required
@@ -116,7 +118,7 @@ const PaymentCardForm = ({ setFlip, cardData, setCardData }) => {
             inputRef={yearRef}
             // label="Yıl"
             type="text"
-            placeholder="Yıl"
+            placeholder={t("payment.year")}
             className="text-[13px] py-[6px] sm:mt-[4px] mt-[4px]"
             className2="mt-[0] sm:mt-[0]"
             required

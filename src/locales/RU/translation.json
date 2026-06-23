@@ -138,7 +138,10 @@
     "feat_google_review": "Поделиться ссылкой на отзыв в Google",
     "feat_social_media": "Публикация аккаунтов в социальных сетях",
     "feat_working_hours": "Функции с учётом рабочих часов",
-    "footer_credit": "LiwaMenu — дочерняя компания LiwaSoft."
+    "footer_credit": "LiwaMenu — дочерняя компания LiwaSoft.",
+    "processing": "Обработка...",
+    "resending_code": "Повторная отправка кода подтверждения...",
+    "code_sent": "Код подтверждения отправлен на вашу почту."
   },
   "register": {
     "title": "Регистрация",
@@ -300,7 +303,10 @@
     "license_get": "Получить лицензию",
     "license_no": "Нет лицензии",
     "license_expired": "Истекла",
-    "manage_licenses": "Управление лицензиями"
+    "manage_licenses": "Управление лицензиями",
+    "max_file_size": "Максимум {{size}} МБ",
+    "change": "Изменить",
+    "remove": "Удалить"
   },
   "restaurantLicensesModal": {
     "title": "Управление лицензиями",
@@ -349,7 +355,16 @@
     "no_licenses": "Лицензий пока нет",
     "no_licenses_description": "Приобретите лицензию для вашего ресторана, чтобы начать работу.",
     "no_results": "Ничего не найдено",
-    "no_results_description": "Попробуйте изменить параметры поиска или фильтры."
+    "no_results_description": "Попробуйте изменить параметры поиска или фильтры.",
+    "status_update_success": "Статус лицензии успешно изменён: {{status}} 🥳🥳",
+    "deactivated": "Деактивирована",
+    "activated": "Активирована",
+    "status_title": "Статус лицензии",
+    "status_label": "Статус:",
+    "action_label": "Действие:",
+    "deactivate": "Деактивировать",
+    "activate": "Активировать",
+    "passive_note_label": "Примечание о деактивации:"
   },
   "addLicense": {
     "title": "Купить лицензию",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "Нажмите или перетащите квитанцию для загрузки.",
     "note_label": "Примечание",
     "note_placeholder": "Примечание (необязательно)",
-    "after_check_msg": "После проверки квитанции будут добавлены следующие лицензии:"
+    "after_check_msg": "После проверки квитанции будут добавлены следующие лицензии:",
+    "delete": "Удалить",
+    "processing": "Обработка 🤩...",
+    "delete_success": "Лицензия успешно удалена 🥳🥳",
+    "delete_license_title": "Удалить лицензию",
+    "marketplace": "Маркетплейс",
+    "license_duration": "Срок действия лицензии",
+    "year_count": "{{count}} г.",
+    "price": "Цена",
+    "delete_confirm": "Вы уверены, что хотите удалить лицензию?",
+    "delete_sure": "Да, удалить",
+    "breadcrumb_users": "Пользователи",
+    "breadcrumb_restaurants": "Рестораны"
   },
   "extendLicense": {
     "title": "Продлить лицензию",
@@ -456,7 +483,23 @@
     "secure_3d_title": "Верификация 3D Secure",
     "secure_3d_subtitle": "Вы перенаправлены на защищённую страницу вашего банка. Завершите проверку.",
     "loading_3d": "Загрузка страницы безопасной оплаты...",
-    "cancel_payment": "Отменить платёж"
+    "cancel_payment": "Отменить платёж",
+    "credit_card": "Кредитная карта",
+    "invalid_card_number": "Неверный номер карты",
+    "month": "Месяц",
+    "year": "Год",
+    "card_holder_name_label": "Имя владельца карты:",
+    "card_number_label": "Номер карты:",
+    "card_expiry_month_label": "Месяц окончания срока действия карты:",
+    "card_expiry_year_label": "Год окончания срока действия карты:",
+    "card_security_code_label": "Код безопасности карты:",
+    "payment_failed_title": "Ошибка оплаты! 😔",
+    "payment_failed_desc": "Ваша операция не выполнена из-за технической ошибки. Пожалуйста, попробуйте снова.",
+    "payment_success_typing": "Ваш платёж выполнен успешно.",
+    "processing_title": "Обработка платежа",
+    "processing_desc": "Пожалуйста, не покидайте страницу, ваша операция выполняется...",
+    "payment_success_toast": "Платёж выполнен успешно 😃",
+    "payment_failed_toast": "Ошибка оплаты 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "Вы уверены, что хотите удалить способ оплаты {{name}}?",
     "delete": "Удалить",
     "delete_success": "Способ оплаты удалён.",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "active_count": "{{enabled}} / {{total}} активно",
+    "close": "Закрыть"
   },
   "editCategories": {
     "no_changes": "Изменения не внесены.",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "Недопустимый тип файла",
     "bulk_too_large": "Максимум {{size}}МБ",
     "view_list": "Список",
-    "view_tile": "Плитка"
+    "view_tile": "Плитка",
+    "product_count_fallback": "3 товара"
   },
   "categoryProducts": {
     "title": "Продукты категории",
@@ -935,7 +981,8 @@
     "status": "Статус",
     "featured": "Рекомендация шефа",
     "campaign_warning": "Вы можете установить цену акции на вкладке {{tab}}.",
-    "campaign_warning_tab": "Прайс-лист"
+    "campaign_warning_tab": "Прайс-лист",
+    "category_image_alt": "Категория"
   },
   "editSubCategories": {
     "title": "Редактирование подкатегорий ресторана {{name}}",
@@ -974,7 +1021,8 @@
     "select_category": "Выберите категорию",
     "delete": "Удалить",
     "save": "Сохранить",
-    "success": "Подкатегории успешно добавлены."
+    "success": "Подкатегории успешно добавлены.",
+    "unknown_category": "Неизвестная категория"
   },
   "addSubCategory": {
     "add": "Добавить подкатегорию",
@@ -990,7 +1038,8 @@
     "info": "Подкатегории используются для более детальной группировки товаров внутри основных категорий. Например: в категории «Супы» можно создать подкатегории «Горячие супы» и «Холодные супы».",
     "cancel": "Отмена",
     "save": "Сохранить",
-    "success": "Подкатегория успешно добавлена."
+    "success": "Подкатегория успешно добавлена.",
+    "image_alt": "Подкатегория"
   },
   "editSubCategory": {
     "title": "Редактировать подкатегорию",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "Управление продуктами",
     "price_list": "Прайс-лист",
-    "add_product": "Добавить продукт"
+    "add_product": "Добавить продукт",
+    "products_of_restaurant": "Товары ресторана {{name}}",
+    "delete_product": "Удалить товар",
+    "category": "Категория",
+    "category_select": "Выберите категорию",
+    "sub_category": "Подкатегория",
+    "sub_category_select": "Выберите подкатегорию",
+    "product_name": "Название товара",
+    "description": "Описание",
+    "chef_recommendation": "Рекомендация шефа",
+    "hide": "Скрыть",
+    "portions": "Порции",
+    "add_portion": "Добавить порцию",
+    "portion_name": "Название порции",
+    "portion_price": "Цена порции",
+    "delete_portion": "Удалить порцию",
+    "add_tag": "Добавить тег",
+    "tag_name_with_example": "Название тега (напр.: Выбор специй)",
+    "tag_select": "Выберите тег",
+    "min_selection": "Мин. выбор",
+    "max_selection": "Макс. выбор",
+    "delete_tag": "Удалить тег",
+    "add_option": "Добавить опцию",
+    "option_name": "Название опции",
+    "option_select": "Выберите опцию",
+    "price": "Цена",
+    "max_quantity_short": "Макс. выбор",
+    "max_quantity": "Максимальный выбор",
+    "delete": "Удалить",
+    "add_new_product": "Добавить новый товар",
+    "save": "Сохранить"
   },
   "allergens": {
     "title": "Аллергены",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "Файл manifest.json не найден — это не является допустимой резервной копией Liwa.",
     "restore_error_wrong_type": "Этот файл не является резервной копией продуктов Liwa.",
     "restore_error_wrong_version": "Формат этого файла резервной копии не поддерживается (может потребоваться более новая версия).",
-    "restore_error_malformed": "Структура файла резервной копии повреждена."
+    "restore_error_malformed": "Структура файла резервной копии повреждена.",
+    "restore_err_category_update": "[Обновление категории] {{name}}",
+    "restore_err_category_create": "[Создание категории] {{name}}",
+    "restore_err_subcategory_update": "[Обновление подкатегории] {{name}}",
+    "restore_err_subcategory_create": "[Создание подкатегории] {{name}}",
+    "restore_err_product_update": "[Обновление товара] {{name}}",
+    "restore_err_product_create": "[Создание товара] {{name}}",
+    "restore_err_category": "[Категория] {{name}}",
+    "restore_err_subcategory": "[Подкатегория] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "Нет изображения",
@@ -1570,7 +1657,10 @@
     "col_product": "Продукт",
     "col_portion": "Порция",
     "option_name_placeholder": "Название опции",
-    "price_placeholder": "Цена"
+    "price_placeholder": "Цена",
+    "all_categories": "Все категории",
+    "all_products": "Все товары",
+    "all_portions": "Все порции"
   },
   "surveySettings": {
     "title": "Аналитика отзывов клиентов ресторана {{name}}",
@@ -1593,7 +1683,8 @@
     "create": "Создать",
     "update": "Обновить",
     "added_success": "Опрос добавлен.",
-    "updated_success": "Опрос обновлён."
+    "updated_success": "Опрос обновлён.",
+    "categories": "категория"
   },
   "qrThemeSelector": {
     "title": "Настройки темы для {{name}}",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "Макс",
     "clear": "Очистить",
     "apply": "Применить"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu — дочерний продукт LiwaSoft.",
+    "customer_service": "Служба поддержки",
+    "phone_verification_message": "мы отправили код подтверждения на ваш номер телефона. Пожалуйста, проверьте SMS-сообщения и введите код для подтверждения.",
+    "email_verification_message": "мы отправили код подтверждения на ваш адрес электронной почты. Пожалуйста, проверьте письма и введите код для подтверждения.",
+    "time_is_up": "Время истекло! Попробуйте снова",
+    "verification_sent": "Код подтверждения отправлен",
+    "confirmation": "Подтверждение",
+    "phone_label": "Телефон",
+    "continue": "Продолжить",
+    "processing": "Обработка...",
+    "code_verified": "Код подтверждения проверен",
+    "code_sent": "Код подтверждения отправлен",
+    "confirm": "Подтвердить",
+    "verification_code": "Код подтверждения",
+    "resend": "Отправить снова",
+    "verify": "Подтвердить"
+  },
+  "invoice": {
+    "name_title": "Имя/Наименование",
+    "vkn_tckn": "ИНН или личный ИНН",
+    "tax_office": "Налоговая инспекция",
+    "trade_registry_number": "Рег. номер в торговом реестре",
+    "mersis_number": "Номер Mersis",
+    "city": "Город",
+    "select_city": "Выберите город",
+    "district": "Район",
+    "select_district": "Выберите район",
+    "neighbourhood": "Квартал",
+    "select_neighbourhood": "Выберите квартал",
+    "address": "Адрес",
+    "name": "Имя"
   }
 }

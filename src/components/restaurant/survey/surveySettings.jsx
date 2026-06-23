@@ -121,8 +121,8 @@ const SurveySettings = ({ data }) => {
               {t("surveySettings.title", { name: data?.name || "" })}
             </h1>
             <p className="text-[11px] text-[--gr-1] truncate mt-0.5">
-              {settings?.length ?? 0} kategori · {totalReviews}{" "}
-              {t("surveySettings.reviews")} · ⭐ {overallAvg}
+              {settings?.length ?? 0} {t("surveySettings.categories")} ·{" "}
+              {totalReviews} {t("surveySettings.reviews")} · ⭐ {overallAvg}
             </p>
           </div>
           <button

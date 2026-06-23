@@ -261,7 +261,8 @@ const EditCategories = ({ data: restaurant }) => {
                                       <div className="flex items-center gap-2">
                                         <p>{cat.name}</p>
                                         <p className="text-xs px-1 py-[2px] text-[--primary-1] bg-[--status-primary-1] rounded-md ">
-                                          {cat?.productsNumber || "3 urun"}
+                                          {cat?.productsNumber ||
+                                            t("editCategories.product_count_fallback")}
                                         </p>
                                       </div>
                                       <div>

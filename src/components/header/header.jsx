@@ -272,7 +272,7 @@ function Header({ openSidebar, setOpenSidebar }) {
             >
               <button
                 type="button"
-                aria-label={t("userProfile.menu") || "Hesap"}
+                aria-label={t("userProfile.menu")}
                 className={`grid place-items-center size-10 rounded-full text-[--gr-1] hover:text-[--primary-1] transition border ${
                   open
                     ? "bg-[--primary-1]/10 border-[--primary-1]/30 text-[--primary-1]"
@@ -342,7 +342,7 @@ function Header({ openSidebar, setOpenSidebar }) {
                     <span className="grid place-items-center size-7 rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300 shrink-0">
                       <User className="size-3.5" />
                     </span>
-                    {t("userProfile.profile") || "Profil"}
+                    {t("userProfile.profile")}
                   </Link>
                   <button
                     type="button"
@@ -352,7 +352,7 @@ function Header({ openSidebar, setOpenSidebar }) {
                     <span className="grid place-items-center size-7 rounded-md bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300 shrink-0">
                       <LogOut className="size-3.5" />
                     </span>
-                    {t("userProfile.logout") || "Çıkış Yap"}
+                    {t("userProfile.logout")}
                   </button>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 //MODULES
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
 //COMP
@@ -27,6 +28,7 @@ const VerifyCode = ({
   email,
   numInputs = 4,
 }) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const { loading, success, error } = useSelector(
@@ -74,12 +76,12 @@ const VerifyCode = ({
   // TOAST AND ACTION FOR VERIFY CODE
   useEffect(() => {
     if (loading) {
-      toast.loading("İşleniyor...");
+      toast.loading(t("common.processing"));
     }
     if (success) {
       onSuccess();
       toast.dismiss();
-      toast.success("Onay Kodu Doğrulandı");
+      toast.success(t("common.code_verified"));
       dispatch(resetVerifyCodeState());
     }
     if (error) {
@@ -94,7 +96,7 @@ const VerifyCode = ({
     if (sendSuccess) {
       toast.dismiss();
       setMinutes(2);
-      toast.success("Onay Kodu Gönderildi");
+      toast.success(t("common.code_sent"));
       dispatch(resetSendVerification());
     }
     if (sendError) {
@@ -127,7 +129,7 @@ const VerifyCode = ({
 
         <div className="w-max">
           <h2 className="text-[2.7rem] font-bold text-[--white-1] tracking-tighter">
-            Onayla
+            {t("common.confirm")}
           </h2>
         </div>
       </div>
@@ -140,7 +142,7 @@ const VerifyCode = ({
         <VerificationInputs
           numInputs={numInputs}
           onChange={(e) => setVerificationCode(e)}
-          label="Doğrulama Kodu"
+          label={t("common.verification_code")}
           required={minutes > 0}
           disabled={minutes <= 0}
         />
@@ -157,7 +159,7 @@ const VerifyCode = ({
             {loading ? (
               <LoadingI className="h-7" />
             ) : (
-              `${minutes === 0 ? "Tekrar Gönder" : "Doğrula"}`
+              `${minutes === 0 ? t("common.resend") : t("common.verify")}`
             )}
           </button>
           <div className="shrink-0 h-px bg-slate-200 w-full mt-24" />

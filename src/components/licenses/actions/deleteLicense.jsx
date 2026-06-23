@@ -11,6 +11,7 @@ import GoFody from "../../../assets/img/packages/GoFody.png";
 import Yemeksepeti from "../../../assets/img/packages/Yemeksepeti.png";
 import CustomCheckbox from "../../common/customCheckbox";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "../../common/button";
 import toast from "react-hot-toast";
 
@@ -30,6 +31,7 @@ const imageSRCs = [
 ];
 
 const DeleteLicense = ({ licenseData, setOpenMenu, onSuccess }) => {
+  const { t } = useTranslation();
   const { setPopupContent } = usePopup();
 
   const handlePopup = (event) => {
@@ -43,7 +45,7 @@ const DeleteLicense = ({ licenseData, setOpenMenu, onSuccess }) => {
     <ActionButton
       className="text-[--red-1]"
       element={<DeleteI className="w-[1.1rem]" />}
-      element2="Sil"
+      element2={t("addLicense.delete")}
       onClick={handlePopup}
     />
   );
@@ -52,6 +54,7 @@ const DeleteLicense = ({ licenseData, setOpenMenu, onSuccess }) => {
 export default DeleteLicense;
 
 const DeleteLicensePopup = ({ data, onSuccess }) => {
+  const { t } = useTranslation();
   const toastId = useRef();
   const dispatch = useDispatch();
   const { loading, success, error } = useSelector(
@@ -72,7 +75,7 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
   // TOAST
   useEffect(() => {
     if (loading) {
-      toastId.current = toast.loading("İşleniyor 🤩...");
+      toastId.current = toast.loading(t("addLicense.processing"));
     }
     if (error) {
       toastId.current && toast.dismiss(toastId.current);
@@ -86,7 +89,7 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
       toastId.current && toast.dismiss(toastId.current);
       onSuccess();
       closeForm();
-      toast.success("Lisans başarıyla silindi 🥳🥳");
+      toast.success(t("addLicense.delete_success"));
       dispatch(resetDeleteLicense());
     }
   }, [loading, success, error]);
@@ -103,10 +106,12 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
           </div>
         </div>
 
-        <h1 className="self-center text-2xl font-bold">Lisansı sil</h1>
+        <h1 className="self-center text-2xl font-bold">
+          {t("addLicense.delete_license_title")}
+        </h1>
         <div className="flex justify-center gap-4 sm:gap-10 px-1 sm:px-14 mt-9 w-full text-center">
           <div className="w-max flex flex-col justify-center gap-3 items-center">
-            <p className="">Pazaryeri</p>
+            <p className="">{t("addLicense.marketplace")}</p>
             <img
               src={imageSRCs[data.marketplaceId]}
               alt="MarketPlacePhoto"
@@ -115,12 +120,14 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
           </div>
 
           <div className="flex flex-col justify-between">
-            <p>Lisans Süresi </p>
-            <p className="py-3 text-sm">{data.time} Yıllık</p>
+            <p>{t("addLicense.license_duration")} </p>
+            <p className="py-3 text-sm">
+              {t("addLicense.year_count", { count: data.time })}
+            </p>
           </div>
 
           <div className="flex flex-col justify-between">
-            <p>Fiyat </p>
+            <p>{t("addLicense.price")} </p>
             <p className="py-3 text-sm">{data.price}</p>
           </div>
         </div>
@@ -128,12 +135,12 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
         <div className="w-full flex justify-center mt-8 max-sm:px-3">
           <div className="w-max">
             <p className="text-[--red-1]">
-              Lisansı silmek istediğinizden emin misiniz ?
+              {t("addLicense.delete_confirm")}
             </p>
 
             <div className="flex justify-start gap-4 mt-4">
               <CustomCheckbox
-                label="Eminim sil"
+                label={t("addLicense.delete_sure")}
                 checked={checked}
                 onChange={() => setChecked(!checked)}
               />
@@ -143,7 +150,7 @@ const DeleteLicensePopup = ({ data, onSuccess }) => {
 
         <div className="w-full flex justify-end pr-8">
           <Button
-            text="Sil"
+            text={t("addLicense.delete")}
             className="px-7 bg-[--status-red] text-[--red-1] border-[--red-1] disabled:cursor-not-allowed"
             disabled={!checked}
             onClick={handleDelete}

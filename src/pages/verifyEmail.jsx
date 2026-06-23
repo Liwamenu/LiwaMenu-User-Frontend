@@ -2,6 +2,7 @@
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 //REDUX
@@ -15,6 +16,7 @@ const VerifyEmail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const { success, error, loading } = useSelector(
     (state) => state.auth.verifyEmail
@@ -46,7 +48,7 @@ const VerifyEmail = () => {
 
   //TOAST
   useEffect(() => {
-    if (loading) toast.loading("İşleniyor...", { id: "verify/send" });
+    if (loading) toast.loading(t("auth.processing"), { id: "verify/send" });
     if (success) {
       toast.dismiss();
       navigate("/login");
@@ -61,11 +63,11 @@ const VerifyEmail = () => {
   //SEND THE CODE
   useEffect(() => {
     if (sendLoad) {
-      toast.loading("Onay Kodu Tekrar Gönderiliyor...", { id: "verify/send" });
+      toast.loading(t("auth.resending_code"), { id: "verify/send" });
     }
     if (sendSucc) {
       toast.dismiss();
-      toast.success("Onay Kodu Epostanıza Gönderildi.", { id: "verify/send" });
+      toast.success(t("auth.code_sent"), { id: "verify/send" });
       dispatch(resetSendVerification());
       navigate("/login");
     }

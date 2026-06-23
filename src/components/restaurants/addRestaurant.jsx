@@ -636,11 +636,11 @@ function CompactImageUpload({
 
   const validate = (f) => {
     if (!acceptList.includes(f.type)) {
-      toast.error("Geçersiz dosya türü");
+      toast.error(t("restaurants.invalid_file_type"));
       return false;
     }
     if (f.size > maxMB * 1024 * 1024) {
-      toast.error(`Maksimum ${maxMB}MB`);
+      toast.error(t("restaurants.max_file_size", { size: maxMB }));
       return false;
     }
     return true;
@@ -718,12 +718,12 @@ function CompactImageUpload({
             className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-[--primary-1] text-[--primary-1] text-xs font-semibold hover:bg-[--primary-1]/10 transition shrink-0"
           >
             <RefreshCw className="size-3" />
-            <span className="hidden sm:inline">Değiştir</span>
+            <span className="hidden sm:inline">{t("restaurants.change")}</span>
           </button>
           <button
             type="button"
             onClick={remove}
-            aria-label="Kaldır"
+            aria-label={t("restaurants.remove")}
             className="grid place-items-center size-8 rounded-lg text-[--gr-1] hover:text-[--red-1] hover:bg-[--status-red] transition shrink-0"
           >
             <Trash2 className="size-4" />

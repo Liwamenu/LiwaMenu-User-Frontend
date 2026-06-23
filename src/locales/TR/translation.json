@@ -139,7 +139,10 @@
     "feat_google_review": "Google Yorum Bağlantısı Paylaşın",
     "feat_social_media": "Sosyal Medya Hesaplarını Yayınlayın",
     "feat_working_hours": "Çalışma Saatlerine Uygun Özellikler",
-    "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir."
+    "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir.",
+    "processing": "İşleniyor...",
+    "resending_code": "Onay Kodu Tekrar Gönderiliyor...",
+    "code_sent": "Onay Kodu Epostanıza Gönderildi."
   },
   "register": {
     "title": "Kayıt ol",
@@ -290,7 +293,6 @@
     "neighbourhood_select": "Mahalle seç",
     "latitude": "Enlem",
     "longitude": "Boylam",
-    "close": "Kapat",
     "map_save": "Kaydet",
     "map_close": "Kapat",
     "map_search_placeholder": "Konum, adres veya işletme arayın",
@@ -303,7 +305,10 @@
     "license_get": "Lisans Al",
     "license_no": "Lisansı Yok",
     "license_expired": "Süresi Doldu",
-    "manage_licenses": "Lisansları Yönet"
+    "manage_licenses": "Lisansları Yönet",
+    "max_file_size": "Maksimum {{size}}MB",
+    "change": "Değiştir",
+    "remove": "Kaldır"
   },
   "restaurantLicensesModal": {
     "title": "Lisans Yönetimi",
@@ -352,7 +357,16 @@
     "no_licenses": "Henüz lisansınız yok",
     "no_licenses_description": "Restoranınız için bir lisans satın alarak başlayın.",
     "no_results": "Sonuç bulunamadı",
-    "no_results_description": "Arama veya filtre kriterlerinizi değiştirmeyi deneyin."
+    "no_results_description": "Arama veya filtre kriterlerinizi değiştirmeyi deneyin.",
+    "status_update_success": "Lisans başarıyla {{status}} 🥳🥳",
+    "deactivated": "Pasifleştirildi",
+    "activated": "Aktifleştirildi",
+    "status_title": "Lisans Durumu",
+    "status_label": "Durum:",
+    "action_label": "İşlem:",
+    "deactivate": "Pasifleştir",
+    "activate": "Aktifleştir",
+    "passive_note_label": "Pasif Note:"
   },
   "addLicense": {
     "title": "Lisans Satın Al",
@@ -401,7 +415,19 @@
     "upload_receipt_msg": "Dekontunuzu yüklemek için tıklayın veya sürükleyip bırakın.",
     "note_label": "Açıklama",
     "note_placeholder": "Açıklama (opsiyonel)",
-    "after_check_msg": "Dekontunuz kontrol edildikten sonra şu lisanslar eklenecek:"
+    "after_check_msg": "Dekontunuz kontrol edildikten sonra şu lisanslar eklenecek:",
+    "delete": "Sil",
+    "processing": "İşleniyor 🤩...",
+    "delete_success": "Lisans başarıyla silindi 🥳🥳",
+    "delete_license_title": "Lisansı sil",
+    "marketplace": "Pazaryeri",
+    "license_duration": "Lisans Süresi",
+    "year_count": "{{count}} Yıllık",
+    "price": "Fiyat",
+    "delete_confirm": "Lisansı silmek istediğinizden emin misiniz ?",
+    "delete_sure": "Eminim sil",
+    "breadcrumb_users": "Kullanıcılar",
+    "breadcrumb_restaurants": "Restoranlar"
   },
   "extendLicense": {
     "title": "Lisansı Uzat",
@@ -462,7 +488,23 @@
     "cancel_payment": "Ödemeyi İptal Et",
     "confirm_pending_title": "Ödeme sonucu doğrulanıyor...",
     "confirm_pending_desc": "Ödemeniz alındıysa lisansınız kısa süre içinde tanımlanır. Lisanslarım sayfasından kontrol edebilirsiniz.",
-    "go_to_licenses": "Lisanslara Git"
+    "go_to_licenses": "Lisanslara Git",
+    "credit_card": "Kredi Kartı",
+    "invalid_card_number": "Hatalı kart numarası",
+    "month": "Ay",
+    "year": "Yıl",
+    "card_holder_name_label": "Kart Sahibi Adı:",
+    "card_number_label": "Kart Numarası:",
+    "card_expiry_month_label": "Kart Son Kullanma Ay:",
+    "card_expiry_year_label": "Kart Son Kullanma Yıl:",
+    "card_security_code_label": "Kart Güvenlik Kodu:",
+    "payment_failed_title": "Ödeme Başarısız ! 😔",
+    "payment_failed_desc": "İşleminiz teknik bir hata nedeniyle başarısız oldu. Lütfen tekrar deneyin.",
+    "payment_success_typing": "Ödeme işleminiz başarlı.",
+    "processing_title": "Ödeme İşleniyor",
+    "processing_desc": "Lütfen sayfadan ayrılmayın, işleminiz devam ediyor...",
+    "payment_success_toast": "Ödeme başarılı 😃",
+    "payment_failed_toast": "Ödeme başarısız 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -759,7 +801,9 @@
     "delete_confirm": "{{name}} ödeme yöntemini silmek istediğinize emin misiniz?",
     "delete": "Sil",
     "delete_success": "Ödeme yöntemi silindi.",
-    "cancel": "Vazgeç"
+    "cancel": "Vazgeç",
+    "active_count": "{{enabled}} / {{total}} aktif",
+    "close": "Kapat"
   },
   "editCategories": {
     "no_changes": "Değişiklik yapılmadı.",
@@ -815,7 +859,8 @@
     "bulk_invalid_file": "Geçersiz dosya türü",
     "bulk_too_large": "Maksimum {{size}}MB",
     "view_list": "Liste",
-    "view_tile": "Kart"
+    "view_tile": "Kart",
+    "product_count_fallback": "3 urun"
   },
   "categoryProducts": {
     "title": "Kategori Ürünleri",
@@ -943,7 +988,8 @@
     "status": "Durum",
     "featured": "Şef Tavsiyesi",
     "campaign_warning": "Kampanya fiyatını {{tab}} sekmesinden ayarlayabilirsiniz.",
-    "campaign_warning_tab": "Fiyat Listesi"
+    "campaign_warning_tab": "Fiyat Listesi",
+    "category_image_alt": "Kategori"
   },
   "editSubCategories": {
     "title": "{{name}} Restoranı için Alt Kategorileri Düzenle",
@@ -982,7 +1028,8 @@
     "select_category": "Kategori seç",
     "delete": "Sil",
     "save": "Kaydet",
-    "success": "Alt Kategoriler başarıyla eklendi."
+    "success": "Alt Kategoriler başarıyla eklendi.",
+    "unknown_category": "Bilinmeyen Kategori"
   },
   "addSubCategory": {
     "add": "Yeni Alt Kategori",
@@ -998,7 +1045,8 @@
     "info": "Alt kategoriler, ana kategoriler içinde ürünleri daha detaylı gruplamak için kullanılır. Örneğin: 'Çorbalar' kategorisi altında 'Sıcak Çorbalar' ve 'Soğuk Çorbalar' gibi.",
     "cancel": "Vazgeç",
     "save": "Kaydet",
-    "success": "Alt kategori başarıyla eklendi."
+    "success": "Alt kategori başarıyla eklendi.",
+    "image_alt": "Alt Kategori"
   },
   "editSubCategory": {
     "title": "Alt Kategoriyi Düzenle",
@@ -1114,7 +1162,37 @@
     "manage": "Ürün Yönetimi",
     "price_list": "Fiyat Listesi",
     "add_product": "Ürün Ekle",
-    "import_external": "Diğer Kaynaklardan İçeri Aktar"
+    "import_external": "Diğer Kaynaklardan İçeri Aktar",
+    "products_of_restaurant": "Ürünler {{name}} Restoranı",
+    "delete_product": "Ürünü Sil",
+    "category": "Kategori",
+    "category_select": "Kategori Seç",
+    "sub_category": "Alt Kategori",
+    "sub_category_select": "Alt Kategori Seç",
+    "product_name": "Ürün Adı",
+    "description": "Açıklama",
+    "chef_recommendation": "Şef tavsiyesi",
+    "hide": "Gizle",
+    "portions": "Porsiyonlar",
+    "add_portion": "Porsiyon Ekle",
+    "portion_name": "Porsiyon Adı",
+    "portion_price": "Porsiyon Fiyatı",
+    "delete_portion": "Porsiyonu Sil",
+    "add_tag": "Etiket Ekle",
+    "tag_name_with_example": "Etiket Adı (ör: Baharat Seçimi)",
+    "tag_select": "Etiket Seç",
+    "min_selection": "Min Seçim",
+    "max_selection": "Max Seçim",
+    "delete_tag": "Etiketi Sil",
+    "add_option": "Seçenek Ekle",
+    "option_name": "Seçenek Adı",
+    "option_select": "Seçenek Seç",
+    "price": "Fiyat",
+    "max_quantity_short": "Maks Seçimi",
+    "max_quantity": "Maksimum Seçimi",
+    "delete": "Sil",
+    "add_new_product": "Yeni Ürün Ekle",
+    "save": "Kaydet"
   },
   "importExternal": {
     "title": "Diğer Kaynaklardan İçeri Aktar",
@@ -1311,7 +1389,15 @@
     "restore_error_missing_manifest": "manifest.json bulunamadı — bu dosya geçerli bir Liwa yedeği değil.",
     "restore_error_wrong_type": "Bu dosya bir Liwa ürün yedeği değil.",
     "restore_error_wrong_version": "Bu yedek dosyasının formatı desteklenmiyor (yeni sürüm gerekebilir).",
-    "restore_error_malformed": "Yedek dosyasının yapısı bozuk."
+    "restore_error_malformed": "Yedek dosyasının yapısı bozuk.",
+    "restore_err_category_update": "[Kategori güncelle] {{name}}",
+    "restore_err_category_create": "[Kategori oluştur] {{name}}",
+    "restore_err_subcategory_update": "[Alt kategori güncelle] {{name}}",
+    "restore_err_subcategory_create": "[Alt kategori oluştur] {{name}}",
+    "restore_err_product_update": "[Ürün güncelle] {{name}}",
+    "restore_err_product_create": "[Ürün oluştur] {{name}}",
+    "restore_err_category": "[Kategori] {{name}}",
+    "restore_err_subcategory": "[Alt Kategori] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "Görsel Yok",
@@ -1627,7 +1713,10 @@
     "col_product": "Ürün",
     "col_portion": "Porsiyon",
     "option_name_placeholder": "Seçenek Adı",
-    "price_placeholder": "Fiyat"
+    "price_placeholder": "Fiyat",
+    "all_categories": "Tüm Kategoriler",
+    "all_products": "Tüm Ürünler",
+    "all_portions": "Tüm Porsiyonlar"
   },
   "surveySettings": {
     "title": "{{name}} Restoranı Müşteri Geri Bildirim Analitikleri",
@@ -1650,7 +1739,8 @@
     "create": "Oluştur",
     "update": "Güncelle",
     "added_success": "Anket eklendi.",
-    "updated_success": "Anket güncellendi."
+    "updated_success": "Anket güncellendi.",
+    "categories": "kategori"
   },
   "qrThemeSelector": {
     "title": "{{name}} için Tema Ayarları",
@@ -2740,5 +2830,38 @@
     "max_placeholder": "Maks",
     "clear": "Temizle",
     "apply": "Uygula"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir.",
+    "customer_service": "Müşteri Hizmetleri",
+    "phone_verification_message": "telefon numaranıza bir onay kodu gönderdik. Lütfen SMS mesajlarınızı kontrol edin ve kodu doğrulama işlemi için girin.",
+    "email_verification_message": "email adresinize bir onay kodu gönderdik. Lütfen e-posta mesajlarınızı kontrol edin ve kodu doğrulama işlemi için girin.",
+    "time_is_up": "Süreniz doldu! Tekrar deneyin",
+    "verification_sent": "Doğrulama Kodu Gönderildi",
+    "confirmation": "Onaylama",
+    "phone_label": "Telefon",
+    "continue": "Devam",
+    "processing": "İşleniyor...",
+    "code_verified": "Onay Kodu Doğrulandı",
+    "code_sent": "Onay Kodu Gönderildi",
+    "confirm": "Onayla",
+    "verification_code": "Doğrulama Kodu",
+    "resend": "Tekrar Gönder",
+    "verify": "Doğrula"
+  },
+  "invoice": {
+    "name_title": "İsim/Ünvan",
+    "vkn_tckn": "VKN veya TCKN",
+    "tax_office": "Vergi Dairesi",
+    "trade_registry_number": "Tic.Sic.No",
+    "mersis_number": "Mersis No",
+    "city": "Şehir",
+    "select_city": "Şehir seç",
+    "district": "İlçe",
+    "select_district": "İlçe seç",
+    "neighbourhood": "Mahalle",
+    "select_neighbourhood": "Mahalle Seç",
+    "address": "Adres",
+    "name": "Ad"
   }
 }

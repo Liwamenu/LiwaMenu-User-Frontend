@@ -41,14 +41,14 @@ const FifthStepOnlinePayment = ({ setStep, setPaymentStatus }) => {
     setStep(6);
     setPaymentStatus(status);
     if (status === "success") {
-      toast.success("Ödeme başarılı 😃", { id: "payment_success" });
+      toast.success(t("payment.payment_success_toast"), { id: "payment_success" });
       // Invalidate cached lists so the freshly-assigned license shows up
       // without a hard reload (restaurant cards + license pages).
       dispatch(resetGetRestaurants());
       dispatch(resetGetUserLicenses());
       dispatch(resetGetLicenses());
     } else {
-      toast.error("Ödeme başarısız 😞", { id: "payment_failed" });
+      toast.error(t("payment.payment_failed_toast"), { id: "payment_failed" });
     }
   };
 

@@ -138,7 +138,10 @@
     "feat_google_review": "Google-Bewertungslink teilen",
     "feat_social_media": "Social-Media-Konten veröffentlichen",
     "feat_working_hours": "Funktionen mit Öffnungszeitenbezug",
-    "footer_credit": "LiwaMenu ist ein Tochterunternehmen von LiwaSoft."
+    "footer_credit": "LiwaMenu ist ein Tochterunternehmen von LiwaSoft.",
+    "processing": "Wird verarbeitet...",
+    "resending_code": "Bestätigungscode wird erneut gesendet...",
+    "code_sent": "Bestätigungscode wurde an Ihre E-Mail gesendet."
   },
   "register": {
     "title": "Registrieren",
@@ -300,7 +303,10 @@
     "license_get": "Lizenz erwerben",
     "license_no": "Keine Lizenz",
     "license_expired": "Abgelaufen",
-    "manage_licenses": "Lizenzen verwalten"
+    "manage_licenses": "Lizenzen verwalten",
+    "max_file_size": "Maximal {{size}} MB",
+    "change": "Ändern",
+    "remove": "Entfernen"
   },
   "restaurantLicensesModal": {
     "title": "Lizenzverwaltung",
@@ -349,7 +355,16 @@
     "no_licenses": "Noch keine Lizenzen vorhanden",
     "no_licenses_description": "Starten Sie, indem Sie eine Lizenz für Ihr Restaurant erwerben.",
     "no_results": "Keine Ergebnisse gefunden",
-    "no_results_description": "Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen."
+    "no_results_description": "Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen.",
+    "status_update_success": "Lizenz erfolgreich {{status}} 🥳🥳",
+    "deactivated": "deaktiviert",
+    "activated": "aktiviert",
+    "status_title": "Lizenzstatus",
+    "status_label": "Status:",
+    "action_label": "Aktion:",
+    "deactivate": "Deaktivieren",
+    "activate": "Aktivieren",
+    "passive_note_label": "Deaktivierungsnotiz:"
   },
   "addLicense": {
     "title": "Lizenz kaufen",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "Klicken oder ziehen Sie Ihren Beleg hierher, um ihn hochzuladen.",
     "note_label": "Hinweis",
     "note_placeholder": "Hinweis (optional)",
-    "after_check_msg": "Sobald Ihr Beleg geprüft wurde, werden folgende Lizenzen hinzugefügt:"
+    "after_check_msg": "Sobald Ihr Beleg geprüft wurde, werden folgende Lizenzen hinzugefügt:",
+    "delete": "Löschen",
+    "processing": "Wird verarbeitet 🤩...",
+    "delete_success": "Lizenz erfolgreich gelöscht 🥳🥳",
+    "delete_license_title": "Lizenz löschen",
+    "marketplace": "Marktplatz",
+    "license_duration": "Lizenzdauer",
+    "year_count": "{{count}} Jahre",
+    "price": "Preis",
+    "delete_confirm": "Möchten Sie die Lizenz wirklich löschen?",
+    "delete_sure": "Ja, löschen",
+    "breadcrumb_users": "Benutzer",
+    "breadcrumb_restaurants": "Restaurants"
   },
   "extendLicense": {
     "title": "Lizenz verlängern",
@@ -456,7 +483,23 @@
     "secure_3d_title": "3D Secure-Verifizierung",
     "secure_3d_subtitle": "Sie wurden auf die sichere Seite Ihrer Bank weitergeleitet. Schließen Sie die Verifizierung ab.",
     "loading_3d": "Sichere Zahlungsseite wird geladen...",
-    "cancel_payment": "Zahlung abbrechen"
+    "cancel_payment": "Zahlung abbrechen",
+    "credit_card": "Kreditkarte",
+    "invalid_card_number": "Ungültige Kartennummer",
+    "month": "Monat",
+    "year": "Jahr",
+    "card_holder_name_label": "Name des Karteninhabers:",
+    "card_number_label": "Kartennummer:",
+    "card_expiry_month_label": "Ablaufmonat der Karte:",
+    "card_expiry_year_label": "Ablaufjahr der Karte:",
+    "card_security_code_label": "Sicherheitscode der Karte:",
+    "payment_failed_title": "Zahlung fehlgeschlagen! 😔",
+    "payment_failed_desc": "Ihre Transaktion ist aufgrund eines technischen Fehlers fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "payment_success_typing": "Ihre Zahlung war erfolgreich.",
+    "processing_title": "Zahlung wird verarbeitet",
+    "processing_desc": "Bitte verlassen Sie die Seite nicht, Ihre Transaktion wird verarbeitet...",
+    "payment_success_toast": "Zahlung erfolgreich 😃",
+    "payment_failed_toast": "Zahlung fehlgeschlagen 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "Möchten Sie die Zahlungsmethode {{name}} wirklich löschen?",
     "delete": "Löschen",
     "delete_success": "Zahlungsmethode gelöscht.",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "active_count": "{{enabled}} / {{total}} aktiv",
+    "close": "Schließen"
   },
   "editCategories": {
     "no_changes": "Keine Änderungen vorgenommen.",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "Ungültiger Dateityp",
     "bulk_too_large": "Maximal {{size}}MB",
     "view_list": "Liste",
-    "view_tile": "Kachel"
+    "view_tile": "Kachel",
+    "product_count_fallback": "3 Produkte"
   },
   "categoryProducts": {
     "title": "Kategorieprodukte",
@@ -935,7 +981,8 @@
     "status": "Status",
     "featured": "Empfehlung des Küchenchefs",
     "campaign_warning": "Den Aktionspreis können Sie im Tab {{tab}} festlegen.",
-    "campaign_warning_tab": "Preisliste"
+    "campaign_warning_tab": "Preisliste",
+    "category_image_alt": "Kategorie"
   },
   "editSubCategories": {
     "title": "Unterkategorien für Restaurant {{name}} bearbeiten",
@@ -974,7 +1021,8 @@
     "select_category": "Kategorie auswählen",
     "delete": "Löschen",
     "save": "Speichern",
-    "success": "Unterkategorien erfolgreich hinzugefügt."
+    "success": "Unterkategorien erfolgreich hinzugefügt.",
+    "unknown_category": "Unbekannte Kategorie"
   },
   "addSubCategory": {
     "add": "Unterkategorie hinzufügen",
@@ -990,7 +1038,8 @@
     "info": "Unterkategorien dienen dazu, Produkte innerhalb von Hauptkategorien detaillierter zu gruppieren. Beispiel: Unter der Kategorie «Suppen» können Sie «Heiße Suppen» und «Kalte Suppen» anlegen.",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "success": "Unterkategorie erfolgreich hinzugefügt."
+    "success": "Unterkategorie erfolgreich hinzugefügt.",
+    "image_alt": "Unterkategorie"
   },
   "editSubCategory": {
     "title": "Unterkategorie bearbeiten",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "Produktverwaltung",
     "price_list": "Preisliste",
-    "add_product": "Produkt hinzufügen"
+    "add_product": "Produkt hinzufügen",
+    "products_of_restaurant": "Produkte des Restaurants {{name}}",
+    "delete_product": "Produkt löschen",
+    "category": "Kategorie",
+    "category_select": "Kategorie auswählen",
+    "sub_category": "Unterkategorie",
+    "sub_category_select": "Unterkategorie auswählen",
+    "product_name": "Produktname",
+    "description": "Beschreibung",
+    "chef_recommendation": "Empfehlung des Küchenchefs",
+    "hide": "Ausblenden",
+    "portions": "Portionen",
+    "add_portion": "Portion hinzufügen",
+    "portion_name": "Portionsname",
+    "portion_price": "Portionspreis",
+    "delete_portion": "Portion löschen",
+    "add_tag": "Etikett hinzufügen",
+    "tag_name_with_example": "Etikettname (z. B.: Gewürzauswahl)",
+    "tag_select": "Etikett auswählen",
+    "min_selection": "Min. Auswahl",
+    "max_selection": "Max. Auswahl",
+    "delete_tag": "Etikett löschen",
+    "add_option": "Option hinzufügen",
+    "option_name": "Optionsname",
+    "option_select": "Option auswählen",
+    "price": "Preis",
+    "max_quantity_short": "Max. Auswahl",
+    "max_quantity": "Maximale Auswahl",
+    "delete": "Löschen",
+    "add_new_product": "Neues Produkt hinzufügen",
+    "save": "Speichern"
   },
   "allergens": {
     "title": "Allergene",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "manifest.json nicht gefunden – dies ist keine gültige Liwa-Sicherung.",
     "restore_error_wrong_type": "Diese Datei ist keine Liwa-Produktsicherung.",
     "restore_error_wrong_version": "Dieses Sicherungsdateiformat wird nicht unterstützt (möglicherweise ist eine neuere Version erforderlich).",
-    "restore_error_malformed": "Die Struktur der Sicherungsdatei ist ungültig."
+    "restore_error_malformed": "Die Struktur der Sicherungsdatei ist ungültig.",
+    "restore_err_category_update": "[Kategorie aktualisieren] {{name}}",
+    "restore_err_category_create": "[Kategorie erstellen] {{name}}",
+    "restore_err_subcategory_update": "[Unterkategorie aktualisieren] {{name}}",
+    "restore_err_subcategory_create": "[Unterkategorie erstellen] {{name}}",
+    "restore_err_product_update": "[Produkt aktualisieren] {{name}}",
+    "restore_err_product_create": "[Produkt erstellen] {{name}}",
+    "restore_err_category": "[Kategorie] {{name}}",
+    "restore_err_subcategory": "[Unterkategorie] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "Kein Bild",
@@ -1570,7 +1657,10 @@
     "col_product": "Produkt",
     "col_portion": "Portion",
     "option_name_placeholder": "Optionsname",
-    "price_placeholder": "Preis"
+    "price_placeholder": "Preis",
+    "all_categories": "Alle Kategorien",
+    "all_products": "Alle Produkte",
+    "all_portions": "Alle Portionen"
   },
   "surveySettings": {
     "title": "{{name}} Restaurant Kundenfeedback-Analyse",
@@ -1593,7 +1683,8 @@
     "create": "Erstellen",
     "update": "Aktualisieren",
     "added_success": "Umfrage hinzugefügt.",
-    "updated_success": "Umfrage aktualisiert."
+    "updated_success": "Umfrage aktualisiert.",
+    "categories": "Kategorie"
   },
   "qrThemeSelector": {
     "title": "Theme-Einstellungen für {{name}}",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "Max",
     "clear": "Zurücksetzen",
     "apply": "Anwenden"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu ist ein Tochterunternehmen von LiwaSoft.",
+    "customer_service": "Kundenservice",
+    "phone_verification_message": "Wir haben einen Bestätigungscode an Ihre Telefonnummer gesendet. Bitte überprüfen Sie Ihre SMS-Nachrichten und geben Sie den Code zur Verifizierung ein.",
+    "email_verification_message": "Wir haben einen Bestätigungscode an Ihre E-Mail-Adresse gesendet. Bitte überprüfen Sie Ihren Posteingang und geben Sie den Code zur Verifizierung ein.",
+    "time_is_up": "Ihre Zeit ist abgelaufen! Versuchen Sie es erneut",
+    "verification_sent": "Bestätigungscode gesendet",
+    "confirmation": "Bestätigung",
+    "phone_label": "Telefon",
+    "continue": "Weiter",
+    "processing": "Wird verarbeitet...",
+    "code_verified": "Bestätigungscode verifiziert",
+    "code_sent": "Bestätigungscode gesendet",
+    "confirm": "Bestätigen",
+    "verification_code": "Bestätigungscode",
+    "resend": "Erneut senden",
+    "verify": "Verifizieren"
+  },
+  "invoice": {
+    "name_title": "Name/Firmenname",
+    "vkn_tckn": "USt-IdNr. oder Steuernummer",
+    "tax_office": "Finanzamt",
+    "trade_registry_number": "Handelsregisternr.",
+    "mersis_number": "Mersis-Nr.",
+    "city": "Stadt",
+    "select_city": "Stadt auswählen",
+    "district": "Bezirk",
+    "select_district": "Bezirk auswählen",
+    "neighbourhood": "Stadtteil",
+    "select_neighbourhood": "Stadtteil auswählen",
+    "address": "Adresse",
+    "name": "Name"
   }
 }

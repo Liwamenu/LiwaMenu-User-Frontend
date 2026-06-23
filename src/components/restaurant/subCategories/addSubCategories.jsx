@@ -223,7 +223,7 @@ const AddSubCategories = ({ data: restaurant }) => {
                     ?.name ||
                     formattedCategoriesData.find((c) => c.value === categoryId)
                       ?.label ||
-                    "Bilinmeyen Kategori"}
+                    t("addSubCategories.unknown_category")}
                 </h2>
                 <DragDropContext
                   onDragEnd={(result) => handleDragEnd(categoryId, result)}
@@ -261,7 +261,7 @@ const AddSubCategories = ({ data: restaurant }) => {
                                           (c) => c.value === row.categoryId,
                                         ) || {
                                           value: null,
-                                          label: "Kategori Seç",
+                                          label: t("addSubCategories.select_category"),
                                         }
                                       }
                                       disabled={!formattedCategoriesData}

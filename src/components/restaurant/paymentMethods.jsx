@@ -220,7 +220,10 @@ const PaymentMethods = ({ data: restaurant }) => {
             </h1>
             <p className="text-[11px] text-[--gr-1] truncate mt-0.5">
               {totalCount > 0
-                ? `${enabledCount} / ${totalCount} aktif`
+                ? t("paymentMethods.active_count", {
+                    enabled: enabledCount,
+                    total: totalCount,
+                  })
                 : "—"}
             </p>
           </div>
@@ -395,7 +398,7 @@ const AddMethodPopup = ({ restaurantId, onClose }) => {
           type="button"
           onClick={onClose}
           className="grid place-items-center size-8 rounded-md text-[--gr-1] hover:bg-[--white-2] transition"
-          aria-label="Kapat"
+          aria-label={t("paymentMethods.close")}
         >
           <X className="size-4" />
         </button>
@@ -479,7 +482,7 @@ const DeleteMethodPopup = ({ restaurantId, method, onClose }) => {
           type="button"
           onClick={onClose}
           className="grid place-items-center size-8 rounded-md text-[--gr-1] hover:bg-[--white-2] transition"
-          aria-label="Kapat"
+          aria-label={t("paymentMethods.close")}
         >
           <X className="size-4" />
         </button>

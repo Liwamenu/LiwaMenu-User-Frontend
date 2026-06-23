@@ -45,6 +45,7 @@ export default EditLicenseIsActive;
 /////////////
 // EDIT licenseData POPUP
 function EditLicenseIsActivesPopup({ onSuccess, license }) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const toastId = useRef();
   const licenseDataIsActiveRef = useRef();
@@ -77,7 +78,7 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
   // TOAST
   useEffect(() => {
     if (loading) {
-      toastId.current = toast.loading("İşleniyor 🤩...");
+      toastId.current = toast.loading(t("addLicense.processing"));
     }
     if (error) {
       toastId.current && toast.dismiss(toastId.current);
@@ -92,9 +93,11 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
       onSuccess();
       setPopupContent(null);
       toast.success(
-        `Lisans başarıyla ${
-          license.isActive ? "Pasifleştirildi" : "Aktifleştirildi"
-        } 🥳🥳`
+        t("licenses.status_update_success", {
+          status: license.isActive
+            ? t("licenses.deactivated")
+            : t("licenses.activated"),
+        })
       );
       dispatch(resetUpdateLicenseIsActiveState());
     }
@@ -115,10 +118,12 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
               <CancelI />
             </div>
           </div>
-          <h1 className="self-center text-2xl font-bold">Lisans Durumu</h1>
+          <h1 className="self-center text-2xl font-bold">
+            {t("licenses.status_title")}
+          </h1>
           <div className="flex flex-col px-4 sm:px-14 mt-9 w-full text-left gap-8">
             <div className="w-full flex gap-12 items-center">
-              <p className="min-w-28">Durum:</p>
+              <p className="min-w-28">{t("licenses.status_label")}</p>
               <p
                 className={`py-3 border border-dashed w-24 text-center rounded-md ${
                   license.isActive
@@ -126,17 +131,21 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
                     : "text-[--red-1] border-[--red-1]"
                 }`}
               >
-                ● {license.isActive ? "Aktif" : "Pasif"}
+                ● {license.isActive ? t("licenses.active") : t("licenses.passive")}
               </p>
             </div>
 
             <div className="w-full flex gap-12 items-center">
-              <p className="min-w-28">İşlem:</p>
+              <p className="min-w-28">{t("licenses.action_label")}</p>
               <CustomCheckbox
                 className2={`${
                   license.isActive ? "text-[--red-1]" : "text-[--green-1]"
                 }`}
-                label={license.isActive ? "Pasifleştir" : "Aktifleştir"}
+                label={
+                  license.isActive
+                    ? t("licenses.deactivate")
+                    : t("licenses.activate")
+                }
                 checked={licenseData.checked}
                 onChange={() =>
                   setLicenseData((prev) => {
@@ -159,7 +168,7 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
 
             {license?.passiveNote && (
               <div className="w-full flex gap-12 items-center">
-                <p className="min-w-28">Pasif Note:</p>
+                <p className="min-w-28">{t("licenses.passive_note_label")}</p>
                 <CustomInput
                   placeholder="Note"
                   value={licenseData.passiveNote}
@@ -188,7 +197,9 @@ function EditLicenseIsActivesPopup({ onSuccess, license }) {
                     : "bg-[--status-green] text-[--green-1] hover:bg-[--green-1] hover:text-[--white-1] border-[--green-1] disabled:hover:bg-[--status-green] disabled:hover:text-[--green-1]"
                 }`}
               >
-                {license.isActive ? "Pasifleştir" : "Aktifleştir"}
+                {license.isActive
+                  ? t("licenses.deactivate")
+                  : t("licenses.activate")}
               </button>
             </div>
           </div>

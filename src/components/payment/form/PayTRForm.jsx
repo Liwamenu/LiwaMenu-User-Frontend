@@ -1,12 +1,15 @@
+import { useTranslation } from "react-i18next";
+
 const className =
   "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2";
 
 const PayTRForm = ({ cardData }) => {
+  const { t } = useTranslation();
   return (
     <>
       <div>
         <label className="hidden text-sm font-medium text-gray-700">
-          Kart Sahibi Adı:
+          {t("payment.card_holder_name_label")}
         </label>
         <input
           type="hidden"
@@ -19,7 +22,7 @@ const PayTRForm = ({ cardData }) => {
 
       <div>
         <label className="hidden text-sm font-medium text-gray-700">
-          Kart Numarası:
+          {t("payment.card_number_label")}
         </label>
         <input
           type="hidden"
@@ -32,7 +35,7 @@ const PayTRForm = ({ cardData }) => {
 
       <div>
         <label className="hidden text-sm font-medium text-gray-700">
-          Kart Son Kullanma Ay:
+          {t("payment.card_expiry_month_label")}
         </label>
         <input
           type="hidden"
@@ -45,7 +48,7 @@ const PayTRForm = ({ cardData }) => {
 
       <div>
         <label className="hidden text-sm font-medium text-gray-700">
-          Kart Son Kullanma Yıl:
+          {t("payment.card_expiry_year_label")}
         </label>
         <input
           type="hidden"
@@ -58,7 +61,7 @@ const PayTRForm = ({ cardData }) => {
 
       <div>
         <label className="hidden text-sm font-medium text-gray-700">
-          Kart Güvenlik Kodu:
+          {t("payment.card_security_code_label")}
         </label>
         <input
           type="hidden"

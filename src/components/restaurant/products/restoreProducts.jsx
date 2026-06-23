@@ -764,7 +764,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Kategori güncelle] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_category_update", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -827,7 +829,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Kategori oluştur] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_category_create", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -901,7 +905,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Alt kategori güncelle] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_subcategory_update", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -953,7 +959,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Alt kategori oluştur] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_subcategory_create", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -1149,7 +1157,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Ürün güncelle] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_product_update", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -1211,7 +1221,9 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
       } catch (err) {
         failed += 1;
         errors.push({
-          name: `[Ürün oluştur] ${job?.backup?.name}`,
+          name: t("productsList.restore_err_product_create", {
+            name: job?.backup?.name,
+          }),
           message:
             err?.response?.data?.message_TR ||
             err?.response?.data?.message ||
@@ -1603,7 +1615,7 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
             err?.message ||
             "unknown";
           errors.push({
-            name: `[Kategori] ${bc?.name}`,
+            name: t("productsList.restore_err_category", { name: bc?.name }),
             message: msg,
           });
         } finally {
@@ -1691,7 +1703,10 @@ export default function RestoreProductsModal({ restaurantId, onApplied }) {
             err?.message ||
             "unknown";
           errors.push({
-            name: `[Alt Kategori] ${job.parentName} / ${job.bs?.name}`,
+            name: t("productsList.restore_err_subcategory", {
+              parent: job.parentName,
+              name: job.bs?.name,
+            }),
             message: msg,
           });
         } finally {

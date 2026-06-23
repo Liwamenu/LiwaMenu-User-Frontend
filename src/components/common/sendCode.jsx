@@ -1,6 +1,7 @@
 //MODULES
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
 //COMP
@@ -15,6 +16,7 @@ import {
 } from "../../redux/auth/userVerificationSlice";
 
 const SendCode = ({ phoneNumber, setPhoneNumber, setToVerify }) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const { success, loading, error } = useSelector(
@@ -29,7 +31,7 @@ const SendCode = ({ phoneNumber, setPhoneNumber, setToVerify }) => {
   //TOAST AND ACTION FOR SEND CODE
   useEffect(() => {
     if (success) {
-      toast.success("Doğrulama Kodu Gönderildi");
+      toast.success(t("common.verification_sent"));
       setToVerify(true);
       dispatch(resetSendVerification());
     }
@@ -60,15 +62,15 @@ const SendCode = ({ phoneNumber, setPhoneNumber, setToVerify }) => {
         </div>
         <div className="w-max">
           <h2 className="text-[2.3rem] font-bold text-[--white-1] tracking-tighter">
-            Onaylama
+            {t("common.confirmation")}
           </h2>
         </div>
       </div>
       <div className="flex flex-col max-w-full">
         <CustomPhoneInput
-          label="Telefon"
+          label={t("common.phone_label")}
           type="number"
-          placeholder="Telefon"
+          placeholder={t("common.phone_label")}
           value={phoneNumber}
           onChange={(phone) => setPhoneNumber(phone)}
           required={true}
@@ -81,7 +83,7 @@ const SendCode = ({ phoneNumber, setPhoneNumber, setToVerify }) => {
             type="submit"
             className="flex justify-center px-7 py-2 text-md rounded-md bg-[--primary-1] text-white hover:opacity-90 disabled:opacity-90 disabled:cursor-not-allowed"
           >
-            {loading ? <LoadingI className="h-7" /> : "Devam"}
+            {loading ? <LoadingI className="h-7" /> : t("common.continue")}
           </button>
           <div className="shrink-0 mt-5 h-px bg-slate-200 w-full mb-24" />
         </div>

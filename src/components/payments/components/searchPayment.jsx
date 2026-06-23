@@ -1,4 +1,5 @@
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { getPayments } from "../../../redux/payments/getPaymentsSlice";
 import { formatDate } from "../../../utils/utils";
 import CustomInput from "../../common/customInput";
@@ -13,6 +14,7 @@ const SearchPayment = ({
   setPageNumber,
 }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const searchData = {
     pageNumber: 1,
@@ -49,7 +51,7 @@ const SearchPayment = ({
             !e && clearSearch();
           }}
           value={searchVal}
-          placeholder="Ara..."
+          placeholder={t("paymentsPage.search_placeholder")}
           className2="mt-[0px] w-full"
           className="mt-[0px] py-[.7rem] w-[100%] focus:outline-none"
           icon={<CloseI className="w-4 text-[--red-1]" />}

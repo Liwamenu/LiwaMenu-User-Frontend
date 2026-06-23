@@ -683,7 +683,7 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                               type="text"
                               inputMode="decimal"
                               name="price"
-                              placeholder="Fiyat"
+                              placeholder={t("editProduct.portion_column_price")}
                               className="py-[6px] text-sm text-center bg-[--white-2]"
                               value={portion.price ?? ""}
                               onChange={(v) =>
@@ -700,7 +700,7 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                                 type="text"
                                 inputMode="decimal"
                                 name="price"
-                                placeholder="Kampanya"
+                                placeholder={t("editProduct.portion_column_campaign")}
                                 className="py-[6px] text-sm text-end text-[--black-2] bg-green-400/30 border-green-300"
                                 value={portion.campaignPrice ?? ""}
                                 onChange={(v) =>

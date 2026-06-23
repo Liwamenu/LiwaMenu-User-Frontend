@@ -138,7 +138,10 @@
     "feat_google_review": "Google rəy linkini paylaşın",
     "feat_social_media": "Sosial media hesablarını nümayiş etdirin",
     "feat_working_hours": "İş saatlarına uyğun funksiyalar",
-    "footer_credit": "LiwaMenu, LiwaSoft şirkətinin bir qoludur."
+    "footer_credit": "LiwaMenu, LiwaSoft şirkətinin bir qoludur.",
+    "processing": "Emal olunur...",
+    "resending_code": "Təsdiq kodu yenidən göndərilir...",
+    "code_sent": "Təsdiq kodu e-poçtunuza göndərildi."
   },
   "register": {
     "title": "Qeydiyyat",
@@ -300,7 +303,10 @@
     "license_get": "Lisenziya Al",
     "license_no": "Lisenziya Yoxdur",
     "license_expired": "Müddəti Bitib",
-    "manage_licenses": "Lisenziyaları İdarə Et"
+    "manage_licenses": "Lisenziyaları İdarə Et",
+    "max_file_size": "Maksimum {{size}}MB",
+    "change": "Dəyiş",
+    "remove": "Sil"
   },
   "restaurantLicensesModal": {
     "title": "Lisenziya İdarəetməsi",
@@ -349,7 +355,16 @@
     "no_licenses": "Hələ lisenziya yoxdur",
     "no_licenses_description": "Restoranınız üçün lisenziya satın alaraq başlayın.",
     "no_results": "Nəticə tapılmadı",
-    "no_results_description": "Axtarış və ya filtr meyarlarınızı dəyişdirməyə çalışın."
+    "no_results_description": "Axtarış və ya filtr meyarlarınızı dəyişdirməyə çalışın.",
+    "status_update_success": "Lisenziya uğurla {{status}} 🥳🥳",
+    "deactivated": "Deaktiv edildi",
+    "activated": "Aktivləşdirildi",
+    "status_title": "Lisenziya statusu",
+    "status_label": "Status:",
+    "action_label": "Əməliyyat:",
+    "deactivate": "Deaktiv et",
+    "activate": "Aktivləşdir",
+    "passive_note_label": "Passiv qeyd:"
   },
   "addLicense": {
     "title": "Lisans Satın Al",
@@ -398,7 +413,19 @@
     "upload_receipt_msg": "Qəbzinizi yükləmək üçün klikləyin və ya sürükləyib buraxın.",
     "note_label": "Qeyd",
     "note_placeholder": "Qeyd (ixtiyari)",
-    "after_check_msg": "Qəbziniz yoxlanıldıqdan sonra aşağıdakı lisanslar əlavə ediləcək:"
+    "after_check_msg": "Qəbziniz yoxlanıldıqdan sonra aşağıdakı lisanslar əlavə ediləcək:",
+    "delete": "Sil",
+    "processing": "Emal olunur 🤩...",
+    "delete_success": "Lisenziya uğurla silindi 🥳🥳",
+    "delete_license_title": "Lisenziyanı sil",
+    "marketplace": "Bazar",
+    "license_duration": "Lisenziya müddəti",
+    "year_count": "{{count}} illik",
+    "price": "Qiymət",
+    "delete_confirm": "Lisenziyanı silmək istədiyinizə əminsiniz?",
+    "delete_sure": "Əminəm, sil",
+    "breadcrumb_users": "İstifadəçilər",
+    "breadcrumb_restaurants": "Restoranlar"
   },
   "extendLicense": {
     "title": "Lisansı Uzat",
@@ -456,7 +483,23 @@
     "secure_3d_title": "3D Secure Doğrulama",
     "secure_3d_subtitle": "Bankınızın təhlükəsiz səhifəsinə yönləndirildiniz. Doğrulamanı tamamlayın.",
     "loading_3d": "Təhlükəsiz ödəniş səhifəsi yüklənir...",
-    "cancel_payment": "Ödənişi Ləğv Et"
+    "cancel_payment": "Ödənişi Ləğv Et",
+    "credit_card": "Kredit kartı",
+    "invalid_card_number": "Yanlış kart nömrəsi",
+    "month": "Ay",
+    "year": "İl",
+    "card_holder_name_label": "Kart sahibinin adı:",
+    "card_number_label": "Kart nömrəsi:",
+    "card_expiry_month_label": "Kartın bitmə ayı:",
+    "card_expiry_year_label": "Kartın bitmə ili:",
+    "card_security_code_label": "Kartın təhlükəsizlik kodu:",
+    "payment_failed_title": "Ödəniş uğursuz oldu! 😔",
+    "payment_failed_desc": "Əməliyyatınız texniki səhv səbəbindən uğursuz oldu. Zəhmət olmasa yenidən cəhd edin.",
+    "payment_success_typing": "Ödəniş əməliyyatınız uğurlu oldu.",
+    "processing_title": "Ödəniş emal olunur",
+    "processing_desc": "Zəhmət olmasa səhifədən çıxmayın, əməliyyatınız davam edir...",
+    "payment_success_toast": "Ödəniş uğurlu oldu 😃",
+    "payment_failed_toast": "Ödəniş uğursuz oldu 😞"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -752,7 +795,9 @@
     "delete_confirm": "{{name}} ödəniş üsulunu silmək istədiyinizdən əminsinizmi?",
     "delete": "Sil",
     "delete_success": "Ödəniş üsulu silindi.",
-    "cancel": "Ləğv et"
+    "cancel": "Ləğv et",
+    "active_count": "{{enabled}} / {{total}} aktiv",
+    "close": "Bağla"
   },
   "editCategories": {
     "no_changes": "Heç bir dəyişiklik edilmədi.",
@@ -807,7 +852,8 @@
     "bulk_invalid_file": "Etibarsız fayl növü",
     "bulk_too_large": "Maksimum {{size}}MB",
     "view_list": "Siyahı",
-    "view_tile": "Kafel"
+    "view_tile": "Kafel",
+    "product_count_fallback": "3 məhsul"
   },
   "categoryProducts": {
     "title": "Kateqoriya Məhsulları",
@@ -935,7 +981,8 @@
     "status": "Status",
     "featured": "Aşpazın Tövsiyəsi",
     "campaign_warning": "Kampaniya qiymətini {{tab}} tabından təyin edə bilərsiniz.",
-    "campaign_warning_tab": "Qiymət Siyahısı"
+    "campaign_warning_tab": "Qiymət Siyahısı",
+    "category_image_alt": "Kateqoriya"
   },
   "editSubCategories": {
     "title": "{{name}} Restoranı üçün Alt Kateqoriyaları Redaktə Et",
@@ -974,7 +1021,8 @@
     "select_category": "Kateqoriya seçin",
     "delete": "Sil",
     "save": "Saxla",
-    "success": "Alt kateqoriyalar uğurla əlavə edildi."
+    "success": "Alt kateqoriyalar uğurla əlavə edildi.",
+    "unknown_category": "Naməlum kateqoriya"
   },
   "addSubCategory": {
     "add": "Alt Kateqoriya Əlavə Et",
@@ -990,7 +1038,8 @@
     "info": "Alt kateqoriyalar, əsas kateqoriyalar daxilindəki məhsulları daha ətraflı qruplaşdırmaq üçün istifadə olunur. Məsələn: 'Şorbalar' kateqoriyası altında 'İsti Şorbalar' və 'Soyuq Şorbalar' kimi.",
     "cancel": "Ləğv et",
     "save": "Saxla",
-    "success": "Alt kateqoriya uğurla əlavə edildi."
+    "success": "Alt kateqoriya uğurla əlavə edildi.",
+    "image_alt": "Alt kateqoriya"
   },
   "editSubCategory": {
     "title": "Alt Kateqoriyanı Redaktə Et",
@@ -1105,7 +1154,37 @@
   "productsHeader": {
     "manage": "Məhsul İdarəetməsi",
     "price_list": "Qiymət Siyahısı",
-    "add_product": "Məhsul Əlavə Et"
+    "add_product": "Məhsul Əlavə Et",
+    "products_of_restaurant": "{{name}} restoranının məhsulları",
+    "delete_product": "Məhsulu sil",
+    "category": "Kateqoriya",
+    "category_select": "Kateqoriya seçin",
+    "sub_category": "Alt kateqoriya",
+    "sub_category_select": "Alt kateqoriya seçin",
+    "product_name": "Məhsul adı",
+    "description": "Təsvir",
+    "chef_recommendation": "Şef tövsiyəsi",
+    "hide": "Gizlət",
+    "portions": "Porsiyalar",
+    "add_portion": "Porsiya əlavə et",
+    "portion_name": "Porsiya adı",
+    "portion_price": "Porsiya qiyməti",
+    "delete_portion": "Porsiyanı sil",
+    "add_tag": "Etiket əlavə et",
+    "tag_name_with_example": "Etiket adı (məs: Ədviyyat seçimi)",
+    "tag_select": "Etiket seçin",
+    "min_selection": "Min seçim",
+    "max_selection": "Maks seçim",
+    "delete_tag": "Etiketi sil",
+    "add_option": "Seçim əlavə et",
+    "option_name": "Seçim adı",
+    "option_select": "Seçim seçin",
+    "price": "Qiymət",
+    "max_quantity_short": "Maks seçim",
+    "max_quantity": "Maksimum seçim",
+    "delete": "Sil",
+    "add_new_product": "Yeni məhsul əlavə et",
+    "save": "Yadda saxla"
   },
   "allergens": {
     "title": "Allergenlər",
@@ -1263,7 +1342,15 @@
     "restore_error_missing_manifest": "manifest.json tapılmadı — bu etibarlı bir Liwa yedəyi deyil.",
     "restore_error_wrong_type": "Bu fayl Liwa məhsul yedəyi deyil.",
     "restore_error_wrong_version": "Bu yedək faylının formatı dəstəklənmir (yeni versiya tələb oluna bilər).",
-    "restore_error_malformed": "Yedək faylının strukturu etibarsızdır."
+    "restore_error_malformed": "Yedək faylının strukturu etibarsızdır.",
+    "restore_err_category_update": "[Kateqoriya yenilə] {{name}}",
+    "restore_err_category_create": "[Kateqoriya yarat] {{name}}",
+    "restore_err_subcategory_update": "[Alt kateqoriya yenilə] {{name}}",
+    "restore_err_subcategory_create": "[Alt kateqoriya yarat] {{name}}",
+    "restore_err_product_update": "[Məhsul yenilə] {{name}}",
+    "restore_err_product_create": "[Məhsul yarat] {{name}}",
+    "restore_err_category": "[Kateqoriya] {{name}}",
+    "restore_err_subcategory": "[Alt kateqoriya] {{parent}} / {{name}}"
   },
   "productCard": {
     "no_image": "Şəkil Yoxdur",
@@ -1570,7 +1657,10 @@
     "col_product": "Məhsul",
     "col_portion": "Porsiya",
     "option_name_placeholder": "Seçim adı",
-    "price_placeholder": "Qiymət"
+    "price_placeholder": "Qiymət",
+    "all_categories": "Bütün kateqoriyalar",
+    "all_products": "Bütün məhsullar",
+    "all_portions": "Bütün porsiyalar"
   },
   "surveySettings": {
     "title": "{{name}} Restoranı Müştəri Rəy Analitikası",
@@ -1593,7 +1683,8 @@
     "create": "Yarat",
     "update": "Yenilə",
     "added_success": "Sorğu əlavə edildi.",
-    "updated_success": "Sorğu yeniləndi."
+    "updated_success": "Sorğu yeniləndi.",
+    "categories": "kateqoriya"
   },
   "qrThemeSelector": {
     "title": "{{name}} üçün Tema Parametrləri",
@@ -2878,5 +2969,38 @@
     "max_placeholder": "Maks",
     "clear": "Təmizlə",
     "apply": "Tətbiq et"
+  },
+  "common": {
+    "footer_credit": "LiwaMenu LiwaSoft-un törəməsidir.",
+    "customer_service": "Müştəri Xidmətləri",
+    "phone_verification_message": "telefon nömrənizə təsdiq kodu göndərdik. Zəhmət olmasa SMS mesajlarınızı yoxlayın və təsdiq üçün kodu daxil edin.",
+    "email_verification_message": "e-poçt ünvanınıza təsdiq kodu göndərdik. Zəhmət olmasa e-poçt mesajlarınızı yoxlayın və təsdiq üçün kodu daxil edin.",
+    "time_is_up": "Vaxtınız bitdi! Yenidən cəhd edin",
+    "verification_sent": "Təsdiq kodu göndərildi",
+    "confirmation": "Təsdiqləmə",
+    "phone_label": "Telefon",
+    "continue": "Davam et",
+    "processing": "Emal olunur...",
+    "code_verified": "Təsdiq kodu yoxlanıldı",
+    "code_sent": "Təsdiq kodu göndərildi",
+    "confirm": "Təsdiqlə",
+    "verification_code": "Təsdiq kodu",
+    "resend": "Yenidən göndər",
+    "verify": "Təsdiqlə"
+  },
+  "invoice": {
+    "name_title": "Ad/Vəzifə",
+    "vkn_tckn": "VÖEN və ya FİN",
+    "tax_office": "Vergi idarəsi",
+    "trade_registry_number": "Ticarət reyestr nömrəsi",
+    "mersis_number": "Mersis nömrəsi",
+    "city": "Şəhər",
+    "select_city": "Şəhər seçin",
+    "district": "Rayon",
+    "select_district": "Rayon seçin",
+    "neighbourhood": "Qəsəbə",
+    "select_neighbourhood": "Qəsəbə seçin",
+    "address": "Ünvan",
+    "name": "Ad"
   }
 }

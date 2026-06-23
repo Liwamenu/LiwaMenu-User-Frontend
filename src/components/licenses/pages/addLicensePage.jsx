@@ -93,7 +93,7 @@ const AddLicensePage = () => {
         {currentPath.includes("users") && (
           <>
             <span className="text-[--gr-1]">
-              {user?.fullName || "Kullanıcılar"}
+              {user?.fullName || t("addLicense.breadcrumb_users")}
             </span>
             <ChevronRight className="size-3 text-[--gr-1]/60" />
           </>
@@ -101,7 +101,7 @@ const AddLicensePage = () => {
         {currentPath.includes("restaurants") && (
           <>
             <span className="text-[--gr-1]">
-              {restaurant?.name || "Restoranlar"}
+              {restaurant?.name || t("addLicense.breadcrumb_restaurants")}
             </span>
             <ChevronRight className="size-3 text-[--gr-1]/60" />
           </>

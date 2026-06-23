@@ -1,6 +1,7 @@
 //MODULES
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 //COMP
 import { DeleteI } from "../../../assets/icon";
@@ -20,6 +21,7 @@ import orderTagItems from "../../../assets/js/OrderTagItems.json";
 import ProductsHeader from "./header";
 
 const AddProducts = ({ data: restaurant }) => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [previews, setPreviews] = useState([]);
   const [prodsData, setProdsData] = useState([
@@ -231,7 +233,9 @@ const AddProducts = ({ data: restaurant }) => {
     <section className="w-full pb-5 mt-1 bg-[--white-1] rounded-lg text-[--black-2]">
       <div className="px-4 max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold bg-indigo-800 text-white py-4 -mx-4 px-4 sm:px-14 rounded-t-lg">
-          Ürünler {restaurant?.name} Restoranı
+          {t("productsHeader.products_of_restaurant", {
+            name: restaurant?.name,
+          })}
         </h1>
 
         <ProductsHeader />
@@ -248,7 +252,7 @@ const AddProducts = ({ data: restaurant }) => {
                   className="flex justify-end text-[--red-1] text-sm cursor-pointer mb-2"
                   onClick={() => deleteProduct(index)}
                 >
-                  <DeleteI className="size-[1rem]" /> Ürünü Sil
+                  <DeleteI className="size-[1rem]" /> {t("productsHeader.delete_product")}
                 </div>
               )}
 
@@ -278,8 +282,8 @@ const AddProducts = ({ data: restaurant }) => {
                 <div className="flex flex-col w-full max-w-80">
                   <CustomSelect
                     required
-                    label="Kategori"
-                    placeholder="Kategori"
+                    label={t("productsHeader.category")}
+                    placeholder={t("productsHeader.category")}
                     style={{ padding: "1px 0px" }}
                     className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                     value={
@@ -288,7 +292,7 @@ const AddProducts = ({ data: restaurant }) => {
                             value: product.categoryId,
                             label: product.categoryName,
                           }
-                        : { value: "", label: "Kategori Seç" }
+                        : { value: "", label: t("productsHeader.category_select") }
                     }
                     options={formattedCatsForSelect}
                     onChange={(e) => {
@@ -303,8 +307,8 @@ const AddProducts = ({ data: restaurant }) => {
                   />
 
                   <CustomSelect
-                    label="Alt Kategori"
-                    placeholder="Alt Kategori"
+                    label={t("productsHeader.sub_category")}
+                    placeholder={t("productsHeader.sub_category")}
                     style={{ padding: "1px 0px" }}
                     className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                     value={
@@ -313,7 +317,7 @@ const AddProducts = ({ data: restaurant }) => {
                             value: product.subCategoryId,
                             label: product.subCategoryName,
                           }
-                        : { value: "", label: "Alt Kategori Seç" }
+                        : { value: "", label: t("productsHeader.sub_category_select") }
                     }
                     options={getSubcatOptions(product.categoryId)}
                     onChange={(e) => {
@@ -326,8 +330,8 @@ const AddProducts = ({ data: restaurant }) => {
 
                   <CustomInput
                     required
-                    label="Ürün Adı"
-                    placeholder="Ürün Adı"
+                    label={t("productsHeader.product_name")}
+                    placeholder={t("productsHeader.product_name")}
                     className="py-[.45rem] text-sm "
                     className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                     value={product.name}
@@ -340,8 +344,8 @@ const AddProducts = ({ data: restaurant }) => {
 
                   <CustomInput
                     required
-                    label="Açıklama"
-                    placeholder="Açıklama"
+                    label={t("productsHeader.description")}
+                    placeholder={t("productsHeader.description")}
                     className="py-[.45rem] text-sm"
                     className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                     value={product.description}
@@ -353,7 +357,7 @@ const AddProducts = ({ data: restaurant }) => {
                   />
                   <div className="flex flex-col gap-2 mt-2">
                     <div className="flex justify-between items-center max-w-md">
-                      <label className="font-medium">Şef tavsiyesi</label>
+                      <label className="font-medium">{t("productsHeader.chef_recommendation")}</label>
                       <CustomToggle
                         checked={product.recommendation}
                         className="scale-[0.8]"
@@ -367,7 +371,7 @@ const AddProducts = ({ data: restaurant }) => {
                     </div>
 
                     <div className="flex justify-between items-center max-w-md">
-                      <label className="font-medium">Gizle</label>
+                      <label className="font-medium">{t("productsHeader.hide")}</label>
                       <CustomToggle
                         checked={product.hide}
                         className="scale-[0.8]"
@@ -384,14 +388,14 @@ const AddProducts = ({ data: restaurant }) => {
 
               {/* Portions */}
               <div>
-                <h3 className="font-semibold mt-4 mb-2">Porsiyonlar</h3>
+                <h3 className="font-semibold mt-4 mb-2">{t("productsHeader.portions")}</h3>
                 <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() => addPortion(index)}
                     className="text-sm mb-2 text-blue-600"
                   >
-                    + Porsiyon Ekle
+                    + {t("productsHeader.add_portion")}
                   </button>
                 </div>
 
@@ -400,8 +404,8 @@ const AddProducts = ({ data: restaurant }) => {
                     <div className="flex gap-4">
                       <CustomInput
                         required
-                        label="Porsiyon Adı"
-                        placeholder="Porsiyon Adı"
+                        label={t("productsHeader.portion_name")}
+                        placeholder={t("productsHeader.portion_name")}
                         className="py-[.45rem] text-sm "
                         className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                         value={portion.name}
@@ -417,8 +421,8 @@ const AddProducts = ({ data: restaurant }) => {
                         type="text"
                         inputMode="decimal"
                         name="price"
-                        label="Porsiyon Fiyatı"
-                        placeholder="Porsiyon Fiyatı"
+                        label={t("productsHeader.portion_price")}
+                        placeholder={t("productsHeader.portion_price")}
                         className="py-[.45rem] text-sm "
                         className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]"
                         value={portion.price ?? ""}
@@ -435,7 +439,7 @@ const AddProducts = ({ data: restaurant }) => {
                       >
                         {pIndex != 0 && (
                           <div className="flex items-center gap-1">
-                            <p>Porsiyonu Sil</p>
+                            <p>{t("productsHeader.delete_portion")}</p>
                             <DeleteI className=" size-[1rem]" />
                           </div>
                         )}
@@ -448,7 +452,7 @@ const AddProducts = ({ data: restaurant }) => {
                         onClick={() => addOrderTag(index, pIndex)}
                         className="text-sm text-blue-600"
                       >
-                        + Etiket Ekle
+                        + {t("productsHeader.add_tag")}
                       </button>
 
                       {portion.orderTags.map((tag, tIndex) => (
@@ -459,13 +463,13 @@ const AddProducts = ({ data: restaurant }) => {
                           <div className="flex w-full justify-between">
                             <CustomSelect
                               required
-                              label="Etiket Adı (ör: Baharat Seçimi)"
-                              placeholder="Etiket Adı (ör: Baharat Seçimi)"
+                              label={t("productsHeader.tag_name_with_example")}
+                              placeholder={t("productsHeader.tag_name_with_example")}
                               style={{ padding: "1px 0px" }}
                               className2="py-[.45rem] text-sm mt-[0] sm:mt-[0]  max-w-64"
                               value={{
                                 value: tag.id || null,
-                                label: tag.name || "Etiket Seç",
+                                label: tag.name || t("productsHeader.tag_select"),
                               }}
                               options={formattedOrderTagsForSelect}
                               onChange={(e) => {
@@ -487,8 +491,8 @@ const AddProducts = ({ data: restaurant }) => {
                             <div>
                               <CustomInput
                                 readOnly
-                                label="Min Seçim"
-                                placeholder="Min Seçim"
+                                label={t("productsHeader.min_selection")}
+                                placeholder={t("productsHeader.min_selection")}
                                 className="mt-[0.3rem] sm:mt-[0.3rem] py-[.5rem] border-none cursor-not-allowed"
                                 className2="text-sm mt-[0] sm:mt-[0]"
                                 value={tag.minSelected}
@@ -497,8 +501,8 @@ const AddProducts = ({ data: restaurant }) => {
                             <div>
                               <CustomInput
                                 readOnly
-                                label="Max Seçim"
-                                placeholder="Max Seçim"
+                                label={t("productsHeader.max_selection")}
+                                placeholder={t("productsHeader.max_selection")}
                                 className="mt-[0.3rem] sm:mt-[0.3rem] py-[.5rem] border-none cursor-not-allowed"
                                 className2="text-sm mt-[0] sm:mt-[0]"
                                 value={tag.maxSelected}
@@ -512,7 +516,7 @@ const AddProducts = ({ data: restaurant }) => {
                               }
                             >
                               <div className="flex items-center gap-1">
-                                <p>Etiketi Sil</p>
+                                <p>{t("productsHeader.delete_tag")}</p>
                                 <DeleteI className=" size-[1rem]" />
                               </div>
                             </div>
@@ -525,7 +529,7 @@ const AddProducts = ({ data: restaurant }) => {
                             }
                             className="text-sm text-green-600"
                           >
-                            + Seçenek Ekle
+                            + {t("productsHeader.add_option")}
                           </button>
 
                           <div
@@ -538,13 +542,13 @@ const AddProducts = ({ data: restaurant }) => {
                               <div key={iIndex} className="flex gap-2 my-1">
                                 <CustomSelect
                                   required
-                                  placeholder="Seçenek Adı"
+                                  placeholder={t("productsHeader.option_name")}
                                   style={{ padding: "1px 0px" }}
                                   className="text-sm mt-[0] sm:mt-[0]"
                                   className2="py-[0] text-sm mt-[0] sm:mt-[0]"
                                   value={{
                                     value: item.id || null,
-                                    label: item.name || "Seçenek Seç",
+                                    label: item.name || t("productsHeader.option_select"),
                                   }}
                                   options={orderTagItems.orderTagItems
                                     .filter(
@@ -575,8 +579,8 @@ const AddProducts = ({ data: restaurant }) => {
                                     type="text"
                                     inputMode="decimal"
                                     name="price"
-                                    label={iIndex === 0 ? "Fiyat" : ""}
-                                    placeholder="Fiyat"
+                                    label={iIndex === 0 ? t("productsHeader.price") : ""}
+                                    placeholder={t("productsHeader.price")}
                                     className="py-[.45rem] text-sm mt-[0] sm:mt-[0] border-none cursor-not-allowed"
                                     className2="py-[0] text-sm mt-[0] sm:mt-[0]"
                                     value={item.price ?? ""}
@@ -591,8 +595,8 @@ const AddProducts = ({ data: restaurant }) => {
                                   <CustomInput
                                     readOnly
                                     type="number"
-                                    label={iIndex === 0 ? "Maks Seçimi" : ""}
-                                    placeholder="Maksimum Seçimi"
+                                    label={iIndex === 0 ? t("productsHeader.max_quantity_short") : ""}
+                                    placeholder={t("productsHeader.max_quantity")}
                                     className="py-[.45rem] text-sm mt-[0] sm:mt-[0] border-none cursor-not-allowed"
                                     className2="py-[0] text-sm mt-[0] sm:mt-[0]"
                                     value={item.maxQuantity}
@@ -618,7 +622,7 @@ const AddProducts = ({ data: restaurant }) => {
                                   }
                                 >
                                   <div className="flex items-center gap-1">
-                                    <p>Sil</p>
+                                    <p>{t("productsHeader.delete")}</p>
                                     <DeleteI className=" size-[1rem]" />
                                   </div>
                                 </div>
@@ -640,7 +644,7 @@ const AddProducts = ({ data: restaurant }) => {
               onClick={addProduct}
               className="mt-4 text-[--primary-1] text-sm border border-[--primary-1] px-3 py-1 rounded"
             >
-              + Yeni Ürün Ekle
+              + {t("productsHeader.add_new_product")}
             </button>
 
             {prodsData?.length && (
@@ -648,7 +652,7 @@ const AddProducts = ({ data: restaurant }) => {
                 type="submit"
                 className="mt-4 text-[--white-1] bg-[--primary-1] text-sm border border-[--primary-1] px-3 py-1 rounded"
               >
-                Kaydet
+                {t("productsHeader.save")}
               </button>
             )}
           </div>

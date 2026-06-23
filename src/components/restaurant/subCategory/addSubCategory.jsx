@@ -212,7 +212,7 @@ const AddSubCategory = ({ restaurant, onSuccess }) => {
                     <img
                       src={preview}
                       className="max-h-40 w-auto object-cover rounded-md"
-                      alt="Alt Kategori"
+                      alt={t("addSubCategory.image_alt")}
                     />
                   </div>
                 ) : (
