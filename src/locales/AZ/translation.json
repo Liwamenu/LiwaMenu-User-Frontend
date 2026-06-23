@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "ID-ni kopyala",
+    "customer_label": "Müştəri",
+    "phone_label": "Telefon",
+    "address_label": "Ünvan",
+    "payment_label": "Ödəniş",
+    "date_label": "Tarix",
+    "quick_date": "Sürətli tarix",
+    "custom_date_range": "Xüsusi tarix aralığı",
+    "amount_range": "Məbləğ aralığı",
     "subtitle": "Daxil olan sifarişləri real vaxtda izləyin",
     "summary_count": "Cəmi {{count}} sifariş",
     "filtered_restaurants": "Filtrlənmiş Restoranlar",

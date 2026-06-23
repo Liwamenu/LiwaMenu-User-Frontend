@@ -173,7 +173,7 @@ const DrawerHeader = ({ order, onClose }) => {
           type="button"
           onClick={() => copyToClipboard({ text: order.id })}
           className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-[--gr-1] hover:text-[--primary-1] font-mono w-full transition"
-          title="ID'yi kopyala"
+          title={t("orders.copy_id")}
         >
           <Hash className="size-3 shrink-0" />
           <span className="truncate">{order.id}</span>
@@ -209,7 +209,7 @@ const DrawerHeader = ({ order, onClose }) => {
           type="button"
           onClick={onClose}
           className="grid place-items-center size-9 rounded-lg hover:bg-[--white-2] text-[--gr-1] transition"
-          aria-label="Kapat"
+          aria-label={t("orders.close")}
         >
           <X className="size-5" />
         </button>
@@ -323,12 +323,12 @@ const CustomerSection = ({ order }) => {
           />
         )}
         {order.customerName && (
-          <Row icon={User} label="Müşteri" value={order.customerName} />
+          <Row icon={User} label={t("orders.customer_label")} value={order.customerName} />
         )}
         {order.customerTel && (
           <Row
             icon={Phone}
-            label="Telefon"
+            label={t("orders.phone_label")}
             value={order.customerTel}
             onClick={() => copyToClipboard({ text: order.customerTel })}
           />
@@ -336,7 +336,7 @@ const CustomerSection = ({ order }) => {
         {order.customerAddress && (
           <Row
             icon={MapPin}
-            label="Adres"
+            label={t("orders.address_label")}
             value={order.customerAddress}
             multiline
           />
@@ -352,13 +352,13 @@ const CustomerSection = ({ order }) => {
         {order.paymentMethodName && (
           <Row
             icon={CreditCard}
-            label="Ödeme"
+            label={t("orders.payment_label")}
             value={order.paymentMethodName}
           />
         )}
         <Row
           icon={Clock}
-          label="Tarih"
+          label={t("orders.date_label")}
           value={formatDateString({
             dateString: order.createdAt,
             hour: true,

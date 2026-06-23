@@ -1786,6 +1786,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "Copy ID",
+    "customer_label": "Customer",
+    "phone_label": "Phone",
+    "address_label": "Address",
+    "payment_label": "Payment",
+    "date_label": "Date",
+    "quick_date": "Quick Date",
+    "custom_date_range": "Custom Date Range",
+    "amount_range": "Amount Range",
     "subtitle": "Track incoming orders in real time",
     "summary_count": "{{count}} orders total",
     "filtered_restaurants": "Filtered Restaurants",

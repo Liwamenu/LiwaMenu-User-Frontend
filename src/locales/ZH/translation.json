@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "复制ID",
+    "customer_label": "客户",
+    "phone_label": "电话",
+    "address_label": "地址",
+    "payment_label": "支付",
+    "date_label": "日期",
+    "quick_date": "快捷日期",
+    "custom_date_range": "自定义日期范围",
+    "amount_range": "金额范围",
     "subtitle": "实时跟踪进入的订单",
     "summary_count": "共 {{count}} 笔订单",
     "filtered_restaurants": "已筛选餐厅",

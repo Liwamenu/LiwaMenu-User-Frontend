@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "عنوان URL الأساسي"
   },
   "orders": {
+    "copy_id": "نسخ المعرّف",
+    "customer_label": "العميل",
+    "phone_label": "الهاتف",
+    "address_label": "العنوان",
+    "payment_label": "الدفع",
+    "date_label": "التاريخ",
+    "quick_date": "تاريخ سريع",
+    "custom_date_range": "نطاق تاريخ مخصص",
+    "amount_range": "نطاق المبلغ",
     "subtitle": "تتبع الطلبات الواردة في الوقت الفعلي",
     "summary_count": "إجمالي {{count}} طلب",
     "filtered_restaurants": "المطاعم المصفّاة",

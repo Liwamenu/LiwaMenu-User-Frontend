@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "URL base"
   },
   "orders": {
+    "copy_id": "Copia ID",
+    "customer_label": "Cliente",
+    "phone_label": "Telefono",
+    "address_label": "Indirizzo",
+    "payment_label": "Pagamento",
+    "date_label": "Data",
+    "quick_date": "Data rapida",
+    "custom_date_range": "Intervallo di date personalizzato",
+    "amount_range": "Intervallo di importo",
     "subtitle": "Monitora gli ordini in arrivo in tempo reale",
     "summary_count": "{{count}} ordini totali",
     "filtered_restaurants": "Ristoranti filtrati",

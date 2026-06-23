@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "Копировать ID",
+    "customer_label": "Клиент",
+    "phone_label": "Телефон",
+    "address_label": "Адрес",
+    "payment_label": "Оплата",
+    "date_label": "Дата",
+    "quick_date": "Быстрая дата",
+    "custom_date_range": "Произвольный период",
+    "amount_range": "Диапазон суммы",
     "subtitle": "Отслеживайте входящие заказы в режиме реального времени",
     "summary_count": "Всего {{count}} заказов",
     "filtered_restaurants": "Отфильтрованные рестораны",

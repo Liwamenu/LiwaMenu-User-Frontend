@@ -1730,6 +1730,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "Αντιγραφή ID",
+    "customer_label": "Πελάτης",
+    "phone_label": "Τηλέφωνο",
+    "address_label": "Διεύθυνση",
+    "payment_label": "Πληρωμή",
+    "date_label": "Ημερομηνία",
+    "quick_date": "Γρήγορη ημερομηνία",
+    "custom_date_range": "Προσαρμοσμένο εύρος ημερομηνιών",
+    "amount_range": "Εύρος ποσού",
     "subtitle": "Παρακολουθήστε εισερχόμενες παραγγελίες σε πραγματικό χρόνο",
     "summary_count": "{{count}} παραγγελίες συνολικά",
     "filtered_restaurants": "Φιλτραρισμένα Εστιατόρια",

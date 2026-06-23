@@ -167,7 +167,7 @@ const FilterOrders = () => {
               type="button"
               onClick={() => setOpenFilter(false)}
               className="grid place-items-center size-7 rounded-md hover:bg-[--white-2] text-[--gr-1]"
-              aria-label="Kapat"
+              aria-label={t("orders.close")}
             >
               <X className="size-4" />
             </button>
@@ -177,7 +177,7 @@ const FilterOrders = () => {
             {/* Quick date range */}
             <div>
               <p className="block text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-1.5">
-                Hızlı Tarih
+                {t("orders.quick_date")}
               </p>
               <div className="grid grid-cols-2 gap-1.5">
                 {dateRanges.map((d) => (
@@ -206,7 +206,7 @@ const FilterOrders = () => {
             {/* Custom date range */}
             <div>
               <p className="block text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-1.5">
-                Özel Tarih Aralığı
+                {t("orders.custom_date_range")}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <CustomDatePicker
@@ -252,6 +252,7 @@ const FilterOrders = () => {
             {restaurantOptions.length > 0 && (
               <RestaurantMultiSelect
                 label={t("orders.restaurant_label")}
+                clearLabel={t("orders.clear")}
                 options={restaurantOptions}
                 selectedIds={filter.restaurantIds || []}
                 onToggle={(option) => {
@@ -297,7 +298,7 @@ const FilterOrders = () => {
             {/* Amount range */}
             <div>
               <p className="block text-[10px] font-bold uppercase tracking-wider text-[--gr-1] mb-1.5">
-                Tutar Aralığı
+                {t("orders.amount_range")}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -377,7 +378,7 @@ const ChipGroup = ({ label, options, value, onChange }) => (
   </div>
 );
 
-const RestaurantMultiSelect = ({ label, options, selectedIds, onToggle, onClear }) => (
+const RestaurantMultiSelect = ({ label, clearLabel, options, selectedIds, onToggle, onClear }) => (
   <div>
     <div className="flex items-center justify-between mb-1.5">
       <p className="text-[10px] font-bold uppercase tracking-wider text-[--gr-1]">
@@ -394,7 +395,7 @@ const RestaurantMultiSelect = ({ label, options, selectedIds, onToggle, onClear 
           onClick={onClear}
           className="text-[10px] font-semibold text-rose-600 hover:underline"
         >
-          Temizle
+          {clearLabel}
         </button>
       )}
     </div>

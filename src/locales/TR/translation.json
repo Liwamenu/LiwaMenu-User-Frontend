@@ -1787,6 +1787,15 @@
     "iyzico_base_url": "Base URL"
   },
   "orders": {
+    "copy_id": "ID'yi kopyala",
+    "customer_label": "Müşteri",
+    "phone_label": "Telefon",
+    "address_label": "Adres",
+    "payment_label": "Ödeme",
+    "date_label": "Tarih",
+    "quick_date": "Hızlı Tarih",
+    "custom_date_range": "Özel Tarih Aralığı",
+    "amount_range": "Tutar Aralığı",
     "subtitle": "Gelen siparişleri canlı olarak takip edin",
     "summary_count": "Toplam {{count}} sipariş",
     "filtered_restaurants": "Filtrelenen Restoranlar",
