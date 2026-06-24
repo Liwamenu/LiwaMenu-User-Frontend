@@ -61,7 +61,8 @@
     "external_page": "External Page",
     "hours": "Working Hours",
     "social": "Social Media",
-    "payments": "Payment Methods"
+    "payments": "Payment Methods",
+    "order_settings": "Order Settings"
   },
   "subSidebar": {
     "back": "Go Back",
@@ -623,7 +624,16 @@
     "check_table_order_distance": "Check Table Order Distance",
     "max_table_order_distance_meter": "Max Table Order Distance (meters)",
     "max_table_order_distance_meter_placeholder": "Enter max distance in meters",
-    "is_reservation_active": "Activate Reservation"
+    "is_reservation_active": "Activate Reservation",
+    "delivery_zones_title": "Distance-based pricing",
+    "delivery_zone_up_to": "Up to (km)",
+    "add_zone": "Add tier",
+    "remove_zone": "Remove",
+    "delivery_zones_hint": "Each tier is an upper distance limit. The customer's distance to the restaurant determines which minimum amount and delivery fee apply. Beyond the last tier, delivery is unavailable.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "Beyond {{km}} km: no delivery",
+    "delivery_zones_min_one": "Add at least one delivery tier (km must be greater than 0).",
+    "delivery_zones_ascending": "Tier distances must be distinct and increasing."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Restaurant reservation settings updated successfully.",

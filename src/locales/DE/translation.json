@@ -61,7 +61,8 @@
     "external_page": "Externe Seite",
     "hours": "Öffnungszeiten",
     "social": "Social Media",
-    "payments": "Zahlungsmethoden"
+    "payments": "Zahlungsmethoden",
+    "order_settings": "Bestelleinstellungen"
   },
   "subSidebar": {
     "back": "Zurück",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "Maximale Tischbestellentfernung (Meter)",
     "max_table_order_distance_meter_placeholder": "Maximale Entfernung in Metern eingeben",
     "is_reservation_active": "Reservierung aktivieren",
-    "whatsapp_uses_package": "Rabatt, Liefergebühr, Mindestbestellwert und Entfernung entsprechen denen der Paketbestellung."
+    "whatsapp_uses_package": "Rabatt, Liefergebühr, Mindestbestellwert und Entfernung entsprechen denen der Paketbestellung.",
+    "delivery_zones_title": "Entfernungsabhängige Preise",
+    "delivery_zone_up_to": "Bis zu (km)",
+    "add_zone": "Stufe hinzufügen",
+    "remove_zone": "Entfernen",
+    "delivery_zones_hint": "Jede Stufe ist eine obere Entfernungsgrenze. Die Entfernung des Kunden zum Restaurant bestimmt, welcher Mindestbetrag und welche Liefergebühr gelten. Jenseits der letzten Stufe ist keine Lieferung möglich.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "Über {{km}} km: keine Lieferung",
+    "delivery_zones_min_one": "Füge mindestens eine Lieferstufe hinzu (km muss größer als 0 sein).",
+    "delivery_zones_ascending": "Die Stufenentfernungen müssen unterschiedlich und aufsteigend sein."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Reservierungseinstellungen des Restaurants wurden erfolgreich aktualisiert.",

@@ -61,7 +61,8 @@
     "external_page": "Página externa",
     "hours": "Horario de atención",
     "social": "Redes sociales",
-    "payments": "Métodos de pago"
+    "payments": "Métodos de pago",
+    "order_settings": "Configuración de pedidos"
   },
   "subSidebar": {
     "back": "Volver",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "Distancia máxima de pedido en mesa (metros)",
     "max_table_order_distance_meter_placeholder": "Ingresa la distancia máxima en metros",
     "is_reservation_active": "Activar reserva",
-    "whatsapp_uses_package": "El descuento, el coste de envío, el importe mínimo y la distancia son los mismos que en Pedido por Paquete."
+    "whatsapp_uses_package": "El descuento, el coste de envío, el importe mínimo y la distancia son los mismos que en Pedido por Paquete.",
+    "delivery_zones_title": "Precios según distancia",
+    "delivery_zone_up_to": "Hasta (km)",
+    "add_zone": "Añadir tramo",
+    "remove_zone": "Quitar",
+    "delivery_zones_hint": "Cada tramo es un límite superior de distancia. La distancia del cliente al restaurante determina qué importe mínimo y coste de envío se aplican. Más allá del último tramo, no hay entrega.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "Más de {{km}} km: sin entrega",
+    "delivery_zones_min_one": "Añade al menos un tramo de entrega (km debe ser mayor que 0).",
+    "delivery_zones_ascending": "Las distancias de los tramos deben ser distintas y crecientes."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "La configuración de reservas del restaurante se actualizó correctamente.",

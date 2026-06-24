@@ -150,6 +150,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
       social: "/social/:id",
       payments: "/payments/:id",
       sett: "/settings/:id",
+      order: "/orderSettings/:id",
       rsrv: "reservationSettings/:id",
       ann: "announcementSettings/:id",
       surv: "surveySettings/:id",
@@ -197,6 +198,7 @@ const RestaurantHome = ({ showS1, setShowS1, openSidebar, setOpenSidebar }) => {
           <Route path="/social/:id" element={<SocialMedias data={data} />} />
           <Route path={P.R.payments} element={<PaymentMethods data={data} />} />
           <Route path={P.R.sett} element={<RestaurantSettings data={data} />} />
+          <Route path={P.R.order} element={<RestaurantSettings data={data} />} />
           <Route path={P.R.rsrv} element={<ReservationSett data={data} />} />
           <Route path={P.R.ann} element={<AnnouncementSett data={data} />} />
           <Route path={P.R.surv} element={<SurveySettings data={data} />} />

@@ -8,6 +8,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Settings,
+  ShoppingBag,
   CalendarClock,
   Megaphone,
   ClipboardList,
@@ -38,6 +39,12 @@ const SettingsTabs = () => {
       to: `/restaurant/settings/${id}`,
       icon: Settings,
       label: t("settingsTabs.general", "Genel"),
+    },
+    {
+      slug: "orderSettings",
+      to: `/restaurant/orderSettings/${id}`,
+      icon: ShoppingBag,
+      label: t("settingsTabs.order_settings", "Sipariş Ayarları"),
     },
     {
       slug: "reservationSettings",

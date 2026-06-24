@@ -61,7 +61,8 @@
     "external_page": "صفحة خارجية",
     "hours": "ساعات العمل",
     "social": "التواصل الاجتماعي",
-    "payments": "طرق الدفع"
+    "payments": "طرق الدفع",
+    "order_settings": "إعدادات الطلب"
   },
   "subSidebar": {
     "back": "العودة",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "الحد الأقصى لمسافة طلب الطاولة (بالأمتار)",
     "max_table_order_distance_meter_placeholder": "أدخل الحد الأقصى للمسافة بالأمتار",
     "is_reservation_active": "تفعيل الحجز",
-    "whatsapp_uses_package": "الخصم ورسوم التوصيل والحد الأدنى للطلب والمسافة هي نفسها المحددة في طلب التوصيل."
+    "whatsapp_uses_package": "الخصم ورسوم التوصيل والحد الأدنى للطلب والمسافة هي نفسها المحددة في طلب التوصيل.",
+    "delivery_zones_title": "التسعير حسب المسافة",
+    "delivery_zone_up_to": "حتى (كم)",
+    "add_zone": "إضافة شريحة",
+    "remove_zone": "إزالة",
+    "delivery_zones_hint": "كل شريحة هي حد أقصى للمسافة. تحدد مسافة العميل عن المطعم الحد الأدنى للطلب ورسوم التوصيل المطبقة. بعد الشريحة الأخيرة، لا يتوفر التوصيل.",
+    "delivery_zone_range": "{{from}}–{{to}} كم",
+    "delivery_zone_beyond": "أبعد من {{km}} كم: لا يوجد توصيل",
+    "delivery_zones_min_one": "أضف شريحة توصيل واحدة على الأقل (يجب أن تكون الكيلومترات أكبر من 0).",
+    "delivery_zones_ascending": "يجب أن تكون مسافات الشرائح مختلفة ومتزايدة."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "تم تحديث إعدادات حجز المطعم بنجاح.",

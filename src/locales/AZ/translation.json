@@ -61,7 +61,8 @@
     "external_page": "Xarici Səhifə",
     "hours": "İş Saatları",
     "social": "Sosial Media",
-    "payments": "Ödəniş Üsulları"
+    "payments": "Ödəniş Üsulları",
+    "order_settings": "Sifariş ayarları"
   },
   "subSidebar": {
     "back": "Geri Qayıt",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "Maksimum Masa Sifariş Məsafəsi (metr)",
     "max_table_order_distance_meter_placeholder": "Maksimum məsafəni metr ilə daxil edin",
     "is_reservation_active": "Rezervasiyanı Aktiv Et",
-    "whatsapp_uses_package": "Endirim, çatdırılma haqqı, minimum məbləğ və məsafə Paket Sifariş ilə eynidir."
+    "whatsapp_uses_package": "Endirim, çatdırılma haqqı, minimum məbləğ və məsafə Paket Sifariş ilə eynidir.",
+    "delivery_zones_title": "Məsafəyə görə qiymətləndirmə",
+    "delivery_zone_up_to": "Bu km-ə qədər",
+    "add_zone": "Pillə əlavə et",
+    "remove_zone": "Sil",
+    "delivery_zones_hint": "Hər pillə yuxarı məsafə həddidir. Müştərinin restorana olan məsafəsi tətbiq olunan minimum məbləği və çatdırılma haqqını müəyyən edir. Son pillədən sonra çatdırılma mümkün deyil.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "{{km}} km-dən sonra: çatdırılma yoxdur",
+    "delivery_zones_min_one": "Ən azı bir çatdırılma pilləsi əlavə edin (km 0-dan böyük olmalıdır).",
+    "delivery_zones_ascending": "Pillə məsafələri fərqli və artan olmalıdır."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Restoran rezervasiya ayarları uğurla yeniləndi.",

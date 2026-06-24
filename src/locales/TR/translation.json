@@ -61,7 +61,8 @@
     "external_page": "Harici Sayfa",
     "hours": "Çalışma Saatleri",
     "social": "Sosyal Medya",
-    "payments": "Ödeme Yöntemleri"
+    "payments": "Ödeme Yöntemleri",
+    "order_settings": "Sipariş Ayarları"
   },
   "subSidebar": {
     "back": "Geri Dön",
@@ -623,7 +624,16 @@
     "check_table_order_distance": "Masa Sipariş Mesafesini Kontrol Et",
     "max_table_order_distance_meter": "Maksimum Masa Sipariş Mesafesi (metre)",
     "max_table_order_distance_meter_placeholder": "Maksimum mesafeyi metre cinsinden giriniz",
-    "is_reservation_active": "Rezervasyon Aktif Et"
+    "is_reservation_active": "Rezervasyon Aktif Et",
+    "delivery_zones_title": "Mesafeye Göre Ücretlendirme",
+    "delivery_zone_up_to": "Şu km'ye kadar",
+    "add_zone": "Kademe ekle",
+    "remove_zone": "Kaldır",
+    "delivery_zones_hint": "Her kademe bir üst mesafe sınırıdır. Müşterinin restorana uzaklığı, hangi minimum tutar ve teslimat ücretinin geçerli olacağını belirler. Son kademenin ötesinde teslimat yapılmaz.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "{{km}} km ötesi: teslimat yok",
+    "delivery_zones_min_one": "En az bir teslimat kademesi ekleyin (km 0'dan büyük olmalı).",
+    "delivery_zones_ascending": "Kademe mesafeleri farklı ve artan olmalı."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Rezervasyon ayarları başarıyla güncellendi.",

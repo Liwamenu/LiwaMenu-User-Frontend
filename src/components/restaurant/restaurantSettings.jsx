@@ -1,7 +1,7 @@
 //MODULES
 import { isEqual } from "lodash";
 import toast from "react-hot-toast";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,6 +28,8 @@ import {
   Star,
   MessageCircle,
   Phone,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 //COMP
@@ -234,12 +236,173 @@ const NumberWithSuffix = ({
   );
 };
 
+// Coerce a delivery-zone numeric cell into a plain Number. The km field
+// stores a dot-decimal string from a type=number input ("2.5"); the
+// currency cells already emit a Number. A comma means a stale TR-formatted
+// currency string ("1.500,00") so we strip thousands dots only then.
+const toZoneNumber = (v) => {
+  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+  if (v == null || v === "") return 0;
+  const s = String(v).trim();
+  const n = s.includes(",")
+    ? parseFloat(s.replace(/\./g, "").replace(",", "."))
+    : parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Seed the zone editor: prefer a saved `deliveryZones` array (sorted), else
+// derive a single zone from the legacy flat fields (maxDistance / deliveryFee
+// / minOrderAmount), else a sensible default. Tolerates PascalCase keys in
+// case the backend serializes the array that way.
+const seedDeliveryZones = (inData) => {
+  const z = inData?.deliveryZones;
+  if (Array.isArray(z) && z.length) {
+    return z
+      .map((x) => ({
+        maxDistanceKm: x?.maxDistanceKm ?? x?.MaxDistanceKm ?? "",
+        minOrderAmount: x?.minOrderAmount ?? x?.MinOrderAmount ?? "",
+        deliveryFee: x?.deliveryFee ?? x?.DeliveryFee ?? "",
+      }))
+      .sort(
+        (a, b) => (Number(a.maxDistanceKm) || 0) - (Number(b.maxDistanceKm) || 0),
+      );
+  }
+  return [
+    {
+      maxDistanceKm: inData?.maxDistance ?? 5,
+      minOrderAmount: inData?.minOrderAmount ?? 0,
+      deliveryFee: inData?.deliveryFee ?? 0,
+    },
+  ];
+};
+
+// Upper-bound distance tiers for Paket Sipariş. Each row is "up to N km →
+// this minimum + this delivery fee"; rows auto-chain from the previous row's
+// km so gaps/overlaps are impossible. The last row's km is the delivery
+// radius (beyond it = out of range). Reuses NumberWithSuffix so the currency
+// cells follow the restaurant's Kuruş Hanesi like the rest of the form.
+const DeliveryZonesEditor = ({ zones, onChange, moneySign, decimalPoint, t }) => {
+  const decimals = Number.isFinite(Number(decimalPoint))
+    ? Number(decimalPoint)
+    : 2;
+  const list =
+    Array.isArray(zones) && zones.length
+      ? zones
+      : [{ maxDistanceKm: "", minOrderAmount: "", deliveryFee: "" }];
+
+  const update = (i, patch) =>
+    onChange(list.map((z, idx) => (idx === i ? { ...z, ...patch } : z)));
+  const remove = (i) => {
+    if (list.length <= 1) return;
+    onChange(list.filter((_, idx) => idx !== i));
+  };
+  const add = () => {
+    const lastKm = Number(list[list.length - 1]?.maxDistanceKm) || 0;
+    onChange([
+      ...list,
+      { maxDistanceKm: lastKm ? lastKm + 5 : 5, minOrderAmount: "", deliveryFee: "" },
+    ]);
+  };
+
+  const lastKm = list[list.length - 1]?.maxDistanceKm;
+
+  return (
+    <div className="space-y-2.5">
+      <div className="text-xs font-semibold text-[--black-1]">
+        {t("restaurantSettings.delivery_zones_title")}
+      </div>
+      {list.map((z, i) => {
+        const fromKm = i === 0 ? 0 : Number(list[i - 1]?.maxDistanceKm) || 0;
+        const hasTo = z.maxDistanceKm !== "" && z.maxDistanceKm != null;
+        return (
+          <div
+            key={i}
+            className="rounded-lg border border-sky-200/70 bg-[--white-1] p-2.5 dark:border-sky-900/40"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-300">
+                {hasTo
+                  ? t("restaurantSettings.delivery_zone_range", {
+                      from: fromKm,
+                      to: z.maxDistanceKm,
+                    })
+                  : t("restaurantSettings.delivery_zone_up_to")}
+              </span>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                disabled={list.length <= 1}
+                title={t("restaurantSettings.remove_zone")}
+                className="p-1 text-rose-500 hover:text-rose-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <NumberWithSuffix
+                label={t("restaurantSettings.delivery_zone_up_to")}
+                suffix="km"
+                value={z.maxDistanceKm}
+                onChange={(v) => update(i, { maxDistanceKm: v })}
+                placeholder="5"
+              />
+              <NumberWithSuffix
+                label={t("restaurantSettings.min_order_amount")}
+                suffix={moneySign}
+                value={z.minOrderAmount}
+                onChange={(v) => update(i, { minOrderAmount: v })}
+                currencyDecimals={decimals}
+                maxDigits={9}
+              />
+              <NumberWithSuffix
+                label={t("restaurantSettings.delivery_fee")}
+                suffix={moneySign}
+                value={z.deliveryFee}
+                onChange={(v) => update(i, { deliveryFee: v })}
+                currencyDecimals={decimals}
+                maxDigits={9}
+              />
+            </div>
+          </div>
+        );
+      })}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={add}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 hover:text-sky-800 dark:text-sky-300"
+        >
+          <Plus className="size-4" />
+          {t("restaurantSettings.add_zone")}
+        </button>
+        {Number(lastKm) > 0 && (
+          <span className="text-[11px] text-[--gr-2]">
+            {t("restaurantSettings.delivery_zone_beyond", { km: lastKm })}
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] text-[--gr-2] leading-relaxed">
+        {t("restaurantSettings.delivery_zones_hint")}
+      </p>
+    </div>
+  );
+};
+
 const RestaurantSettings = ({ data: inData }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { setSecondPopupContent } = usePopup();
   const restaurantId = useParams()["*"]?.split("/")[1];
+
+  // This same component backs two tabs: "Genel" (/settings) and "Sipariş
+  // Ayarları" (/orderSettings). BOTH build and save the FULL settings object
+  // via SetRestaurantSettings, so neither tab wipes the other's fields — only
+  // which cards are visible differs by route.
+  const routeLocation = useLocation();
+  const isOrderTab = routeLocation.pathname.includes("/orderSettings/");
+  const showOrder = isOrderTab;
+  const showGeneral = !isOrderTab;
 
   // The tenant slug doubles as the QR code URL — once it's been published,
   // changing it silently breaks every printed QR. Lock the field by default
@@ -327,6 +490,11 @@ const RestaurantSettings = ({ data: inData }) => {
       maxTableOrderDistanceMeter: inData?.maxTableOrderDistanceMeter ?? 500,
       checkTableOrderDistance: inData?.checkTableOrderDistance,
       minOrderAmount: inData?.minOrderAmount,
+      // Distance-based delivery tiers (Paket Sipariş). Seeded from a saved
+      // `deliveryZones` array, or derived from the legacy flat fields above
+      // so existing restaurants open with one pre-filled tier. See
+      // DELIVERY_ZONES_BRIEF.md for the backend contract.
+      deliveryZones: seedDeliveryZones(inData),
       // Default ON — customers expect the "Garson Çağır" button to be
       // available unless the owner explicitly turns it off (typically a
       // restaurant that doesn't run table service via QR menus).
@@ -424,14 +592,29 @@ const RestaurantSettings = ({ data: inData }) => {
       return;
     }
 
-    if (
-      restaurantData?.onlineOrder &&
-      !(Number(restaurantData?.maxDistance) > 0)
-    ) {
-      toast.error(t("restaurantSettings.max_distance_required"), {
-        id: "max-distance-required",
-      });
-      return;
+    // Paket Sipariş açıkken en az bir geçerli teslimat kademesi (km > 0)
+    // zorunlu; üst-sınırlı modelde km'ler kesin artan olmalı.
+    if (restaurantData?.onlineOrder) {
+      const zoneKms = (
+        Array.isArray(restaurantData?.deliveryZones)
+          ? restaurantData.deliveryZones
+          : []
+      )
+        .map((z) => toZoneNumber(z?.maxDistanceKm))
+        .filter((n) => n > 0)
+        .sort((a, b) => a - b);
+      if (!zoneKms.length) {
+        toast.error(t("restaurantSettings.delivery_zones_min_one"), {
+          id: "delivery-zones-min-one",
+        });
+        return;
+      }
+      if (zoneKms.some((v, i) => i > 0 && v === zoneKms[i - 1])) {
+        toast.error(t("restaurantSettings.delivery_zones_ascending"), {
+          id: "delivery-zones-ascending",
+        });
+        return;
+      }
     }
 
     // WhatsApp Sipariş açıkken sipariş numarası zorunlu (müşteri tarafı
@@ -494,10 +677,34 @@ const RestaurantSettings = ({ data: inData }) => {
       normalized.decimalPoint = String(Number.isFinite(n) ? n : 2);
     }
 
+    // Teslimat kademeleri (üst-sınırlı): coerce → boş/geçersiz olanları at →
+    // km'ye göre artan sırala. Backend + müşteri teması bu diziyi kullanır.
+    const normalizedZones = (
+      Array.isArray(normalized.deliveryZones) ? normalized.deliveryZones : []
+    )
+      .map((z) => ({
+        maxDistanceKm: toZoneNumber(z?.maxDistanceKm),
+        minOrderAmount: toZoneNumber(z?.minOrderAmount),
+        deliveryFee: toZoneNumber(z?.deliveryFee),
+      }))
+      .filter((z) => z.maxDistanceKm > 0)
+      .sort((a, b) => a.maxDistanceKm - b.maxDistanceKm);
+    normalized.deliveryZones = normalizedZones;
+
+    // Geriye dönük uyum: güncellenmemiş müşteri tema build'leri hâlâ düz
+    // alanları okur. Son kademe = teslimat yarıçapı; ilk (en yakın) kademe =
+    // taban ücret/min. Böylece eski tema taban kademeyle çalışmaya devam eder.
+    if (normalizedZones.length) {
+      normalized.maxDistance =
+        normalizedZones[normalizedZones.length - 1].maxDistanceKm;
+      normalized.deliveryFee = normalizedZones[0].deliveryFee;
+      normalized.minOrderAmount = normalizedZones[0].minOrderAmount;
+    }
+
     // WhatsApp Sipariş, Paket Sipariş ile aynı parametreleri kullanır:
     // iskonto / teslimat / min. tutar / mesafe. Ayrı UI alanı yok — kaydederken
-    // Paket değerlerini WhatsApp alanlarına yansıtıyoruz (müşteri tarafı
-    // whatsappOrder* alanlarını okur).
+    // Paket (taban kademe) değerlerini WhatsApp alanlarına yansıtıyoruz
+    // (müşteri tarafı whatsappOrder* alanlarını okur).
     normalized.whatsappOrderDiscountRate = normalized.onlineOrderDiscountRate;
     normalized.whatsappOrderDeliveryFee = normalized.deliveryFee;
     normalized.whatsappOrderMinAmount = normalized.minOrderAmount;
@@ -678,6 +885,8 @@ const RestaurantSettings = ({ data: inData }) => {
 
         <div className="p-4 sm:p-5">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {showGeneral && (
+              <>
             {/* GENEL */}
             <div>
               <SectionHeader icon={Globe} label={t("restaurantSettings.tenant")} />
@@ -1012,7 +1221,11 @@ const RestaurantSettings = ({ data: inData }) => {
                 </div>
               </div>
             </div>
+              </>
+            )}
 
+            {showOrder && (
+              <>
             {/* ONLINE SİPARİŞ */}
             <div>
               <SectionHeader
@@ -1044,80 +1257,36 @@ const RestaurantSettings = ({ data: inData }) => {
                   />
                 </div>
                 {restaurantData?.onlineOrder && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <NumberWithSuffix
-                      label={t("restaurantSettings.online_order_discount")}
-                      suffix="%"
-                      value={restaurantData?.onlineOrderDiscountRate}
-                      onChange={(v) =>
+                  <div className="space-y-3">
+                    {/* İskonto global kalır (mesafeye bağlı değil); min. tutar
+                        ve teslimat ücreti aşağıdaki kademe editöründe. */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <NumberWithSuffix
+                        label={t("restaurantSettings.online_order_discount")}
+                        suffix="%"
+                        value={restaurantData?.onlineOrderDiscountRate}
+                        onChange={(v) =>
+                          setRestaurantData((prev) => ({
+                            ...prev,
+                            onlineOrderDiscountRate: v,
+                          }))
+                        }
+                        placeholder={t(
+                          "restaurantSettings.online_order_discount_placeholder",
+                        )}
+                      />
+                    </div>
+                    <DeliveryZonesEditor
+                      zones={restaurantData?.deliveryZones}
+                      onChange={(z) =>
                         setRestaurantData((prev) => ({
                           ...prev,
-                          onlineOrderDiscountRate: v,
+                          deliveryZones: z,
                         }))
                       }
-                      placeholder={t(
-                        "restaurantSettings.online_order_discount_placeholder",
-                      )}
-                    />
-                    <NumberWithSuffix
-                      label={t("restaurantSettings.delivery_fee")}
-                      suffix={moneySign}
-                      value={restaurantData?.deliveryFee}
-                      onChange={(v) =>
-                        setRestaurantData((prev) => ({
-                          ...prev,
-                          deliveryFee: v,
-                        }))
-                      }
-                      placeholder={t(
-                        "restaurantSettings.delivery_fee_placeholder",
-                      )}
-                      currencyDecimals={
-                        Number.isFinite(Number(restaurantData?.decimalPoint))
-                          ? Number(restaurantData.decimalPoint)
-                          : 2
-                      }
-                      maxDigits={9}
-                    />
-                    <NumberWithSuffix
-                      label={t("restaurantSettings.min_order_amount")}
-                      suffix={moneySign}
-                      value={restaurantData?.minOrderAmount}
-                      onChange={(v) =>
-                        setRestaurantData((prev) => ({
-                          ...prev,
-                          minOrderAmount: v,
-                        }))
-                      }
-                      placeholder={t(
-                        "restaurantSettings.min_order_amount_placeholder",
-                      )}
-                      // Currency mode keeps the input in lock-step with
-                      // the restaurant's Kuruş Hanesi (Genel Ayarlar).
-                      // Stored as a Number, displayed with locale
-                      // separators on blur (e.g. 1500 → "1.500,00" when
-                      // decimalPoint=2, or "1.500" when 0).
-                      currencyDecimals={
-                        Number.isFinite(Number(restaurantData?.decimalPoint))
-                          ? Number(restaurantData.decimalPoint)
-                          : 2
-                      }
-                      maxDigits={9}
-                    />
-                    <NumberWithSuffix
-                      label={t("restaurantSettings.max_distance")}
-                      suffix="km"
-                      required
-                      value={restaurantData?.maxDistance}
-                      onChange={(v) =>
-                        setRestaurantData((prev) => ({
-                          ...prev,
-                          maxDistance: v,
-                        }))
-                      }
-                      placeholder={t(
-                        "restaurantSettings.max_distance_placeholder",
-                      )}
+                      moneySign={moneySign}
+                      decimalPoint={restaurantData?.decimalPoint}
+                      t={t}
                     />
                   </div>
                 )}
@@ -1297,7 +1466,11 @@ const RestaurantSettings = ({ data: inData }) => {
                 )}
               </div>
             </div>
+              </>
+            )}
 
+            {showGeneral && (
+              <>
             {/* GÖRÜNÜRLÜK & ÖZEL FİYAT */}
             <div>
               <SectionHeader
@@ -1412,6 +1585,8 @@ const RestaurantSettings = ({ data: inData }) => {
                 </div>
               )}
             </div>
+              </>
+            )}
 
             {/* SUBMIT */}
             <div className="flex justify-end pt-3 border-t border-[--border-1]">

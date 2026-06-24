@@ -61,7 +61,8 @@
     "external_page": "Pagina Esterna",
     "hours": "Orari di Lavoro",
     "social": "Social Media",
-    "payments": "Metodi di Pagamento"
+    "payments": "Metodi di Pagamento",
+    "order_settings": "Impostazioni ordini"
   },
   "subSidebar": {
     "back": "Torna Indietro",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "Distanza massima ordine al tavolo (metri)",
     "max_table_order_distance_meter_placeholder": "Inserisci la distanza massima in metri",
     "is_reservation_active": "Attiva prenotazione",
-    "whatsapp_uses_package": "Sconto, costo di consegna, importo minimo e distanza sono gli stessi dell'Ordine a Pacchetto."
+    "whatsapp_uses_package": "Sconto, costo di consegna, importo minimo e distanza sono gli stessi dell'Ordine a Pacchetto.",
+    "delivery_zones_title": "Prezzi in base alla distanza",
+    "delivery_zone_up_to": "Fino a (km)",
+    "add_zone": "Aggiungi fascia",
+    "remove_zone": "Rimuovi",
+    "delivery_zones_hint": "Ogni fascia è un limite massimo di distanza. La distanza del cliente dal ristorante determina l'importo minimo e il costo di consegna applicati. Oltre l'ultima fascia, la consegna non è disponibile.",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "Oltre {{km}} km: nessuna consegna",
+    "delivery_zones_min_one": "Aggiungi almeno una fascia di consegna (km deve essere maggiore di 0).",
+    "delivery_zones_ascending": "Le distanze delle fasce devono essere diverse e crescenti."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Impostazioni di prenotazione del ristorante aggiornate con successo.",

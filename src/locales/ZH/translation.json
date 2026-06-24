@@ -61,7 +61,8 @@
     "external_page": "外部页面",
     "hours": "营业时间",
     "social": "社交媒体",
-    "payments": "支付方式"
+    "payments": "支付方式",
+    "order_settings": "订单设置"
   },
   "subSidebar": {
     "back": "返回",
@@ -623,7 +624,16 @@
     "max_table_order_distance_meter": "最大桌位下单距离（米）",
     "max_table_order_distance_meter_placeholder": "请输入最大距离（米）",
     "is_reservation_active": "启用预订",
-    "whatsapp_uses_package": "折扣、配送费、起送金额和配送距离均与“打包订单”相同。"
+    "whatsapp_uses_package": "折扣、配送费、起送金额和配送距离均与“打包订单”相同。",
+    "delivery_zones_title": "按距离计价",
+    "delivery_zone_up_to": "距离上限(km)",
+    "add_zone": "添加档位",
+    "remove_zone": "移除",
+    "delivery_zones_hint": "每个档位是一个距离上限。顾客到餐厅的距离决定适用的最低消费和配送费。超过最后一个档位则不提供配送。",
+    "delivery_zone_range": "{{from}}–{{to}} km",
+    "delivery_zone_beyond": "超过 {{km}} km:不配送",
+    "delivery_zones_min_one": "请至少添加一个配送档位(km 必须大于 0)。",
+    "delivery_zones_ascending": "各档位距离必须不同且递增。"
   },
   "restaurantReservationSettings": {
     "updateSuccess": "餐厅预订设置已成功更新。",
