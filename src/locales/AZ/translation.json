@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "{{km}} km-dən sonra: çatdırılma yoxdur",
     "delivery_zones_min_one": "Ən azı bir çatdırılma pilləsi əlavə edin (km 0-dan böyük olmalıdır).",
-    "delivery_zones_ascending": "Pillə məsafələri fərqli və artan olmalıdır."
+    "delivery_zones_ascending": "Pillə məsafələri fərqli və artan olmalıdır.",
+    "special_price_help": "Məhsullara ikinci qiymət etiketi (məs. üzv/kampaniya qiyməti) əlavə etməyə imkan verir; aktiv olduqda bu xüsusi qiymət menyuda bu adla göstərilir.",
+    "hide_restaurant_help": "Aktiv olduqda restoranınız müvəqqəti olaraq xidmətdən kənar olur; QR menyunu açan müştərilər sifariş verə bilmir və xidmətin hazırda mövcud olmadığını görür."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Restoran rezervasiya ayarları uğurla yeniləndi.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "san",
     "display_delay_help": "Səhifə yükləndikdən sonra mesajın göstərilməsinə qədər gözləmə müddəti (saniyə).",
     "html_content_label": "HTML Məzmunu",
-    "html_content_placeholder": "Tailwind dəstəkli HTML məzmununu buraya daxil edin...",
+    "html_content_placeholder": "Elanınızı bura HTML formatında yapışdırın. Onu istənilən süni intellekt köməkçisi ilə HTML formatında yaradıb bura yapışdıra bilərsiniz.",
     "magic_generate": "✨ Sehrli Yarat",
     "live_preview": "Canlı Önizləmə",
     "preview_disabled": "Önizləmə Deaktivdir",

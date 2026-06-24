@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "超过 {{km}} km:不配送",
     "delivery_zones_min_one": "请至少添加一个配送档位(km 必须大于 0)。",
-    "delivery_zones_ascending": "各档位距离必须不同且递增。"
+    "delivery_zones_ascending": "各档位距离必须不同且递增。",
+    "special_price_help": "可为商品添加第二种价格标签（如会员价/活动价）；开启后，该特价会以此名称显示在菜单中。",
+    "hide_restaurant_help": "开启后，您的餐厅将暂时停止服务；打开 QR 菜单的顾客无法下单，会看到当前不提供服务的状态。"
   },
   "restaurantReservationSettings": {
     "updateSuccess": "餐厅预订设置已成功更新。",
@@ -737,7 +739,7 @@
     "display_delay_unit": "秒",
     "display_delay_help": "页面加载后到显示消息前的等待时间（秒）。",
     "html_content_label": "HTML 内容",
-    "html_content_placeholder": "在此输入 Tailwind 驱动的 HTML...",
+    "html_content_placeholder": "在此粘贴 HTML 格式的公告内容。您可以用任意 AI 助手生成 HTML 并粘贴到这里。",
     "magic_generate": "✨ 魔法生成",
     "live_preview": "实时预览",
     "preview_disabled": "预览已禁用",

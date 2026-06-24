@@ -147,6 +147,10 @@ function AddRestaurantPopup({ onSuccess }) {
     // RestaurantSettings once they're ready.
     fd.append("OnlineOrder", false);
     fd.append("InPersonOrder", false);
+    // WhatsApp order channel also ships OFF — same rationale as the two
+    // above: the owner explicitly opts in from Sipariş Ayarları once they've
+    // entered a WhatsApp number and configured pricing.
+    fd.append("WhatsappOrder", false);
     // Seed the Genel Ayarlar → Genel tab defaults at creation time so
     // the form opens with sensible values instead of the backend's
     // raw 0/null. The owner can change every one of these later:

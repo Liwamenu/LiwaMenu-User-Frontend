@@ -1491,6 +1491,9 @@ const RestaurantSettings = ({ data: inData }) => {
                       }))
                     }
                   />
+                  <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
+                    {t("restaurantSettings.special_price_help")}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-[--border-1] bg-[--white-1] p-3">
                   <CustomToggle
@@ -1504,6 +1507,9 @@ const RestaurantSettings = ({ data: inData }) => {
                       }))
                     }
                   />
+                  <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
+                    {t("restaurantSettings.hide_restaurant_help")}
+                  </p>
                 </div>
                 {/* "Garson Çağır" customer-side button visibility.
                     Backend default is true (customer expects to be able

@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "{{km}} km ötesi: teslimat yok",
     "delivery_zones_min_one": "En az bir teslimat kademesi ekleyin (km 0'dan büyük olmalı).",
-    "delivery_zones_ascending": "Kademe mesafeleri farklı ve artan olmalı."
+    "delivery_zones_ascending": "Kademe mesafeleri farklı ve artan olmalı.",
+    "special_price_help": "Ürünlere ikinci bir fiyat etiketi (ör. üye/kampanya fiyatı) tanımlamanızı sağlar; açıkken menüde bu ad altında özel fiyat gösterilir.",
+    "hide_restaurant_help": "Açıkken restoranınız geçici olarak servis dışı olur; müşteriler QR menüyü açtığında sipariş veremez, hizmet verilmediği bilgisini görür."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Rezervasyon ayarları başarıyla güncellendi.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "sn",
     "display_delay_help": "Mesajın gösterilmeden önce sayfa yüklemesinden sonra bekleme süresi (saniye).",
     "html_content_label": "HTML İçeriği",
-    "html_content_placeholder": "Tailwind destekli HTML içeriği giriniz...",
+    "html_content_placeholder": "Buraya herhangi bir yapay zeka asistanına duyurmak istediğiniz içeriği HTML formatında oluşturup yapıştırabilirsiniz.",
     "magic_generate": "✨ Oluştur",
     "live_preview": "Canlı Önizleme",
     "preview_disabled": "Önizleme Devre Dışı",

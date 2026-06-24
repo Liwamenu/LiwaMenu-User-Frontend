@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "Über {{km}} km: keine Lieferung",
     "delivery_zones_min_one": "Füge mindestens eine Lieferstufe hinzu (km muss größer als 0 sein).",
-    "delivery_zones_ascending": "Die Stufenentfernungen müssen unterschiedlich und aufsteigend sein."
+    "delivery_zones_ascending": "Die Stufenentfernungen müssen unterschiedlich und aufsteigend sein.",
+    "special_price_help": "Ermöglicht eine zweite Preisbezeichnung für Produkte (z. B. Mitglieder-/Aktionspreis); wenn aktiv, wird dieser Sonderpreis im Menü unter diesem Namen angezeigt.",
+    "hide_restaurant_help": "Wenn aktiv, ist dein Restaurant vorübergehend außer Betrieb; Kunden, die das QR-Menü öffnen, können nicht bestellen und sehen einen Hinweis, dass aktuell kein Service verfügbar ist."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Reservierungseinstellungen des Restaurants wurden erfolgreich aktualisiert.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "Sek",
     "display_delay_help": "Wartezeit nach dem Laden der Seite, bevor die Nachricht erscheint (Sekunden).",
     "html_content_label": "HTML-Inhalt",
-    "html_content_placeholder": "Tailwind-gestütztes HTML hier eingeben...",
+    "html_content_placeholder": "Füge hier deine Ankündigung als HTML ein. Du kannst sie mit einem beliebigen KI-Assistenten im HTML-Format erstellen und hier einfügen.",
     "magic_generate": "✨ Magic Generate",
     "live_preview": "Live-Vorschau",
     "preview_disabled": "Vorschau deaktiviert",

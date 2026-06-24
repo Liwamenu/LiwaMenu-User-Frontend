@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} كم",
     "delivery_zone_beyond": "أبعد من {{km}} كم: لا يوجد توصيل",
     "delivery_zones_min_one": "أضف شريحة توصيل واحدة على الأقل (يجب أن تكون الكيلومترات أكبر من 0).",
-    "delivery_zones_ascending": "يجب أن تكون مسافات الشرائح مختلفة ومتزايدة."
+    "delivery_zones_ascending": "يجب أن تكون مسافات الشرائح مختلفة ومتزايدة.",
+    "special_price_help": "يتيح لك إضافة بطاقة سعر ثانية للمنتجات (مثل سعر العضو/العرض)؛ عند التفعيل يظهر هذا السعر الخاص في القائمة تحت هذا الاسم.",
+    "hide_restaurant_help": "عند التفعيل يصبح مطعمك خارج الخدمة مؤقتًا؛ لا يمكن للعملاء الذين يفتحون قائمة QR تقديم طلب ويرون أن الخدمة غير متاحة حاليًا."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "تم تحديث إعدادات حجز المطعم بنجاح.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "ث",
     "display_delay_help": "الوقت المنتظر بعد تحميل الصفحة قبل إظهار الرسالة (بالثواني).",
     "html_content_label": "محتوى HTML",
-    "html_content_placeholder": "أدخل كود HTML المدعوم بـ Tailwind هنا...",
+    "html_content_placeholder": "الصق إعلانك هنا بصيغة HTML. يمكنك إنشاؤه باستخدام أي مساعد ذكاء اصطناعي بصيغة HTML ولصقه هنا.",
     "magic_generate": "✨ إنشاء تلقائي",
     "live_preview": "معاينة مباشرة",
     "preview_disabled": "المعاينة معطلة",

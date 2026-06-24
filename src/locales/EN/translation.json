@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "Beyond {{km}} km: no delivery",
     "delivery_zones_min_one": "Add at least one delivery tier (km must be greater than 0).",
-    "delivery_zones_ascending": "Tier distances must be distinct and increasing."
+    "delivery_zones_ascending": "Tier distances must be distinct and increasing.",
+    "special_price_help": "Lets you add a second price label to products (e.g. member/campaign price); when on, that special price is shown in the menu under this name.",
+    "hide_restaurant_help": "When on, your restaurant goes temporarily out of service; customers opening the QR menu can't order and see a currently-unavailable state."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Restaurant reservation settings updated successfully.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "sec",
     "display_delay_help": "Time to wait after page load before showing the message (seconds).",
     "html_content_label": "HTML Content",
-    "html_content_placeholder": "Enter Tailwind-powered HTML here...",
+    "html_content_placeholder": "Paste your announcement here as HTML. You can generate it with any AI assistant in HTML format and paste it here.",
     "magic_generate": "✨ Magic Generate",
     "live_preview": "Live Preview",
     "preview_disabled": "Preview Disabled",

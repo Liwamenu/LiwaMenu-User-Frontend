@@ -645,7 +645,9 @@
     "delivery_zone_range": "{{from}}–{{to}} km",
     "delivery_zone_beyond": "Oltre {{km}} km: nessuna consegna",
     "delivery_zones_min_one": "Aggiungi almeno una fascia di consegna (km deve essere maggiore di 0).",
-    "delivery_zones_ascending": "Le distanze delle fasce devono essere diverse e crescenti."
+    "delivery_zones_ascending": "Le distanze delle fasce devono essere diverse e crescenti.",
+    "special_price_help": "Consente di aggiungere una seconda etichetta di prezzo ai prodotti (es. prezzo socio/promozione); se attivo, quel prezzo speciale viene mostrato nel menu con questo nome.",
+    "hide_restaurant_help": "Quando è attivo, il tuo ristorante va temporaneamente fuori servizio; i clienti che aprono il menu QR non possono ordinare e vedono uno stato di servizio non disponibile."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Impostazioni di prenotazione del ristorante aggiornate con successo.",
@@ -737,7 +739,7 @@
     "display_delay_unit": "sec",
     "display_delay_help": "Tempo di attesa dopo il caricamento della pagina prima di mostrare il messaggio (secondi).",
     "html_content_label": "Contenuto HTML",
-    "html_content_placeholder": "Inserisci qui il codice HTML con Tailwind...",
+    "html_content_placeholder": "Incolla qui il tuo annuncio in formato HTML. Puoi generarlo con qualsiasi assistente IA e incollarlo qui.",
     "magic_generate": "✨ Generazione magica",
     "live_preview": "Anteprima live",
     "preview_disabled": "Anteprima disabilitata",

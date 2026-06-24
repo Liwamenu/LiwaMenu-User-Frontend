@@ -145,8 +145,17 @@ const AnnouncementSettings = ({ data }) => {
       // focus / in-app nav / cross-device change) never wipes unsaved
       // edits. On first load both are null → isEqual true → seeds.
       if (isEqual(settings, settingsBefore)) {
-        setSettings(announcementData);
-        setSettingsBefore(announcementData);
+        // New restaurants come back with no display delay configured —
+        // default it to 5 so the field opens pre-filled with a sensible
+        // value instead of blank (matches the validation that requires a
+        // delay once the announcement is enabled).
+        const d = announcementData?.delayMs;
+        const seeded =
+          d === null || d === undefined || d === ""
+            ? { ...announcementData, delayMs: 5 }
+            : announcementData;
+        setSettings(seeded);
+        setSettingsBefore(seeded);
       }
       dispatch(resetGetAnnouncementSettingsSlice());
     }
