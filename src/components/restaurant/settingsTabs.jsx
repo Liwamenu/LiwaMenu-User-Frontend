@@ -93,11 +93,13 @@ const SettingsTabs = () => {
   return (
     // Tabs "hang" off this top line: each one pulls up 2px to sit on it,
     // with squared tops, rounded bottoms and a thick top accent on the
-    // active tab. Responsive: a SINGLE row at lg+ (≥1024px) where the tabs
-    // share the width equally and the label truncates if a tab gets tight;
-    // below lg they wrap — content-sized rows on tablet, 2-up on phones.
+    // active tab. Responsive: tabs are content-sized (labels never truncate,
+    // each stays on one line via whitespace-nowrap + shrink-0) and reflow
+    // onto as many rows as needed — a single row on wide screens, two or
+    // more as the viewport narrows. Left-packed, ragged right (standard
+    // tab-strip behavior) rather than stretching to justify each row.
     <div className="mb-3 border-t-2 border-[--border-1]">
-      <div className="flex flex-wrap lg:flex-nowrap gap-[3px] px-1">
+      <div className="flex flex-wrap gap-[3px] px-1">
           {tabs.map(({ slug: tabSlug, to, icon: Icon, label }) => {
             const active = slug === tabSlug;
             return (
@@ -115,14 +117,14 @@ const SettingsTabs = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`-mt-[2px] inline-flex items-center justify-center gap-2 grow sm:grow-0 lg:grow basis-[calc(50%-3px)] sm:basis-auto lg:basis-0 min-w-0 px-3 py-2.5 rounded-t-none rounded-b-[6px] border border-t-4 text-xs sm:text-sm lg:text-xs 2xl:text-sm font-medium shadow-md transition-all duration-300 active:scale-[0.97] ${
+                className={`-mt-[2px] inline-flex items-center justify-center gap-2 basis-auto shrink-0 whitespace-nowrap px-3 py-2.5 rounded-t-none rounded-b-[6px] border border-t-4 text-xs sm:text-sm font-medium shadow-md transition-all duration-300 active:scale-[0.97] ${
                   active
                     ? "z-10 bg-indigo-600 text-white border-indigo-600 border-t-indigo-400"
                     : "z-0 bg-[--white-2] text-[--gr-1] border-[--border-1] border-t-transparent hover:bg-[--white-1] hover:text-indigo-600 hover:border-t-[--border-1]"
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
-                <span className="truncate">{label}</span>
+                <span>{label}</span>
               </Link>
             );
           })}
