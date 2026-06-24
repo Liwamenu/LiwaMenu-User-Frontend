@@ -141,7 +141,8 @@
     "footer_credit": "LiwaMenu est une filiale de LiwaSoft.",
     "processing": "Traitement en cours...",
     "resending_code": "Renvoi du code de confirmation...",
-    "code_sent": "Le code de confirmation a été envoyé à votre adresse e-mail."
+    "code_sent": "Le code de confirmation a été envoyé à votre adresse e-mail.",
+    "invalid_email": "Veuillez saisir une adresse e-mail valide"
   },
   "register": {
     "title": "S'inscrire",
@@ -200,7 +201,8 @@
     "didnt_receive": "Vous n'avez pas reçu l'e-mail ?",
     "resend": "Renvoyer",
     "resend_in": "Réessayer dans {{seconds}}s",
-    "change_email": "Changer l'e-mail"
+    "change_email": "Changer l'e-mail",
+    "invalid_email": "Veuillez saisir une adresse e-mail valide"
   },
   "setNewPassword": {
     "title": "Définir un nouveau mot de passe",
@@ -499,7 +501,10 @@
     "processing_title": "Paiement en cours",
     "processing_desc": "Veuillez ne pas quitter la page, votre transaction est en cours...",
     "payment_success_toast": "Paiement réussi 😃",
-    "payment_failed_toast": "Paiement échoué 😞"
+    "payment_failed_toast": "Paiement échoué 😞",
+    "confirm_pending_title": "Confirmation du paiement en cours...",
+    "confirm_pending_desc": "Si votre paiement a été accepté, votre licence sera attribuée sous peu. Vous pouvez le vérifier sur la page Licences.",
+    "go_to_licenses": "Accéder aux licences"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -617,7 +622,8 @@
     "check_table_order_distance": "Vérifier la distance de commande par table",
     "max_table_order_distance_meter": "Distance maximale de commande par table (mètres)",
     "max_table_order_distance_meter_placeholder": "Saisir la distance maximale en mètres",
-    "is_reservation_active": "Activer la réservation"
+    "is_reservation_active": "Activer la réservation",
+    "whatsapp_uses_package": "La remise, les frais de livraison, le montant minimum et la distance sont identiques à ceux de la commande à emporter."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Les paramètres de réservation du restaurant ont été mis à jour avec succès.",
@@ -1184,7 +1190,8 @@
     "max_quantity": "Sélection maximale",
     "delete": "Supprimer",
     "add_new_product": "Ajouter un nouveau produit",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "import_external": "Importer depuis d'autres sources"
   },
   "allergens": {
     "title": "Allergènes",
@@ -1544,7 +1551,16 @@
     "generate": "Générer le QR ({{count}})",
     "toast_no_selection": "Sélectionnez au moins une table pour générer un QR.",
     "toast_generated": "QR généré pour {{count}} table(s).",
-    "toast_fetch_failed": "SambaPOS n'a envoyé aucune table."
+    "toast_fetch_failed": "SambaPOS n'a envoyé aucune table.",
+    "delete_selected": "Supprimer la sélection",
+    "delete_confirm_title": "{{count}} tables seront supprimées",
+    "delete_confirm_desc": "Les tables sélectionnées seront définitivement supprimées. Cette action est irréversible.",
+    "delete_confirm_yes": "Oui, supprimer ({{count}})",
+    "delete_success": "{{count}} tables supprimées.",
+    "delete_failed": "Impossible de supprimer les tables.",
+    "delete_not_ready": "Le service de suppression des tables n'est pas encore prêt.",
+    "remembered_hint": "{{count}} tables SambaPOS mémorisées. Modifiez la couleur ou le logo, puis appuyez de nouveau sur Générer le lot pour recréer les mêmes tables.",
+    "remembered_clear": "Effacer la sélection mémorisée"
   },
   "qrPage": {
     "header_title": "Studio de génération QR en lot",
@@ -1973,7 +1989,9 @@
     "basket_fatura_tax_office": "Bureau des impôts",
     "basket_fatura_address": "Adresse",
     "basket_fatura_city": "Ville",
-    "basket_fatura_district": "Arrondissement"
+    "basket_fatura_district": "Arrondissement",
+    "license_kiosk": "Licence Kiosque",
+    "license_payment": "Licence d'intégration de paiement"
   },
   "reservationsPage": {
     "title": "Réservations",
@@ -2986,7 +3004,8 @@
     "confirm": "Confirmer",
     "verification_code": "Code de vérification",
     "resend": "Renvoyer",
-    "verify": "Vérifier"
+    "verify": "Vérifier",
+    "minutes_short": "min"
   },
   "invoice": {
     "name_title": "Nom / Raison sociale",
@@ -3002,5 +3021,44 @@
     "select_neighbourhood": "Sélectionner un quartier",
     "address": "Adresse",
     "name": "Nom"
+  },
+  "importExternal": {
+    "title": "Importer depuis d'autres sources",
+    "subtitle": "Collez l'URL de votre menu sur une autre plateforme pour importer automatiquement produits, prix et images.",
+    "url_label": "URL du menu / de la page",
+    "url_placeholder": "https://exemple-plateforme.com/votre-menu",
+    "platform_label": "Plateforme source",
+    "platform_generic": "Autre / URL générique",
+    "platform_hint": "Vous pouvez saisir n'importe quel domaine utilisant la méthode sélectionnée — il n'a pas besoin d'être le domaine officiel de la plateforme (votre domaine personnalisé fonctionne aussi).",
+    "scan_btn": "Analyser",
+    "fields_label": "Champs à importer",
+    "field_category": "Catégorie",
+    "field_name": "Nom du produit",
+    "field_portion": "Portion",
+    "field_price": "Prix",
+    "field_image": "Image",
+    "field_tag": "Étiquette",
+    "tag_soon": "L'import des étiquettes arrive bientôt",
+    "soon": "Bientôt",
+    "images_only_hint": "Seules les images sont sélectionnées : les images récupérées seront associées à vos produits existants.",
+    "empty_title": "Saisissez une URL et lancez l'analyse",
+    "empty_desc": "Saisissez l'URL de la page de votre menu et appuyez sur Analyser. Vous pourrez prévisualiser les produits récupérés et les importer.",
+    "not_ready_title": "Cette fonctionnalité arrive bientôt",
+    "not_ready_desc": "Le service d'import n'est pas encore actif. Cette page fonctionnera automatiquement dès que le backend sera prêt.",
+    "not_ready_short": "Le service d'import n'est pas encore prêt.",
+    "scan_failed_title": "Échec de l'analyse",
+    "scan_failed_desc": "Impossible d'analyser l'URL. Vérifiez l'adresse et réessayez.",
+    "no_results_title": "Aucun résultat trouvé",
+    "no_results_desc": "Aucun produit importable n'a été trouvé à cette URL.",
+    "match_count": "{{count}} images à associer",
+    "import_images_btn": "Importer les images",
+    "pick_product": "Sélectionner un produit",
+    "preview_count": "{{selected}} produit(s) sélectionné(s) sur {{total}}",
+    "import_btn": "Importer",
+    "portion_count": "{{count}} portions",
+    "no_matches": "Veuillez associer au moins une image à un produit.",
+    "no_rows": "Veuillez sélectionner au moins un produit.",
+    "import_success": "Import terminé",
+    "result_summary": "{{categories}} catégories · {{products}} produits · {{images}} images"
   }
 }

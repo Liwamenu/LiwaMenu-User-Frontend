@@ -141,7 +141,8 @@
     "footer_credit": "LiwaMenu 是 LiwaSoft 旗下品牌。",
     "processing": "处理中...",
     "resending_code": "正在重新发送验证码...",
-    "code_sent": "验证码已发送至您的邮箱。"
+    "code_sent": "验证码已发送至您的邮箱。",
+    "invalid_email": "请输入有效的邮箱地址"
   },
   "register": {
     "title": "注册",
@@ -200,7 +201,8 @@
     "didnt_receive": "未收到邮件？",
     "resend": "重新发送",
     "resend_in": "{{seconds}}秒后重试",
-    "change_email": "更改邮箱"
+    "change_email": "更改邮箱",
+    "invalid_email": "请输入有效的邮箱地址"
   },
   "setNewPassword": {
     "title": "设置新密码",
@@ -499,7 +501,10 @@
     "processing_title": "支付处理中",
     "processing_desc": "请勿离开页面，您的交易正在进行中...",
     "payment_success_toast": "支付成功 😃",
-    "payment_failed_toast": "支付失败 😞"
+    "payment_failed_toast": "支付失败 😞",
+    "confirm_pending_title": "正在确认支付结果…",
+    "confirm_pending_desc": "若支付成功,授权将很快为您开通。您可在“授权”页面查看。",
+    "go_to_licenses": "前往授权页面"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -617,7 +622,8 @@
     "check_table_order_distance": "检查桌位下单距离",
     "max_table_order_distance_meter": "最大桌位下单距离（米）",
     "max_table_order_distance_meter_placeholder": "请输入最大距离（米）",
-    "is_reservation_active": "启用预订"
+    "is_reservation_active": "启用预订",
+    "whatsapp_uses_package": "折扣、配送费、起送金额和配送距离均与“打包订单”相同。"
   },
   "restaurantReservationSettings": {
     "updateSuccess": "餐厅预订设置已成功更新。",
@@ -1184,7 +1190,8 @@
     "max_quantity": "最多选择数量",
     "delete": "删除",
     "add_new_product": "添加新产品",
-    "save": "保存"
+    "save": "保存",
+    "import_external": "从其他平台导入"
   },
   "allergens": {
     "title": "过敏原",
@@ -1544,7 +1551,16 @@
     "generate": "生成 QR（{{count}}）",
     "toast_no_selection": "请至少选择一张桌台以生成 QR 码。",
     "toast_generated": "已为 {{count}} 张桌台生成 QR 码。",
-    "toast_fetch_failed": "SambaPOS 未发送任何桌台数据。"
+    "toast_fetch_failed": "SambaPOS 未发送任何桌台数据。",
+    "delete_selected": "删除所选",
+    "delete_confirm_title": "将删除 {{count}} 张桌台",
+    "delete_confirm_desc": "所选桌台将被永久删除,此操作无法撤销。",
+    "delete_confirm_yes": "确认删除({{count}})",
+    "delete_success": "已删除 {{count}} 张桌台。",
+    "delete_failed": "无法删除桌台。",
+    "delete_not_ready": "桌台删除服务尚未就绪。",
+    "remembered_hint": "已记住 {{count}} 张 SambaPOS 桌台。更改颜色或 Logo 后再次点击“批量生成”,即可重新创建相同的桌台。",
+    "remembered_clear": "清除已记住的选择"
   },
   "qrPage": {
     "header_title": "QR 批量生成工作室",
@@ -1973,7 +1989,9 @@
     "basket_fatura_tax_office": "税务机关",
     "basket_fatura_address": "地址",
     "basket_fatura_city": "城市",
-    "basket_fatura_district": "区县"
+    "basket_fatura_district": "区县",
+    "license_kiosk": "自助终端授权",
+    "license_payment": "支付集成授权"
   },
   "reservationsPage": {
     "title": "预订管理",
@@ -2986,7 +3004,8 @@
     "confirm": "确认",
     "verification_code": "验证码",
     "resend": "重新发送",
-    "verify": "验证"
+    "verify": "验证",
+    "minutes_short": "分钟"
   },
   "invoice": {
     "name_title": "姓名/名称",
@@ -3002,5 +3021,44 @@
     "select_neighbourhood": "选择街道/社区",
     "address": "地址",
     "name": "姓名"
+  },
+  "importExternal": {
+    "title": "从其他平台导入",
+    "subtitle": "粘贴您在其他平台上的菜单链接,自动导入商品、价格和图片。",
+    "url_label": "菜单 / 页面链接",
+    "url_placeholder": "https://example-platform.com/your-menu",
+    "platform_label": "来源平台",
+    "platform_generic": "其他 / 通用链接",
+    "platform_hint": "您可填写任何使用所选方式的域名,不必是该平台自身的域名(您的自定义域名也可以)。",
+    "scan_btn": "扫描",
+    "fields_label": "要导入的字段",
+    "field_category": "分类",
+    "field_name": "商品名称",
+    "field_portion": "规格",
+    "field_price": "价格",
+    "field_image": "图片",
+    "field_tag": "标签",
+    "tag_soon": "标签导入即将上线",
+    "soon": "即将上线",
+    "images_only_hint": "仅选择了图片:抓取到的图片将与您现有的商品进行匹配。",
+    "empty_title": "输入链接并扫描",
+    "empty_desc": "输入您的菜单页面链接并点击“扫描”。您可以预览抓取到的商品并导入。",
+    "not_ready_title": "该功能即将上线",
+    "not_ready_desc": "导入服务尚未启用。后端就绪后,此页面将自动可用。",
+    "not_ready_short": "导入服务尚未就绪。",
+    "scan_failed_title": "扫描失败",
+    "scan_failed_desc": "无法扫描该链接。请检查地址后重试。",
+    "no_results_title": "未找到结果",
+    "no_results_desc": "在此链接未找到可导入的商品。",
+    "match_count": "{{count}} 张图片待匹配",
+    "import_images_btn": "导入图片",
+    "pick_product": "选择商品",
+    "preview_count": "已选 {{selected}} / {{total}} 件商品",
+    "import_btn": "导入",
+    "portion_count": "{{count}} 种规格",
+    "no_matches": "请至少为一张图片匹配商品。",
+    "no_rows": "请至少选择一件商品。",
+    "import_success": "导入完成",
+    "result_summary": "{{categories}} 个分类 · {{products}} 件商品 · {{images}} 张图片"
   }
 }

@@ -2832,6 +2832,7 @@
     "apply": "Uygula"
   },
   "common": {
+    "minutes_short": "dk",
     "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir.",
     "customer_service": "Müşteri Hizmetleri",
     "phone_verification_message": "telefon numaranıza bir onay kodu gönderdik. Lütfen SMS mesajlarınızı kontrol edin ve kodu doğrulama işlemi için girin.",

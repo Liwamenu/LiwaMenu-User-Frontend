@@ -333,7 +333,7 @@ window.addEventListener("message", function (e) {
                       }
                     />
                     <span className="bg-[--white-2] text-[--gr-1] text-xs font-semibold px-3 grid place-items-center border-l border-[--border-1]">
-                      dk
+                      {t("common.minutes_short")}
                     </span>
                   </div>
                 </div>

@@ -141,7 +141,8 @@
     "footer_credit": "LiwaMenu, LiwaSoft şirkətinin bir qoludur.",
     "processing": "Emal olunur...",
     "resending_code": "Təsdiq kodu yenidən göndərilir...",
-    "code_sent": "Təsdiq kodu e-poçtunuza göndərildi."
+    "code_sent": "Təsdiq kodu e-poçtunuza göndərildi.",
+    "invalid_email": "Düzgün e-poçt ünvanı daxil edin"
   },
   "register": {
     "title": "Qeydiyyat",
@@ -200,7 +201,8 @@
     "didnt_receive": "E-poçt almadınız?",
     "resend": "Yenidən Göndər",
     "resend_in": "{{seconds}} san sonra yenidən cəhd edin",
-    "change_email": "E-poçtu dəyişdir"
+    "change_email": "E-poçtu dəyişdir",
+    "invalid_email": "Düzgün e-poçt ünvanı daxil edin"
   },
   "setNewPassword": {
     "title": "Yeni Şifrə Təyin Et",
@@ -499,7 +501,10 @@
     "processing_title": "Ödəniş emal olunur",
     "processing_desc": "Zəhmət olmasa səhifədən çıxmayın, əməliyyatınız davam edir...",
     "payment_success_toast": "Ödəniş uğurlu oldu 😃",
-    "payment_failed_toast": "Ödəniş uğursuz oldu 😞"
+    "payment_failed_toast": "Ödəniş uğursuz oldu 😞",
+    "confirm_pending_title": "Ödəniş nəticəsi təsdiqlənir...",
+    "confirm_pending_desc": "Ödənişiniz uğurlu olubsa, lisenziyanız tezliklə təyin olunacaq. Bunu Lisenziyalar səhifəsində yoxlaya bilərsiniz.",
+    "go_to_licenses": "Lisenziyalara keç"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -617,7 +622,8 @@
     "check_table_order_distance": "Masa Sifariş Məsafəsini Yoxla",
     "max_table_order_distance_meter": "Maksimum Masa Sifariş Məsafəsi (metr)",
     "max_table_order_distance_meter_placeholder": "Maksimum məsafəni metr ilə daxil edin",
-    "is_reservation_active": "Rezervasiyanı Aktiv Et"
+    "is_reservation_active": "Rezervasiyanı Aktiv Et",
+    "whatsapp_uses_package": "Endirim, çatdırılma haqqı, minimum məbləğ və məsafə Paket Sifariş ilə eynidir."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "Restoran rezervasiya ayarları uğurla yeniləndi.",
@@ -1184,7 +1190,8 @@
     "max_quantity": "Maksimum seçim",
     "delete": "Sil",
     "add_new_product": "Yeni məhsul əlavə et",
-    "save": "Yadda saxla"
+    "save": "Yadda saxla",
+    "import_external": "Digər mənbələrdən idxal et"
   },
   "allergens": {
     "title": "Allergenlər",
@@ -1544,7 +1551,16 @@
     "generate": "QR Yarat ({{count}})",
     "toast_no_selection": "QR yaratmaq üçün ən azı bir masa seçin.",
     "toast_generated": "{{count}} masa üçün QR yaradıldı.",
-    "toast_fetch_failed": "SambaPOS heç bir masa göndərmədi."
+    "toast_fetch_failed": "SambaPOS heç bir masa göndərmədi.",
+    "delete_selected": "Seçilənləri sil",
+    "delete_confirm_title": "{{count}} masa silinəcək",
+    "delete_confirm_desc": "Seçilmiş masalar həmişəlik silinəcək. Bu əməliyyat geri qaytarıla bilməz.",
+    "delete_confirm_yes": "Bəli, sil ({{count}})",
+    "delete_success": "{{count}} masa silindi.",
+    "delete_failed": "Masalar silinə bilmədi.",
+    "delete_not_ready": "Masa silmə xidməti hələ hazır deyil.",
+    "remembered_hint": "{{count}} SambaPOS masası yadda saxlanıldı. Rəngi və ya loqonu dəyişib eyni masaları yenidən yaratmaq üçün Toplu Yarat düyməsinə yenidən basın.",
+    "remembered_clear": "Yadda saxlanılan seçimi təmizlə"
   },
   "qrPage": {
     "header_title": "QR Toplu Studiya",
@@ -1973,7 +1989,9 @@
     "basket_fatura_tax_office": "Vergi İdarəsi",
     "basket_fatura_address": "Ünvan",
     "basket_fatura_city": "Şəhər",
-    "basket_fatura_district": "Rayon"
+    "basket_fatura_district": "Rayon",
+    "license_kiosk": "Kiosk lisenziyası",
+    "license_payment": "Ödəniş İnteqrasiyası Lisenziyası"
   },
   "reservationsPage": {
     "title": "Rezervasiyalar",
@@ -2986,7 +3004,8 @@
     "confirm": "Təsdiqlə",
     "verification_code": "Təsdiq kodu",
     "resend": "Yenidən göndər",
-    "verify": "Təsdiqlə"
+    "verify": "Təsdiqlə",
+    "minutes_short": "dəq"
   },
   "invoice": {
     "name_title": "Ad/Vəzifə",
@@ -3002,5 +3021,44 @@
     "select_neighbourhood": "Qəsəbə seçin",
     "address": "Ünvan",
     "name": "Ad"
+  },
+  "importExternal": {
+    "title": "Digər mənbələrdən idxal et",
+    "subtitle": "Başqa platformadakı menyunuzun URL-ni yapışdırın və məhsulları, qiymətləri və şəkilləri avtomatik idxal edin.",
+    "url_label": "Menyu / Səhifə URL-i",
+    "url_placeholder": "https://numune-platforma.com/menyunuz",
+    "platform_label": "Mənbə platforması",
+    "platform_generic": "Digər / Ümumi URL",
+    "platform_hint": "Seçilmiş metodu istifadə edən istənilən domeni daxil edə bilərsiniz — bunun həmin platformanın öz domeni olması vacib deyil (öz xüsusi domeniniz də işləyir).",
+    "scan_btn": "Skan et",
+    "fields_label": "İdxal ediləcək sahələr",
+    "field_category": "Kateqoriya",
+    "field_name": "Məhsulun adı",
+    "field_portion": "Porsiya",
+    "field_price": "Qiymət",
+    "field_image": "Şəkil",
+    "field_tag": "Etiket",
+    "tag_soon": "Etiket idxalı tezliklə əlçatan olacaq",
+    "soon": "Tezliklə",
+    "images_only_hint": "Yalnız şəkillər seçilib: əldə edilən şəkillər mövcud məhsullarınıza uyğunlaşdırılacaq.",
+    "empty_title": "URL daxil edin və skan edin",
+    "empty_desc": "Menyu səhifənizin URL-ni daxil edin və Skan et düyməsinə basın. Əldə edilən məhsullara baxıb onları idxal edə bilərsiniz.",
+    "not_ready_title": "Bu funksiya tezliklə əlçatan olacaq",
+    "not_ready_desc": "İdxal xidməti hələ aktiv deyil. Server hazır olduqda bu səhifə avtomatik işləyəcək.",
+    "not_ready_short": "İdxal xidməti hələ hazır deyil.",
+    "scan_failed_title": "Skan alınmadı",
+    "scan_failed_desc": "URL skan edilə bilmədi. Ünvanı yoxlayıb yenidən cəhd edin.",
+    "no_results_title": "Nəticə tapılmadı",
+    "no_results_desc": "Bu URL-də idxal ediləcək məhsul tapılmadı.",
+    "match_count": "Uyğunlaşdırılacaq {{count}} şəkil",
+    "import_images_btn": "Şəkilləri idxal et",
+    "pick_product": "Məhsul seçin",
+    "preview_count": "{{total}} məhsuldan {{selected}} seçilib",
+    "import_btn": "İdxal et",
+    "portion_count": "{{count}} porsiya",
+    "no_matches": "Ən azı bir şəkli məhsula uyğunlaşdırın.",
+    "no_rows": "Ən azı bir məhsul seçin.",
+    "import_success": "İdxal tamamlandı",
+    "result_summary": "{{categories}} kateqoriya · {{products}} məhsul · {{images}} şəkil"
   }
 }

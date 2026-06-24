@@ -141,7 +141,8 @@
     "footer_credit": "LiwaMenu es una filial de LiwaSoft.",
     "processing": "Procesando...",
     "resending_code": "Reenviando código de confirmación...",
-    "code_sent": "El código de confirmación se ha enviado a tu correo."
+    "code_sent": "El código de confirmación se ha enviado a tu correo.",
+    "invalid_email": "Introduce un correo electrónico válido"
   },
   "register": {
     "title": "Regístrate",
@@ -200,7 +201,8 @@
     "didnt_receive": "¿No recibiste el correo?",
     "resend": "Reenviar",
     "resend_in": "Inténtalo de nuevo en {{seconds}} s",
-    "change_email": "Cambiar correo"
+    "change_email": "Cambiar correo",
+    "invalid_email": "Introduce un correo electrónico válido"
   },
   "setNewPassword": {
     "title": "Establecer nueva contraseña",
@@ -499,7 +501,10 @@
     "processing_title": "Procesando pago",
     "processing_desc": "Por favor, no abandones la página, tu transacción está en curso...",
     "payment_success_toast": "Pago realizado correctamente 😃",
-    "payment_failed_toast": "Pago fallido 😞"
+    "payment_failed_toast": "Pago fallido 😞",
+    "confirm_pending_title": "Confirmando el resultado del pago...",
+    "confirm_pending_desc": "Si tu pago se completó, tu licencia se asignará en breve. Puedes consultarla en la página de Licencias.",
+    "go_to_licenses": "Ir a Licencias"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -617,7 +622,8 @@
     "check_table_order_distance": "Verificar distancia de pedido en mesa",
     "max_table_order_distance_meter": "Distancia máxima de pedido en mesa (metros)",
     "max_table_order_distance_meter_placeholder": "Ingresa la distancia máxima en metros",
-    "is_reservation_active": "Activar reserva"
+    "is_reservation_active": "Activar reserva",
+    "whatsapp_uses_package": "El descuento, el coste de envío, el importe mínimo y la distancia son los mismos que en Pedido por Paquete."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "La configuración de reservas del restaurante se actualizó correctamente.",
@@ -1184,7 +1190,8 @@
     "max_quantity": "Selección máxima",
     "delete": "Eliminar",
     "add_new_product": "Añadir nuevo producto",
-    "save": "Guardar"
+    "save": "Guardar",
+    "import_external": "Importar de otras fuentes"
   },
   "allergens": {
     "title": "Alérgenos",
@@ -1544,7 +1551,16 @@
     "generate": "Generar QR ({{count}})",
     "toast_no_selection": "Selecciona al menos una mesa para generar.",
     "toast_generated": "QR generado para {{count}} mesas.",
-    "toast_fetch_failed": "SambaPOS no ha enviado ninguna mesa."
+    "toast_fetch_failed": "SambaPOS no ha enviado ninguna mesa.",
+    "delete_selected": "Eliminar seleccionadas",
+    "delete_confirm_title": "Se eliminarán {{count}} mesas",
+    "delete_confirm_desc": "Las mesas seleccionadas se eliminarán de forma permanente. Esta acción no se puede deshacer.",
+    "delete_confirm_yes": "Sí, eliminar ({{count}})",
+    "delete_success": "{{count}} mesas eliminadas.",
+    "delete_failed": "No se pudieron eliminar las mesas.",
+    "delete_not_ready": "El servicio de eliminación de mesas aún no está listo.",
+    "remembered_hint": "{{count}} mesas de SambaPOS guardadas. Cambia el color o el logo y pulsa Generar lote de nuevo para volver a crear las mismas mesas.",
+    "remembered_clear": "Borrar selección guardada"
   },
   "qrPage": {
     "header_title": "Estudio de QR por lotes",
@@ -1973,7 +1989,9 @@
     "basket_fatura_tax_office": "Oficina tributaria",
     "basket_fatura_address": "Dirección",
     "basket_fatura_city": "Ciudad",
-    "basket_fatura_district": "Distrito"
+    "basket_fatura_district": "Distrito",
+    "license_kiosk": "Licencia de Kiosco",
+    "license_payment": "Licencia de Integración de Pagos"
   },
   "reservationsPage": {
     "title": "Reservas",
@@ -2986,7 +3004,8 @@
     "confirm": "Confirmar",
     "verification_code": "Código de verificación",
     "resend": "Reenviar",
-    "verify": "Verificar"
+    "verify": "Verificar",
+    "minutes_short": "min"
   },
   "invoice": {
     "name_title": "Nombre/Razón social",
@@ -3002,5 +3021,44 @@
     "select_neighbourhood": "Selecciona el barrio",
     "address": "Dirección",
     "name": "Nombre"
+  },
+  "importExternal": {
+    "title": "Importar de otras fuentes",
+    "subtitle": "Pega la URL de tu menú en otra plataforma e importa automáticamente productos, precios e imágenes.",
+    "url_label": "URL del menú o página",
+    "url_placeholder": "https://plataforma-ejemplo.com/tu-menu",
+    "platform_label": "Plataforma de origen",
+    "platform_generic": "Otra / URL genérica",
+    "platform_hint": "Puedes introducir cualquier dominio que use el método seleccionado: no tiene que ser el dominio propio de esa plataforma (tu dominio personalizado también sirve).",
+    "scan_btn": "Escanear",
+    "fields_label": "Campos a importar",
+    "field_category": "Categoría",
+    "field_name": "Nombre del producto",
+    "field_portion": "Porción",
+    "field_price": "Precio",
+    "field_image": "Imagen",
+    "field_tag": "Etiqueta",
+    "tag_soon": "La importación de etiquetas estará disponible pronto",
+    "soon": "Pronto",
+    "images_only_hint": "Solo se han seleccionado imágenes: las imágenes extraídas se asociarán a tus productos existentes.",
+    "empty_title": "Introduce una URL y escanea",
+    "empty_desc": "Introduce la URL de tu página de menú y pulsa Escanear. Podrás previsualizar los productos extraídos e importarlos.",
+    "not_ready_title": "Esta función estará disponible pronto",
+    "not_ready_desc": "El servicio de importación aún no está activo. Esta página funcionará automáticamente cuando el backend esté listo.",
+    "not_ready_short": "El servicio de importación aún no está listo.",
+    "scan_failed_title": "Error al escanear",
+    "scan_failed_desc": "No se pudo escanear la URL. Comprueba la dirección e inténtalo de nuevo.",
+    "no_results_title": "No se encontraron resultados",
+    "no_results_desc": "No se encontraron productos importables en esta URL.",
+    "match_count": "{{count}} imágenes por asociar",
+    "import_images_btn": "Importar imágenes",
+    "pick_product": "Selecciona un producto",
+    "preview_count": "{{selected}} de {{total}} productos seleccionados",
+    "import_btn": "Importar",
+    "portion_count": "{{count}} porciones",
+    "no_matches": "Asocia al menos una imagen a un producto.",
+    "no_rows": "Selecciona al menos un producto.",
+    "import_success": "Importación completada",
+    "result_summary": "{{categories}} categorías · {{products}} productos · {{images}} imágenes"
   }
 }

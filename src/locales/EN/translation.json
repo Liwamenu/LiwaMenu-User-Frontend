@@ -3028,6 +3028,7 @@
     "apply": "Apply"
   },
   "common": {
+    "minutes_short": "min",
     "footer_credit": "LiwaMenu is a LiwaSoft affiliate.",
     "customer_service": "Customer Service",
     "phone_verification_message": "we sent a verification code to your phone number. Please check your SMS messages and enter the code to complete verification.",

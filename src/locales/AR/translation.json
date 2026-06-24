@@ -141,7 +141,8 @@
     "footer_credit": "LiwaMenu هي شركة تابعة لـ LiwaSoft.",
     "processing": "جارٍ المعالجة...",
     "resending_code": "جارٍ إعادة إرسال رمز التأكيد...",
-    "code_sent": "تم إرسال رمز التأكيد إلى بريدك الإلكتروني."
+    "code_sent": "تم إرسال رمز التأكيد إلى بريدك الإلكتروني.",
+    "invalid_email": "يرجى إدخال بريد إلكتروني صالح"
   },
   "register": {
     "title": "إنشاء حساب",
@@ -200,7 +201,8 @@
     "didnt_receive": "لم تستلم البريد الإلكتروني؟",
     "resend": "إعادة الإرسال",
     "resend_in": "أعد المحاولة خلال {{seconds}} ثانية",
-    "change_email": "تغيير البريد الإلكتروني"
+    "change_email": "تغيير البريد الإلكتروني",
+    "invalid_email": "يرجى إدخال بريد إلكتروني صالح"
   },
   "setNewPassword": {
     "title": "تعيين كلمة مرور جديدة",
@@ -499,7 +501,10 @@
     "processing_title": "جارٍ معالجة الدفع",
     "processing_desc": "يرجى عدم مغادرة الصفحة، عمليتك قيد التنفيذ...",
     "payment_success_toast": "تم الدفع بنجاح 😃",
-    "payment_failed_toast": "فشل الدفع 😞"
+    "payment_failed_toast": "فشل الدفع 😞",
+    "confirm_pending_title": "جارٍ تأكيد نتيجة الدفع...",
+    "confirm_pending_desc": "إذا تمت عملية الدفع بنجاح، فسيتم تفعيل ترخيصك قريبًا. يمكنك التحقق من ذلك من صفحة التراخيص.",
+    "go_to_licenses": "الانتقال إلى التراخيص"
   },
   "googleAnalytics": {
     "title": "Google Analytics",
@@ -617,7 +622,8 @@
     "check_table_order_distance": "التحقق من مسافة طلب الطاولة",
     "max_table_order_distance_meter": "الحد الأقصى لمسافة طلب الطاولة (بالأمتار)",
     "max_table_order_distance_meter_placeholder": "أدخل الحد الأقصى للمسافة بالأمتار",
-    "is_reservation_active": "تفعيل الحجز"
+    "is_reservation_active": "تفعيل الحجز",
+    "whatsapp_uses_package": "الخصم ورسوم التوصيل والحد الأدنى للطلب والمسافة هي نفسها المحددة في طلب التوصيل."
   },
   "restaurantReservationSettings": {
     "updateSuccess": "تم تحديث إعدادات حجز المطعم بنجاح.",
@@ -1184,7 +1190,8 @@
     "max_quantity": "الحد الأقصى للاختيار",
     "delete": "حذف",
     "add_new_product": "إضافة منتج جديد",
-    "save": "حفظ"
+    "save": "حفظ",
+    "import_external": "استيراد من مصادر أخرى"
   },
   "allergens": {
     "title": "مسببات الحساسية",
@@ -1544,7 +1551,16 @@
     "generate": "إنشاء QR ({{count}})",
     "toast_no_selection": "يرجى اختيار طاولة واحدة على الأقل لإنشاء QR.",
     "toast_generated": "تم إنشاء QR لـ {{count}} طاولة.",
-    "toast_fetch_failed": "لم يُرسل SambaPOS أي طاولات."
+    "toast_fetch_failed": "لم يُرسل SambaPOS أي طاولات.",
+    "delete_selected": "حذف المحدد",
+    "delete_confirm_title": "سيتم حذف {{count}} طاولة",
+    "delete_confirm_desc": "سيتم حذف الطاولات المحددة نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "delete_confirm_yes": "نعم، احذف ({{count}})",
+    "delete_success": "تم حذف {{count}} طاولة.",
+    "delete_failed": "تعذّر حذف الطاولات.",
+    "delete_not_ready": "خدمة حذف الطاولات غير جاهزة بعد.",
+    "remembered_hint": "تم تذكّر {{count}} طاولة من SambaPOS. غيّر اللون أو الشعار واضغط على إنشاء دفعة مرة أخرى لإعادة إنشاء الطاولات نفسها.",
+    "remembered_clear": "مسح التحديد المحفوظ"
   },
   "qrPage": {
     "header_title": "استوديو إنشاء QR الدُفعي",
@@ -1973,7 +1989,9 @@
     "basket_fatura_tax_office": "مكتب الضرائب",
     "basket_fatura_address": "العنوان",
     "basket_fatura_city": "المدينة",
-    "basket_fatura_district": "الحي"
+    "basket_fatura_district": "الحي",
+    "license_kiosk": "ترخيص الكشك",
+    "license_payment": "ترخيص تكامل الدفع"
   },
   "reservationsPage": {
     "title": "الحجوزات",
@@ -2986,7 +3004,8 @@
     "confirm": "تأكيد",
     "verification_code": "رمز التحقق",
     "resend": "إعادة الإرسال",
-    "verify": "تحقق"
+    "verify": "تحقق",
+    "minutes_short": "د"
   },
   "invoice": {
     "name_title": "الاسم/اللقب التجاري",
@@ -3002,5 +3021,44 @@
     "select_neighbourhood": "اختر الحي",
     "address": "العنوان",
     "name": "الاسم"
+  },
+  "importExternal": {
+    "title": "استيراد من مصادر أخرى",
+    "subtitle": "الصِق رابط قائمتك من منصة أخرى لاستيراد المنتجات والأسعار والصور تلقائيًا.",
+    "url_label": "رابط القائمة / الصفحة",
+    "url_placeholder": "https://example-platform.com/your-menu",
+    "platform_label": "المنصة المصدر",
+    "platform_generic": "أخرى / رابط عام",
+    "platform_hint": "يمكنك إدخال أي نطاق يستخدم الطريقة المحددة — لا يشترط أن يكون نطاق المنصة نفسها (نطاقك المخصّص يعمل أيضًا).",
+    "scan_btn": "فحص",
+    "fields_label": "الحقول المراد استيرادها",
+    "field_category": "الفئة",
+    "field_name": "اسم المنتج",
+    "field_portion": "الحصة",
+    "field_price": "السعر",
+    "field_image": "الصورة",
+    "field_tag": "الوسم",
+    "tag_soon": "استيراد الوسوم قريبًا",
+    "soon": "قريبًا",
+    "images_only_hint": "تم تحديد الصور فقط: سيتم مطابقة الصور المستخرجة مع منتجاتك الحالية.",
+    "empty_title": "أدخل رابطًا ثم ابدأ الفحص",
+    "empty_desc": "أدخل رابط صفحة قائمتك واضغط على فحص. يمكنك معاينة المنتجات المستخرجة واستيرادها.",
+    "not_ready_title": "هذه الميزة قريبًا",
+    "not_ready_desc": "خدمة الاستيراد غير مفعّلة بعد. ستعمل هذه الصفحة تلقائيًا بمجرد جاهزية الخادم.",
+    "not_ready_short": "خدمة الاستيراد غير جاهزة بعد.",
+    "scan_failed_title": "فشل الفحص",
+    "scan_failed_desc": "تعذّر فحص الرابط. تحقق من العنوان وحاول مرة أخرى.",
+    "no_results_title": "لم يتم العثور على نتائج",
+    "no_results_desc": "لم يتم العثور على منتجات قابلة للاستيراد في هذا الرابط.",
+    "match_count": "{{count}} صورة للمطابقة",
+    "import_images_btn": "استيراد الصور",
+    "pick_product": "اختر منتجًا",
+    "preview_count": "تم تحديد {{selected}} من {{total}} منتج",
+    "import_btn": "استيراد",
+    "portion_count": "{{count}} حصة",
+    "no_matches": "يرجى مطابقة صورة واحدة على الأقل مع منتج.",
+    "no_rows": "يرجى تحديد منتج واحد على الأقل.",
+    "import_success": "اكتمل الاستيراد",
+    "result_summary": "{{categories}} فئة · {{products}} منتج · {{images}} صورة"
   }
 }
