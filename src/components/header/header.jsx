@@ -55,8 +55,7 @@ function BrandOrRestaurantName() {
 
   if (inRestaurantArea && restaurant?.name) {
     return (
-      <Link
-        to="/"
+      <div
         title={restaurant.name}
         className="flex items-center min-w-0 max-w-[55%] sm:max-w-[60%] gap-2 px-2"
       >
@@ -76,7 +75,7 @@ function BrandOrRestaurantName() {
         <span className="text-base sm:text-lg font-semibold text-[--black-1] truncate tracking-tight">
           {restaurant.name}
         </span>
-      </Link>
+      </div>
     );
   }
   return (

@@ -329,13 +329,12 @@ function Sidebar({ openSidebar, setOpenSidebar }) {
     >
       <div className="flex flex-col w-full relative">
         <header className="flex items-center justify-center px-6 h-16 w-full">
-          <Link
-            to="/"
-            className="font-[conthrax] text-2xl tracking-wide bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent hover:from-indigo-500 hover:to-cyan-400 transition-all"
+          <span
+            className="font-[conthrax] text-2xl tracking-wide bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent"
             style={{ animation: "sidebar-logo-in 500ms ease-out both" }}
           >
             LiwaMenu
-          </Link>
+          </span>
         </header>
 
         <div className="flex flex-col justify-top w-full py-16 h-[100dvh] -mt-16">
