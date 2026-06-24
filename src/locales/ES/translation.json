@@ -1560,7 +1560,8 @@
     "delete_failed": "No se pudieron eliminar las mesas.",
     "delete_not_ready": "El servicio de eliminación de mesas aún no está listo.",
     "remembered_hint": "{{count}} mesas de SambaPOS guardadas. Cambia el color o el logo y pulsa Generar lote de nuevo para volver a crear las mismas mesas.",
-    "remembered_clear": "Borrar selección guardada"
+    "remembered_clear": "Borrar selección guardada",
+    "delete_sync_warning": "Las mesas eliminadas pueden reaparecer en la próxima sincronización con SambaPOS."
   },
   "qrPage": {
     "header_title": "Estudio de QR por lotes",

@@ -1560,7 +1560,8 @@
     "delete_failed": "无法删除桌台。",
     "delete_not_ready": "桌台删除服务尚未就绪。",
     "remembered_hint": "已记住 {{count}} 张 SambaPOS 桌台。更改颜色或 Logo 后再次点击“批量生成”,即可重新创建相同的桌台。",
-    "remembered_clear": "清除已记住的选择"
+    "remembered_clear": "清除已记住的选择",
+    "delete_sync_warning": "已删除的桌台可能会在下次 SambaPOS 同步时重新出现。"
   },
   "qrPage": {
     "header_title": "QR 批量生成工作室",

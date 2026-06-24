@@ -1560,7 +1560,8 @@
     "delete_failed": "Impossibile eliminare i tavoli.",
     "delete_not_ready": "Il servizio di eliminazione dei tavoli non è ancora pronto.",
     "remembered_hint": "{{count}} tavoli SambaPOS memorizzati. Cambia il colore o il logo e premi di nuovo Genera in blocco per ricreare gli stessi tavoli.",
-    "remembered_clear": "Cancella selezione memorizzata"
+    "remembered_clear": "Cancella selezione memorizzata",
+    "delete_sync_warning": "I tavoli eliminati potrebbero ricomparire alla prossima sincronizzazione con SambaPOS."
   },
   "qrPage": {
     "header_title": "QR Batch Studio",

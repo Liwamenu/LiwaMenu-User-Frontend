@@ -142,12 +142,24 @@ const SambaTablesModal = ({ restaurantId, onClose, onGenerate }) => {
     if (!remaining.length || deleting) return;
     setDeleteError(null);
     try {
-      await dispatch(
+      const res = await dispatch(
         deleteSambaTables({ restaurantId, names: remaining }),
       ).unwrap();
+      // Backend ResponsBase: { data: { deletedCount, syncWarning? }, ... }
+      const deletedCount = res?.data?.deletedCount ?? remaining.length;
       toast.success(
-        t("sambaTables.delete_success", { count: remaining.length }),
+        t("sambaTables.delete_success", { count: deletedCount }),
       );
+      // SambaPOS-sourced tables can be re-created on the next sync; the
+      // backend flags this with `syncWarning`. Surface it so the user
+      // isn't surprised when a deleted table reappears later.
+      if (res?.data?.syncWarning) {
+        toast(t("sambaTables.delete_sync_warning"), {
+          icon: "⚠️",
+          id: "samba-delete-sync-warning",
+          duration: 6500,
+        });
+      }
       setSelected(new Set());
       setConfirmingDelete(false);
       dispatch(getSambaTables({ restaurantId })); // refresh the list

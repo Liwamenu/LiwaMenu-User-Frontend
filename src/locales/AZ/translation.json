@@ -1560,7 +1560,8 @@
     "delete_failed": "Masalar silinə bilmədi.",
     "delete_not_ready": "Masa silmə xidməti hələ hazır deyil.",
     "remembered_hint": "{{count}} SambaPOS masası yadda saxlanıldı. Rəngi və ya loqonu dəyişib eyni masaları yenidən yaratmaq üçün Toplu Yarat düyməsinə yenidən basın.",
-    "remembered_clear": "Yadda saxlanılan seçimi təmizlə"
+    "remembered_clear": "Yadda saxlanılan seçimi təmizlə",
+    "delete_sync_warning": "Silinmiş masalar növbəti SambaPOS sinxronizasiyasında yenidən görünə bilər."
   },
   "qrPage": {
     "header_title": "QR Toplu Studiya",

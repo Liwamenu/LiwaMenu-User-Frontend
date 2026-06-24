@@ -1560,7 +1560,8 @@
     "delete_failed": "Tische konnten nicht gelöscht werden.",
     "delete_not_ready": "Der Dienst zum Löschen von Tischen ist noch nicht bereit.",
     "remembered_hint": "{{count}} SambaPOS-Tische gespeichert. Ändere die Farbe oder das Logo und klicke erneut auf „Stapel erstellen“, um dieselben Tische neu anzulegen.",
-    "remembered_clear": "Gespeicherte Auswahl löschen"
+    "remembered_clear": "Gespeicherte Auswahl löschen",
+    "delete_sync_warning": "Gelöschte Tische können bei der nächsten SambaPOS-Synchronisierung wieder erscheinen."
   },
   "qrPage": {
     "header_title": "QR Batch Studio",

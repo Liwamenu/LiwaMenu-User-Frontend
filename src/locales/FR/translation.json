@@ -1560,7 +1560,8 @@
     "delete_failed": "Impossible de supprimer les tables.",
     "delete_not_ready": "Le service de suppression des tables n'est pas encore prêt.",
     "remembered_hint": "{{count}} tables SambaPOS mémorisées. Modifiez la couleur ou le logo, puis appuyez de nouveau sur Générer le lot pour recréer les mêmes tables.",
-    "remembered_clear": "Effacer la sélection mémorisée"
+    "remembered_clear": "Effacer la sélection mémorisée",
+    "delete_sync_warning": "Les tables supprimées peuvent réapparaître lors de la prochaine synchronisation SambaPOS."
   },
   "qrPage": {
     "header_title": "Studio de génération QR en lot",

@@ -1583,7 +1583,8 @@
     "delete_failed": "Masalar silinemedi.",
     "delete_not_ready": "Masa silme servisi henüz hazır değil.",
     "remembered_hint": "{{count}} SambaPOS masası hatırlanıyor. Renk veya logoyu değiştirip tekrar Toplu Oluştur'a basınca aynı masalar yeniden üretilir.",
-    "remembered_clear": "Hatırlanan seçimi temizle"
+    "remembered_clear": "Hatırlanan seçimi temizle",
+    "delete_sync_warning": "Silinen masalar bir sonraki SambaPOS senkronizasyonunda geri gelebilir."
   },
   "qrPage": {
     "header_title": "QR Toplu Üretim Stüdyosu",

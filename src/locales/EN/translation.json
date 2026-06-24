@@ -1599,7 +1599,8 @@
     "delete_failed": "Could not delete tables.",
     "delete_not_ready": "The table deletion service is not ready yet.",
     "remembered_hint": "{{count}} SambaPOS tables remembered. Change the color or logo and press Generate Batch again to recreate the same tables.",
-    "remembered_clear": "Clear remembered selection"
+    "remembered_clear": "Clear remembered selection",
+    "delete_sync_warning": "Deleted tables may reappear on the next SambaPOS sync."
   },
   "qrPage": {
     "header_title": "QR Batch Studio",
