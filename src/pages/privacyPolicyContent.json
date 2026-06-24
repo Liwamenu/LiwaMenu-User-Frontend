@@ -1,0 +1,387 @@
+{
+  "tr": {
+    "intro": "LiwaMenu hizmetini kullanarak aşağıdaki şartları kabul etmiş sayılırsınız. Lütfen dikkatlice okuyunuz.",
+    "sections": [
+      {
+        "title": "1. Yasal Kullanım",
+        "body": "Müşteri, LiwaMenu platformunu yalnızca yasal ürün ve hizmet satışları için kullanmayı kabul eder. Yasalara aykırı içerik, ürün veya hizmet pazarlamak; sahte ürün, sağlığa zararlı ya da kaçak gıda satmak; lisanssız alkol veya tütün ürünü sunmak veya yürürlükteki mevzuata aykırı her türlü faaliyet kesinlikle yasaktır.",
+        "warning": "Uyarılara rağmen kanun dışı kullanım ve yasal olmayan ürün satışından dolayı oluşabilecek cezai durumlar kullanıcıya aittir!"
+      },
+      {
+        "title": "2. Amaç Dışı Kullanım Yasağı",
+        "body": "Sistem, restoran, kafe ve gıda işletmelerinin dijital menü, sipariş, rezervasyon ve müşteri etkileşim ihtiyaçları için tasarlanmıştır. Bu kapsam dışında kumar, çekiliş, kripto işlemleri, finansal aracılık veya kanunlara aykırı her türlü faaliyet için kullanılamaz. Tespit halinde sözleşme tek taraflı feshedilir."
+      },
+      {
+        "title": "3. Hizmet Sürekliliği",
+        "body": "LiwaMenu mümkün olan en yüksek erişilebilirlik oranını hedefler ve bunun için modern altyapı kullanır. Ancak bulut sağlayıcı kesintileri, üçüncü taraf bağımlılıkları (Firebase, SMS sağlayıcıları, ödeme sistemleri, internet servis sağlayıcıları vb.), planlı bakım pencereleri veya öngörülemeyen mücbir sebepler nedeniyle çok nadir de olsa sistemin geçici olarak çevrimdışı kalabileceği durumlar yaşanabilir."
+      },
+      {
+        "title": "4. Sorumluluk Sınırı",
+        "body": "Müşteri, olağanüstü bir kesinti veya teknik aksaklık sırasında oluşabilecek dolaylı veya doğrudan ticari kayıplardan, sipariş kaybından, rezervasyon iptalinden, kar kaybından veya itibar zararından Liwa Yazılım San. Tic. Ltd. Şirketi'nin sorumlu tutulamayacağını kabul eder. Şirketimiz bu süreçte tazminat, geri ödeme veya başka bir mali yükümlülük altına girmez."
+      },
+      {
+        "title": "5. Veri Güvenliği ve Hesap Sorumluluğu",
+        "body": "Müşteri verileri SSL şifreleme ile korunur ve düzenli olarak yedeklenir. Hesap bilgileri (kullanıcı adı, şifre, API anahtarları) yalnızca yetkili kişilerle paylaşılmalıdır. Yetkisiz erişim veya hesap kötüye kullanımı sonucu doğan tüm zararlardan hesap sahibi sorumludur."
+      },
+      {
+        "title": "6. Fikri Mülkiyet",
+        "body": "LiwaMenu platformu, kaynak kodları, tasarımları, logoları ve tüm görsel ögeleri Liwa Yazılım San. Tic. Ltd. Şirketi'nin fikri mülkiyetidir. İzinsiz çoğaltılamaz, dağıtılamaz veya türev çalışmalarda kullanılamaz."
+      },
+      {
+        "title": "7. Şartların Güncellenmesi",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi, işbu kullanım şartlarını önceden bildirim yapmaksızın güncelleme hakkını saklı tutar. Güncellenmiş şartlar, web sitesinde yayımlandığı tarihte yürürlüğe girer ve hizmeti kullanmaya devam eden müşteri yeni şartları kabul etmiş sayılır."
+      }
+    ],
+    "closing": "Bu sözleşmeyi onaylayarak LiwaMenu hizmetini yukarıdaki şartlar çerçevesinde kullanacağınızı kabul etmiş olursunuz."
+  },
+  "en": {
+    "intro": "By using the LiwaMenu service, you are deemed to have accepted the following terms. Please read them carefully.",
+    "sections": [
+      {
+        "title": "1. Lawful Use",
+        "body": "The Customer agrees to use the LiwaMenu platform solely for the sale of lawful products and services. Marketing any content, product, or service that violates the law; selling counterfeit, health-hazardous, or smuggled food; offering unlicensed alcohol or tobacco products; or engaging in any activity contrary to applicable legislation is strictly prohibited.",
+        "warning": "Any criminal liability arising from unlawful use or the sale of illegal products despite these warnings belongs to the user!"
+      },
+      {
+        "title": "2. Prohibition of Off-Purpose Use",
+        "body": "The system is designed for the digital menu, ordering, reservation, and customer-interaction needs of restaurants, cafes, and food businesses. It may not be used outside this scope for gambling, raffles, crypto transactions, financial intermediation, or any activity contrary to law. If detected, the contract is unilaterally terminated."
+      },
+      {
+        "title": "3. Service Continuity",
+        "body": "LiwaMenu aims for the highest possible availability and uses modern infrastructure to that end. However, due to cloud-provider outages, third-party dependencies (Firebase, SMS providers, payment systems, internet service providers, etc.), planned maintenance windows, or unforeseen force-majeure events, there may be — albeit very rarely — situations in which the system temporarily goes offline."
+      },
+      {
+        "title": "4. Limitation of Liability",
+        "body": "The Customer accepts that Liwa Yazılım San. Tic. Ltd. Şirketi cannot be held liable for any indirect or direct commercial losses, loss of orders, reservation cancellations, loss of profit, or reputational damage that may occur during an extraordinary outage or technical malfunction. Our company shall bear no obligation of compensation, refund, or any other financial liability in this process."
+      },
+      {
+        "title": "5. Data Security and Account Responsibility",
+        "body": "Customer data is protected with SSL encryption and is backed up regularly. Account information (username, password, API keys) must be shared only with authorized persons. The account holder is responsible for all damages arising from unauthorized access or account misuse."
+      },
+      {
+        "title": "6. Intellectual Property",
+        "body": "The LiwaMenu platform, its source code, designs, logos, and all visual elements are the intellectual property of Liwa Yazılım San. Tic. Ltd. Şirketi. They may not be reproduced, distributed, or used in derivative works without permission."
+      },
+      {
+        "title": "7. Updates to the Terms",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi reserves the right to update these terms of use without prior notice. The updated terms take effect on the date they are published on the website, and a customer who continues to use the service is deemed to have accepted the new terms."
+      }
+    ],
+    "closing": "By approving this agreement, you accept that you will use the LiwaMenu service within the framework of the terms above."
+  },
+  "es": {
+    "intro": "Al utilizar el servicio LiwaMenu, se considera que usted ha aceptado los siguientes términos. Le rogamos que los lea atentamente.",
+    "sections": [
+      {
+        "title": "1. Uso Lícito",
+        "body": "El Cliente se compromete a utilizar la plataforma LiwaMenu únicamente para la venta de productos y servicios lícitos. Queda estrictamente prohibido comercializar cualquier contenido, producto o servicio que infrinja la ley; vender alimentos falsificados, peligrosos para la salud o de contrabando; ofrecer productos de alcohol o tabaco sin licencia; o realizar cualquier actividad contraria a la legislación aplicable.",
+        "warning": "Toda responsabilidad penal derivada del uso ilícito o de la venta de productos ilegales pese a estas advertencias corresponde al usuario."
+      },
+      {
+        "title": "2. Prohibición de Uso Ajeno a su Finalidad",
+        "body": "El sistema está diseñado para las necesidades de menú digital, pedidos, reservas e interacción con el cliente de restaurantes, cafeterías y negocios de alimentación. No podrá utilizarse fuera de este ámbito para juegos de azar, sorteos, operaciones con criptomonedas, intermediación financiera o cualquier actividad contraria a la ley. En caso de detectarse, el contrato se rescindirá unilateralmente."
+      },
+      {
+        "title": "3. Continuidad del Servicio",
+        "body": "LiwaMenu aspira a la mayor disponibilidad posible y emplea una infraestructura moderna con ese fin. No obstante, debido a interrupciones del proveedor de la nube, dependencias de terceros (Firebase, proveedores de SMS, sistemas de pago, proveedores de servicios de internet, etc.), ventanas de mantenimiento programado o eventos imprevistos de fuerza mayor, podrían producirse —aunque muy rara vez— situaciones en las que el sistema quede temporalmente fuera de línea."
+      },
+      {
+        "title": "4. Limitación de Responsabilidad",
+        "body": "El Cliente acepta que Liwa Yazılım San. Tic. Ltd. Şirketi no podrá ser considerada responsable de cualquier pérdida comercial, indirecta o directa, pérdida de pedidos, cancelaciones de reservas, lucro cesante o daño reputacional que pudiera producirse durante una interrupción extraordinaria o un fallo técnico. Nuestra empresa no asumirá ninguna obligación de indemnización, reembolso ni ninguna otra responsabilidad económica en este proceso."
+      },
+      {
+        "title": "5. Seguridad de los Datos y Responsabilidad de la Cuenta",
+        "body": "Los datos del Cliente están protegidos mediante cifrado SSL y se respaldan periódicamente. La información de la cuenta (nombre de usuario, contraseña, claves API) solo debe compartirse con personas autorizadas. El titular de la cuenta es responsable de todos los daños derivados del acceso no autorizado o del uso indebido de la cuenta."
+      },
+      {
+        "title": "6. Propiedad Intelectual",
+        "body": "La plataforma LiwaMenu, su código fuente, diseños, logotipos y todos los elementos visuales son propiedad intelectual de Liwa Yazılım San. Tic. Ltd. Şirketi. No podrán reproducirse, distribuirse ni utilizarse en obras derivadas sin autorización."
+      },
+      {
+        "title": "7. Actualizaciones de los Términos",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi se reserva el derecho de actualizar estos términos de uso sin previo aviso. Los términos actualizados entrarán en vigor en la fecha de su publicación en el sitio web, y se considerará que el cliente que continúe utilizando el servicio ha aceptado los nuevos términos."
+      }
+    ],
+    "closing": "Al aprobar este acuerdo, usted acepta que utilizará el servicio LiwaMenu en el marco de los términos anteriores."
+  },
+  "de": {
+    "intro": "Durch die Nutzung des LiwaMenu-Dienstes gelten die nachstehenden Bedingungen als von Ihnen akzeptiert. Bitte lesen Sie diese sorgfältig durch.",
+    "sections": [
+      {
+        "title": "1. Rechtmäßige Nutzung",
+        "body": "Der Kunde verpflichtet sich, die LiwaMenu-Plattform ausschließlich für den Verkauf rechtmäßiger Produkte und Dienstleistungen zu nutzen. Die Vermarktung von Inhalten, Produkten oder Dienstleistungen, die gegen das Gesetz verstoßen; der Verkauf von gefälschten, gesundheitsschädlichen oder geschmuggelten Lebensmitteln; das Anbieten nicht lizenzierter Alkohol- oder Tabakwaren; oder die Ausübung jeglicher Tätigkeit, die gegen die geltenden Rechtsvorschriften verstößt, ist strengstens untersagt.",
+        "warning": "Jegliche strafrechtliche Haftung, die sich aus der rechtswidrigen Nutzung oder dem Verkauf illegaler Produkte trotz dieser Warnhinweise ergibt, obliegt dem Nutzer!"
+      },
+      {
+        "title": "2. Verbot der zweckwidrigen Nutzung",
+        "body": "Das System ist für die Bedürfnisse von Restaurants, Cafés und Lebensmittelbetrieben in den Bereichen digitale Speisekarte, Bestellung, Reservierung und Kundeninteraktion konzipiert. Es darf nicht außerhalb dieses Rahmens für Glücksspiel, Verlosungen, Krypto-Transaktionen, Finanzvermittlung oder jegliche gesetzeswidrige Tätigkeit genutzt werden. Bei Feststellung wird der Vertrag einseitig gekündigt."
+      },
+      {
+        "title": "3. Dienstkontinuität",
+        "body": "LiwaMenu strebt die höchstmögliche Verfügbarkeit an und nutzt zu diesem Zweck eine moderne Infrastruktur. Aufgrund von Ausfällen des Cloud-Anbieters, Abhängigkeiten von Drittanbietern (Firebase, SMS-Anbieter, Zahlungssysteme, Internetdienstanbieter usw.), geplanten Wartungsfenstern oder unvorhergesehenen Ereignissen höherer Gewalt kann es jedoch – wenn auch sehr selten – zu Situationen kommen, in denen das System vorübergehend offline geht."
+      },
+      {
+        "title": "4. Haftungsbeschränkung",
+        "body": "Der Kunde erkennt an, dass die Liwa Yazılım San. Tic. Ltd. Şirketi nicht für mittelbare oder unmittelbare wirtschaftliche Verluste, entgangene Bestellungen, Reservierungsstornierungen, entgangenen Gewinn oder Reputationsschäden haftbar gemacht werden kann, die während eines außergewöhnlichen Ausfalls oder einer technischen Störung auftreten können. Unser Unternehmen trägt in diesem Zusammenhang keinerlei Verpflichtung zur Entschädigung, Rückerstattung oder sonstigen finanziellen Haftung."
+      },
+      {
+        "title": "5. Datensicherheit und Kontoverantwortung",
+        "body": "Kundendaten werden mit SSL-Verschlüsselung geschützt und regelmäßig gesichert. Kontoinformationen (Benutzername, Passwort, API-Schlüssel) dürfen nur mit autorisierten Personen geteilt werden. Der Kontoinhaber haftet für alle Schäden, die sich aus unbefugtem Zugriff oder missbräuchlicher Nutzung des Kontos ergeben."
+      },
+      {
+        "title": "6. Geistiges Eigentum",
+        "body": "Die LiwaMenu-Plattform, ihr Quellcode, ihre Designs, Logos und alle visuellen Elemente sind geistiges Eigentum der Liwa Yazılım San. Tic. Ltd. Şirketi. Sie dürfen ohne Genehmigung nicht vervielfältigt, verbreitet oder in abgeleiteten Werken verwendet werden."
+      },
+      {
+        "title": "7. Aktualisierungen der Bedingungen",
+        "body": "Die Liwa Yazılım San. Tic. Ltd. Şirketi behält sich das Recht vor, diese Nutzungsbedingungen ohne vorherige Ankündigung zu aktualisieren. Die aktualisierten Bedingungen treten an dem Tag in Kraft, an dem sie auf der Website veröffentlicht werden, und ein Kunde, der den Dienst weiterhin nutzt, gilt als mit den neuen Bedingungen einverstanden."
+      }
+    ],
+    "closing": "Mit der Genehmigung dieser Vereinbarung akzeptieren Sie, dass Sie den LiwaMenu-Dienst im Rahmen der vorstehenden Bedingungen nutzen werden."
+  },
+  "fr": {
+    "intro": "En utilisant le service LiwaMenu, vous êtes réputé avoir accepté les conditions suivantes. Veuillez les lire attentivement.",
+    "sections": [
+      {
+        "title": "1. Utilisation licite",
+        "body": "Le Client s'engage à utiliser la plateforme LiwaMenu uniquement pour la vente de produits et de services licites. Il est strictement interdit de commercialiser tout contenu, produit ou service contraire à la loi ; de vendre des denrées alimentaires contrefaites, dangereuses pour la santé ou de contrebande ; de proposer des produits alcoolisés ou du tabac sans autorisation ; ou de se livrer à toute activité contraire à la législation applicable.",
+        "warning": "Toute responsabilité pénale découlant d'une utilisation illicite ou de la vente de produits illégaux malgré ces avertissements incombe à l'utilisateur !"
+      },
+      {
+        "title": "2. Interdiction d'utilisation détournée",
+        "body": "Le système est conçu pour répondre aux besoins de menu numérique, de commande, de réservation et d'interaction avec la clientèle des restaurants, cafés et établissements de restauration. Il ne peut être utilisé en dehors de ce cadre à des fins de jeux d'argent, de tombolas, de transactions en cryptomonnaie, d'intermédiation financière, ou pour toute activité contraire à la loi. En cas de constatation, le contrat est résilié unilatéralement."
+      },
+      {
+        "title": "3. Continuité du service",
+        "body": "LiwaMenu vise la disponibilité la plus élevée possible et utilise à cette fin une infrastructure moderne. Toutefois, en raison de pannes de fournisseurs de services en nuage, de dépendances à des tiers (Firebase, fournisseurs de SMS, systèmes de paiement, fournisseurs d'accès à Internet, etc.), de fenêtres de maintenance planifiées ou d'événements de force majeure imprévus, il peut survenir — quoique très rarement — des situations dans lesquelles le système est temporairement hors ligne."
+      },
+      {
+        "title": "4. Limitation de responsabilité",
+        "body": "Le Client accepte que la société Liwa Yazılım San. Tic. Ltd. Şirketi ne puisse être tenue responsable de toute perte commerciale indirecte ou directe, perte de commandes, annulation de réservations, perte de bénéfices ou atteinte à la réputation pouvant survenir lors d'une panne exceptionnelle ou d'un dysfonctionnement technique. Notre société n'assumera aucune obligation d'indemnisation, de remboursement ou toute autre responsabilité financière dans ce cadre."
+      },
+      {
+        "title": "5. Sécurité des données et responsabilité du compte",
+        "body": "Les données du Client sont protégées par un chiffrement SSL et font l'objet de sauvegardes régulières. Les informations de compte (nom d'utilisateur, mot de passe, clés API) ne doivent être partagées qu'avec des personnes autorisées. Le titulaire du compte est responsable de tous les dommages résultant d'un accès non autorisé ou d'une utilisation abusive du compte."
+      },
+      {
+        "title": "6. Propriété intellectuelle",
+        "body": "La plateforme LiwaMenu, son code source, ses conceptions, ses logos et tous ses éléments visuels constituent la propriété intellectuelle de Liwa Yazılım San. Tic. Ltd. Şirketi. Ils ne peuvent être reproduits, distribués ou utilisés dans des œuvres dérivées sans autorisation."
+      },
+      {
+        "title": "7. Mises à jour des conditions",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi se réserve le droit de mettre à jour les présentes conditions d'utilisation sans préavis. Les conditions mises à jour prennent effet à la date de leur publication sur le site web, et tout client qui continue à utiliser le service est réputé avoir accepté les nouvelles conditions."
+      }
+    ],
+    "closing": "En approuvant le présent accord, vous acceptez d'utiliser le service LiwaMenu dans le cadre des conditions énoncées ci-dessus."
+  },
+  "it": {
+    "intro": "Utilizzando il servizio LiwaMenu, si considera che l'utente abbia accettato i seguenti termini. Si prega di leggerli attentamente.",
+    "sections": [
+      {
+        "title": "1. Utilizzo Lecito",
+        "body": "Il Cliente si impegna a utilizzare la piattaforma LiwaMenu esclusivamente per la vendita di prodotti e servizi leciti. È severamente vietato commercializzare qualsiasi contenuto, prodotto o servizio che violi la legge; vendere alimenti contraffatti, pericolosi per la salute o di contrabbando; offrire prodotti alcolici o del tabacco privi di licenza; o svolgere qualsiasi attività contraria alla legislazione applicabile.",
+        "warning": "Qualsiasi responsabilità penale derivante da un utilizzo illecito o dalla vendita di prodotti illegali nonostante le presenti avvertenze ricade sull'utente!"
+      },
+      {
+        "title": "2. Divieto di Utilizzo Difforme dalla Finalità",
+        "body": "Il sistema è progettato per le esigenze di menu digitale, ordinazione, prenotazione e interazione con i clienti di ristoranti, caffetterie e attività di ristorazione. Non può essere utilizzato al di fuori di tale ambito per giochi d'azzardo, lotterie, transazioni in criptovalute, intermediazione finanziaria o qualsiasi attività contraria alla legge. In caso di rilevamento, il contratto è risolto unilateralmente."
+      },
+      {
+        "title": "3. Continuità del Servizio",
+        "body": "LiwaMenu mira alla massima disponibilità possibile e, a tal fine, si avvale di un'infrastruttura moderna. Tuttavia, a causa di interruzioni del fornitore di servizi cloud, dipendenze da terze parti (Firebase, fornitori di SMS, sistemi di pagamento, fornitori di servizi internet, ecc.), interventi di manutenzione programmata o eventi imprevisti di forza maggiore, possono verificarsi, seppur molto raramente, situazioni in cui il sistema risulti temporaneamente non in linea."
+      },
+      {
+        "title": "4. Limitazione di Responsabilità",
+        "body": "Il Cliente accetta che Liwa Yazılım San. Tic. Ltd. Şirketi non possa essere ritenuta responsabile per eventuali perdite commerciali indirette o dirette, perdita di ordini, cancellazioni di prenotazioni, mancato guadagno o danni reputazionali che possano verificarsi durante un'interruzione straordinaria o un malfunzionamento tecnico. La nostra società non avrà alcun obbligo di risarcimento, rimborso o qualsiasi altra responsabilità finanziaria in tale processo."
+      },
+      {
+        "title": "5. Sicurezza dei Dati e Responsabilità dell'Account",
+        "body": "I dati dei clienti sono protetti mediante crittografia SSL e vengono sottoposti regolarmente a backup. Le informazioni dell'account (nome utente, password, chiavi API) devono essere condivise esclusivamente con persone autorizzate. Il titolare dell'account è responsabile di tutti i danni derivanti da accessi non autorizzati o da un utilizzo improprio dell'account."
+      },
+      {
+        "title": "6. Proprietà Intellettuale",
+        "body": "La piattaforma LiwaMenu, il suo codice sorgente, i design, i loghi e tutti gli elementi visivi sono proprietà intellettuale di Liwa Yazılım San. Tic. Ltd. Şirketi. Essi non possono essere riprodotti, distribuiti o utilizzati in opere derivate senza autorizzazione."
+      },
+      {
+        "title": "7. Aggiornamenti dei Termini",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi si riserva il diritto di aggiornare i presenti termini di utilizzo senza preavviso. I termini aggiornati entrano in vigore alla data della loro pubblicazione sul sito web, e il cliente che continua a utilizzare il servizio si considera aver accettato i nuovi termini."
+      }
+    ],
+    "closing": "Approvando il presente accordo, l'utente accetta di utilizzare il servizio LiwaMenu nel rispetto dei termini sopra indicati."
+  },
+  "ar": {
+    "intro": "باستخدامك لخدمة LiwaMenu، تُعدّ موافقًا على الشروط التالية. يُرجى قراءتها بعناية.",
+    "sections": [
+      {
+        "title": "1. الاستخدام المشروع",
+        "body": "يوافق العميل على استخدام منصة LiwaMenu حصريًا لبيع المنتجات والخدمات المشروعة. ويُحظر حظرًا تامًا تسويق أي محتوى أو منتج أو خدمة تخالف القانون؛ أو بيع الأغذية المقلّدة أو الضارة بالصحة أو المهرّبة؛ أو عرض منتجات الكحول أو التبغ غير المرخّصة؛ أو ممارسة أي نشاط مخالف للتشريعات السارية.",
+        "warning": "تقع أي مسؤولية جنائية ناشئة عن الاستخدام غير المشروع أو بيع المنتجات غير القانونية، رغم هذه التحذيرات، على عاتق المستخدم!"
+      },
+      {
+        "title": "2. حظر الاستخدام خارج الغرض المخصّص",
+        "body": "صُمِّم النظام لتلبية احتياجات المطاعم والمقاهي ومنشآت الأغذية فيما يتعلق بالقائمة الرقمية والطلب والحجز والتفاعل مع العملاء. ولا يجوز استخدامه خارج هذا النطاق لأغراض القمار أو السحوبات أو معاملات العملات المشفّرة أو الوساطة المالية أو أي نشاط مخالف للقانون. وفي حال اكتشاف ذلك، يُفسَخ العقد من جانب واحد."
+      },
+      {
+        "title": "3. استمرارية الخدمة",
+        "body": "تهدف LiwaMenu إلى تحقيق أعلى قدر ممكن من الإتاحة، وتستخدم بنية تحتية حديثة لهذا الغرض. ومع ذلك، ونتيجةً لانقطاعات مزوّدي الخدمات السحابية، أو الاعتماديات الخاصة بأطراف ثالثة (Firebase، ومزوّدي خدمة SMS، وأنظمة الدفع، ومزوّدي خدمة الإنترنت، وما إلى ذلك)، أو فترات الصيانة المجدولة، أو حالات القوة القاهرة غير المتوقّعة، فقد تطرأ — وإن كان ذلك في حالات نادرة جدًا — أوضاع يصبح فيها النظام غير متصل بالإنترنت مؤقتًا."
+      },
+      {
+        "title": "4. حدود المسؤولية",
+        "body": "يُقرّ العميل بأنه لا يجوز تحميل شركة Liwa Yazılım San. Tic. Ltd. Şirketi المسؤولية عن أي خسائر تجارية غير مباشرة أو مباشرة، أو فقدان للطلبات، أو إلغاءات للحجوزات، أو خسارة في الأرباح، أو ضرر بالسمعة قد يحدث أثناء انقطاع استثنائي أو عطل تقني. ولا تتحمّل شركتنا أي التزام بالتعويض أو ردّ المبالغ أو أي مسؤولية مالية أخرى في هذه الأثناء."
+      },
+      {
+        "title": "5. أمن البيانات ومسؤولية الحساب",
+        "body": "تُحمى بيانات العميل بتشفير SSL ويتم نسخها احتياطيًا بصورة منتظمة. ويجب عدم مشاركة معلومات الحساب (اسم المستخدم، وكلمة المرور، ومفاتيح API) إلا مع الأشخاص المخوّلين. ويتحمّل صاحب الحساب المسؤولية عن جميع الأضرار الناشئة عن الوصول غير المصرّح به أو إساءة استخدام الحساب."
+      },
+      {
+        "title": "6. الملكية الفكرية",
+        "body": "تُعدّ منصة LiwaMenu وشفرتها المصدرية وتصاميمها وشعاراتها وجميع عناصرها المرئية ملكية فكرية لشركة Liwa Yazılım San. Tic. Ltd. Şirketi. ولا يجوز نسخها أو توزيعها أو استخدامها في أعمال مشتقة دون إذن."
+      },
+      {
+        "title": "7. تحديثات الشروط",
+        "body": "تحتفظ شركة Liwa Yazılım San. Tic. Ltd. Şirketi بالحق في تحديث شروط الاستخدام هذه دون إشعار مسبق. وتدخل الشروط المحدّثة حيّز التنفيذ اعتبارًا من تاريخ نشرها على الموقع الإلكتروني، ويُعدّ العميل الذي يواصل استخدام الخدمة موافقًا على الشروط الجديدة."
+      }
+    ],
+    "closing": "بموافقتك على هذه الاتفاقية، فإنك تقبل أن تستخدم خدمة LiwaMenu في إطار الشروط المذكورة أعلاه."
+  },
+  "az": {
+    "intro": "LiwaMenu xidmətindən istifadə etməklə siz aşağıdakı şərtləri qəbul etmiş sayılırsınız. Xahiş edirik, onları diqqətlə oxuyun.",
+    "sections": [
+      {
+        "title": "1. Qanuni İstifadə",
+        "body": "Müştəri LiwaMenu platformasından yalnız qanuni məhsul və xidmətlərin satışı üçün istifadə etməyi öhdəsinə götürür. Qanunu pozan istənilən məzmunun, məhsulun və ya xidmətin marketinqi; saxta, sağlamlıq üçün təhlükəli və ya qaçaq qida məhsullarının satışı; lisenziyasız alkoqol və ya tütün məhsullarının təklif edilməsi; yaxud tətbiq olunan qanunvericiliyə zidd olan istənilən fəaliyyətlə məşğul olmaq qəti qadağandır.",
+        "warning": "Bu xəbərdarlıqlara baxmayaraq qanunsuz istifadədən və ya qeyri-qanuni məhsulların satışından irəli gələn istənilən cinayət məsuliyyəti istifadəçiyə aiddir!"
+      },
+      {
+        "title": "2. Təyinatından Kənar İstifadənin Qadağan Edilməsi",
+        "body": "Sistem restoranların, kafelerin və qida müəssisələrinin rəqəmsal menyu, sifariş, rezervasiya və müştəri ilə qarşılıqlı əlaqə ehtiyacları üçün nəzərdə tutulmuşdur. Bu çərçivədən kənarda qumar, lotereya, kripto əməliyyatları, maliyyə vasitəçiliyi və ya qanuna zidd olan istənilən fəaliyyət üçün istifadə edilə bilməz. Aşkar edildiyi təqdirdə müqavilə birtərəfli qaydada ləğv edilir."
+      },
+      {
+        "title": "3. Xidmətin Davamlılığı",
+        "body": "LiwaMenu mümkün olan ən yüksək əlçatanlığı hədəfləyir və bu məqsədlə müasir infrastrukturdan istifadə edir. Bununla belə, bulud provayderlərində baş verən fasilələr, üçüncü tərəf asılılıqları (Firebase, SMS provayderləri, ödəniş sistemləri, internet xidmət təminatçıları və s.), planlaşdırılmış texniki baxım pəncərələri və ya öncədən görülə bilməyən fors-major hadisələri səbəbindən — çox nadir hallarda da olsa — sistemin müvəqqəti olaraq oflayn vəziyyətə keçdiyi situasiyalar baş verə bilər."
+      },
+      {
+        "title": "4. Məsuliyyətin Məhdudlaşdırılması",
+        "body": "Müştəri qeyri-adi fasilə və ya texniki nasazlıq zamanı baş verə biləcək istənilən dolayı və ya birbaşa kommersiya zərərlərinə, sifariş itkilərinə, rezervasiya ləğvlərinə, mənfəət itkisinə və ya reputasiya zərərinə görə Liwa Yazılım San. Tic. Ltd. Şirketi-nin məsuliyyət daşıya bilməyəcəyini qəbul edir. Şirkətimiz bu prosesdə heç bir kompensasiya, geri ödəniş və ya hər hansı digər maliyyə öhdəliyi daşımır."
+      },
+      {
+        "title": "5. Məlumat Təhlükəsizliyi və Hesab Məsuliyyəti",
+        "body": "Müştəri məlumatları SSL şifrələmə ilə qorunur və müntəzəm olaraq ehtiyat nüsxəsi çıxarılır. Hesab məlumatları (istifadəçi adı, parol, API açarları) yalnız səlahiyyətli şəxslərlə paylaşılmalıdır. İcazəsiz girişdən və ya hesabın sui-istifadəsindən irəli gələn bütün zərərlərə görə hesab sahibi məsuliyyət daşıyır."
+      },
+      {
+        "title": "6. Əqli Mülkiyyət",
+        "body": "LiwaMenu platforması, onun mənbə kodu, dizaynları, loqotipləri və bütün vizual elementləri Liwa Yazılım San. Tic. Ltd. Şirketi-nin əqli mülkiyyətidir. Onlar icazə olmadan çoxaldıla, yayıla və ya törəmə işlərdə istifadə edilə bilməz."
+      },
+      {
+        "title": "7. Şərtlərin Yenilənməsi",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi bu istifadə şərtlərini öncədən xəbərdarlıq etmədən yeniləmək hüququnu özündə saxlayır. Yenilənmiş şərtlər vebsaytda dərc edildiyi tarixdə qüvvəyə minir və xidmətdən istifadəni davam etdirən müştəri yeni şərtləri qəbul etmiş sayılır."
+      }
+    ],
+    "closing": "Bu müqaviləni təsdiq etməklə siz LiwaMenu xidmətindən yuxarıdakı şərtlər çərçivəsində istifadə edəcəyinizi qəbul edirsiniz."
+  },
+  "ru": {
+    "intro": "Используя сервис LiwaMenu, вы считаетесь принявшими следующие условия. Пожалуйста, внимательно ознакомьтесь с ними.",
+    "sections": [
+      {
+        "title": "1. Правомерное использование",
+        "body": "Клиент соглашается использовать платформу LiwaMenu исключительно для продажи правомерных товаров и услуг. Строго запрещается продвижение любого контента, товаров или услуг, нарушающих закон; продажа контрафактных, опасных для здоровья или контрабандных продуктов питания; предложение алкогольной или табачной продукции без лицензии; а также осуществление любой деятельности, противоречащей применимому законодательству.",
+        "warning": "Любая уголовная ответственность, возникающая вследствие неправомерного использования или продажи незаконных товаров вопреки настоящим предупреждениям, лежит на пользователе!"
+      },
+      {
+        "title": "2. Запрет на использование не по назначению",
+        "body": "Система предназначена для обеспечения потребностей ресторанов, кафе и предприятий общественного питания в цифровом меню, оформлении заказов, бронировании и взаимодействии с клиентами. Она не может использоваться за пределами данной сферы для азартных игр, розыгрышей, операций с криптовалютой, финансового посредничества или любой деятельности, противоречащей закону. При выявлении подобных случаев договор расторгается в одностороннем порядке."
+      },
+      {
+        "title": "3. Непрерывность сервиса",
+        "body": "LiwaMenu стремится к максимально возможной доступности и использует для этого современную инфраструктуру. Тем не менее, вследствие сбоев у облачного провайдера, зависимостей от третьих сторон (Firebase, провайдеры SMS, платёжные системы, поставщики интернет-услуг и т. д.), плановых технических работ или непредвиденных обстоятельств непреодолимой силы могут возникать — хотя и крайне редко — ситуации, при которых система временно становится недоступной."
+      },
+      {
+        "title": "4. Ограничение ответственности",
+        "body": "Клиент признаёт, что Liwa Yazılım San. Tic. Ltd. Şirketi не может быть привлечена к ответственности за любые косвенные или прямые коммерческие убытки, потерю заказов, отмену бронирований, упущенную выгоду или репутационный ущерб, которые могут возникнуть в ходе внештатного сбоя или технической неисправности. Наша компания не несёт обязательств по возмещению ущерба, возврату средств или иной финансовой ответственности в данном процессе."
+      },
+      {
+        "title": "5. Безопасность данных и ответственность за учётную запись",
+        "body": "Данные клиента защищены шифрованием SSL и регулярно резервируются. Информация об учётной записи (имя пользователя, пароль, ключи API) должна передаваться только уполномоченным лицам. Владелец учётной записи несёт ответственность за все убытки, возникающие вследствие несанкционированного доступа или неправомерного использования учётной записи."
+      },
+      {
+        "title": "6. Интеллектуальная собственность",
+        "body": "Платформа LiwaMenu, её исходный код, дизайн, логотипы и все визуальные элементы являются интеллектуальной собственностью Liwa Yazılım San. Tic. Ltd. Şirketi. Они не могут воспроизводиться, распространяться или использоваться в производных произведениях без разрешения."
+      },
+      {
+        "title": "7. Обновление условий",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi оставляет за собой право обновлять настоящие условия использования без предварительного уведомления. Обновлённые условия вступают в силу с даты их публикации на веб-сайте, и клиент, продолжающий пользоваться сервисом, считается принявшим новые условия."
+      }
+    ],
+    "closing": "Подтверждая настоящее соглашение, вы принимаете, что будете использовать сервис LiwaMenu в рамках изложенных выше условий."
+  },
+  "el": {
+    "intro": "Με τη χρήση της υπηρεσίας LiwaMenu, θεωρείται ότι έχετε αποδεχθεί τους ακόλουθους όρους. Παρακαλούμε διαβάστε τους προσεκτικά.",
+    "sections": [
+      {
+        "title": "1. Νόμιμη Χρήση",
+        "body": "Ο Πελάτης συμφωνεί να χρησιμοποιεί την πλατφόρμα LiwaMenu αποκλειστικά για την πώληση νόμιμων προϊόντων και υπηρεσιών. Απαγορεύεται αυστηρά η προώθηση οποιουδήποτε περιεχομένου, προϊόντος ή υπηρεσίας που παραβιάζει τον νόμο· η πώληση παραποιημένων, επικίνδυνων για την υγεία ή λαθραίων τροφίμων· η προσφορά μη αδειοδοτημένων προϊόντων αλκοόλ ή καπνού· ή η ενασχόληση με οποιαδήποτε δραστηριότητα αντίθετη προς την ισχύουσα νομοθεσία.",
+        "warning": "Οποιαδήποτε ποινική ευθύνη προκύπτει από παράνομη χρήση ή από την πώληση παράνομων προϊόντων παρά τις παρούσες προειδοποιήσεις ανήκει στον χρήστη!"
+      },
+      {
+        "title": "2. Απαγόρευση Χρήσης Εκτός Σκοπού",
+        "body": "Το σύστημα έχει σχεδιαστεί για τις ανάγκες ψηφιακού μενού, παραγγελιών, κρατήσεων και αλληλεπίδρασης με τους πελάτες των εστιατορίων, καφετεριών και επιχειρήσεων εστίασης. Δεν επιτρέπεται να χρησιμοποιείται εκτός του πεδίου αυτού για τυχερά παιχνίδια, κληρώσεις, συναλλαγές κρυπτονομισμάτων, χρηματοοικονομική διαμεσολάβηση ή οποιαδήποτε δραστηριότητα αντίθετη προς τον νόμο. Σε περίπτωση εντοπισμού, η σύμβαση καταγγέλλεται μονομερώς."
+      },
+      {
+        "title": "3. Συνέχεια της Υπηρεσίας",
+        "body": "Η LiwaMenu στοχεύει στην υψηλότερη δυνατή διαθεσιμότητα και χρησιμοποιεί σύγχρονη υποδομή για τον σκοπό αυτό. Ωστόσο, λόγω διακοπών των παρόχων υπολογιστικού νέφους, εξαρτήσεων από τρίτους (Firebase, παρόχους SMS, συστήματα πληρωμών, παρόχους υπηρεσιών διαδικτύου κ.λπ.), προγραμματισμένων χρονικών διαστημάτων συντήρησης ή απρόβλεπτων γεγονότων ανωτέρας βίας, ενδέχεται να προκύψουν —αν και πολύ σπάνια— καταστάσεις κατά τις οποίες το σύστημα τίθεται προσωρινά εκτός λειτουργίας."
+      },
+      {
+        "title": "4. Περιορισμός Ευθύνης",
+        "body": "Ο Πελάτης αποδέχεται ότι η Liwa Yazılım San. Tic. Ltd. Şirketi δεν μπορεί να θεωρηθεί υπεύθυνη για οποιεσδήποτε έμμεσες ή άμεσες εμπορικές ζημίες, απώλεια παραγγελιών, ακυρώσεις κρατήσεων, απώλεια κέρδους ή βλάβη της φήμης που ενδέχεται να προκύψουν κατά τη διάρκεια έκτακτης διακοπής ή τεχνικής δυσλειτουργίας. Η εταιρεία μας δεν φέρει καμία υποχρέωση αποζημίωσης, επιστροφής χρημάτων ή οποιαδήποτε άλλη οικονομική ευθύνη στη διαδικασία αυτή."
+      },
+      {
+        "title": "5. Ασφάλεια Δεδομένων και Ευθύνη Λογαριασμού",
+        "body": "Τα δεδομένα του Πελάτη προστατεύονται με κρυπτογράφηση SSL και λαμβάνονται αντίγραφα ασφαλείας τακτικά. Τα στοιχεία του λογαριασμού (όνομα χρήστη, κωδικός πρόσβασης, κλειδιά API) πρέπει να κοινοποιούνται μόνο σε εξουσιοδοτημένα πρόσωπα. Ο κάτοχος του λογαριασμού είναι υπεύθυνος για όλες τις ζημίες που προκύπτουν από μη εξουσιοδοτημένη πρόσβαση ή κατάχρηση του λογαριασμού."
+      },
+      {
+        "title": "6. Πνευματική Ιδιοκτησία",
+        "body": "Η πλατφόρμα LiwaMenu, ο πηγαίος κώδικάς της, οι σχεδιασμοί, τα λογότυπα και όλα τα οπτικά στοιχεία αποτελούν πνευματική ιδιοκτησία της Liwa Yazılım San. Tic. Ltd. Şirketi. Δεν επιτρέπεται η αναπαραγωγή, διανομή ή χρήση τους σε παράγωγα έργα χωρίς άδεια."
+      },
+      {
+        "title": "7. Ενημερώσεις των Όρων",
+        "body": "Η Liwa Yazılım San. Tic. Ltd. Şirketi διατηρεί το δικαίωμα να ενημερώνει τους παρόντες όρους χρήσης χωρίς προηγούμενη ειδοποίηση. Οι ενημερωμένοι όροι τίθενται σε ισχύ κατά την ημερομηνία δημοσίευσής τους στον ιστότοπο, και ο πελάτης που συνεχίζει να χρησιμοποιεί την υπηρεσία θεωρείται ότι έχει αποδεχθεί τους νέους όρους."
+      }
+    ],
+    "closing": "Με την έγκριση της παρούσας συμφωνίας, αποδέχεστε ότι θα χρησιμοποιείτε την υπηρεσία LiwaMenu εντός του πλαισίου των ανωτέρω όρων."
+  },
+  "zh": {
+    "intro": "使用 LiwaMenu 服务，即视为您已接受以下条款。请仔细阅读。",
+    "sections": [
+      {
+        "title": "1. 合法使用",
+        "body": "客户同意仅将 LiwaMenu 平台用于销售合法的产品与服务。严禁推广任何违反法律的内容、产品或服务；销售假冒、危害健康或走私的食品；提供无证照的酒类或烟草产品；或从事任何违反适用法律法规的活动。",
+        "warning": "尽管已有上述警示，因非法使用或销售违法产品而产生的任何刑事责任，均由用户承担！"
+      },
+      {
+        "title": "2. 禁止非目的用途",
+        "body": "本系统专为餐厅、咖啡馆及餐饮企业的电子菜单、点餐、预订及客户互动需求而设计。不得超出此范围将其用于赌博、抽奖、加密货币交易、金融中介，或任何违反法律的活动。一经发现，本合同将被单方面终止。"
+      },
+      {
+        "title": "3. 服务连续性",
+        "body": "LiwaMenu 力求实现尽可能高的可用性，并为此采用现代化基础设施。然而，由于云服务提供商中断、第三方依赖（Firebase、SMS 服务商、支付系统、互联网服务提供商等）、计划内维护时段，或不可预见的不可抗力事件，系统可能会出现——尽管极为罕见——暂时离线的情况。"
+      },
+      {
+        "title": "4. 责任限制",
+        "body": "客户接受，对于在异常中断或技术故障期间可能发生的任何间接或直接的商业损失、订单损失、预订取消、利润损失或声誉损害，Liwa Yazılım San. Tic. Ltd. Şirketi 不承担任何责任。在此过程中，本公司不承担任何赔偿、退款或其他任何财务责任的义务。"
+      },
+      {
+        "title": "5. 数据安全与账户责任",
+        "body": "客户数据采用 SSL 加密保护，并定期备份。账户信息（用户名、密码、API 密钥）仅可与获授权人员共享。账户持有人对因未经授权的访问或账户滥用而产生的一切损害承担责任。"
+      },
+      {
+        "title": "6. 知识产权",
+        "body": "LiwaMenu 平台及其源代码、设计、徽标以及所有视觉元素，均为 Liwa Yazılım San. Tic. Ltd. Şirketi 的知识产权。未经许可，不得复制、分发或用于衍生作品。"
+      },
+      {
+        "title": "7. 条款更新",
+        "body": "Liwa Yazılım San. Tic. Ltd. Şirketi 保留在不事先通知的情况下更新本使用条款的权利。更新后的条款自其在网站上发布之日起生效，继续使用本服务的客户即视为已接受新条款。"
+      }
+    ],
+    "closing": "通过批准本协议，您接受将在上述条款的框架内使用 LiwaMenu 服务。"
+  }
+}
