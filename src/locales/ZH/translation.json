@@ -143,7 +143,19 @@
     "processing": "处理中...",
     "resending_code": "正在重新发送验证码...",
     "code_sent": "验证码已发送至您的邮箱。",
-    "invalid_email": "请输入有效的邮箱地址"
+    "invalid_email": "请输入有效的邮箱地址",
+    "verify_verifying_title": "正在验证您的账户…",
+    "verify_verifying_desc": "这只需片刻。",
+    "verify_success_title": "您的账户已激活！🎉",
+    "verify_success_desc": "您的邮箱已验证。现在可以登录了。",
+    "verify_redirecting": "正在将您跳转到登录页面…",
+    "verify_resent_title": "已发送新的验证链接",
+    "verify_resent_desc": "链接可能已过期。我们已向您的邮箱发送了新的验证链接。",
+    "verify_failed_title": "验证失败",
+    "verify_failed_desc": "我们无法验证您的账户。请重试或联系支持。",
+    "verify_invalid_title": "链接无效",
+    "verify_invalid_desc": "验证链接缺失或有误。请重新使用邮件中的链接。",
+    "go_to_login": "前往登录"
   },
   "register": {
     "title": "注册",
@@ -3071,5 +3083,12 @@
     "no_rows": "请至少选择一件商品。",
     "import_success": "导入完成",
     "result_summary": "{{categories}} 个分类 · {{products}} 件商品 · {{images}} 张图片"
+  },
+  "trialWelcome": {
+    "preparing": "正在准备您的餐厅…",
+    "title": "您的餐厅已就绪！🎉",
+    "subtitle": "我们已为您添加免费试用授权，助您快速上手：",
+    "ends": "您的试用将于 {{date}} 结束（{{count}} 天）",
+    "cta": "太好了，开始吧！"
   }
 }

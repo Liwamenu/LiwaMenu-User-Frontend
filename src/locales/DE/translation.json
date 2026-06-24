@@ -143,7 +143,19 @@
     "processing": "Wird verarbeitet...",
     "resending_code": "Bestätigungscode wird erneut gesendet...",
     "code_sent": "Bestätigungscode wurde an Ihre E-Mail gesendet.",
-    "invalid_email": "Bitte gib eine gültige E-Mail-Adresse ein"
+    "invalid_email": "Bitte gib eine gültige E-Mail-Adresse ein",
+    "verify_verifying_title": "Dein Konto wird verifiziert…",
+    "verify_verifying_desc": "Das dauert nur einen Moment.",
+    "verify_success_title": "Dein Konto ist aktiviert! 🎉",
+    "verify_success_desc": "Deine E-Mail-Adresse wurde bestätigt. Du kannst dich jetzt anmelden.",
+    "verify_redirecting": "Du wirst zur Anmeldeseite weitergeleitet…",
+    "verify_resent_title": "Ein neuer Bestätigungslink wurde gesendet",
+    "verify_resent_desc": "Der Link ist möglicherweise abgelaufen. Wir haben einen neuen Bestätigungslink an deine E-Mail gesendet.",
+    "verify_failed_title": "Verifizierung fehlgeschlagen",
+    "verify_failed_desc": "Wir konnten dein Konto nicht verifizieren. Bitte versuche es erneut oder kontaktiere den Support.",
+    "verify_invalid_title": "Ungültiger Link",
+    "verify_invalid_desc": "Der Bestätigungslink fehlt oder ist fehlerhaft. Bitte verwende den Link aus deiner E-Mail erneut.",
+    "go_to_login": "Zur Anmeldung"
   },
   "register": {
     "title": "Registrieren",
@@ -3071,5 +3083,12 @@
     "no_rows": "Bitte wähle mindestens ein Produkt aus.",
     "import_success": "Import abgeschlossen",
     "result_summary": "{{categories}} Kategorien · {{products}} Produkte · {{images}} Bilder"
+  },
+  "trialWelcome": {
+    "preparing": "Dein Restaurant wird eingerichtet…",
+    "title": "Dein Restaurant ist bereit! 🎉",
+    "subtitle": "Wir haben deine kostenlosen Testlizenzen für den Start hinzugefügt:",
+    "ends": "Deine Testphase endet am {{date}} ({{count}} Tage)",
+    "cta": "Super, los geht's!"
   }
 }

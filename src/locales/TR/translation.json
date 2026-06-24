@@ -143,7 +143,19 @@
     "footer_credit": "LiwaMenu bir LiwaSoft iştirakidir.",
     "processing": "İşleniyor...",
     "resending_code": "Onay Kodu Tekrar Gönderiliyor...",
-    "code_sent": "Onay Kodu Epostanıza Gönderildi."
+    "code_sent": "Onay Kodu Epostanıza Gönderildi.",
+    "verify_verifying_title": "Hesabınız doğrulanıyor…",
+    "verify_verifying_desc": "Lütfen birkaç saniye bekleyin.",
+    "verify_success_title": "Hesabınız aktifleştirildi! 🎉",
+    "verify_success_desc": "E-posta adresiniz doğrulandı. Artık giriş yapabilirsiniz.",
+    "verify_redirecting": "Birkaç saniye içinde giriş ekranına yönlendirileceksiniz…",
+    "verify_resent_title": "Yeni doğrulama bağlantısı gönderildi",
+    "verify_resent_desc": "Bağlantının süresi dolmuş olabilir. E-posta adresinize yeni bir doğrulama bağlantısı gönderdik.",
+    "verify_failed_title": "Doğrulama başarısız",
+    "verify_failed_desc": "Hesabınızı doğrulayamadık. Lütfen tekrar deneyin veya destek ile iletişime geçin.",
+    "verify_invalid_title": "Geçersiz bağlantı",
+    "verify_invalid_desc": "Doğrulama bağlantısı eksik veya hatalı. Lütfen e-postanızdaki bağlantıyı tekrar kullanın.",
+    "go_to_login": "Giriş Yap"
   },
   "register": {
     "title": "Kayıt ol",
@@ -2875,5 +2887,12 @@
     "select_neighbourhood": "Mahalle Seç",
     "address": "Adres",
     "name": "Ad"
+  },
+  "trialWelcome": {
+    "preparing": "Restoranınız hazırlanıyor…",
+    "title": "Restoranınız hazır! 🎉",
+    "subtitle": "Başlamanız için ücretsiz deneme lisanslarınızı tanımladık:",
+    "ends": "Deneme süreniz {{date}} tarihinde sona erer ({{count}} gün)",
+    "cta": "Harika, başlayalım!"
   }
 }

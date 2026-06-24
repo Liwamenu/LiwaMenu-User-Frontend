@@ -143,7 +143,19 @@
     "processing": "Procesando...",
     "resending_code": "Reenviando código de confirmación...",
     "code_sent": "El código de confirmación se ha enviado a tu correo.",
-    "invalid_email": "Introduce un correo electrónico válido"
+    "invalid_email": "Introduce un correo electrónico válido",
+    "verify_verifying_title": "Verificando tu cuenta…",
+    "verify_verifying_desc": "Esto solo tardará un momento.",
+    "verify_success_title": "¡Tu cuenta está activada! 🎉",
+    "verify_success_desc": "Tu correo electrónico ha sido verificado. Ya puedes iniciar sesión.",
+    "verify_redirecting": "Te estamos redirigiendo a la pantalla de inicio de sesión…",
+    "verify_resent_title": "Se envió un nuevo enlace de verificación",
+    "verify_resent_desc": "Es posible que el enlace haya caducado. Hemos enviado un nuevo enlace de verificación a tu correo.",
+    "verify_failed_title": "La verificación falló",
+    "verify_failed_desc": "No pudimos verificar tu cuenta. Inténtalo de nuevo o contacta con soporte.",
+    "verify_invalid_title": "Enlace no válido",
+    "verify_invalid_desc": "El enlace de verificación falta o es incorrecto. Usa de nuevo el enlace de tu correo.",
+    "go_to_login": "Ir a iniciar sesión"
   },
   "register": {
     "title": "Regístrate",
@@ -3071,5 +3083,12 @@
     "no_rows": "Selecciona al menos un producto.",
     "import_success": "Importación completada",
     "result_summary": "{{categories}} categorías · {{products}} productos · {{images}} imágenes"
+  },
+  "trialWelcome": {
+    "preparing": "Preparando tu restaurante…",
+    "title": "¡Tu restaurante está listo! 🎉",
+    "subtitle": "Hemos añadido tus licencias de prueba gratuitas para que empieces:",
+    "ends": "Tu prueba termina el {{date}} ({{count}} días)",
+    "cta": "¡Genial, empecemos!"
   }
 }

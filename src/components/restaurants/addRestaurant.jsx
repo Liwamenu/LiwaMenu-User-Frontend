@@ -36,6 +36,8 @@ import {
   resetAddRestaurantState,
 } from "../../redux/restaurants/addRestaurantSlice";
 import { setWorkingHours } from "../../redux/restaurant/setWorkingHoursSlice";
+import { getRestaurantLicenses } from "../../redux/licenses/getRestaurantLicensesSlice";
+import TrialWelcomeModal from "./trialWelcomeModal";
 
 const PRIMARY_GRADIENT =
   "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #06b6d4 100%)";
@@ -286,12 +288,21 @@ function AddRestaurantPopup({ onSuccess }) {
             days: DEFAULT_WORKING_HOURS_DAYS,
           }),
         );
+        // A brand-new account's FIRST restaurant is granted a 21-day QR + TV
+        // trial. Fetch the new restaurant's licenses so the TrialWelcomeModal
+        // can tell the owner what they got. Later restaurants get no trial →
+        // the modal finds 0 licenses and falls back to a plain success toast.
+        dispatch(getRestaurantLicenses({ restaurantId: newId }));
       }
       onSuccess?.();
-      setPopupContent(null);
       toast.dismiss(toastId.current);
       dispatch(resetAddRestaurantState());
-      toast.success(t("restaurants.success_add"));
+      if (newId) {
+        setPopupContent(<TrialWelcomeModal />);
+      } else {
+        setPopupContent(null);
+        toast.success(t("restaurants.success_add"));
+      }
     }
   }, [loading, success, error]);
 

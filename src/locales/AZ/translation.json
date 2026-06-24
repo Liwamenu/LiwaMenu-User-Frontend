@@ -143,7 +143,19 @@
     "processing": "Emal olunur...",
     "resending_code": "Təsdiq kodu yenidən göndərilir...",
     "code_sent": "Təsdiq kodu e-poçtunuza göndərildi.",
-    "invalid_email": "Düzgün e-poçt ünvanı daxil edin"
+    "invalid_email": "Düzgün e-poçt ünvanı daxil edin",
+    "verify_verifying_title": "Hesabınız doğrulanır…",
+    "verify_verifying_desc": "Bu, yalnız bir neçə saniyə çəkəcək.",
+    "verify_success_title": "Hesabınız aktivləşdirildi! 🎉",
+    "verify_success_desc": "E-poçt ünvanınız təsdiqləndi. İndi daxil ola bilərsiniz.",
+    "verify_redirecting": "Giriş ekranına yönləndirilirsiniz…",
+    "verify_resent_title": "Yeni təsdiq linki göndərildi",
+    "verify_resent_desc": "Linkin vaxtı bitmiş ola bilər. E-poçt ünvanınıza yeni təsdiq linki göndərdik.",
+    "verify_failed_title": "Doğrulama alınmadı",
+    "verify_failed_desc": "Hesabınızı doğrulaya bilmədik. Yenidən cəhd edin və ya dəstəklə əlaqə saxlayın.",
+    "verify_invalid_title": "Yanlış link",
+    "verify_invalid_desc": "Təsdiq linki yoxdur və ya səhvdir. Zəhmət olmasa, e-poçtunuzdakı linkdən yenidən istifadə edin.",
+    "go_to_login": "Girişə keç"
   },
   "register": {
     "title": "Qeydiyyat",
@@ -3071,5 +3083,12 @@
     "no_rows": "Ən azı bir məhsul seçin.",
     "import_success": "İdxal tamamlandı",
     "result_summary": "{{categories}} kateqoriya · {{products}} məhsul · {{images}} şəkil"
+  },
+  "trialWelcome": {
+    "preparing": "Restoranınız hazırlanır…",
+    "title": "Restoranınız hazırdır! 🎉",
+    "subtitle": "Başlamağınız üçün pulsuz sınaq lisenziyalarınızı əlavə etdik:",
+    "ends": "Sınaq müddətiniz {{date}} tarixində bitir ({{count}} gün)",
+    "cta": "Əla, başlayaq!"
   }
 }

@@ -143,7 +143,19 @@
     "footer_credit": "LiwaMenu is a LiwaSoft subsidiary.",
     "processing": "Processing...",
     "resending_code": "Resending Verification Code...",
-    "code_sent": "Verification Code Sent to Your Email."
+    "code_sent": "Verification Code Sent to Your Email.",
+    "verify_verifying_title": "Verifying your account…",
+    "verify_verifying_desc": "This will only take a moment.",
+    "verify_success_title": "Your account is activated! 🎉",
+    "verify_success_desc": "Your email has been verified. You can now sign in.",
+    "verify_redirecting": "Redirecting you to the sign-in screen…",
+    "verify_resent_title": "A new verification link was sent",
+    "verify_resent_desc": "The link may have expired. We've sent a fresh verification link to your email.",
+    "verify_failed_title": "Verification failed",
+    "verify_failed_desc": "We couldn't verify your account. Please try again or contact support.",
+    "verify_invalid_title": "Invalid link",
+    "verify_invalid_desc": "The verification link is missing or malformed. Please use the link from your email again.",
+    "go_to_login": "Go to sign in"
   },
   "register": {
     "title": "Sign up",
@@ -3071,5 +3083,12 @@
     "select_neighbourhood": "Select neighbourhood",
     "address": "Address",
     "name": "Name"
+  },
+  "trialWelcome": {
+    "preparing": "Setting up your restaurant…",
+    "title": "Your restaurant is ready! 🎉",
+    "subtitle": "We've added your free trial licenses to get you started:",
+    "ends": "Your trial ends on {{date}} ({{count}} days)",
+    "cta": "Great, let's start!"
   }
 }
