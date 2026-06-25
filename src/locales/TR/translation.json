@@ -827,7 +827,20 @@
     "delete_success": "Ödeme yöntemi silindi.",
     "cancel": "Vazgeç",
     "active_count": "{{enabled}} / {{total}} aktif",
-    "close": "Kapat"
+    "close": "Kapat",
+    "bank_transfer": "Bankaya Transfer",
+    "bank_transfer_desc": "Müşteri, sipariş verirken banka havalesi/EFT ile ödeyebilir.",
+    "bank_name": "Banka Adı",
+    "bank_name_placeholder": "Örn. Ziraat Bankası",
+    "bank_account_holder": "Hesap Sahibi (Ünvan)",
+    "bank_account_holder_placeholder": "Örn. Liwa Yazılım Ltd. Şti.",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Bu bilgiler, müşteri ödemede banka transferini seçtiğinde kopyalanabilir şekilde gösterilir.",
+    "bank_required": "Banka Transferi açıkken Banka Adı, Hesap Sahibi ve IBAN zorunludur.",
+    "bank_not_ready": "Banka transferi kaydı henüz hazır değil (backend bekleniyor).",
+    "bank_save_failed": "Banka bilgileri kaydedilemedi.",
+    "customer_note": "Müşteri Notu",
+    "customer_note_placeholder": "Örn. Açıklamaya sipariş numaranızı yazınız."
   },
   "editCategories": {
     "no_changes": "Değişiklik yapılmadı.",

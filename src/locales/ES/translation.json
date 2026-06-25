@@ -827,7 +827,20 @@
     "delete_success": "Método de pago eliminado.",
     "cancel": "Cancelar",
     "active_count": "{{enabled}} / {{total}} activos",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "bank_transfer": "Transferencia bancaria",
+    "bank_transfer_desc": "Permite a los clientes pagar por transferencia bancaria al pedir.",
+    "bank_name": "Nombre del banco",
+    "bank_name_placeholder": "P. ej. BBVA",
+    "bank_account_holder": "Titular de la cuenta",
+    "bank_account_holder_placeholder": "P. ej. Liwa Software S.L.",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Estos datos se muestran al cliente (listos para copiar) cuando elige transferencia bancaria al pagar.",
+    "bank_required": "Cuando la transferencia bancaria está activada, el nombre del banco, el titular y el IBAN son obligatorios.",
+    "bank_not_ready": "El guardado de la transferencia bancaria aún no está listo (pendiente del backend).",
+    "bank_save_failed": "No se pudieron guardar los datos bancarios.",
+    "customer_note": "Nota para el cliente",
+    "customer_note_placeholder": "P. ej. Escribe tu número de pedido en el concepto de la transferencia."
   },
   "editCategories": {
     "no_changes": "No se realizaron cambios.",

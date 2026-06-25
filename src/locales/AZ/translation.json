@@ -827,7 +827,20 @@
     "delete_success": "Ödəniş üsulu silindi.",
     "cancel": "Ləğv et",
     "active_count": "{{enabled}} / {{total}} aktiv",
-    "close": "Bağla"
+    "close": "Bağla",
+    "bank_transfer": "Bank köçürməsi",
+    "bank_transfer_desc": "Müştərilərə sifariş zamanı bank köçürməsi ilə ödəməyə imkan verir.",
+    "bank_name": "Bankın adı",
+    "bank_name_placeholder": "Məs. Kapital Bank",
+    "bank_account_holder": "Hesab sahibi",
+    "bank_account_holder_placeholder": "Məs. Liwa Software MMC",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Bu məlumatlar müştəri ödənişdə bank köçürməsini seçdikdə kopyalana bilən şəkildə göstərilir.",
+    "bank_required": "Bank köçürməsi aktiv olduqda bankın adı, hesab sahibi və IBAN mütləqdir.",
+    "bank_not_ready": "Bank köçürməsinin yadda saxlanması hələ hazır deyil (backend gözlənilir).",
+    "bank_save_failed": "Bank məlumatları saxlanıla bilmədi.",
+    "customer_note": "Müştəri qeydi",
+    "customer_note_placeholder": "Məs. Köçürmə təsvirinə sifariş nömrənizi yazın."
   },
   "editCategories": {
     "no_changes": "Heç bir dəyişiklik edilmədi.",

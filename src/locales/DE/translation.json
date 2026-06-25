@@ -827,7 +827,20 @@
     "delete_success": "Zahlungsmethode gelöscht.",
     "cancel": "Abbrechen",
     "active_count": "{{enabled}} / {{total}} aktiv",
-    "close": "Schließen"
+    "close": "Schließen",
+    "bank_transfer": "Banküberweisung",
+    "bank_transfer_desc": "Ermöglicht Kunden die Zahlung per Banküberweisung bei der Bestellung.",
+    "bank_name": "Bankname",
+    "bank_name_placeholder": "z. B. Sparkasse",
+    "bank_account_holder": "Kontoinhaber",
+    "bank_account_holder_placeholder": "z. B. Liwa Software GmbH",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Diese Angaben werden dem Kunden (zum Kopieren) angezeigt, wenn er an der Kasse die Banküberweisung wählt.",
+    "bank_required": "Wenn die Banküberweisung aktiv ist, sind Bankname, Kontoinhaber und IBAN erforderlich.",
+    "bank_not_ready": "Das Speichern der Banküberweisung ist noch nicht bereit (Backend ausstehend).",
+    "bank_save_failed": "Bankdaten konnten nicht gespeichert werden.",
+    "customer_note": "Kundenhinweis",
+    "customer_note_placeholder": "z. B. Bitte gib deine Bestellnummer im Verwendungszweck an."
   },
   "editCategories": {
     "no_changes": "Keine Änderungen vorgenommen.",

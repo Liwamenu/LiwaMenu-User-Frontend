@@ -827,7 +827,20 @@
     "delete_success": "تم حذف طريقة الدفع.",
     "cancel": "إلغاء",
     "active_count": "{{enabled}} / {{total}} مفعّل",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "bank_transfer": "تحويل بنكي",
+    "bank_transfer_desc": "يتيح للعملاء الدفع عبر التحويل البنكي عند الطلب.",
+    "bank_name": "اسم البنك",
+    "bank_name_placeholder": "مثال: بنك الراجحي",
+    "bank_account_holder": "صاحب الحساب",
+    "bank_account_holder_placeholder": "مثال: شركة ليوا للبرمجيات",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "تُعرض هذه المعلومات للعميل (جاهزة للنسخ) عند اختياره التحويل البنكي عند الدفع.",
+    "bank_required": "عند تفعيل التحويل البنكي، يكون اسم البنك وصاحب الحساب وIBAN إلزامية.",
+    "bank_not_ready": "حفظ التحويل البنكي غير جاهز بعد (في انتظار الخادم).",
+    "bank_save_failed": "تعذّر حفظ المعلومات البنكية.",
+    "customer_note": "ملاحظة للعميل",
+    "customer_note_placeholder": "مثال: يرجى كتابة رقم طلبك في وصف التحويل."
   },
   "editCategories": {
     "no_changes": "لم يتم إجراء أي تغييرات.",

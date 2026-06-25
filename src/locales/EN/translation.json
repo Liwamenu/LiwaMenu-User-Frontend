@@ -827,7 +827,20 @@
     "delete_success": "Payment method deleted.",
     "cancel": "Cancel",
     "active_count": "{{enabled}} / {{total}} active",
-    "close": "Close"
+    "close": "Close",
+    "bank_transfer": "Bank Transfer",
+    "bank_transfer_desc": "Lets customers pay by bank transfer when ordering.",
+    "bank_name": "Bank Name",
+    "bank_name_placeholder": "e.g. Chase",
+    "bank_account_holder": "Account Holder",
+    "bank_account_holder_placeholder": "e.g. Liwa Software Ltd.",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "These details are shown to the customer (copy-ready) when they choose bank transfer at checkout.",
+    "bank_required": "When Bank Transfer is on, Bank Name, Account Holder and IBAN are required.",
+    "bank_not_ready": "Bank transfer saving isn't ready yet (waiting on the backend).",
+    "bank_save_failed": "Couldn't save the bank details.",
+    "customer_note": "Customer Note",
+    "customer_note_placeholder": "e.g. Please write your order number in the transfer description."
   },
   "editCategories": {
     "no_changes": "No changes made.",

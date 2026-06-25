@@ -827,7 +827,20 @@
     "delete_success": "支付方式已删除。",
     "cancel": "取消",
     "active_count": "{{enabled}} / {{total}} 已启用",
-    "close": "关闭"
+    "close": "关闭",
+    "bank_transfer": "银行转账",
+    "bank_transfer_desc": "允许顾客在下单时通过银行转账付款。",
+    "bank_name": "银行名称",
+    "bank_name_placeholder": "例如：工商银行",
+    "bank_account_holder": "账户持有人",
+    "bank_account_holder_placeholder": "例如：Liwa 软件有限公司",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "当顾客在结账时选择银行转账，这些信息会以可复制的形式展示给顾客。",
+    "bank_required": "启用银行转账时，银行名称、账户持有人和 IBAN 为必填项。",
+    "bank_not_ready": "银行转账保存功能尚未就绪（等待后端）。",
+    "bank_save_failed": "无法保存银行信息。",
+    "customer_note": "给顾客的备注",
+    "customer_note_placeholder": "例如：请在转账备注中填写您的订单号。"
   },
   "editCategories": {
     "no_changes": "未做任何更改。",

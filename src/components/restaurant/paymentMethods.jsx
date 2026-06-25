@@ -14,6 +14,7 @@ import {
   Plus,
   X,
   Loader2,
+  Landmark,
 } from "lucide-react";
 
 //COMP
@@ -39,6 +40,15 @@ import {
   deletePaymentMethod,
   resetDeletePaymentMethod,
 } from "../../redux/restaurant/deletePaymentMethodSlice";
+import {
+  setBankTransfer,
+  resetSetBankTransfer,
+} from "../../redux/restaurant/setBankTransferSlice";
+
+const fieldLabel =
+  "block text-[11px] font-semibold text-[--gr-1] mb-1 tracking-wide";
+const fieldInput =
+  "w-full h-10 px-3 rounded-lg border border-[--border-1] bg-[--white-1] text-[--black-1] placeholder:text-[--gr-2] text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
 
 const PaymentMethods = ({ data: restaurant }) => {
   const { t } = useTranslation();
@@ -59,6 +69,39 @@ const PaymentMethods = ({ data: restaurant }) => {
   const [paymentMethodsData, setPaymentMethodsData] = useState(null);
   const [paymentMethodsDataBefore, setPaymentMethodsDataBefore] = useState(null);
   useDirtyTracking(paymentMethodsData, paymentMethodsDataBefore);
+
+  const { success: btSuccess, error: btError } = useSelector(
+    (s) => s.restaurant.setBankTransfer,
+  );
+
+  // "Bankaya Transfer" — a hardcoded, structured payment method with a single
+  // global bank account. Seeded from the restaurant entity (backend contract
+  // in BANK_TRANSFER_BRIEF.md); editable here and saved with the methods.
+  const [bank, setBank] = useState({
+    enabled: !!restaurant?.bankTransferEnabled,
+    bankName: restaurant?.bankName ?? "",
+    accountHolder: restaurant?.bankAccountHolder ?? "",
+    iban: restaurant?.iban ?? "",
+    note: restaurant?.bankTransferNote ?? "",
+  });
+  // Re-seed when the restaurant entity arrives/updates (e.g. the cache merge
+  // that follows a successful save).
+  useEffect(() => {
+    setBank({
+      enabled: !!restaurant?.bankTransferEnabled,
+      bankName: restaurant?.bankName ?? "",
+      accountHolder: restaurant?.bankAccountHolder ?? "",
+      iban: restaurant?.iban ?? "",
+      note: restaurant?.bankTransferNote ?? "",
+    });
+  }, [
+    restaurant?.bankTransferEnabled,
+    restaurant?.bankName,
+    restaurant?.bankAccountHolder,
+    restaurant?.iban,
+    restaurant?.bankTransferNote,
+  ]);
+  const setBankField = (k) => (v) => setBank((p) => ({ ...p, [k]: v }));
 
   // Is every method enabled?
   const allEnabled =
@@ -110,12 +153,36 @@ const PaymentMethods = ({ data: restaurant }) => {
     const enabledMethodIds = paymentMethodsData
       .filter((method) => method.enabled)
       .map((method) => method.id);
-    if (onlineOrderActive && enabledMethodIds.length === 0) {
+    // Bank transfer counts as a payment method, so enabling it satisfies the
+    // "at least one method while Paket Servis is on" rule below.
+    const hasAnyMethod = enabledMethodIds.length > 0 || bank.enabled;
+    if (onlineOrderActive && !hasAnyMethod) {
       showAllDisabledWarning();
+      return;
+    }
+    // Bank transfer, once enabled, must carry the full account info — the
+    // customer needs it to actually pay.
+    if (
+      bank.enabled &&
+      (!bank.bankName.trim() ||
+        !bank.accountHolder.trim() ||
+        !bank.iban.trim())
+    ) {
+      toast.error(t("paymentMethods.bank_required"), { id: "bank-required" });
       return;
     }
     dispatch(
       setPaymentMethods({ restaurantId: id, methodIds: enabledMethodIds })
+    );
+    dispatch(
+      setBankTransfer({
+        restaurantId: id,
+        bankTransferEnabled: bank.enabled,
+        bankName: bank.bankName.trim(),
+        bankAccountHolder: bank.accountHolder.trim(),
+        iban: bank.iban.trim(),
+        bankTransferNote: bank.note.trim(),
+      })
     );
   }
 
@@ -167,6 +234,32 @@ const PaymentMethods = ({ data: restaurant }) => {
       dispatch(getPaymentMethods({ restaurantId: id }));
     }
   }, [deleteSuccess, dispatch, id, t]);
+
+  // Bank transfer save result. On success the entity patcher has merged the
+  // bank fields into the cached restaurant, so the card re-seeds itself — we
+  // just clear the slice. On a 404 (endpoint not deployed yet) show a gentle
+  // info toast instead of the scary generic error.
+  useEffect(() => {
+    if (btSuccess) {
+      dispatch(resetSetBankTransfer());
+    }
+    if (btError) {
+      const st = btError?.status;
+      if (st === 404 || st === 0) {
+        toast(t("paymentMethods.bank_not_ready"), {
+          icon: "ℹ️",
+          id: "bank-not-ready",
+        });
+      } else {
+        toast.error(
+          btError?.message_TR || t("paymentMethods.bank_save_failed"),
+          { id: "bank-save-failed" },
+        );
+      }
+      dispatch(resetSetBankTransfer());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [btSuccess, btError]);
 
   const openAddPopup = () => {
     setPopupContent(
@@ -252,6 +345,104 @@ const PaymentMethods = ({ data: restaurant }) => {
             <p className="text-[12px] text-indigo-900/90 leading-relaxed flex-1 min-w-0">
               {t("paymentMethods.configure")}
             </p>
+          </div>
+
+          {/* HARDCODED — Bankaya Transfer. A structured, non-deletable payment
+              method: one global bank account the customer copies at checkout.
+              When enabled, all three fields are required (handleSubmit guards). */}
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden dark:border-emerald-900/40 dark:bg-emerald-950/20">
+            <div className="flex items-center gap-3 p-3">
+              <span className="grid place-items-center size-9 rounded-lg bg-[--white-1] text-emerald-600 ring-1 ring-emerald-200 shrink-0">
+                <Landmark className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold text-[--black-1] truncate">
+                  {t("paymentMethods.bank_transfer")}
+                </h3>
+                <p className="text-[11px] text-[--gr-1] leading-snug">
+                  {t("paymentMethods.bank_transfer_desc")}
+                </p>
+              </div>
+              <CustomToggle
+                className1="!w-auto !shrink-0"
+                checked={bank.enabled}
+                onChange={() =>
+                  setBank((p) => ({ ...p, enabled: !p.enabled }))
+                }
+              />
+            </div>
+
+            {bank.enabled && (
+              <div className="px-3 pb-3 pt-1 border-t border-emerald-200/70 dark:border-emerald-900/40 space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className={fieldLabel}>
+                      {t("paymentMethods.bank_name")}
+                      <span className="text-rose-500 ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={60}
+                      className={fieldInput}
+                      placeholder={t("paymentMethods.bank_name_placeholder")}
+                      value={bank.bankName}
+                      onChange={(e) => setBankField("bankName")(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={fieldLabel}>
+                      {t("paymentMethods.bank_account_holder")}
+                      <span className="text-rose-500 ml-0.5">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      className={fieldInput}
+                      placeholder={t(
+                        "paymentMethods.bank_account_holder_placeholder",
+                      )}
+                      value={bank.accountHolder}
+                      onChange={(e) =>
+                        setBankField("accountHolder")(e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={fieldLabel}>
+                    {t("paymentMethods.bank_iban")}
+                    <span className="text-rose-500 ml-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    inputMode="text"
+                    className={`${fieldInput} font-mono tracking-wider`}
+                    placeholder="TR00 0000 0000 0000 0000 0000 00"
+                    value={bank.iban}
+                    onChange={(e) =>
+                      setBankField("iban")(e.target.value.toUpperCase())
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={fieldLabel}>
+                    {t("paymentMethods.customer_note")}
+                  </label>
+                  <textarea
+                    rows={2}
+                    maxLength={300}
+                    className={`${fieldInput} !h-auto py-2 resize-none leading-snug`}
+                    placeholder={t("paymentMethods.customer_note_placeholder")}
+                    value={bank.note}
+                    onChange={(e) => setBankField("note")(e.target.value)}
+                  />
+                </div>
+                <p className="text-[11px] text-[--gr-1] leading-snug">
+                  {t("paymentMethods.bank_transfer_help")}
+                </p>
+              </div>
+            )}
           </div>
 
           {paymentMethodsData && (

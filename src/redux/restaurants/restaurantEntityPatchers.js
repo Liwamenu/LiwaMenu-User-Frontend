@@ -37,6 +37,11 @@ const PATCH_THUNK_PREFIXES = new Set([
   // URL fields (facebookUrl, …) are harmless extras on the entity, and the
   // payload has `restaurantId` but no standalone `id` to collide with.
   "Restaurants/SetSocialMedias",
+  // "Bankaya Transfer" save (Ödeme Yöntemleri tab) carries the bank-transfer
+  // config (bankTransferEnabled / bankName / bankAccountHolder / iban) — all
+  // restaurant-entity fields. Merging the dispatched arg keeps the cached
+  // entity in sync so the card reflects the saved values without a refetch.
+  "Restaurants/SetBankTransfer",
 ]);
 
 const FULFILLED = "/fulfilled";

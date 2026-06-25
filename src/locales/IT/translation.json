@@ -827,7 +827,20 @@
     "delete_success": "Metodo di pagamento eliminato.",
     "cancel": "Annulla",
     "active_count": "{{enabled}} / {{total}} attivi",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "bank_transfer": "Bonifico bancario",
+    "bank_transfer_desc": "Consente ai clienti di pagare con bonifico bancario al momento dell'ordine.",
+    "bank_name": "Nome della banca",
+    "bank_name_placeholder": "es. Intesa Sanpaolo",
+    "bank_account_holder": "Intestatario del conto",
+    "bank_account_holder_placeholder": "es. Liwa Software S.r.l.",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Questi dati vengono mostrati al cliente (pronti da copiare) quando sceglie il bonifico al pagamento.",
+    "bank_required": "Quando il bonifico è attivo, nome della banca, intestatario e IBAN sono obbligatori.",
+    "bank_not_ready": "Il salvataggio del bonifico non è ancora pronto (in attesa del backend).",
+    "bank_save_failed": "Impossibile salvare i dati bancari.",
+    "customer_note": "Nota per il cliente",
+    "customer_note_placeholder": "es. Inserisci il numero d'ordine nella causale del bonifico."
   },
   "editCategories": {
     "no_changes": "Nessuna modifica apportata.",

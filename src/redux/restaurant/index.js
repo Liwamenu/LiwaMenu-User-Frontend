@@ -9,6 +9,7 @@ import getPaymentMethodsSlice from "./getPaymentMethodsSlice";
 import setPaymentMethodsSlice from "./setPaymentMethodsSlice";
 import addPaymentMethodSlice from "./addPaymentMethodSlice";
 import deletePaymentMethodSlice from "./deletePaymentMethodSlice";
+import setBankTransferSlice from "./setBankTransferSlice";
 import setRestaurantSettings from "./setRestaurantSettingsSlice";
 import setRestaurantReservationSettingsSlice from "./setRestaurantReservationSettingsSlice";
 import getRestaurantReservationSettingsSlice from "./getRestaurantReservationSettingsSlice";
@@ -30,6 +31,7 @@ const restaurantSlice = combineReducers({
   setPaymentMethods: setPaymentMethodsSlice,
   addPaymentMethod: addPaymentMethodSlice,
   deletePaymentMethod: deletePaymentMethodSlice,
+  setBankTransfer: setBankTransferSlice,
   setRestaurantSettings: setRestaurantSettings,
   setRestaurantReservationSettings: setRestaurantReservationSettingsSlice,
   getRestaurantReservationSettings: getRestaurantReservationSettingsSlice,

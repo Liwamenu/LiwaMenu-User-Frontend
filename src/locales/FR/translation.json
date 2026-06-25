@@ -827,7 +827,20 @@
     "delete_success": "Moyen de paiement supprimé.",
     "cancel": "Annuler",
     "active_count": "{{enabled}} / {{total}} actif(s)",
-    "close": "Fermer"
+    "close": "Fermer",
+    "bank_transfer": "Virement bancaire",
+    "bank_transfer_desc": "Permet aux clients de payer par virement bancaire lors de la commande.",
+    "bank_name": "Nom de la banque",
+    "bank_name_placeholder": "p. ex. BNP Paribas",
+    "bank_account_holder": "Titulaire du compte",
+    "bank_account_holder_placeholder": "p. ex. Liwa Software SARL",
+    "bank_iban": "IBAN",
+    "bank_transfer_help": "Ces informations sont affichées au client (prêtes à copier) lorsqu'il choisit le virement bancaire au paiement.",
+    "bank_required": "Lorsque le virement bancaire est activé, le nom de la banque, le titulaire et l'IBAN sont obligatoires.",
+    "bank_not_ready": "L'enregistrement du virement bancaire n'est pas encore prêt (en attente du backend).",
+    "bank_save_failed": "Impossible d'enregistrer les informations bancaires.",
+    "customer_note": "Note au client",
+    "customer_note_placeholder": "p. ex. Indiquez votre numéro de commande dans le libellé du virement."
   },
   "editCategories": {
     "no_changes": "Aucune modification effectuée.",
