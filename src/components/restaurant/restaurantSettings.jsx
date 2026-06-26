@@ -1495,10 +1495,23 @@ const RestaurantSettings = ({ data: inData }) => {
                     {t("restaurantSettings.special_price_help")}
                   </p>
                 </div>
-                <div className="rounded-xl border border-[--border-1] bg-[--white-1] p-3">
+                {/* Goes red when ON — "out of service" is an active alarm
+                    state the owner should immediately notice (the whole card
+                    tints rose, not just the toggle). */}
+                <div
+                  className={`rounded-xl border p-3 transition-colors ${
+                    restaurantData?.hide
+                      ? "border-rose-300 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/20"
+                      : "border-[--border-1] bg-[--white-1]"
+                  }`}
+                >
                   <CustomToggle
                     label={t("restaurantSettings.hide_restaurant")}
-                    className2="text-sm font-medium text-[--black-1]"
+                    className2={`text-sm font-medium ${
+                      restaurantData?.hide
+                        ? "text-rose-700 dark:text-rose-300"
+                        : "text-[--black-1]"
+                    }`}
                     checked={restaurantData?.hide}
                     onChange={() =>
                       setRestaurantData((prev) => ({
@@ -1507,7 +1520,13 @@ const RestaurantSettings = ({ data: inData }) => {
                       }))
                     }
                   />
-                  <p className="text-[11px] text-[--gr-1] mt-1.5 leading-snug">
+                  <p
+                    className={`text-[11px] mt-1.5 leading-snug ${
+                      restaurantData?.hide
+                        ? "text-rose-700/90 dark:text-rose-300/90"
+                        : "text-[--gr-1]"
+                    }`}
+                  >
                     {t("restaurantSettings.hide_restaurant_help")}
                   </p>
                 </div>
