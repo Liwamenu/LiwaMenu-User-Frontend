@@ -10,6 +10,8 @@ import {
   Check,
   Camera,
   ChefHat,
+  Flame,
+  Clock,
 } from "lucide-react";
 
 // COMP
@@ -156,6 +158,27 @@ const ProductCard = ({
             {portionCount > 1 && (
               <span className="inline-flex items-center text-[10px] font-medium text-[--gr-1] bg-[--white-2] ring-1 ring-[--border-1] px-1.5 py-0.5 rounded-md">
                 {t("productCard.portion_count", { count: portionCount })}
+              </span>
+            )}
+            {/* Kalori — orange Flame chip. Only when a positive value is
+                set (0 / blank reads as "not provided", so no chip). */}
+            {Number(product.calorie) > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-orange-700 bg-orange-50 ring-1 ring-orange-200 px-1.5 py-0.5 rounded-md dark:bg-orange-500/15 dark:text-orange-200 dark:ring-orange-400/30">
+                <Flame className="size-3" strokeWidth={2.25} />
+                {t("productCard.calorie_badge", {
+                  count: Number(product.calorie),
+                  defaultValue: "{{count}} kcal",
+                })}
+              </span>
+            )}
+            {/* Hazırlanma süresi — sky Clock chip. */}
+            {Number(product.preparationTime) > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-700 bg-sky-50 ring-1 ring-sky-200 px-1.5 py-0.5 rounded-md dark:bg-sky-500/15 dark:text-sky-200 dark:ring-sky-400/30">
+                <Clock className="size-3" strokeWidth={2.25} />
+                {t("productCard.prep_time_badge", {
+                  count: Number(product.preparationTime),
+                  defaultValue: "{{count}} dk",
+                })}
               </span>
             )}
           </div>

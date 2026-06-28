@@ -284,6 +284,13 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
     formData.append("freeTagging", productData.freeTagging);
     formData.append("isCampaign", !!productData.isCampaign);
 
+    // Optional nutrition / prep metadata. Sent as empty string when
+    // blank so the backend's nullable-int binder coerces it to null —
+    // critical on Edit so clearing a previously-set value actually
+    // persists the clear (an omitted field would leave the old value).
+    formData.append("calorie", productData.calorie ?? "");
+    formData.append("preparationTime", productData.preparationTime ?? "");
+
     // Many-to-many: ship the picked memberships as a JSON-stringified
     // array (multipart/form-data can't nest natively). Backend
     // contract: each entry has `categoryId` (required) and an
@@ -530,6 +537,63 @@ const EditProduct = ({ product: prodToPopup, onSaved }) => {
                         onChange={() => handleToggle("recommendation")}
                       />
                     </div>
+                  </div>
+
+                  {/* Kalori + Hazırlanma Süresi — opsiyonel ürün
+                      metaverisi; girilince müşteri menüsünde gösterilir.
+                      Mevcut üründen (productData) seed olur. */}
+                  <div className="flex flex-col p-4 bg-[--light-1] rounded-xl border border-[--border-1] hover:border-indigo-200 transition-colors">
+                    <span className="text-xs font-semibold text-[--gr-1] uppercase tracking-wider mb-3">
+                      {t("editProduct.nutrition_section", "Kalori & Hazırlanma")}
+                    </span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <CustomInput
+                        type="text"
+                        inputMode="numeric"
+                        name="digit"
+                        maxLength={5}
+                        label={t("editProduct.calorie_label", "Kalori (kcal)")}
+                        className5="mb-1"
+                        placeholder={t(
+                          "editProduct.calorie_placeholder",
+                          "örn. 250",
+                        )}
+                        className="py-2 text-sm bg-[--white-2]"
+                        value={productData.calorie ?? ""}
+                        onChange={(v) =>
+                          handleField("calorie", v.replace(/[^\d]/g, ""))
+                        }
+                      />
+                      <CustomInput
+                        type="text"
+                        inputMode="numeric"
+                        name="digit"
+                        maxLength={4}
+                        label={t(
+                          "editProduct.preparation_time_label",
+                          "Hazırlanma Süresi (dk)",
+                        )}
+                        className5="mb-1"
+                        placeholder={t(
+                          "editProduct.preparation_time_placeholder",
+                          "örn. 15",
+                        )}
+                        className="py-2 text-sm bg-[--white-2]"
+                        value={productData.preparationTime ?? ""}
+                        onChange={(v) =>
+                          handleField(
+                            "preparationTime",
+                            v.replace(/[^\d]/g, ""),
+                          )
+                        }
+                      />
+                    </div>
+                    <p className="text-[11px] text-[--gr-1] mt-2 leading-snug">
+                      {t(
+                        "editProduct.nutrition_hint",
+                        "İsteğe bağlı — girildiğinde menüde müşteriye gösterilir.",
+                      )}
+                    </p>
                   </div>
                 </div>
 

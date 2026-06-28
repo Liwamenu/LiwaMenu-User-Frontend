@@ -1404,7 +1404,9 @@
     "campaign": "促销活动",
     "change_image": "更换图片",
     "edit": "编辑产品",
-    "delete": "删除产品"
+    "delete": "删除产品",
+    "calorie_badge": "{{count}} 千卡",
+    "prep_time_badge": "{{count}} 分钟"
   },
   "quickEditImage": {
     "title": "更换产品图片",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "删除份量",
     "cancel": "取消",
     "tag": "标签",
-    "freeTag": "自由标签"
+    "freeTag": "自由标签",
+    "nutrition_section": "热量与准备",
+    "calorie_label": "热量 (kcal)",
+    "calorie_placeholder": "例如 250",
+    "preparation_time_label": "准备时间(分钟)",
+    "preparation_time_placeholder": "例如 15",
+    "nutrition_hint": "可选——填写后会在菜单中向顾客显示。"
   },
   "addProduct": {
     "title": "新产品",

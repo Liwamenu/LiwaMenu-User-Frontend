@@ -1404,7 +1404,9 @@
     "campaign": "Акция",
     "change_image": "Изменить изображение",
     "edit": "Редактировать продукт",
-    "delete": "Удалить продукт"
+    "delete": "Удалить продукт",
+    "calorie_badge": "{{count}} ккал",
+    "prep_time_badge": "{{count}} мин"
   },
   "quickEditImage": {
     "title": "Изменить изображение товара",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "Удалить порцию",
     "cancel": "Отмена",
     "tag": "Тег",
-    "freeTag": "Свободная маркировка"
+    "freeTag": "Свободная маркировка",
+    "nutrition_section": "Калории и приготовление",
+    "calorie_label": "Калории (ккал)",
+    "calorie_placeholder": "напр. 250",
+    "preparation_time_label": "Время приготовления (мин)",
+    "preparation_time_placeholder": "напр. 15",
+    "nutrition_hint": "Необязательно — показывается клиентам в меню, если указано."
   },
   "addProduct": {
     "title": "Новый продукт",

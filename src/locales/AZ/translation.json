@@ -1404,7 +1404,9 @@
     "campaign": "Kampaniyalı",
     "change_image": "Şəkli Dəyişdir",
     "edit": "Məhsulu Redaktə Et",
-    "delete": "Məhsulu Sil"
+    "delete": "Məhsulu Sil",
+    "calorie_badge": "{{count}} kkal",
+    "prep_time_badge": "{{count}} dəq"
   },
   "quickEditImage": {
     "title": "Məhsul Şəklini Dəyişdir",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "Porsiyonu Sil",
     "cancel": "Ləğv et",
     "tag": "Etiket",
-    "freeTag": "Sərbəst Etiketləmə"
+    "freeTag": "Sərbəst Etiketləmə",
+    "nutrition_section": "Kalori və hazırlanma",
+    "calorie_label": "Kalori (kcal)",
+    "calorie_placeholder": "məs. 250",
+    "preparation_time_label": "Hazırlanma vaxtı (dəq)",
+    "preparation_time_placeholder": "məs. 15",
+    "nutrition_hint": "İstəyə bağlı — daxil edildikdə menyuda müştəriyə göstərilir."
   },
   "addProduct": {
     "title": "Yeni Məhsul",

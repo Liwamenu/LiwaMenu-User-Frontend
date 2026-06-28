@@ -1444,7 +1444,9 @@
     "campaign": "Kampanyalı",
     "change_image": "Fotoğrafı Değiştir",
     "edit": "Ürünü Düzenle",
-    "delete": "Ürünü Sil"
+    "delete": "Ürünü Sil",
+    "calorie_badge": "{{count}} kcal",
+    "prep_time_badge": "{{count}} dk"
   },
   "quickEditImage": {
     "title": "Ürün Fotoğrafını Değiştir",
@@ -1556,7 +1558,13 @@
     "portion_delete_aria": "Porsiyonu Sil",
     "cancel": "Vazgeç",
     "tag": "Etiket",
-    "freeTag": "Serbest Etiketleme"
+    "freeTag": "Serbest Etiketleme",
+    "nutrition_section": "Kalori & Hazırlanma",
+    "calorie_label": "Kalori (kcal)",
+    "calorie_placeholder": "örn. 250",
+    "preparation_time_label": "Hazırlanma Süresi (dk)",
+    "preparation_time_placeholder": "örn. 15",
+    "nutrition_hint": "İsteğe bağlı — girildiğinde menüde müşteriye gösterilir."
   },
   "addProduct": {
     "title": "Yeni Ürün",

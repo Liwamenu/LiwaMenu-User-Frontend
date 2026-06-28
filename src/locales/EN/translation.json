@@ -1443,7 +1443,9 @@
     "campaign": "Campaign",
     "change_image": "Change Image",
     "edit": "Edit Product",
-    "delete": "Delete Product"
+    "delete": "Delete Product",
+    "calorie_badge": "{{count}} kcal",
+    "prep_time_badge": "{{count}} min"
   },
   "quickEditImage": {
     "title": "Change Product Image",
@@ -1555,7 +1557,13 @@
     "portion_delete_aria": "Delete Portion",
     "cancel": "Cancel",
     "tag": "Tag",
-    "freeTag": "Free Tagging"
+    "freeTag": "Free Tagging",
+    "nutrition_section": "Calories & Prep Time",
+    "calorie_label": "Calories (kcal)",
+    "calorie_placeholder": "e.g. 250",
+    "preparation_time_label": "Prep Time (min)",
+    "preparation_time_placeholder": "e.g. 15",
+    "nutrition_hint": "Optional — shown to customers on the menu when set."
   },
   "addProduct": {
     "title": "New Product",

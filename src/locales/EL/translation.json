@@ -1404,7 +1404,9 @@
     "campaign": "Προσφορά",
     "change_image": "Αλλαγή Εικόνας",
     "edit": "Επεξεργασία Προϊόντος",
-    "delete": "Διαγραφή Προϊόντος"
+    "delete": "Διαγραφή Προϊόντος",
+    "calorie_badge": "{{count}} kcal",
+    "prep_time_badge": "{{count}} λεπτά"
   },
   "quickEditImage": {
     "title": "Αλλαγή Εικόνας Προϊόντος",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "Διαγραφή Μερίδας",
     "cancel": "Ακύρωση",
     "tag": "Ετικέτα",
-    "freeTag": "Ελεύθερη Ετικετοποίηση"
+    "freeTag": "Ελεύθερη Ετικετοποίηση",
+    "nutrition_section": "Θερμίδες & προετοιμασία",
+    "calorie_label": "Θερμίδες (kcal)",
+    "calorie_placeholder": "π.χ. 250",
+    "preparation_time_label": "Χρόνος προετοιμασίας (λεπτά)",
+    "preparation_time_placeholder": "π.χ. 15",
+    "nutrition_hint": "Προαιρετικό — εμφανίζεται στους πελάτες στο μενού όταν συμπληρωθεί."
   },
   "addProduct": {
     "title": "Νέο Προϊόν",

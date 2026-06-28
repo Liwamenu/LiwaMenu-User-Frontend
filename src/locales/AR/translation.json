@@ -1404,7 +1404,9 @@
     "campaign": "عرض",
     "change_image": "تغيير الصورة",
     "edit": "تعديل المنتج",
-    "delete": "حذف المنتج"
+    "delete": "حذف المنتج",
+    "calorie_badge": "{{count}} سعرة",
+    "prep_time_badge": "{{count}} دقيقة"
   },
   "quickEditImage": {
     "title": "تغيير صورة المنتج",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "حذف الحصة",
     "cancel": "إلغاء",
     "tag": "وسم",
-    "freeTag": "الوسم الحر"
+    "freeTag": "الوسم الحر",
+    "nutrition_section": "السعرات والتحضير",
+    "calorie_label": "السعرات الحرارية (kcal)",
+    "calorie_placeholder": "مثال: 250",
+    "preparation_time_label": "وقت التحضير (دقيقة)",
+    "preparation_time_placeholder": "مثال: 15",
+    "nutrition_hint": "اختياري — يظهر للعملاء في القائمة عند إدخاله."
   },
   "addProduct": {
     "title": "منتج جديد",

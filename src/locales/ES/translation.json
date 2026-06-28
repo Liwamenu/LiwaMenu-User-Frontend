@@ -1404,7 +1404,9 @@
     "campaign": "Campaña",
     "change_image": "Cambiar imagen",
     "edit": "Editar producto",
-    "delete": "Eliminar producto"
+    "delete": "Eliminar producto",
+    "calorie_badge": "{{count}} kcal",
+    "prep_time_badge": "{{count}} min"
   },
   "quickEditImage": {
     "title": "Cambiar imagen del producto",
@@ -1516,7 +1518,13 @@
     "portion_delete_aria": "Eliminar porción",
     "cancel": "Cancelar",
     "tag": "Etiqueta",
-    "freeTag": "Etiquetado libre"
+    "freeTag": "Etiquetado libre",
+    "nutrition_section": "Calorías y preparación",
+    "calorie_label": "Calorías (kcal)",
+    "calorie_placeholder": "p. ej. 250",
+    "preparation_time_label": "Tiempo de preparación (min)",
+    "preparation_time_placeholder": "p. ej. 15",
+    "nutrition_hint": "Opcional: se muestra a los clientes en el menú cuando se completa."
   },
   "addProduct": {
     "title": "Nuevo producto",
