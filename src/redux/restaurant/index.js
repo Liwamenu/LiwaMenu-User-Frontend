@@ -21,6 +21,9 @@ import setRestaurantThemeSlice from "./setRestaurantThemeSlice";
 import setRestaurantTvThemeSlice from "./setRestaurantTvThemeSlice";
 import setRestaurantKioskThemeSlice from "./setRestaurantKioskThemeSlice";
 import checkTenantAvailabilitySlice from "./checkTenantAvailabilitySlice";
+import getTvDisplaysSlice from "./getTvDisplaysSlice";
+import upsertTvDisplaySlice from "./upsertTvDisplaySlice";
+import deleteTvDisplaySlice from "./deleteTvDisplaySlice";
 
 const restaurantSlice = combineReducers({
   getWorkingHours: getWorkingHoursSlice,
@@ -50,6 +53,13 @@ const restaurantSlice = combineReducers({
   // setRestaurantTvTheme (TV).
   setRestaurantKioskTheme: setRestaurantKioskThemeSlice,
   checkTenantAvailability: checkTenantAvailabilitySlice,
+  // Multi-screen TV displays (screen 2+). GetTvDisplays returns the list +
+  // tvLicenseCount; Upsert/Delete return the refreshed list. These return a
+  // LIST (not a restaurant patch), so they are deliberately NOT added to
+  // restaurantEntityPatchers' PATCH_THUNK_PREFIXES.
+  getTvDisplays: getTvDisplaysSlice,
+  upsertTvDisplay: upsertTvDisplaySlice,
+  deleteTvDisplay: deleteTvDisplaySlice,
 });
 
 export default restaurantSlice;
